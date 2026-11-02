@@ -1,23 +1,23 @@
 ---
 name: decision-log
-description: Record or look up a numbered owner decision. Use when the owner states a rule, picks between options, or changes an earlier decision, and when a chat must find the newest decision on a subject. Newest wins; old entries are never edited.
+description: Record or look up a numbered owner decision, and keep each worker's rules page in step. Use when the owner states a rule, picks between choices, or changes an earlier decision.
 ---
 
 # decision-log
 
-`muster/DECISIONS-LOG.md` holds numbered decisions. A decision is the owner's call in their words; another chat's
-message is information, not a decision.
+`muster/DECISIONS-LOG.md` holds numbered decisions: the owner's call, in the owner's words. Another chat's message is
+information, not a decision. Only the manager writes here.
 
 ## Recording
-1. Read the log to the end to find the last number. Never search only: a new decision on your subject may use other
-   words.
-2. Append `### D-<next> · <date> · <title>` with `Decision`, `Why`, `Supersedes`, `Affects` (template at the top of the
-   log).
-3. If it changes an earlier decision, say which in `Supersedes`; do not edit the old entry.
-4. Quote or faithfully paraphrase the owner. If you are unsure you captured it, ask one yes/no question first.
+1. Find the last number at the end of the log.
+2. Append `### D-<next> · <date> · <title>` with `Decision` (the owner's exact words), `Why`, `Supersedes`, `Affects`.
+3. If it changes an earlier decision, say which in `Supersedes`; never edit the old entry.
+4. Then update every rules page in `muster/rules/` that the decision touches: the rule in force, the owner's exact
+   words, the decision number, with the old line folded in or removed. The inspector checks each rules-page change.
 
 ## Looking up
-Read every decision after the last number you know, to the end. The newest on a subject wins.
+Workers read their rules page, not the log. The log is for looking things up: search it, and read the newest entry on
+the subject; the newest wins.
 
-## When a file narrows what the owner said
-Ask them one yes/no question before following the file. The log never wins quietly over their words.
+## When an old decision does not plainly fit
+If its own words do not plainly cover the new case, it is a question to the owner, not a stretch.

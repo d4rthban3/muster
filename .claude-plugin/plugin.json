@@ -1,8 +1,8 @@
 {
   "name": "muster",
   "displayName": "Muster",
-  "version": "0.1.0",
-  "description": "A method for running Claude Code chats as a crew: manager, builders, inspector, outside helpers; numbered decisions, a board, two checks before READY.",
+  "version": "0.2.0",
+  "description": "A crew of Claude Code chats: a manager you talk to, builders, a designer and inspectors, set up from one page.",
   "author": { "name": "Muster contributors" },
   "license": "MIT",
   "repository": "https://github.com/d4trhban3/muster",

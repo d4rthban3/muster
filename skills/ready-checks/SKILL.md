@@ -1,34 +1,35 @@
 ---
 name: ready-checks
-description: The two checks a builder runs before saying READY, and the READY line itself. Use when a builder is finishing a piece of work, before posting READY on the board, and when an inspector is deciding whether a READY is valid.
+description: The two checks a builder or the designer runs before sending READY, and the READY report itself. Use when finishing a piece of work, before sending READY, and when an inspector decides whether a READY is complete.
 ---
 
 # ready-checks
 
-Build and inspect are different hands. The builder runs these two checks so the inspector never has to find what a
+Build and inspect are different hands. The builder runs these two checks so the inspector never has to find what the
 builder could have found.
 
 ## The two checks
-1. **Run all tests on the combined code**, not just the new test: merge or rebase onto the current main line first,
-   then run every suite in `muster/CHECKS.md` (skill `run-checks`). A pass on your branch alone proves little.
-2. **Search the whole project for the pattern just changed.** If you fixed a bug in one call site, search for every
-   other site with the same shape (function name, constant, query, format string) and fix or list each one.
+1. **Run all the tests on the combined work**, not just the new test: bring your line of work up to date with the
+   main line first, then run every test listed in `muster/CHECKS.md` (skill `run-checks`). A pass on your own line
+   of work alone proves little.
+2. **Search the whole project for the thing you just changed.** If you fixed a mistake in one place, search for every
+   other place with the same shape (the same name, setting, query or wording) and fix or list each one.
 
-## The READY line
-Post to the board (and message the inspector) with all of:
+## The READY report (six lines, see `muster/REPORT.md`)
 ```
-### <date> | READY | <you> -> inspector | <piece>
-Status: open
-Branch: <branch>   Commit: <short hash>
-Touches: none | <shared database / file store / outside connection, by name>
-Checks: tests <passed>/<total> on combined code; searched for <pattern>: <n> other sites, <fixed/listed>
-Detail: <link or path>
+READY: <job name, word for word from the order>
+What:  <what was done>
+Where: <line of work and saved version>; touches: <none, or the shared database, file store or outside connection, by name>
+Why:   <the order or decision it comes from>
+How:   tests <passed>/<total> on the combined work; searched for <thing>: <n> other places, <fixed / listed>
+Need:  <what is left out, or "nothing; ready for the inspector">
 ```
+Send it to the inspector. The designer also names its screenshots on the Where line.
 
 ## Inspector side
-Fail a READY that lacks any of: branch, commit, the "Touches" line, or the two checks. A fail is a normal outcome:
-write what is missing, send it back, do not fix it yourself.
+FAIL a READY that lacks the line of work, the saved version, the "touches" part, or the two checks. A FAIL is a
+normal outcome: say exactly what is missing and do not fix it yourself.
 
 ## Do not
-- Say READY on work you have not run.
+- Send READY on work you have not run.
 - Pass your own work.

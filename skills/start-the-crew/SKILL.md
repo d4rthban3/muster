@@ -1,28 +1,41 @@
 ---
 name: start-the-crew
-description: How to start the crew's chats (manager, builders, designer, inspector, outside helpers) in Claude Code. Use when setting up a project, adding a builder, or renewing a long chat. Covers one chat per role, how to give each its role, and handover.
+description: How the manager (or the setup) starts, renews and archives the crew's chats. Use at setup, when adding a worker, when a worker sends "DONE: renewal", and when three workers build so a second inspector is needed.
 ---
 
 # start-the-crew
 
-## One chat per role
-Open a separate Claude Code chat for each role (manager, builder A, inspector; add builders as needed). Each chat runs
-in the same project folder (or its own git worktree if two builders edit at once).
+Every worker is a whole chat with: its name (role, underscore, three digits), its own copy of the project folder, the
+model and effort from its definition, and the five-line starting note (`muster/START-NOTE.md`) as its first message.
 
-## Starting a role
-1. In the new chat, run `/muster:role <role>` (manager, builder, inspector, helper). It loads that role's rules, tells it
-   what it owns and does not touch, and has it read the board.
-2. Alternatively, in a terminal: `claude --agent muster:<role>` starts the session with that role's agent definition.
-3. Give the manager the owner's goal; the manager writes orders (skill `one-order-per-piece`).
-4. Keep `muster/CREW.md`'s roster table current: role, chat, model, branch.
+## In the desktop app
+Use the app's tool for starting a session: give it the name, the model and effort from the worker's definition, its
+own folder copy (a separate worktree), and the five-line note as the first message. Archive an old chat with the
+app's archive tool (never delete).
 
-## Isolation
-Two builders at once → `git worktree add ../<name> -b builder/<name>` per builder, and files must not overlap.
+## In a terminal
+For each worker, run one command from the project folder:
+```
+claude --bg --name <Name_001> --agent muster:<role> --model <model> --effort medium --worktree <name-001> "<five-line note>"
+```
+- The chat runs in the background with its own folder copy and keeps running after the terminal closes.
+- Tell the owner, in plain words, how to watch and type into a chat: `claude agents` shows them all;
+  `claude attach <Name_001>` opens one; the left arrow key returns.
+- Archive: `claude stop <Name_001>`. The conversation is kept and can be opened again with `claude attach`.
+- The folder must have been opened in Claude once (the trust question). If a start fails with "not trusted", tell the
+  owner plainly to run `claude` in the project folder once and say yes, then try again.
 
-## Outside helpers
-Another AI chat or contractor gets a public or exported copy, never keys or private files. What comes back is a lead:
-the manager checks it before it becomes an order.
+## Renewal
+On `DONE: renewal <Name_00N>`: start `<Name_00N+1>` the same way, its note's First line pointing at
+`muster/handovers/<Name_00N>.md`; archive the old chat; update `muster/CREW.md`.
 
-## Renewing a long chat
-At a natural break the chat writes a handover note (see `usage-habits`, habit 7), posts one board line, and the manager
-starts a fresh chat for the role.
+## Second inspector
+When the workers that build (builders, the designer, Agent_Teacher) reach three, start `Design_Inspector_001`. It checks
+what people see; Inspector_001 keeps what is behind the scenes and the manager's paperwork.
+
+## Models
+| Worker | Model |
+|---|---|
+| Manager_001, Inspector_001, Design_Inspector_001, Sketchpad_001, Agent_Teacher_001 | claude-opus-5-5 |
+| Builder_A_001 (and B, C...), Designer_001, AI_Socket_001 | claude-sonnet-5-5 |
+Every chat on medium effort; on the owner's "speed up", the manager and the inspectors go to high.

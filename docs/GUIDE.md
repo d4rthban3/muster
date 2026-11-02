@@ -1,50 +1,39 @@
-# Install and first run
+# Muster, step by step
 
-## 1. Install
-```bash
-claude plugin marketplace add d4trhban3/muster
-claude plugin install muster@muster-kit
-```
-Check: `claude plugin list` shows `muster@muster-kit`. To try it from a local copy instead:
-`claude plugin marketplace add ./path/to/this/folder`, same install command.
+You do not need to know anything about terminals or code to follow this.
 
-## 2. Set up a project
-Open Claude Code in your project folder and run `/muster:init`. It creates `muster/` (roster, decisions log, board,
-checks list), an `inspection/` folder, and a starter `CLAUDE.md` (or offers to append to yours). It never overwrites
-and commits nothing. Answer its two questions; the answers become decision D-001.
+## 1. Install (once)
+1. Open Claude Code: the Code tab in the Claude desktop app, or type `claude` in a terminal.
+2. Type `/plugin marketplace add d4trhban3/muster` and press Enter.
+3. Type `/plugin install muster@muster-kit` and press Enter.
 
-## 3. Fill in the checks list
-Open `muster/CHECKS.md`. One line per test command: `<folder> | <command> | <expected count>`. Run each once, and put
-the printed count in. The `run-checks` skill compares against these.
+## 2. Set up your crew (once per project)
+1. Open Claude Code in your project's folder. In a terminal, the first time, Claude asks whether you trust the
+   folder: say yes.
+2. Type `/muster:setup` and press Enter.
+3. A setup page opens: in the side browser of the desktop app, or in your own web browser.
+4. In the first box, write what you are building and your vision, in your own words.
+5. Your crew shows as cards: Manager_001, Builder_A_001, Designer_001 and Inspector_001 are always there.
+6. Add any add-ons you want: extra builders, Sketchpad_001, AI_Socket_001, Agent_Teacher_001. When three or more
+   workers build, Design_Inspector_001 appears on its own.
+7. "What the crew asks you first": spending money, keys or passwords, and deleting anything are always on. Type
+   anything else you want to be asked about first, and press Add.
+8. Press Start, then go back to Claude. It starts your crew.
 
-## 4. Open one chat per role
-- Chat 1: run `/muster:role manager`. Give it your goal.
-- Chat 2: `/muster:role builder` (or `designer` for front-end work). Chat 3: `/muster:role inspector`.
-- Two builders at once: give each its own git worktree (`git worktree add ../b2 -b builder/b2`), and non-overlapping
-  files.
-Update the roster table in `muster/CREW.md`.
+## 3. Working with your crew
+- Talk only to **Manager_001**. In the desktop app it is in the sidebar. In a terminal, type `claude agents` to see
+  every worker, `claude attach Manager_001` to open the manager, and the left arrow key to go back.
+- Say what you want in your own words. The manager sorts it: an **order** goes straight to a worker; a **question**
+  ("why does this look off?") gets looked into and answered with choices; an **idea** is parked on your list without
+  starting work.
+- Your list is `muster/OWNERS-LIST.md`: what you asked for, word for word, and where each thing stands.
+- The manager asks one question at a time, with lettered choices and its pick. It messages you on its own only for
+  that question, a one-line "Closed" note, something that failed for good, or something it needs your yes for.
+- To bring a finished item back: "reopen" and its number.
+- To speed things up: tell the manager. The manager and the inspectors then think harder (more usage).
 
-## 5. Run one piece of work
-1. Tell the manager the goal. It writes one order (`/muster:order`) naming the branch.
-2. The builder does it, then `/muster:ready <branch>`: runs all tests on the combined code, searches the whole project
-   for the changed pattern, posts the READY line.
-3. The inspector reads the board (`/muster:board inspector`), runs the checks itself, and passes or fails.
-4. The manager tells you when it is done. Say a rule out loud ("always do X") and the manager records it with
-   `/muster:decide`.
-
-## 6. Deploying and held work
-- Builders/designers deploy only their own **site / front-end** work: `/muster:deploy <piece>` (dry run, lock, fresh
-  clone, push check, verify live). Engine, data and back-end changes are never deployed by the builder.
-- Held work stays on its branch. Before any push run `/muster:push-check <n>` with the number of commits you expect to
-  send; it stops you if extra commits are waiting.
-- Models: read-only agents default to a cheap model; the rest follow your choice. Each agent lists only the tools it
-  needs (edit the `tools:` line in the plugin's agent file to change that).
-- Put each chat's id in the roster in `muster/CREW.md` so chats can message each other.
-
-## 7. Daily habits
-Each chat runs `/muster:board <role>` at session start and before finishing. Long chat? Renew it at a natural break
-with a handover note (skill `usage-habits`).
-
-## Notes
-- Only a new paid spend, a key, or deleting data needs your yes; change that in the decisions log.
-- Nothing in the kit contacts the network or sends data anywhere.
+## 4. What happens on its own
+- Every worker is its own chat with its own copy of your project folder, so no two workers edit the same file.
+- When a chat gets long, it hands over to a fresh one with the next number (Builder_A_002, and so on). Old chats are
+  kept, never deleted.
+- Nobody checks their own work: builders hand finished work to an inspector, who passes it or sends it back.

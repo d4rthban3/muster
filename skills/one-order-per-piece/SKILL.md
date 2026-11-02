@@ -1,23 +1,29 @@
 ---
 name: one-order-per-piece
-description: How a manager writes orders. Use when the manager is handing work to a builder or inspector. One order per finished piece of work, naming the branch or item, with a clear done-condition.
+description: How the manager writes orders. Use whenever the manager hands work to a worker. One order per finished piece of work, with a job name every report repeats, and only what the owner chose.
 ---
 
 # one-order-per-piece
 
 ## Rules
-1. **One order per finished piece**, never one per role or per step. If a piece needs a builder and then an
-   inspector, the inspector's order comes when READY arrives.
-2. **Name the branch or item.** The order must be unambiguous about where the work lives.
-3. **State done.** What the READY line must show (tests, the search, what it touches).
-4. **State what is out of scope**, so the builder lists unrelated problems instead of fixing them.
+1. **One order per finished piece**, never one per step or per worker. The inspector's part comes with the READY.
+2. **The job name** is short and plain. Every report about the job repeats it word for word.
+3. **Only what the owner chose.** The order carries the owner's words for what it should look like, what counts as
+   done, and what is in or out. If the owner has not said, that is a question to the owner first, not a guess in the
+   order.
+4. **Say where the work lives** (which worker's folder copy, which line of work) and what is out of the job, so the
+   worker lists unrelated problems instead of fixing them.
 5. **Two builders at once only when their files do not overlap.** Say which files each owns.
-6. **Orders carry no secrets.**
+6. **No keys or passwords in an order.**
 
-## Order template
+## Order shape
+Made-up example:
 ```
-To: <role>    Piece: <name>    Branch: <branch>
-Goal: <one sentence>
-Files you own: <list>        Out of scope: <list>
-Done when: tests green on combined code; whole-project search for <pattern>; READY line posted.
+To:      Builder_A_001
+Job:     filter button move
+Owner's words: "filter button right of the pills" (owner's list, item 7)
+Owns:    the home page files in your folder copy, line of work "builder/filter-move"
+Out:     the pills themselves, any other page
+Done:    the owner's words above; the two checks; READY to Inspector_001
 ```
+A worker starting fresh gets the five-line note instead (`muster/START-NOTE.md`), with this job under Open.

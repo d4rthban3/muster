@@ -23,7 +23,7 @@ PATTERNS=(
 )
 [ -f .scan-extra ] && while IFS= read -r l; do [ -n "$l" ] && PATTERNS+=("$l"); done < .scan-extra
 
-ALLOWED_HOSTS='^(github\.com|code\.claude\.com|docs\.claude\.com|claude\.com|example\.com|example\.invalid)$'
+ALLOWED_HOSTS='^(localhost|github\.com|code\.claude\.com|docs\.claude\.com|claude\.com|example\.com|example\.invalid)$'
 fail=0
 report() { echo "LEAK: $1"; fail=1; }
 

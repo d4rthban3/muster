@@ -12,23 +12,16 @@ Supersedes: D-<n> | none
 Affects: <roles / areas>
 ```
 
-## Standing decisions (edit to suit)
-### D-001 · <date> · What needs the owner's yes
-Decision: Only a new paid spend, a key or credential, and deleting data need the owner's yes. Everything routine runs
-without asking.
-Why: keeps the crew fast; the three exceptions are the ones that cannot be undone.
+## Standing decisions (written at setup from the owner's choices)
+### D-001 · <date> · What the crew asks the owner first
+Decision: Spending money, keys or passwords, and deleting anything need the owner's yes. <plus anything the owner
+added on the setup page, in their words>
+Why: chosen on the setup page.
 Supersedes: none
 Affects: all
 
-### D-002 · <date> · Build and inspect are different hands
-Decision: Nobody passes their own work. The inspector reads a builder's change before or after it goes live.
-Why: the author of a change is the worst judge of it.
+### D-002 · <date> · What we are building
+Decision: <the owner's answer to "What are you building? What is your vision?", word for word>
+Why: chosen on the setup page.
 Supersedes: none
 Affects: all
-
-### D-003 · <date> · The two checks before READY
-Decision: Before a builder says READY: all tests on the combined code, and a search of the whole project for the
-pattern just changed.
-Why: most rework came from a test of the combined code nobody ran and a second copy of the same bug.
-Supersedes: none
-Affects: builders, inspector

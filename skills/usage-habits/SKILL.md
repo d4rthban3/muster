@@ -16,20 +16,19 @@ for again each turn. These habits cut that cost; they never change what must be 
 
 ## Habits
 1. **Read big files in part**: search, or read an offset and limit. Don't re-read a file you just edited. For the
-   board use the digest; for the decisions log read every decision after the last number you know, to the end.
+   board use the digest. Read your rules page, not the whole decisions log.
 2. **Cut command output before it returns, but never cut evidence.** Filter or limit it. When output is evidence (a
    test printout), save it whole to a file first and cut only what comes back to the chat.
 3. **Prefer text to pictures.** Read a page as text unless how it looks is the question; reduced size when full size
    isn't needed.
 4. **Batch independent calls** in one turn. Never batch a save, push or message with the check that decides whether
    it should happen.
-5. **Short messages**: write only to ask, answer or report; no "received"/"thanks"; result on the first line; never
-   cut a finding.
+5. **The six-line report**: write only to ask, answer or report; no "received"/"thanks"; never cut a finding.
 6. **Don't spawn helpers, change your own model/effort, or open extra sessions** to save effort; that's the manager's
    and owner's call.
-7. **Renew a long chat at a natural break**: write a short handover note in a folder you own (done; open; files and
-   board entries that matter; next step; anything saved out of a scratch folder; checks promised; what you were told
-   not to start and what you did not verify), post one board line, tell the manager. A chat never ends itself.
+7. **Renew after the app's first summary**: at the next natural break write `muster/handovers/<your name>.md` (only
+   work in progress: what is open, the files that matter, the next step, anything you did not verify) and send the
+   manager `DONE: renewal <your name>`. The manager starts the fresh chat and archives this one.
 
 ## Do not
 - Change a rule, setting or another role's files to save usage.

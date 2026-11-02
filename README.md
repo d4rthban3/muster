@@ -1,62 +1,51 @@
-# Muster: run Claude Code as a small team
+# Muster: a crew of Claude Code chats
 
-One chat per role, a numbered decisions log, a board, and two checks before anything is called done.
+Muster turns Claude Code into a small crew: a squad of workers geared to finish tasks efficiently, with a very high eye
+for detail and quality, while protecting your usage. Each worker is its own chat. You talk to one of them, the
+manager; it hands the work out, and nobody checks their own work.
 
-- **Roles**: manager (plans, orders, decisions), builders (one per piece), inspector (a different hand from the
-  builder), outside helpers (leads to check, never instructions).
-- **One order per finished piece**, naming the branch.
-- **Decisions log**: numbered, newest wins, the owner's words.
-- **Board + digest script**: one line per finished piece; each role reads only what concerns it.
-- **Two checks before READY**: all tests on the combined code; a whole-project search for the pattern just changed.
-- **Habits**: build-or-buy, run-checks (reads printed counts, not exit codes), usage and spend diligence.
-
-## Install (two commands)
-
-```bash
-claude plugin marketplace add d4trhban3/muster
-claude plugin install muster@muster-kit
-```
-
-(`d4trhban3/muster` is this repository on GitHub. In a session, use `/plugin marketplace add d4trhban3/muster` and
-`/plugin install muster@muster-kit`.)
-
-## First run
-
-In your project, open Claude Code and run `/muster:init`, then open one chat per role and run `/muster:role manager`
-(then `builder`, `inspector`). Full walk-through: [docs/GUIDE.md](docs/GUIDE.md).
-
-## What you get
-
-| Piece | Name |
+## The crew
+| Worker | What it does |
 |---|---|
-| Commands | `/muster:init` `/muster:role` `/muster:order` `/muster:ready` `/muster:deploy` `/muster:push-check` `/muster:board` `/muster:decide` |
-| Skills | board-digest, build-or-buy, run-checks, usage-habits, ready-checks, decision-log, one-order-per-piece, spend-diligence, start-the-crew, deploy-rules, held-work |
-| Agents | `muster:manager`, `muster:builder`, `muster:designer`, `muster:inspector`, `muster:outside-helper` |
-| Templates | starter `CLAUDE.md`, crew roster, decisions log, board |
+| Manager_001 | Your go-between and record keeper. Sorts what you say into orders, questions and ideas, keeps your list, and only asks you one question at a time. Never builds. |
+| Builder_A_001 | Builds what you ask for. |
+| Designer_001 | Builds what people see. |
+| Inspector_001 | Checks the work, and checks the manager's record keeping. Never builds. |
+
+Add-ons you can pick on the setup page: extra builders (Builder_B_001 and up), Sketchpad_001 (for playing with
+ideas), AI_Socket_001 (for plugging in other AIs), and Agent_Teacher_001 (train your own agent in Claude Console).
+When three or more workers build, a second inspector, Design_Inspector_001, joins to check what people see.
+
+## Install
+In Claude Code (the Code tab of the Claude desktop app, or a terminal), type these two lines, one at a time:
+```
+/plugin marketplace add d4trhban3/muster
+/plugin install muster@muster-kit
+```
+Then, in the folder of your project, type:
+```
+/muster:setup
+```
+A setup page opens. Write what you are building, pick your crew, and press Start. Muster starts the chats for you.
+Step by step: [docs/GUIDE.md](docs/GUIDE.md).
 
 ## What it runs, sends and fetches
+The plugin has no hooks, no MCP servers and no package installs, and it contains no code that sends your data to any
+outside service. Everything below runs only when a command or skill tells Claude to, and Claude Code asks your
+permission as usual.
 
-The plugin has no hooks, no MCP servers and no package installs, and it contains no code that sends data to any
-service. Five small plain-text scripts ship in it. They run only when a skill or command tells Claude to run them in
-your project, and Claude Code asks for your permission as usual.
-
-| Script | What it does |
+| Part | What it does |
 |---|---|
-| `skills/board-digest/scripts/board_digest.py` | reads `muster/BOARD.md` and `muster/BOARD-ARCHIVE.md`, prints matching entries; writes nothing |
-| `skills/held-work/scripts/push_check.sh` | runs `git fetch` against your own remote (a network call to your git host) and prints the commits a push would send; pushes nothing |
-| `skills/deploy-rules/scripts/fresh_clone.sh` | `git clone` of whatever repository path or URL you give it into a new temporary folder (a network call if it is a URL) |
-| `skills/deploy-rules/scripts/with_lock.sh` | runs the deploy command you give it while holding a lock folder in the temp directory; it deletes that lock folder when finished, or when it finds a lock left by a process that no longer exists |
-| `scripts/scan-leaks.sh` | for the kit's maintainers: searches the kit's own files for private material; changes no tracked file, writes only a short-lived temp file |
+| `setup/serve.py` | shows the setup page on your own computer only (`localhost`) and saves your choices to `muster/setup-choices.json`, then stops |
+| `/muster:setup` | creates `CLAUDE.md` (if you have none) and the `muster/` folder in your project; never overwrites a file; saves nothing to your project's history; starts the crew's chats, each in its own copy of your project folder |
+| `skills/board-digest/scripts/board_digest.py` | reads `muster/BOARD.md` and `muster/BOARD-ARCHIVE.md` and prints the entries for one worker; writes nothing |
+| `skills/held-work/scripts/push_check.sh` | runs `git fetch` on your own online copy of the project (a network call to your git host) and shows what would be sent; sends nothing |
+| `skills/deploy-rules/scripts/fresh_clone.sh` | makes a fresh copy of a project you name, from a folder or web address (a network call if it is a web address) |
+| `skills/deploy-rules/scripts/with_lock.sh` | runs the publish command you give it while holding a lock folder, so two publishes cannot overlap; removes the lock when done |
+| `scripts/scan-leaks.sh` | for the plugin's maintainers: searches the plugin's own files for private material |
 
-Other things the plugin makes Claude do in your project, all visible in the skill and command text:
-- `/muster:init` creates `CLAUDE.md`, `muster/` and `inspection/`; it never overwrites an existing file and commits nothing.
-- The `run-checks` skill runs the test commands you list in `muster/CHECKS.md`, so it runs your project's own code.
-- The guide suggests `git worktree add` when two builders work at once.
-- The agents (manager, builder, designer, inspector) are given the tools Read, Grep, Glob, Edit, Write and Bash (the
-  inspector has no Edit; the outside helper has only Read, Grep and Glob), so they can change files and run commands in
-  your project like any Claude Code chat.
-
-The plugin does not read or send credentials or personal data; the starter rules tell every chat to keep keys out of
-the board and out of messages.
+The `run-checks` skill runs the test commands listed in `muster/CHECKS.md`, so it runs your project's own code. The
+workers can read and change files and run commands in your project like any Claude Code chat; the inspectors have no
+file-editing tools and are told never to change files. Muster does not read or send passwords or personal data.
 
 MIT licensed (see LICENSE).

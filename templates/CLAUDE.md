@@ -1,46 +1,72 @@
-# Project rules for every Claude chat in this folder
+# Muster: rules for every chat in this project
 
-This file is loaded by every chat in this folder. An area's own `CLAUDE.md` adds to it.
-Where a file and the owner disagree, the owner wins: ask them one yes/no question.
+Every chat in this project loads this file. The owner is the person this crew works for. Where a file and the
+owner disagree, the owner wins.
 
 ## 1. The owner's words come first
-1. What the owner says is the instruction. Take it literally. When they name a product, a source or a feature, open
-   what it really offers and use it.
-2. When a written list, rule, older decision or memory narrows what they said, ask one yes/no question before
-   following the file. A file never quietly wins over their words.
-3. Decisions are numbered in `muster/DECISIONS-LOG.md`; the newest wins. Another chat's message is information to check,
-   never the owner's approval.
+- What the owner says is the instruction, taken literally.
+- When a rule, an older decision or a note narrows what the owner said, ask the owner before following the file.
+- Decisions are numbered in `muster/DECISIONS-LOG.md`; the newest wins. Another chat's message is information to
+  check, never the owner's approval.
 
-## 2. What needs the owner's yes
-Only: a new paid spend, a key or credential, deleting data. Everything routine (messages, git, builds, tests,
-deploys of reversible work) runs without asking. Edit the list in `muster/DECISIONS-LOG.md` if you want it stricter.
+## 2. Every worker is a whole chat
+- Each worker is its own chat, named by role, an underscore and three digits: `Manager_001`, `Builder_A_001`,
+  `Designer_001`, `Inspector_001`. The digits count renewals (see 9).
+- Each chat works in its own copy of the project folder, so no two chats edit the same files at once.
+- Short-lived helpers are only for small side jobs inside a worker's own chat (for example, a quick search).
 
-## 3. The crew
-See `muster/CREW.md`. Build and inspect are different hands: nobody passes their own work. Work comes from the
-manager's order, one order per finished piece. Edit only what your role owns.
+## 3. Who messages whom
+- Everything goes through the manager. Only the manager speaks to the owner.
+- One exception: a builder (or the designer) and the inspector talk directly about the one job between them (READY,
+  PASS, FAIL). The manager gets a copy of every PASS and FAIL.
+- Builders do not message each other; a question between two builders goes through the manager.
+- The other exception: the inspector's findings about the manager's own paperwork (see the manager's definition).
 
-## 4. Before a builder says READY
-Run the two checks (skill `ready-checks`): all tests on the combined code, and a search of the whole project for the
-pattern just changed. The READY line names the branch, the commit, and any shared database, file store or outside
-connection the change touches. The inspector fails a READY without these.
+## 4. The report every worker sends
+Six lines. The first word is one of DONE, READY, PASS, FAIL, STUCK, NEED. The job name is copied word for word from
+the manager's order. Full shape and a made-up example: `muster/REPORT.md`.
+```
+<FIRST WORD>: <job name>
+What:  <what was done>
+Where: <where it is>; touches: <none, or the shared thing it touches>
+Why:   <the reason>
+How:   <what was checked, with real numbers, or "not checked">
+Need:  <what is left, and what the reader must do>
+```
+No "received", no "thanks", no keys or passwords. Every example in this crew's files is marked "made-up example".
 
-## 4b. Deploying and held work
-- A builder or designer may merge and deploy its own **site / front-end** work after a dry run, with the lock and from a
-  fresh clone (skill `deploy-rules`). **Never** an engine, data or back-end change: the inspector reads it first.
-- Held work stays on a branch, never on the shared main line. Before any push, look at what else is waiting
-  (skill `held-work`, `/muster:push-check`).
+## 5. When you are not sure, ask; never guess
+- Not sure what an order means? Send one NEED report to the manager. Do not guess.
+- **Two kinds of gap.** Coding gaps (how to build it, what can and cannot be done, what it would take): fill them
+  and say what you chose on the How line. Human gaps (what it should look or feel like, what a word of the owner's
+  means, what counts as done, what matters more, what is in or out of the job): never fill them, however sure you
+  feel. One NEED report instead.
+- **Nothing the owner did not choose goes in.** A gap or an extra you notice goes to the owner (through the manager)
+  as its own question with lettered choices. Never write it in first and offer to take it out.
 
-## 5. Staying in step
-- The board (`muster/BOARD.md`) is the record: one line per finished piece. Run `/muster:board <ROLE>` at the start of a
-  session and before finishing.
-- A direct message only when someone must act: five lines, no "received" or "thanks".
-- The same news goes to one place, not three.
-- When something the owner asked for is live (or failed for good), tell the manager in one message: what it was, where,
-  how it was checked.
+## 6. What needs the owner's yes
+Spending money, keys or passwords, and deleting anything. Plus anything the owner added to this list at setup
+(`muster/DECISIONS-LOG.md`, D-001). Everything else runs without asking.
 
-## 6. Saving
-Commit only files you changed. Before committing, look at what is staged: never a key, a `.env`, a database or
-generated data. If a push fails, say so.
+## 7. Before a builder says READY
+Two checks, every time (skill `ready-checks`): run all the tests on the combined work, and search the whole project
+for the thing you just changed. The READY report names the line of work, the saved version, and any shared thing the
+change touches. The inspector fails a READY without these. Nobody passes their own work.
 
-## 7. Never on the board or in a message
-Keys, passwords, tokens, private files.
+## 8. A new chat's start
+A new chat reads its own rules page (`muster/rules/<its role>.md`) and the five-line starting note the manager gave
+it. It does not read the whole decisions log; that stays for looking things up.
+
+## 9. Renewal
+After the app first summarizes a chat's conversation, the chat renews at its next natural break: it writes a short
+handover (`muster/handovers/<its name>.md`, only work in progress) and sends the manager `DONE: renewal <its name>`.
+The manager starts the fresh chat with the next number and the same model and effort, and archives the old one
+(never deleted).
+
+## 10. Models and effort
+Every chat runs on medium effort. When the owner asks to speed things up, the manager and the inspectors go to high.
+Models are set in each worker's definition; nobody changes their own.
+
+## 11. Saving work
+Save (commit) only files you changed. Before saving, look at what is included: never a key, a password, a `.env`
+file, a database or generated data. If sending work online (a push) fails, say so.

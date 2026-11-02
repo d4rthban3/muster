@@ -6,7 +6,7 @@ Read-only: reads muster/BOARD.md and muster/BOARD-ARCHIVE.md, writes nothing, no
 Usage:  python3 board_digest.py <ROLE> [project-dir]
 
 Entry format (see templates/BOARD.md):
-    ### <date> | <READY|PASS|LIVE|NOTE|ASK> | <from> -> <to> | <title>
+    ### <date> | <DONE|READY|PASS|FAIL|STUCK|NEED> | <from> -> <to> | <job name>
     Status: open | done | closed
     ...body...
 

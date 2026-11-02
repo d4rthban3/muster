@@ -1,0 +1,9 @@
+{
+  "name": "muster",
+  "displayName": "Muster",
+  "version": "0.1.0",
+  "description": "A method for running Claude Code chats as a crew: manager, builders, inspector, outside helpers; numbered decisions, a board, two checks before READY.",
+  "author": { "name": "Muster contributors" },
+  "license": "MIT",
+  "keywords": ["workflow", "multi-agent", "review", "process"]
+}

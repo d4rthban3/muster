@@ -1,0 +1,12 @@
+{
+  "name": "muster-kit",
+  "description": "The crew method for Claude Code: roles, board, decisions log and checks before READY.",
+  "owner": { "name": "Muster contributors" },
+  "plugins": [
+    {
+      "name": "muster",
+      "source": "./",
+      "description": "Crew roles, a numbered decisions log, a board with a digest script, the two checks before READY, and habits for spend and usage."
+    }
+  ]
+}

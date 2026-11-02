@@ -52,7 +52,7 @@ textarea{width:100%;min-height:110px;resize:vertical;border:1px solid var(--line
   <div id="form">
     <section>
       <h2><label for="vision">What are you building? What is your vision?</label></h2>
-      <textarea id="vision"></textarea>
+      <textarea id="vision" maxlength="4000"></textarea>
     </section>
 
     <section>
@@ -88,7 +88,7 @@ textarea{width:100%;min-height:110px;resize:vertical;border:1px solid var(--line
         <span class="chip locked">Deleting anything</span>
       </div>
       <div class="addrow">
-        <input id="askInput" placeholder="Add another" aria-label="Add another thing the crew asks you first">
+        <input id="askInput" maxlength="200" placeholder="Add another" aria-label="Add another thing the crew asks you first">
         <button type="button" id="askAdd">Add</button>
       </div>
     </section>
@@ -128,7 +128,7 @@ $("plus").onclick=()=>{if(state.extra<letters.length){state.extra++;render();}};
 $("minus").onclick=()=>{if(state.extra>0){state.extra--;render();}};
 ["sketchpad","aisocket","teacher"].forEach(id=>$(id).onchange=render);
 $("vision").oninput=render;
-function addAsk(){const v=$("askInput").value.trim();if(v){state.asks.push(v);$("askInput").value="";render();}}
+function addAsk(){const v=$("askInput").value.trim();if(v&&state.asks.length<20){state.asks.push(v);$("askInput").value="";render();}}
 $("askAdd").onclick=addAsk;$("askInput").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();addAsk();}};
 $("start").onclick=async()=>{
   const crew=[...CORE.map(x=>x[0]),...extraNames()];
@@ -138,7 +138,7 @@ $("start").onclick=async()=>{
   if(building()>=3)crew.push("Design_Inspector_001");
   const choices={vision:$("vision").value,crew,asks_first:["Spending money","Keys or passwords","Deleting anything",...state.asks]};
   window.musterChoices=choices;
-  try{const r=await fetch("/save",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(choices)});if(!r.ok)throw 0;$("form").style.display="none";$("done").style.display="block";}
+  try{const r=await fetch("/save",{method:"POST",headers:{"Content-Type":"application/json","X-Muster-Token":"__MUSTER_TOKEN__"},body:JSON.stringify(choices)});if(!r.ok)throw 0;$("form").style.display="none";$("done").style.display="block";}
   catch(e){$("err").style.display="block";}
 };
 render();

@@ -5,14 +5,44 @@ Usage: python3 serve.py <project-folder>
 
 Prints the page address. When the owner presses Start, the choices are saved to
 <project-folder>/muster/setup-choices.json and the helper stops. Nothing leaves this computer.
+Only the page this helper served can save: it must send the one-time key printed into the page,
+from this helper's own address, as JSON, in the expected shape.
 """
 import json
 import os
+import re
+import secrets
 import sys
 import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+LOCKED = ["Spending money", "Keys or passwords", "Deleting anything"]
+CORE = ["Manager_001", "Builder_A_001", "Designer_001", "Inspector_001"]
+ADDONS = {"Sketchpad_001", "AI_Socket_001", "Agent_Teacher_001", "Design_Inspector_001"}
+EXTRA_BUILDER = re.compile(r"^Builder_[B-Z]_001$")
+
+
+def check_choices(choices):
+    """Return the choices if they have exactly the expected shape, else raise ValueError."""
+    if not isinstance(choices, dict) or set(choices) != {"vision", "crew", "asks_first"}:
+        raise ValueError("wrong fields")
+    vision, crew, asks = choices["vision"], choices["crew"], choices["asks_first"]
+    if not isinstance(vision, str) or not vision.strip() or len(vision) > 4000:
+        raise ValueError("vision")
+    if not isinstance(crew, list) or len(crew) > 40 or len(set(crew)) != len(crew):
+        raise ValueError("crew")
+    for name in crew:
+        if not isinstance(name, str) or not (name in CORE or name in ADDONS or EXTRA_BUILDER.match(name)):
+            raise ValueError("crew name")
+    if crew[:4] != CORE:
+        raise ValueError("core crew")
+    if not isinstance(asks, list) or len(asks) > 23 or asks[:3] != LOCKED:
+        raise ValueError("asks_first")
+    for item in asks:
+        if not isinstance(item, str) or not item.strip() or len(item) > 200:
+            raise ValueError("asks_first item")
+    return choices
 
 
 def main():
@@ -21,14 +51,22 @@ def main():
         return 2
     out_dir = os.path.join(os.path.abspath(sys.argv[1]), "muster")
     out_file = os.path.join(out_dir, "setup-choices.json")
+    token = secrets.token_urlsafe(24)
     with open(os.path.join(HERE, "index.html"), "rb") as fh:
-        page = fh.read()
+        page = fh.read().replace(b"__MUSTER_TOKEN__", token.encode())
+    allowed = set()
 
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, *args):
             pass
 
+        def own_host(self):
+            return self.headers.get("Host", "") in allowed
+
         def do_GET(self):
+            if not self.own_host():
+                self.send_error(403)
+                return
             if self.path not in ("/", "/index.html"):
                 self.send_error(404)
                 return
@@ -42,15 +80,23 @@ def main():
             if self.path != "/save":
                 self.send_error(404)
                 return
-            length = int(self.headers.get("Content-Length", "0"))
+            origin = self.headers.get("Origin")
+            if (not self.own_host()
+                    or (origin is not None and origin not in {"http://" + h for h in allowed})
+                    or not secrets.compare_digest(self.headers.get("X-Muster-Token", ""), token)
+                    or not self.headers.get("Content-Type", "").startswith("application/json")):
+                self.send_error(403)
+                return
+            try:
+                length = int(self.headers.get("Content-Length", "0"))
+            except ValueError:
+                length = 0
             if length <= 0 or length > 100_000:
                 self.send_error(400)
                 return
             try:
-                choices = json.loads(self.rfile.read(length).decode("utf-8"))
-                if not isinstance(choices, dict) or not str(choices.get("vision", "")).strip():
-                    raise ValueError("missing vision")
-            except ValueError:
+                choices = check_choices(json.loads(self.rfile.read(length).decode("utf-8")))
+            except (ValueError, UnicodeDecodeError):
                 self.send_error(400)
                 return
             os.makedirs(out_dir, exist_ok=True)
@@ -65,7 +111,9 @@ def main():
             threading.Thread(target=server.shutdown, daemon=True).start()
 
     server = HTTPServer(("127.0.0.1", 0), Handler)
-    print("http://localhost:%d/" % server.server_address[1], flush=True)
+    port = server.server_address[1]
+    allowed.update({"localhost:%d" % port, "127.0.0.1:%d" % port})
+    print("http://localhost:%d/" % port, flush=True)
     server.serve_forever()
     print("saved: %s" % out_file, flush=True)
     return 0

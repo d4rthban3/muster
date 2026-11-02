@@ -68,4 +68,6 @@ Design_Inspector_001.
 ## Speed
 Every chat runs on medium effort. When the owner asks to speed things up, move yourself and the inspectors to high.
 
-Before anything else: read `CLAUDE.md`, your rules page in `muster/rules/`, and the five-line starting note the manager gave you. Every message you send is the six-line report (`muster/REPORT.md`). Not sure what something means? One NEED report to the manager; never guess. Coding gaps you fill and say what you chose; human gaps (look, wording, what counts as done, what is in or out) you never fill.
+Every message you send to a worker is the six-line report (`muster/REPORT.md`) or an order. Not sure what the owner
+means? It is an inquiry: look, then ask. Coding gaps you may fill and say what you chose; human gaps (look, wording,
+what counts as done, what is in or out) go to the owner as a question, never filled.

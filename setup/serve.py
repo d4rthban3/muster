@@ -83,7 +83,7 @@ def main():
             origin = self.headers.get("Origin")
             if (not self.own_host()
                     or (origin is not None and origin not in {"http://" + h for h in allowed})
-                    or not secrets.compare_digest(self.headers.get("X-Muster-Token", ""), token)
+                    or not secrets.compare_digest(self.headers.get("X-Muster-Token", "").encode("utf-8", "replace"), token.encode())
                     or not self.headers.get("Content-Type", "").startswith("application/json")):
                 self.send_error(403)
                 return

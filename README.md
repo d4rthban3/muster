@@ -13,11 +13,11 @@ One chat per role, a numbered decisions log, a board, and two checks before anyt
 ## Install (two commands)
 
 ```bash
-claude plugin marketplace add OWNER/REPO
+claude plugin marketplace add d4trhban3/muster
 claude plugin install muster@muster-kit
 ```
 
-(`OWNER/REPO` is this repository on GitHub. In a session, use `/plugin marketplace add OWNER/REPO` and
+(`d4trhban3/muster` is this repository on GitHub. In a session, use `/plugin marketplace add d4trhban3/muster` and
 `/plugin install muster@muster-kit`.)
 
 ## First run

@@ -2,7 +2,7 @@
 
 ## 1. Install
 ```bash
-claude plugin marketplace add OWNER/REPO
+claude plugin marketplace add d4trhban3/muster
 claude plugin install muster@muster-kit
 ```
 Check: `claude plugin list` shows `muster@muster-kit`. To try it from a local copy instead:

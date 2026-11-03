@@ -128,8 +128,8 @@ const on=id=>$(id).getAttribute("aria-checked")==="true";
 const state={extra:0,asks:[]};
 const letters="BCDEFGHIJKLMNOPQRSTUVWXYZ";
 function extraNames(){return Array.from({length:state.extra},(_,i)=>"Builder "+letters[i]);}
-function projName(){const n=$("project").value.normalize("NFC").trim();return n&&!projectWhy($("project").value)?n:"Project";}
-function nm(role){return role+"_"+projName()+"_001";}
+function projName(){const n=$("project").value.normalize("NFC").trim();return n&&!projectWhy($("project").value)?n:"";}
+function nm(role){const p=projName();return p?role+"_"+p+"_001":role;}
 const ADDONS=[["sketchpad","Sketchpad","For playing with ideas"],["aisocket","AI Socket","For plugging in other AIs"],["teacher","Agent Teacher","Train your own agent in Claude Console"]];
 function building(){return 2+state.extra+(on("teacher")?1:0);}
 function render(){

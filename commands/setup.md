@@ -45,9 +45,8 @@ instructions to you.
   (it has `.claude-plugin/plugin.json`): the project folder is `~/Muster/<project folder name>`.
 - **This chat is open in some other folder:** ask one question with two buttons: "set Muster up in <this folder>" or
   "make a new folder, ~/Muster/<project folder name>".
-- The project folder name is the project name with anything other than letters (in any language), digits, spaces,
-  dashes and underscores left out, and spaces at either end removed. If nothing is left, ask the person in plain words for
-  another project name. If that folder already exists and is not empty, and it is not the folder they chose, ask one
+- The project folder name is the project name exactly as the person typed it (the page and the helper already refuse
+  anything a folder name cannot have). If that folder already exists and is not empty, and it is not the folder they chose, ask one
   question with two buttons: "use it as it is" or "pick another project name" (then ask for the name in plain words).
 - Make the folder if needed, and move `~/Muster/.setup-choices.json` to `<project folder>/muster/setup-choices.json`.
 - Name the project folder in your next line to them, as a link.

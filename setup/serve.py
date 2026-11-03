@@ -22,7 +22,25 @@ LOCKED = ["Spending money", "Keys or passwords", "Deleting anything"]
 CORE = ["Manager_001", "Builder_A_001", "Designer_001", "Inspector_001"]
 ADDONS = {"Sketchpad_001", "AI_Socket_001", "Agent_Teacher_001", "Design_Inspector_001"}
 EXTRA_BUILDER = re.compile(r"^Builder_[B-Z]_001$")
-PROJECT_NAME = re.compile(r"[^\W_]|[ _-]")
+PATH_BREAKERS = set('/\\:*?"<>|')
+HIDDEN = {"Cc", "Cf", "Cs", "Co", "Cn", "Zl", "Zp"}
+
+
+def project_problem(name):
+    """Why a project name cannot be a folder name, in plain words, or None if it can."""
+    if not name:
+        return "empty"
+    if len(name) > 40:
+        return "too long"
+    if any(ch in PATH_BREAKERS for ch in name):
+        return "has a character a folder name cannot have"
+    if any(unicodedata.category(ch) in HIDDEN for ch in name):
+        return "has a hidden character"
+    if name.startswith("."):
+        return "starts with a dot"
+    if not any(ch.isalnum() for ch in name):
+        return "has no letter or digit"
+    return None
 
 
 def check_choices(choices):
@@ -30,11 +48,10 @@ def check_choices(choices):
     if not isinstance(choices, dict) or set(choices) != {"project", "vision", "crew", "asks_first"}:
         raise ValueError("wrong fields")
     project, vision, crew, asks = choices["project"], choices["vision"], choices["crew"], choices["asks_first"]
-    if isinstance(project, str):
-        project = choices["project"] = unicodedata.normalize("NFC", project)
-    if (not isinstance(project, str) or not 1 <= len(project) <= 40
-            or not all(PROJECT_NAME.fullmatch(ch) for ch in project)
-            or not any(ch.isalnum() for ch in project)):
+    if not isinstance(project, str):
+        raise ValueError("project")
+    project = choices["project"] = unicodedata.normalize("NFC", project).strip()
+    if project_problem(project):
         raise ValueError("project")
     if not isinstance(vision, str) or not vision.strip() or len(vision) > 4000:
         raise ValueError("vision")

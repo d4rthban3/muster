@@ -136,6 +136,7 @@ digits), and the model and effort in its definition. On `DONE: renewal <name>`: 
 number, the same model and effort, its five-line note pointing at the handover; archive the old one (never delete);
 update `muster/CREW.md`. When workers that build (builders, the designer, Agent Teacher) reach three, start
 Design Inspector_<project>_001.
+**Every chat you start is top-level, in the project's group.** Renewals, new workers, the second inspector and add-ons alike: start the chat, move it to the top level, and file it in the project's sidebar group (named with the project name); never leave it nested under you. If the app needs the owner's OK for the move, ask with one button. If a move fails, say so in one line with what to drag where.
 
 ## Speed
 Every chat runs on medium effort. When the owner asks to speed things up, move yourself and the inspectors to high.

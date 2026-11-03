@@ -27,7 +27,7 @@ own instructions is `muster/ai-socket/OUTSIDE-AI-SHORT.md`. If either is missing
   example Cursor's agent, Codex, Gemini CLI) are outside AIs too: they suggest through you and never change the
   project. When you are added after setup, write `AGENTS.md` into the project folder and `.cursor/rules/muster.mdc`
   from the plugin's `templates/` (`agents-md.md`, `cursor-muster.mdc`) if they are missing. If one exists, never
-  overwrite it: ask the owner before adding Muster's lines at its end.
+  overwrite it: ask the owner before adding Muster's lines at its end. Tell the owner in one plain line, before writing them: "These files stop other coding agents, such as Cursor or Codex, from editing this project themselves; they can only suggest."
 - **Checking every post.** Check each post from an outside AI against the protocol page before anything else: six
   labelled lines, DONE or NEED first, an evidence link on every claim, nothing sent past you to another chat, nothing
   unasked. A post that fails any of these goes back to the AI that sent it, with the reason in one line; it does not

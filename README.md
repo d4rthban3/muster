@@ -36,8 +36,9 @@ Step by step: [docs/GUIDE.md](docs/GUIDE.md).
 ## Who runs what
 | App | How it works with Muster |
 |---|---|
-| Claude Code (desktop app, terminal, web, VS Code and JetBrains) | Runs the plugin. |
-| Cowork | Takes plugins; the crew start is untested there. |
+| Claude Code: desktop app and terminal | Runs the plugin (tested). |
+| Claude Code: web, VS Code, JetBrains | Not yet tested. |
+| Cowork | Takes plugins; not yet tested. |
 | Coding agents that read a project's rules files (Cursor's agent, Codex, Gemini CLI) | Cannot run the plugin. They follow the outside-AI protocol: leads only, through AI Socket, never changing the project. Setup writes `AGENTS.md` and `.cursor/rules/muster.mdc` so they see it. |
 | Chat AIs | Cannot run the plugin. They follow the outside-AI protocol, pasted once into their instructions. |
 

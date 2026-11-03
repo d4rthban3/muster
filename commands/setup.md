@@ -115,6 +115,7 @@ Copy from `${CLAUDE_PLUGIN_ROOT}/templates/`, **never overwriting a file that al
   coding agents that read a project's rules files but cannot run Muster (leads only), `agents-md.md` as `AGENTS.md` in the project
   folder and `cursor-muster.mdc` as `.cursor/rules/muster.mdc`. If either file already exists, never overwrite it:
   ask the person before adding Muster's lines at its end (one question naming its choices, each a button).
+  Tell the person in one plain line, before writing them: "These files stop other coding agents, such as Cursor or Codex, from editing this project themselves; they can only suggest."
 - `CLAUDE.md` into the project folder if there is none. If one exists, ask the person before adding Muster's rules to
   it (one question naming its choices, each a button).
 - `muster/DECISIONS-LOG.md`, both with today's date:

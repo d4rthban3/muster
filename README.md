@@ -33,6 +33,8 @@ A setup page opens. Give your project a short name, write what you are building,
 Muster makes your project's folder (in a Muster folder in your home folder) and starts the chats for you.
 Step by step: [docs/GUIDE.md](docs/GUIDE.md).
 
+**Any other AI** (ChatGPT, Grok, Gemini, Cursor's agent...): use [Muster Lite](MUSTER-LITE.md), one prompt you paste in.
+
 ## Who runs what
 | App | How it works with Muster |
 |---|---|

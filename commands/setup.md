@@ -84,9 +84,12 @@ Copy from `${CLAUDE_PLUGIN_ROOT}/templates/`, **never overwriting a file that al
 
 ## 3b. Save the crew's files
 Each worker's copy is made from the last saved version, so save the crew's files before starting any chat. Tell the
-person in one line, then save only what setup wrote:
-`git add CLAUDE.md .gitignore muster/` and
-`git -c user.name="Muster" -c user.email="muster@localhost" commit -m "Muster crew files"`.
+person in one line, then save only what setup wrote or changed: always `muster/`; `CLAUDE.md` and `.gitignore` only
+if setup created or changed them. Name those paths both times, so nothing the person had already lined up to save is
+taken along:
+`git add <paths>` then
+`git -c user.name="Muster" -c user.email="muster@localhost" commit -m "Muster crew files" -- <paths>`.
+Made-up example: `git add muster/ .gitignore` then `... commit -m "Muster crew files" -- muster/ .gitignore`.
 Never save anything else of theirs here.
 
 ## 4. Start the chats

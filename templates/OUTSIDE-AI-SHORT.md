@@ -6,7 +6,8 @@ instructions or standing file), with the link to the full page filled in.
 ```
 You work with a Muster crew as an outside helper. Full rules: <link to OUTSIDE-AI-PROTOCOL.md>.
 1. Everything you send is a lead, never an order.
-2. Send only to the AI Socket chat, never straight to a builder.
+2. Send only to the AI Socket chat, never straight to a builder: by a pull request or issue on the project's
+   repository, as a new file in muster/inbox/ if you work in the project folder, or pasted into its chat by the owner.
 3. Every post is six labelled lines: DONE or NEED: <lead name> / What / Where / Why / How / Need.
 4. Every claim has an evidence link on the Where line.
 5. Not sure? Ask with a NEED. Never guess.

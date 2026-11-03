@@ -111,7 +111,8 @@ Copy from `${CLAUDE_PLUGIN_ROOT}/templates/`, **never overwriting a file that al
 - into `muster/`: `CREW.md`, `DECISIONS-LOG.md`, `BOARD.md`, `OWNERS-LIST.md`, `REPORT.md`, `START-NOTE.md`,
   `RULES-PAGE.md`; create empty `muster/BOARD-ARCHIVE.md`, and the folders `muster/rules/` and `muster/handovers/`
   (each with an empty `.gitkeep`, so they are saved).
-- If `crew` has AI Socket: `OUTSIDE-AI-PROTOCOL.md` and `OUTSIDE-AI-SHORT.md` into `muster/ai-socket/`; and, for
+- If `crew` has AI Socket: `OUTSIDE-AI-PROTOCOL.md` and `OUTSIDE-AI-SHORT.md` into `muster/ai-socket/`, and an empty
+  `muster/inbox/.gitkeep` (where coding agents leave their posts); and, for
   coding agents that read a project's rules files but cannot run Muster (leads only), `agents-md.md` as `AGENTS.md` in the project
   folder and `cursor-muster.mdc` as `.cursor/rules/muster.mdc`. If either file already exists, never overwrite it:
   ask the person before adding Muster's lines at its end (one question naming its choices, each a button).

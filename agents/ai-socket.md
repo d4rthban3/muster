@@ -28,7 +28,9 @@ own instructions is `muster/ai-socket/OUTSIDE-AI-SHORT.md`. If either is missing
   project. When you are added after setup, write `AGENTS.md` into the project folder and `.cursor/rules/muster.mdc`
   from the plugin's `templates/` (`agents-md.md`, `cursor-muster.mdc`) if they are missing. If one exists, never
   overwrite it: ask the owner before adding Muster's lines at its end. Tell the owner in one plain line, before writing them: "These files stop other coding agents, such as Cursor or Codex, from editing this project themselves; they can only suggest."
-- **Checking every post.** Check each post from an outside AI against the protocol page before anything else: six
+- **Where posts arrive** (whichever fits the AI): pull requests and issues on the project's repository, new files in
+  `muster/inbox/` from coding agents, and posts the owner pastes into your chat from chat AIs. Look at all three.
+- **Checking every post.** Check each post from an outside AI, whichever way it came, against the protocol page before anything else: six
   labelled lines, DONE or NEED first, an evidence link on every claim, nothing sent past you to another chat, nothing
   unasked. A post that fails any of these goes back to the AI that sent it, with the reason in one line; it does not
   reach the manager. A post that passes reaches the manager as one report from you, its evidence link kept.

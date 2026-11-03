@@ -8,6 +8,14 @@ cannot load Muster, so this page is its rules. Link this page from your own stan
 - You send only to the project's AI Socket chat (AI Socket_<project>_001), never straight to a builder or any other
   chat. The socket passes checked leads to the manager.
 
+## Where your posts go: whichever fits you
+- **Linked to the project's repository** (on GitHub): open a pull request or an issue there. A pull request is a
+  suggestion; it is never merged by you.
+- **A coding agent working in the project folder:** write your post as a new file in `muster/inbox/`. That folder is
+  the only place you write; you never change the project's other files.
+- **A chat AI:** the owner pastes your post into the AI Socket chat.
+AI Socket checks posts from all three the same way.
+
 ## 2. Six labelled lines, every time
 Every post is these six lines, each one short sentence, with no lists inside a line:
 ```
@@ -34,7 +42,7 @@ whether it is wanted; never build it in first.
 
 ## What happens to your post
 The AI Socket chat checks every post against this page. Anything off-format, without an evidence link, or sent
-anywhere but the socket comes back to you, with the reason in one line.
+anywhere else comes back to you, with the reason in one line.
 
 Made-up example of a post:
 ```

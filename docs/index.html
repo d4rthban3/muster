@@ -146,7 +146,7 @@ function copyFrom(btn,id){document.getElementById(btn).addEventListener('click',
 function done(){b.textContent='Copied';setTimeout(function(){b.textContent='Copy'},1500)}
 if(navigator.clipboard){navigator.clipboard.writeText(t).then(done,function(){})}})}
 copyFrom('copy','cmds');
-var CMD="git clone --depth 1 https://github.com/d4rthban3/muster .muster-tmp && mkdir -p .agents/skills && cp -Rn .muster-tmp/skills/. .agents/skills/; rm -rf .muster-tmp";
+var CMD='T=$(mktemp -d) && git clone --depth 1 https://github.com/d4rthban3/muster "$T" && mkdir -p .agents/skills && cp -Rn "$T"/skills/. .agents/skills/; rm -rf "$T"';
 var REPO="https://github.com/d4rthban3/muster/blob/main/MUSTER-LITE.md";
 function agent(tool,file){return {steps:[
  "Open a terminal (Mac or Linux) in your project's folder. On Windows, copy the skills folder from github.com/d4rthban3/muster into .agents/skills by hand instead.",

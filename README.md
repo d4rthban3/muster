@@ -19,9 +19,9 @@ When three or more workers build, a second inspector, Design Inspector_<your pro
 ## Install
 **In the Claude desktop app:** open the Code tab, start a chat, and send this message:
 ```
-Please run these two commands: claude plugin marketplace add d4rthban3/muster, then claude plugin install muster@muster-kit --scope user
+Install Muster and run its setup in this chat. Run this one command: claude plugin marketplace add d4rthban3/muster && claude plugin install muster@muster-kit --scope user && claude plugin list --json. Then read commands/setup.md inside the installPath it shows for muster@muster-kit, and follow it here, reading ${CLAUDE_PLUGIN_ROOT} as that installPath. Do nothing else first.
 ```
-Then start a new chat and type `/muster:setup`.
+Press Enter and click Allow; setup runs in that same chat. Or use the [install page](https://d4rthban3.github.io/muster/): its button writes this message for you.
 
 **In a terminal:** run these two commands, then open Claude and type `/muster:setup`:
 ```

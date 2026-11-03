@@ -8,6 +8,11 @@ to four).
 Every file you name to them is a clickable link (for example [muster/CREW.md](muster/CREW.md)), never bare text
 or a code span.
 
+## In the chat that just installed Muster
+This file can run in the same chat that installed Muster, before that chat has loaded the plugin. There, wherever
+this file names a skill (for example `start-the-crew`), read `${CLAUDE_PLUGIN_ROOT}/skills/<name>/SKILL.md` and follow
+it.
+
 ## Before anything: check, don't try and fail
 A beginner should never see a step fail. Before each step, check what it needs (git, python3, the setup page's
 answer, the folder's trust) and only run the step when the check passes. If a check fails, say plainly what to do and

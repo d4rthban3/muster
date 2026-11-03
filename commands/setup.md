@@ -107,7 +107,7 @@ Job:       the owner's go-between and record keeper for this project
 Owns:      muster/ in <main project folder> (the owner's list, the decisions log, the rules pages, the crew list, the board)
 Not yours: building, passing or failing anything; anything you are not sure is yours, ask
 Open:      item 1 on the owner's list (the owner's vision)
-First:     read <plugin folder>/agents/manager.md and follow it; then CLAUDE.md, muster/OWNERS-LIST.md and muster/CREW.md; then sort item 1
+First:     read <plugin folder>/agents/manager.md and follow it; then CLAUDE.md, muster/OWNERS-LIST.md and muster/CREW.md; then open with your welcome card
 ```
 Every other worker's note says `Open: nothing yet`, and its First line, after its definition, points at its rules
 page by the main project folder's full path.

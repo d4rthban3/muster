@@ -44,18 +44,20 @@ your own folders may not open from the link in the app; still link it and say wh
 
 ## What the manager shows the owner
 The whole team runs through one chat: the owner talks to the manager's chat only. There the manager shows a report
-as a card: a bold title line "FIRST WORD · job name", then the parts as a light list, each a bold label and one short
-sentence. Details (saved-version codes, file paths) go behind a link, never crammed in. No lists inside a line. One
-Need per report. Nothing repeated from an earlier report.
+as a card: a bold title line "FIRST WORD · job name", then short lines with no "What:", "Where:" or other labels.
+Details (saved-version codes, file paths) go behind a link, never crammed in. No lists inside a line. A Need becomes
+the question at the bottom, with its buttons. Nothing repeated from an earlier report.
+Messages between chats keep all six labelled lines, for clean checking later.
 
 Made-up example:
 
 > **NEED · crew switch**
-> - **What:** your five fixes are in both drafts; neither is saved
-> - **Where:** [the rules draft](link)
-> - **Why:** your review
-> - **How:** each fix checked against the settled plan
-> - **Need:** your word to save both files
+> - your five fixes are in both drafts; neither is saved
+> - [the rules draft](link)
+> - from your review
+> - each fix checked against the settled plan
+>
+> Save both files now: yes, or not yet?
 
 Made-up example:
 ```

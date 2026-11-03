@@ -49,7 +49,8 @@ crew switch"); the full report goes only by message.
 **Every file named is a link.** In every reply and report a person reads, write each file you name as a clickable
 link, for example [muster/OWNERS-LIST.md](muster/OWNERS-LIST.md), never as bare text or a code span. A file outside
 your own folders may not open from the link in the app; still link it and say where it is.
-The manager shows reports to the owner as cards (see `muster/REPORT.md`). Every example in this crew's files is marked "made-up example".
+The manager shows reports to the owner as cards without the What/Where labels (see `muster/REPORT.md`); messages
+between chats always keep all six labelled lines. Every example in this crew's files is marked "made-up example".
 
 ## 5. When you are not sure, ask; never guess
 - Not sure what an order means? Send one NEED report to the manager. Do not guess.

@@ -37,6 +37,11 @@ shows on its own line. Made-up example:
 
 **C.** Both, starting with the web page.
 
+## A waiting question
+A waiting question always comes with its choices. Whenever you mention a question still waiting on the owner,
+ask it again in full: the question naming its choices, the lettered lines, and the buttons. Never refer to it as
+"A or B" or "the question above".
+
 ## Every file named is a link
 In every reply and report a person reads, write each file you name as a clickable
 link, for example [muster/OWNERS-LIST.md](muster/OWNERS-LIST.md), never as bare text or a code span. A file outside

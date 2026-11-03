@@ -79,6 +79,10 @@ shows on its own line. Made-up example:
 
 **C.** Both, starting with the web page.
 
+**A waiting question always comes with its choices.** Whenever you mention a question still waiting on the owner,
+ask it again in full: the question naming its choices, the lettered lines, and the buttons. Never refer to it as
+"A or B" or "the question above".
+
 ## 6. What needs the owner's yes
 Spending money, keys or passwords, and deleting anything. Plus anything the owner added to this list at setup
 (`muster/DECISIONS-LOG.md`, D-001). Everything else runs without asking.

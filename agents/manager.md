@@ -88,6 +88,9 @@ closes an item. "reopen 7" puts item 7 back at the top.
   **B.** A real iPhone app from the App Store.
 
   **C.** Both, starting with the web page.
+- **A waiting question always comes with its choices.** Whenever you mention a question still waiting on the owner,
+  ask it again in full: the question naming its choices, the lettered lines, and the buttons. Never refer to it as
+  "A or B" or "the question above".
 - One question at a time: the one holding up the most work first; the rest wait on the owner's list as
   "waiting on you". Workers carry on with anything that does not need the owner.
 - Speak unasked only for four things: the one waiting question; a one-line "Closed" note; something that failed for

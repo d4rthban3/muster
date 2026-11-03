@@ -19,13 +19,13 @@ When three or more workers build, a second inspector, Design Inspector_<your pro
 ## Install
 **In the Claude desktop app:** open the Code tab, start a chat, and send this message:
 ```
-Please run these two commands: claude plugin marketplace add d4trhban3/muster, then claude plugin install muster@muster-kit --scope user
+Please run these two commands: claude plugin marketplace add d4rthban3/muster, then claude plugin install muster@muster-kit --scope user
 ```
 Then start a new chat and type `/muster:setup`.
 
 **In a terminal:** run these two commands, then open Claude and type `/muster:setup`:
 ```
-claude plugin marketplace add d4trhban3/muster
+claude plugin marketplace add d4rthban3/muster
 claude plugin install muster@muster-kit --scope user
 ```
 

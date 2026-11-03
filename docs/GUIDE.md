@@ -5,10 +5,10 @@ You do not need to know anything about terminals or code to follow this.
 ## 1. Install (once)
 **In the Claude desktop app:**
 1. Open the Claude app and click Code.
-2. Start a chat and send: `Please run these two commands: claude plugin marketplace add d4trhban3/muster, then claude plugin install muster@muster-kit --scope user`
+2. Start a chat and send: `Please run these two commands: claude plugin marketplace add d4rthban3/muster, then claude plugin install muster@muster-kit --scope user`
 3. Click Allow when it asks to run them. It says Muster is installed for every folder ("scope: user").
 
-**In a terminal:** run `claude plugin marketplace add d4trhban3/muster`, then
+**In a terminal:** run `claude plugin marketplace add d4rthban3/muster`, then
 `claude plugin install muster@muster-kit --scope user`.
 
 ## 2. Set up your crew (once per project)

@@ -5,6 +5,6 @@
   "description": "A crew of Claude Code chats: a manager you talk to, builders, a designer and inspectors, set up from one page.",
   "author": { "name": "Muster contributors" },
   "license": "MIT",
-  "repository": "https://github.com/d4trhban3/muster",
+  "repository": "https://github.com/d4rthban3/muster",
   "keywords": ["workflow", "multi-agent", "review", "process"]
 }

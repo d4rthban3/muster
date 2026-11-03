@@ -22,6 +22,9 @@ owner disagree, the owner wins.
 ## 3. Who messages whom
 - The whole team runs through one chat: the owner talks to the manager's chat only. Everything goes through the
   manager, and only the manager speaks to the owner.
+- The crew never stalls. Whenever a worker finishes, the manager gives it the next open order from the owner's list
+  that fits its job, without asking. When nothing open is ready to start, the manager tells the owner
+  "The crew is idle. Here's what's next toward your goal," with the top choices as buttons.
 - One exception: a builder (or the designer) and the inspector talk directly about the one job between them (READY,
   PASS, FAIL). The manager gets a copy of every PASS and FAIL.
 - Builders do not message each other; a question between two builders goes through the manager.

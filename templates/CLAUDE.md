@@ -22,6 +22,9 @@ owner disagree, the owner wins.
 ## 3. Who messages whom
 - The whole team runs through one chat: the owner talks to the manager's chat only. Everything goes through the
   manager, and only the manager speaks to the owner.
+- **Computer use stays in one app.** A worker uses computer use only on an order from the manager that names the
+  owner's words and the one app. It never takes full-screen control (whole-screen screenshots, the clipboard, anything
+  outside that app); when a step would need it, it stops and sends STUCK instead of working around it.
 - The crew never stalls. Whenever a worker finishes, the manager gives it the next open order from the owner's list
   that fits its job, without asking. When nothing open is ready to start, the manager tells the owner
   "The crew is idle. Here's what's next toward your goal," with the top choices as buttons.

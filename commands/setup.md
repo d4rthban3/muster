@@ -52,8 +52,14 @@ On "set it up now":
    the step cannot fail for lack of a name: `git add -A`, then
    `git -c user.name="Muster" -c user.email="muster@localhost" commit -m "First version"` (add `--allow-empty` if
    there is nothing to save).
-Check `git --version` before asking; if git is not installed, say so plainly and stop before asking anything. If the folder already has a version history but its `.gitignore`
-does not list `.claude/`, add that one line (the crew's folder copies live there).
+4. **Then stop, and have the person reopen the folder.** The app only makes the workers' copies of a project it knew
+   had a version history when the chat was opened; this chat was opened before the history existed. Tell the person
+   in plain words, in two lines: open a new chat in this same folder (if the app asks them to press "Trust
+   repository", press it), then type `/muster:setup` there; setup carries on from where it stopped. Write nothing
+   else and start nothing in this chat.
+Check `git --version` before asking; if git is not installed, say so plainly and stop before asking anything.
+If the folder already has a version history but its `.gitignore` does not list `.claude/`, add that one line (the
+crew's folder copies live there).
 
 ## 1. Open the setup page
 Check `python3 --version` first; if it is missing, say so plainly and stop. Run, in the background, from the project
@@ -124,9 +130,10 @@ Every other worker's note says `Open: nothing yet`, and its First line, after it
 page by the main project folder's full path.
 - **Trust comes first, before any worker starts.** The app asks the person to trust a folder before a chat can work
   in it. Bring every such box up and have it answered before starting any worker:
-  1. Tell the person in plain words that one or two trust boxes are about to appear: one lets Claude work in their
-     project folder; one lets the crew's chats start there. The workers' own copies inherit that trust and ask nothing
-     more. If an older trust box from another folder is still waiting, they answer that one first.
+  1. Both of the app's trust boxes are answered before this point: "Trust workspace" (lets Claude work in their
+     project folder) when this chat was opened in it, and "Trust repository" (lets the app make the workers' copies)
+     when it was opened with its version history already there (step 0b). The copies inherit that trust. If an older
+     trust box from another folder is still waiting, tell them to answer that one first.
   2. Start Manager_001 first (it works in the main folder). Because this chat was opened in the project folder, the
      folder is already trusted, so the start should not fail. Wait until it succeeds. If it is refused for trust all
      the same, tell the person what to press, wait for them to say they pressed it, and start it again yourself.

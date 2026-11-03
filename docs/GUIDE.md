@@ -14,7 +14,9 @@ You do not need to know anything about terminals or code to follow this.
 ## 2. Set up your crew (once per project)
 1. Start a new chat in your project's folder (in the desktop app, pick the folder when you start the chat). When
    Claude asks whether you trust the folder, say yes: the crew's chats cannot start without it.
-2. Type `/muster:setup` and press Enter.
+2. Type `/muster:setup` and press Enter. If your folder is brand new, setup first gives it a version history and
+   asks you to open a new chat in the same folder once more (press "Trust repository" if the app asks), then type
+   `/muster:setup` again.
 3. A setup page opens: in the side browser of the desktop app, or in your own web browser.
 4. In the first box, write what you are building and your vision, in your own words.
 5. Your crew shows as cards: Manager_001, Builder_A_001, Designer_001 and Inspector_001 are always there.

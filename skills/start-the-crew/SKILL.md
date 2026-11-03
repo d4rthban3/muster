@@ -30,6 +30,8 @@ Use the app's tool for starting a session. Chat names there take only small lett
 - the folder: the main project folder itself for the manager (no copy); its own copy (a separate worktree) for every
   other worker;
 - the starting note as the first message.
+**Order:** start the manager first, in the main folder, and wait until it is running; only then start the other
+workers (their copies inherit the folder's trust).
 **Trust:** the app starts no chat in a folder it has not been told to trust. If a start is refused for trust, tell the
 owner in plain words: look for a trust box in the app and press Trust (or Yes); if an older trust box from another
 folder is still waiting, answer that one first, then the box for this folder appears. When they say they have pressed

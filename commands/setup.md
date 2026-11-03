@@ -111,9 +111,15 @@ First:     read <plugin folder>/agents/manager.md and follow it; then CLAUDE.md,
 ```
 Every other worker's note says `Open: nothing yet`, and its First line, after its definition, points at its rules
 page by the main project folder's full path.
-- **Trust:** if a start is refused because the folder is not trusted, tell the person in plain words what to press
-  (skill `start-the-crew`, including an older trust box from another folder that may be waiting), wait for them to say
-  they pressed it, then start the chats again yourself.
+- **Trust comes first, before any worker starts.** The app asks the person to trust a folder before a chat can work
+  in it. Bring every such box up and have it answered before starting any worker:
+  1. Tell the person in plain words that one or two trust boxes are about to appear: one lets Claude work in their
+     project folder; one lets the crew's chats start there. The workers' own copies inherit that trust and ask nothing
+     more. If an older trust box from another folder is still waiting, they answer that one first.
+  2. Start Manager_001 first (it works in the main folder). Wait until its start succeeds. If it is refused for
+     trust, tell the person what to press, wait for them to say they pressed it, and start it again yourself.
+  3. Only when the manager is running, start every other worker. If one is still refused for trust, do the same:
+     say what to press, wait, start it again yourself.
 - **Desktop app:** ask before moving the chats into the project's sidebar group (skill `start-the-crew`).
 - **Terminal:** the manager is the one chat the person opens themselves in this folder; give them its one line.
 - The manager owns `muster/CREW.md` in the main folder: write each started chat into its "Running now" table there.

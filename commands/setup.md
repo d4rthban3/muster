@@ -111,6 +111,7 @@ Copy from `${CLAUDE_PLUGIN_ROOT}/templates/`, **never overwriting a file that al
 - into `muster/`: `CREW.md`, `DECISIONS-LOG.md`, `BOARD.md`, `OWNERS-LIST.md`, `REPORT.md`, `START-NOTE.md`,
   `RULES-PAGE.md`; create empty `muster/BOARD-ARCHIVE.md`, and the folders `muster/rules/` and `muster/handovers/`
   (each with an empty `.gitkeep`, so they are saved).
+- If `crew` has AI Socket: `OUTSIDE-AI-PROTOCOL.md` and `OUTSIDE-AI-SHORT.md` into `muster/ai-socket/`.
 - `CLAUDE.md` into the project folder if there is none. If one exists, ask the person before adding Muster's rules to
   it (one question naming its choices, each a button).
 - `muster/DECISIONS-LOG.md`, both with today's date:

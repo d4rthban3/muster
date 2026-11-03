@@ -139,7 +139,7 @@ Never save anything else of theirs here.
 
 ## 4. Start the chats
 Use skill `start-the-crew` for every role in `crew`. Each chat's name is `<role>_<project name>_001`, the
-project name exactly as typed on the page (made-up example: `Builder A_PantryPal_001`). The manager works in the main project folder (no copy); every
+project name exactly as typed on the page (made-up example: `Builder A_MyProject_001`). The manager works in the main project folder (no copy); every
 other worker gets its own copy. Each gets the model and effort from its definition in `${CLAUDE_PLUGIN_ROOT}/agents/`,
 the same permission mode as this chat (never a looser one), and its starting note, which begins with the line "Your
 five-line starting note, from the manager (or from the setup, for the first crew):". Write the real paths, not the

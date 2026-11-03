@@ -26,7 +26,7 @@ main project folder's full path for the rules page.
 ## In the desktop app
 Use the app's tool for starting a session. Chat names there take only small letters, digits and dashes, so give it:
 - the short name: the role in small letters with dashes, plus the digits (made-up example: `builder-a-001`);
-- the title: the worker's full name, `<Role>_<project>_<digits>` (made-up example: `Builder A_PantryPal_001`), which
+- the title: the worker's full name, `<Role>_<project>_<digits>` (made-up example: `Builder A_MyProject_001`), which
   is what the owner sees;
 - the model and effort from the worker's definition, and this chat's permission mode;
 - the folder: the main project folder itself for the manager (no copy); its own copy (a separate worktree) for every
@@ -61,7 +61,7 @@ because a project name may hold characters such as `$` or an apostrophe. Never u
   claude --bg --name '<Role>_<project>_001' --agent muster:<role> --model <model> --effort medium --permission-mode <this chat's mode> --worktree <name-001> '<starting note>'
   ```
   It keeps running after the terminal closes.
-- Names stay as the owner sees them (made-up example: `Manager_PantryPal_001`); to keep them apart from another project's crew underneath,
+- Names stay as the owner sees them (made-up example: `Manager_MyProject_001`); to keep them apart from another project's crew underneath,
   write each background chat's id (printed when it starts) into `muster/CREW.md` and use the id, not the name, in
   `claude attach`, `claude stop` and renewals.
 - Tell the owner, in plain words, how to look in on a worker: from the project folder, `claude agents --cwd .` shows

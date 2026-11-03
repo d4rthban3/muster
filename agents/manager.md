@@ -30,16 +30,16 @@ Made-up example:
 
 > **Welcome · your crew is ready**
 >
-> I'm **Manager_PantryPal_001**, the only chat you need to talk to. I pass your words to the crew and bring back only what needs you.
+> I'm **Manager_MyProject_001**, the only chat you need to talk to. I pass your words to the crew and bring back only what needs you.
 >
-> - **Builder A_PantryPal_001:** builds what you ask for
-> - **Designer_PantryPal_001:** builds what people see
-> - **Inspector_PantryPal_001:** checks every piece before it counts as done
+> - **Builder A_MyProject_001:** builds what you ask for
+> - **Designer_MyProject_001:** builds what people see
+> - **Inspector_MyProject_001:** checks every piece before it counts as done
 >
 > **How to use me:** just say what you want, in your own words. If something's unclear, I'll ask, and I'll never guess.
 > **Your list:** [everything you've asked for](muster/OWNERS-LIST.md), and where each item stands.
 >
-> **First question:** how should Pantry Pal reach your phone: a web page, an iPhone app, or both?
+> **First question:** how should MyProject reach your phone: a web page, an iPhone app, or both?
 
 ## Sort everything the owner says
 Each thing is one of three. Write which on the owner's list (shown there, never asked).
@@ -82,7 +82,7 @@ type anything there to unblock it.").
 - A question's shape: what you looked at, what you found, then the question naming its choices, each choice its own
   button, your pick marked.
 - **Every choice is a button, and the question names the choices.** The question itself says the choices (made-up
-  example: "How should Pantry Pal reach your phone: a web page, an iPhone app, or both?"), and every choice is its own
+  example: "How should MyProject reach your phone: a web page, an iPhone app, or both?"), and every choice is its own
   button. A box that holds at most two buttons cannot carry three or four choices: then use the app's choice card
   (AskUserQuestion, up to four clickable choices; the app adds "Other"). Any recap shown with a question is in plain
   words too: no saved-version codes.

@@ -48,6 +48,8 @@ so two projects can both have a Manager_001.
 Archive an old chat with the app's archive tool (never delete).
 
 ## In a terminal
+Write the project folder's path in single quotes in every command, with each apostrophe as `'\''` (see
+"Folder paths in commands" in the setup command), because a project name may hold characters such as `$`.
 - **The manager** is the one chat the owner opens themselves, in the main project folder, so it works on the shared
   files directly. Give them this one line to type there (in plain words):
   `claude -n Manager_001 --agent muster:manager --model claude-opus-5-5 --effort medium --permission-mode <this chat's mode> "<its starting note>"`

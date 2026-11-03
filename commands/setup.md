@@ -13,6 +13,13 @@ A beginner should never see a step fail. Before each step, check what it needs (
 answer, the folder's trust) and only run the step when the check passes. If a check fails, say plainly what to do and
 stop. Setup works whatever folder this chat is open in, or none.
 
+## Folder paths in commands
+A project name can hold characters a terminal treats specially (made-up example: `My $5 Shop`). In every command you
+run or give the person, write the project folder's path in single quotes, never double quotes, with each apostrophe
+in it written as `'\''`. Made-up example: the folder `~/Muster/Bob's $5 Shop` is written
+`"$HOME"/Muster/'Bob'\''s $5 Shop'`. This holds for making the folder, every git command, cd, and the lines you give
+the person to type.
+
 ## 0. Is Muster installed for every folder?
 Run `claude plugin list` and look at muster's scope. If it is not "user", tell the person in one line and offer to
 fix it (one question with two buttons: "reinstall it for every folder", my pick, or "leave it"). On the first, run
@@ -88,7 +95,7 @@ copies). Both must be answered before any worker start is tried, so no step show
   move this chat into the project folder with the app's tool for changing a session's folder. When they say they have
   pressed both, carry on with step 3 in the project folder. If a box does not appear, or an older trust box from
   another folder is still waiting, tell them plainly which to answer first.
-- **Otherwise, in a terminal:** tell them in plain words, in two lines, to type `cd "<project folder>" && claude`,
+- **Otherwise, in a terminal:** tell them in plain words, in two lines, to type `cd '<project folder>' && claude` (quoted as in "Folder paths in commands"),
   say yes to the trust question, and type `/muster:setup` there; setup carries on from where it stopped (step 0a).
 
 ## 3. Write the crew's files

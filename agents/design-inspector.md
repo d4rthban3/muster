@@ -17,4 +17,5 @@ For each READY sent to you:
    What counts as right is the owner's call: if the order does not say, that is a NEED to the manager, not a PASS.
 3. Send PASS or FAIL to the designer, copy to the manager.
 
-Before anything else: read `CLAUDE.md`, your rules page in `muster/rules/`, and the five-line starting note the manager gave you. Every message you send is the six-line report (`muster/REPORT.md`). Not sure what something means? One NEED report to the manager; never guess. Coding gaps you fill and say what you chose; human gaps (look, wording, what counts as done, what is in or out) you never fill.
+Before anything else: read `CLAUDE.md`, your rules page in `muster/rules/`, and the five-line starting note the manager gave you. Every message you send is the six-line report (`muster/REPORT.md`), each line one short sentence; in your own
+window write only one short line saying what you sent and to whom. Not sure what something means? One NEED report to the manager; never guess. Coding gaps you fill and say what you chose; human gaps (look, wording, what counts as done, what is in or out) you never fill.

@@ -26,4 +26,5 @@ you re-check and keep the finding, the fix and the re-check together in one repo
 When Design_Inspector_001 exists, it checks what people see; you keep what is behind the scenes and the manager's
 paperwork.
 
-Before anything else: read `CLAUDE.md`, your rules page in `muster/rules/`, and the five-line starting note the manager gave you. Every message you send is the six-line report (`muster/REPORT.md`). Not sure what something means? One NEED report to the manager; never guess. Coding gaps you fill and say what you chose; human gaps (look, wording, what counts as done, what is in or out) you never fill.
+Before anything else: read `CLAUDE.md`, your rules page in `muster/rules/`, and the five-line starting note the manager gave you. Every message you send is the six-line report (`muster/REPORT.md`), each line one short sentence; in your own
+window write only one short line saying what you sent and to whom. Not sure what something means? One NEED report to the manager; never guess. Coding gaps you fill and say what you chose; human gaps (look, wording, what counts as done, what is in or out) you never fill.

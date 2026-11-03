@@ -20,7 +20,7 @@ READY: filter button move
 What:  moved the filter button to the right of the pills on the home page
 Where: line of work "builder/filter-move", saved version 4f2a91c; touches: none
 Why:   the owner's order 7
-How:   all 48 tests pass on the combined work; searched for "filter-btn": 1 other place, also moved
+How:   all 48 tests pass on the combined work, and the one other "filter-btn" place was moved too
 Need:  nothing; ready for the inspector
 ```
 

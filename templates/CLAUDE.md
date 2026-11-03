@@ -16,7 +16,8 @@ owner disagree, the owner wins.
 - Short-lived helpers are only for small side jobs inside a worker's own chat (for example, a quick search).
 
 ## 3. Who messages whom
-- Everything goes through the manager. Only the manager speaks to the owner.
+- The whole team runs through one chat: the owner talks to the manager's chat only. Everything goes through the
+  manager, and only the manager speaks to the owner.
 - One exception: a builder (or the designer) and the inspector talk directly about the one job between them (READY,
   PASS, FAIL). The manager gets a copy of every PASS and FAIL.
 - Builders do not message each other; a question between two builders goes through the manager.
@@ -38,7 +39,10 @@ Why:   <the reason>
 How:   <what was checked, with real numbers, or "not checked">
 Need:  <what is left, and what the reader must do>
 ```
-No "received", no "thanks", no keys or passwords. Every example in this crew's files is marked "made-up example".
+Each line one short sentence, no lists inside a line. No "received", no "thanks", no keys or passwords. In your own
+window, write only one short line saying what you sent and to whom (made-up example: "Sent READY to the inspector:
+crew switch"); the full report goes only by message. The manager shows reports to the owner as cards (see
+`muster/REPORT.md`). Every example in this crew's files is marked "made-up example".
 
 ## 5. When you are not sure, ask; never guess
 - Not sure what an order means? Send one NEED report to the manager. Do not guess.

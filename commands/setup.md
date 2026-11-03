@@ -18,7 +18,8 @@ A project name can hold characters a terminal treats specially (made-up example:
 run or give the person, write the project folder's path in single quotes, never double quotes, with each apostrophe
 in it written as `'\''`. Made-up example: the folder `~/Muster/Bob's $5 Shop` is written
 `"$HOME"/Muster/'Bob'\''s $5 Shop'`. This holds for making the folder, every git command, cd, and the lines you give
-the person to type.
+the person to type. Write the folder as its full path (`/Users/<name>/Muster/...`) or with `"$HOME"/` in front, never
+with `~` inside the quotes: a `~` inside quotes is not understood as the home folder.
 
 ## 0. Is Muster installed for every folder?
 Run `claude plugin list` and look at muster's scope. If it is not "user", tell the person in one line and offer to
@@ -95,7 +96,8 @@ copies). Both must be answered before any worker start is tried, so no step show
   move this chat into the project folder with the app's tool for changing a session's folder. When they say they have
   pressed both, carry on with step 3 in the project folder. If a box does not appear, or an older trust box from
   another folder is still waiting, tell them plainly which to answer first.
-- **Otherwise, in a terminal:** tell them in plain words, in two lines, to type `cd '<project folder>' && claude` (quoted as in "Folder paths in commands"),
+- **Otherwise, in a terminal:** tell them in plain words, in two lines, to type `cd '<project folder's full path>' && claude` (quoted as in "Folder paths in commands"; the
+full path, never `~`),
   say yes to the trust question, and type `/muster:setup` there; setup carries on from where it stopped (step 0a).
 
 ## 3. Write the crew's files

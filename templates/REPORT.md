@@ -44,7 +44,8 @@ your own folders may not open from the link in the app; still link it and say wh
 
 ## What the manager shows the owner
 The whole team runs through one chat: the owner talks to the manager's chat only. There the manager shows a report
-as a card: a bold title line "FIRST WORD · job name", then short lines with no "What:", "Where:" or other labels.
+as a card: a bold title line "FIRST WORD · job name", then each part as its own bullet line, in the same order
+(what, where, why, how), with the label words ("What:", "Where:" and the rest) left out. Never a paragraph.
 Details (saved-version codes, file paths) go behind a link, never crammed in. No lists inside a line. A Need becomes
 the question at the bottom, with its buttons. Nothing repeated from an earlier report.
 Messages between chats keep all six labelled lines, for clean checking later.

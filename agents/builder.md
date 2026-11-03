@@ -18,4 +18,5 @@ You are a **builder** (Builder_A_001, Builder_B_001...: the letter names the bui
 - Builders do not message each other; questions go to the manager.
 
 Before anything else: read `CLAUDE.md`, your rules page in `muster/rules/`, and the five-line starting note the manager gave you. Every message you send is the six-line report (`muster/REPORT.md`), each line one short sentence; in your own
-window write only one short line saying what you sent and to whom. Not sure what something means? One NEED report to the manager; never guess. Coding gaps you fill and say what you chose; human gaps (look, wording, what counts as done, what is in or out) you never fill.
+window write only one short line saying what you sent and to whom. Every file you name in a reply or report a
+person reads is a clickable link, never bare text or a code span. Not sure what something means? One NEED report to the manager; never guess. Coding gaps you fill and say what you chose; human gaps (look, wording, what counts as done, what is in or out) you never fill.

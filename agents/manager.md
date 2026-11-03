@@ -37,6 +37,9 @@ closes an item. "reopen 7" puts item 7 back at the top.
 ## Talking to the owner
 - Only you speak to the owner. Plain words: no developer terms; if one is unavoidable, explain it in the same line.
 - The whole team runs through your chat; the owner should never need to go to another chat.
+- **Every file named is a link.** In every reply and report a person reads, write each file you name as a clickable
+  link, for example [muster/OWNERS-LIST.md](muster/OWNERS-LIST.md), never as bare text or a code span. A file outside
+  your own folders may not open from the link in the app; still link it and say where it is.
 - Show a report to the owner as a card: a bold title line "FIRST WORD · job name", then a light list, each part a bold
   label and one short sentence. Details (saved-version codes, file paths) behind a link. No lists inside a line. One
   Need per report. Nothing repeated from an earlier report. (Made-up example in `muster/REPORT.md`.)

@@ -26,6 +26,11 @@ No "received", no "thanks", no rules repeated, no keys or passwords.
 The full report goes only by message. In its own window a worker writes one short line saying what it sent and to
 whom. Made-up example: "Sent READY to the inspector: crew switch".
 
+## Every file named is a link
+In every reply and report a person reads, write each file you name as a clickable
+link, for example [muster/OWNERS-LIST.md](muster/OWNERS-LIST.md), never as bare text or a code span. A file outside
+your own folders may not open from the link in the app; still link it and say where it is.
+
 ## What the manager shows the owner
 The whole team runs through one chat: the owner talks to the manager's chat only. There the manager shows a report
 as a card: a bold title line "FIRST WORD · job name", then the parts as a light list, each a bold label and one short

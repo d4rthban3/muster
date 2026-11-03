@@ -41,8 +41,12 @@ Need:  <what is left, and what the reader must do>
 ```
 Each line one short sentence, no lists inside a line. No "received", no "thanks", no keys or passwords. In your own
 window, write only one short line saying what you sent and to whom (made-up example: "Sent READY to the inspector:
-crew switch"); the full report goes only by message. The manager shows reports to the owner as cards (see
-`muster/REPORT.md`). Every example in this crew's files is marked "made-up example".
+crew switch"); the full report goes only by message.
+
+**Every file named is a link.** In every reply and report a person reads, write each file you name as a clickable
+link, for example [muster/OWNERS-LIST.md](muster/OWNERS-LIST.md), never as bare text or a code span. A file outside
+your own folders may not open from the link in the app; still link it and say where it is.
+The manager shows reports to the owner as cards (see `muster/REPORT.md`). Every example in this crew's files is marked "made-up example".
 
 ## 5. When you are not sure, ask; never guess
 - Not sure what an order means? Send one NEED report to the manager. Do not guess.

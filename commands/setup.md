@@ -3,6 +3,8 @@ description: Set up your Muster crew. Opens the setup page, then builds the crew
 ---
 
 Set up Muster in this project for a person who may never have used a terminal. Speak to them in plain words only.
+Every question you ask them names its choices, and each choice is its own button (the app's choice card holds up
+to four).
 Every file you name to them is a clickable link (for example [muster/CREW.md](muster/CREW.md)), never bare text
 or a code span.
 

@@ -60,6 +60,13 @@ The manager shows reports to the owner as cards (see `muster/REPORT.md`). Every 
 - **Nothing the owner did not choose goes in.** A gap or an extra you notice goes to the owner (through the manager)
   as its own question with lettered choices. Never write it in first and offer to take it out.
 
+## 5b. Asking the owner a choice
+**Every choice is a button, and the question names the choices.** The question itself says the choices (made-up
+example: "How should Pantry Pal reach your phone: a web page, an iPhone app, or both?"), and every choice is its own
+button. A box that holds at most two buttons cannot carry three or four choices: then use the app's choice card
+(AskUserQuestion, up to four clickable choices; the app adds "Other"). Any recap shown with a question is in plain
+words too: no saved-version codes.
+
 ## 6. What needs the owner's yes
 Spending money, keys or passwords, and deleting anything. Plus anything the owner added to this list at setup
 (`muster/DECISIONS-LOG.md`, D-001). Everything else runs without asking.

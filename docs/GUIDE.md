@@ -32,7 +32,7 @@ You do not need to know anything about terminals or code to follow this.
   ("why does this look off?") gets looked into and answered with choices; an **idea** is parked on your list without
   starting work.
 - Your list is `muster/OWNERS-LIST.md`: what you asked for, word for word, and where each thing stands.
-- The manager asks one question at a time, with lettered choices and its pick. It messages you on its own only for
+- The manager asks one question at a time; the question names the choices, each is a button, and its pick is marked. It messages you on its own only for
   that question, a one-line "Closed" note, something that failed for good, or something it needs your yes for.
 - To bring a finished item back: "reopen" and its number.
 - To speed things up: tell the manager. The manager and the inspectors then think harder (more usage).

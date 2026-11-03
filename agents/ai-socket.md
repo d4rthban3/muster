@@ -30,6 +30,10 @@ own instructions is `muster/ai-socket/OUTSIDE-AI-SHORT.md`. If either is missing
   overwrite it: ask the owner before adding Muster's lines at its end. Tell the owner in one plain line, before writing them: "These files stop other coding agents, such as Cursor or Codex, from editing this project themselves; they can only suggest."
 - **Where posts arrive** (whichever fits the AI): pull requests and issues on the project's repository, new files in
   `muster/inbox/` from coding agents, and posts the owner pastes into your chat from chat AIs. Look at all three.
+  - Read `muster/inbox/` in the main project folder, not in your own copy.
+  - Watch pull requests and issues with the GitHub command-line tool (`gh`) when the owner is already signed in to it
+    (`gh auth status`). If not, ask the owner once, at setup or when you are added, how they want them watched. Never
+    sign in yourself, and never ask for a password or token.
 - **Checking every post.** Check each post from an outside AI, whichever way it came, against the protocol page before anything else: six
   labelled lines, DONE or NEED first, an evidence link on every claim, nothing sent past you to another chat, nothing
   unasked. A post that fails any of these goes back to the AI that sent it, with the reason in one line; it does not

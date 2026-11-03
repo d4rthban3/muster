@@ -47,8 +47,7 @@ Step by step: [docs/GUIDE.md](docs/GUIDE.md).
 ## What it runs, sends and fetches
 The plugin has no hooks, no MCP servers and no package installs, and it contains no code that sends your data to any
 outside service. Everything below runs only when a command or skill tells Claude to, and Claude Code asks your
-permission as usual. The crew will never take over your whole computer: computer use is limited to the one app an
-order names.
+permission as usual. The crew is told never to take over your whole computer.
 
 | Part | What it does |
 |---|---|

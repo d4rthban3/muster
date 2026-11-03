@@ -183,5 +183,4 @@ points at its rules page by the main project folder's full path.
 In plain words, in four lines at most: the crew is running; from now on they talk only to Manager_<project>_001 (in the
 desktop app it is in the sidebar, in the group named after this project; in a terminal, the one line from step 4,
 typed in this folder); what setup saved to their project's
-history (the first version if made in 2b, and the crew's files); and one plain line: "The crew will never take over
-your whole computer." Do not save anything else yourself.
+history (the first version if made in 2b, and the crew's files); and one plain line: "The crew is told never to take over your whole computer." Do not save anything else yourself.

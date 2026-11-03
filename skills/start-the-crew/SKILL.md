@@ -5,7 +5,7 @@ description: How the manager (or the setup) starts, renews and archives the crew
 
 # start-the-crew
 
-Every worker is a whole chat with: its name (role, underscore, three digits), its own copy of the project folder, the
+Every worker is a whole chat with: its name (role, underscore, project name, underscore, three digits), its own copy of the project folder, the
 model and effort from its definition, the five-line starting note (`muster/START-NOTE.md`) as its first message, and
 **the same permission mode as the chat starting it** (the owner's own choice carries over; never a looser one). Never
 try to turn off the app's message limits.
@@ -24,8 +24,9 @@ main project folder's full path for the rules page.
 
 ## In the desktop app
 Use the app's tool for starting a session. Chat names there take only small letters, digits and dashes, so give it:
-- the short name: the worker's name in small letters with dashes (made-up example: `builder-a-001`);
-- the title: the worker's real name (`Builder_A_001`), which is what the owner sees;
+- the short name: the role in small letters with dashes, plus the digits (made-up example: `builder-a-001`);
+- the title: the worker's full name, `<Role>_<project>_<digits>` (made-up example: `Builder A_PantryPal_001`), which
+  is what the owner sees;
 - the model and effort from the worker's definition, and this chat's permission mode;
 - the folder: the main project folder itself for the manager (no copy); its own copy (a separate worktree) for every
   other worker;
@@ -43,8 +44,8 @@ the top level with the app's session tools. No crew chat sits under the manager 
 the setup page. Move each crew chat into it one by one. The chat that ran the setup is not a crew chat: it stays out of the
 group. Moving chats into a group needs the owner's OK in some permission modes: ask first, in one question with two buttons
 ("I move them now" or "you drag them yourself"). On the first, use the app's sidebar tools; if the move is refused, tell the owner plainly
-how to drag each chat into the group. Renewals go in the same group. Worker names stay as they are (Manager_001 ...),
-so two projects can both have a Manager_001.
+how to drag each chat into the group. Renewals go in the same group. Each name carries its project, so two
+projects' crews never share a name.
 Archive an old chat with the app's archive tool (never delete).
 
 ## In a terminal
@@ -52,13 +53,13 @@ Write the project folder's path in single quotes in every command, with each apo
 "Folder paths in commands" in the setup command), because a project name may hold characters such as `$`.
 - **The manager** is the one chat the owner opens themselves, in the main project folder, so it works on the shared
   files directly. Give them this one line to type there (in plain words):
-  `claude -n Manager_001 --agent muster:manager --model claude-opus-5-5 --effort medium --permission-mode <this chat's mode> "<its starting note>"`
+  `claude -n 'Manager_<project>_001' --agent muster:manager --model claude-opus-5-5 --effort medium --permission-mode <this chat's mode> "<its starting note>"`
 - **Every other worker** starts in the background, in its own copy, with one command from the project folder:
   ```
-  claude --bg --name <Name_001> --agent muster:<role> --model <model> --effort medium --permission-mode <this chat's mode> --worktree <name-001> "<starting note>"
+  claude --bg --name '<Role>_<project>_001' --agent muster:<role> --model <model> --effort medium --permission-mode <this chat's mode> --worktree <name-001> "<starting note>"
   ```
   It keeps running after the terminal closes.
-- Names stay as the owner sees them (Manager_001 ...); to keep them apart from another project's crew underneath,
+- Names stay as the owner sees them (made-up example: `Manager_PantryPal_001`); to keep them apart from another project's crew underneath,
   write each background chat's id (printed when it starts) into `muster/CREW.md` and use the id, not the name, in
   `claude attach`, `claude stop` and renewals.
 - Tell the owner, in plain words, how to look in on a worker: from the project folder, `claude agents --cwd .` shows
@@ -68,16 +69,16 @@ Write the project folder's path in single quotes in every command, with each apo
   owner plainly to run `claude` in the project folder once and say yes; then start the chats again yourself.
 
 ## Renewal
-On `DONE: renewal <Name_00N>`: start `<Name_00N+1>` the same way, its note's First line pointing at
-`muster/handovers/<Name_00N>.md`; archive the old chat; update `muster/CREW.md`.
+On `DONE: renewal <Role>_<project>_<N>`: start `<Role>_<project>_<N+1>` (three digits, counting up) the same way,
+its note's First line pointing at `muster/handovers/<Role>_<project>_<N>.md`; archive the old chat; update `muster/CREW.md`.
 
 ## Second inspector
-When the workers that build (builders, the designer, Agent_Teacher) reach three, start `Design_Inspector_001`. It checks
-what people see; Inspector_001 keeps what is behind the scenes and the manager's paperwork.
+When the workers that build (builders, the designer, Agent Teacher) reach three, start `Design Inspector_<project>_001`. It checks
+what people see; Inspector_<project>_001 keeps what is behind the scenes and the manager's paperwork.
 
 ## Models
 | Worker | Model |
 |---|---|
-| Manager_001, Inspector_001, Design_Inspector_001, Sketchpad_001, Agent_Teacher_001 | claude-opus-5-5 |
-| Builder_A_001 (and B, C...), Designer_001, AI_Socket_001 | claude-sonnet-5-5 |
+| Manager_<project>_001, Inspector_<project>_001, Design Inspector_<project>_001, Sketchpad_<project>_001, Agent Teacher_<project>_001 | claude-opus-5-5 |
+| Builder A_<project>_001 (and B, C...), Designer_<project>_001, AI Socket_<project>_001 | claude-sonnet-5-5 |
 Every chat on medium effort; on the owner's "speed up", the manager and the inspectors go to high.

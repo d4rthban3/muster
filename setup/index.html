@@ -74,16 +74,16 @@ textarea{width:100%;min-height:110px;resize:vertical;border:1px solid var(--line
         <div class="step"><button type="button" id="minus" aria-label="One fewer builder">&minus;</button><output id="extra">0</output><button type="button" id="plus" aria-label="One more builder">+</button></div>
       </div>
       <div class="addon">
-        <div><b>Sketchpad_001</b><span>For playing with ideas</span></div>
-        <button type="button" class="switch" role="switch" aria-checked="false" id="sketchpad" aria-label="Sketchpad_001: for playing with ideas"><span class="s"></span></button>
+        <div><b id="lbl-sketchpad"></b><span>For playing with ideas</span></div>
+        <button type="button" class="switch" role="switch" aria-checked="false" id="sketchpad" aria-label=""><span class="s"></span></button>
       </div>
       <div class="addon">
-        <div><b>AI_Socket_001</b><span>For plugging in other AIs</span></div>
-        <button type="button" class="switch" role="switch" aria-checked="false" id="aisocket" aria-label="AI_Socket_001: for plugging in other AIs"><span class="s"></span></button>
+        <div><b id="lbl-aisocket"></b><span>For plugging in other AIs</span></div>
+        <button type="button" class="switch" role="switch" aria-checked="false" id="aisocket" aria-label=""><span class="s"></span></button>
       </div>
       <div class="addon">
-        <div><b>Agent_Teacher_001</b><span>Train your own agent in Claude Console</span></div>
-        <button type="button" class="switch" role="switch" aria-checked="false" id="teacher" aria-label="Agent_Teacher_001: train your own agent in Claude Console"><span class="s"></span></button>
+        <div><b id="lbl-teacher"></b><span>Train your own agent in Claude Console</span></div>
+        <button type="button" class="switch" role="switch" aria-checked="false" id="teacher" aria-label=""><span class="s"></span></button>
       </div>
     </section>
 
@@ -111,7 +111,7 @@ textarea{width:100%;min-height:110px;resize:vertical;border:1px solid var(--line
   </div>
 </div>
 <script>
-const CORE=[["Manager_001","Your go-between and record keeper. Never builds."],["Builder_A_001","Builds what you ask for."],["Designer_001","Builds what people see."],["Inspector_001","Checks the work. Never builds."]];
+const CORE=[["Manager","Your go-between and record keeper. Never builds."],["Builder A","Builds what you ask for."],["Designer","Builds what people see."],["Inspector","Checks the work. Never builds."]];
 const $=id=>document.getElementById(id);
 const BREAKERS='/\\:*?"<>|';
 function projectWhy(raw){
@@ -127,18 +127,19 @@ function projectOk(){const n=$("project").value.normalize("NFC").trim();return !
 const on=id=>$(id).getAttribute("aria-checked")==="true";
 const state={extra:0,asks:[]};
 const letters="BCDEFGHIJKLMNOPQRSTUVWXYZ";
-function extraNames(){return Array.from({length:state.extra},(_,i)=>"Builder_"+letters[i]+"_001");}
+function extraNames(){return Array.from({length:state.extra},(_,i)=>"Builder "+letters[i]);}
+function projName(){const n=$("project").value.normalize("NFC").trim();return n&&!projectWhy($("project").value)?n:"Project";}
+function nm(role){return role+"_"+projName()+"_001";}
+const ADDONS=[["sketchpad","Sketchpad","For playing with ideas"],["aisocket","AI Socket","For plugging in other AIs"],["teacher","Agent Teacher","Train your own agent in Claude Console"]];
 function building(){return 2+state.extra+(on("teacher")?1:0);}
 function render(){
   const c=$("cards");c.innerHTML="";
-  const add=(n,d,auto)=>{const e=document.createElement("div");e.className="card"+(auto?" auto":"");const b=document.createElement("b");b.textContent=n;const s=document.createElement("span");s.textContent=d;e.append(b,s);c.append(e);};
+  const add=(r,d,auto)=>{const n=nm(r);const e=document.createElement("div");e.className="card"+(auto?" auto":"");const b=document.createElement("b");b.textContent=n;const s=document.createElement("span");s.textContent=d;e.append(b,s);c.append(e);};
   CORE.forEach(([n,d])=>add(n,d));
   extraNames().forEach(n=>add(n,"Builds what you ask for."));
-  if(on("sketchpad"))add("Sketchpad_001","For playing with ideas");
-  if(on("aisocket"))add("AI_Socket_001","For plugging in other AIs");
-  if(on("teacher"))add("Agent_Teacher_001","Train your own agent in Claude Console");
-  if(building()>=3)add("Design_Inspector_001","Added because three workers build. Checks what people see.",true);
-  $("extra").value=state.extra;$("extraNames").textContent=state.extra?extraNames().join(", "):"None";
+  ADDONS.forEach(([id,r,d])=>{if(on(id))add(r,d);$("lbl-"+id).textContent=nm(r);$(id).setAttribute("aria-label",nm(r)+": "+d.toLowerCase());});
+  if(building()>=3)add("Design Inspector","Added because three workers build. Checks what people see.",true);
+  $("extra").value=state.extra;$("extraNames").textContent=state.extra?extraNames().map(nm).join(", "):"None";
   const a=$("asks");a.querySelectorAll(".chip:not(.locked)").forEach(x=>x.remove());
   state.asks.forEach((t,i)=>{const e=document.createElement("span");e.className="chip";e.append(document.createTextNode(t));const r=document.createElement("button");r.type="button";r.setAttribute("aria-label","Remove "+t);r.textContent="×";r.onclick=()=>{state.asks.splice(i,1);render();};e.append(r);a.append(e);});
   $("projectWhy").textContent=projectWhy($("project").value);
@@ -153,10 +154,8 @@ $("askAdd").onclick=addAsk;$("askInput").onkeydown=e=>{if(e.key==="Enter"){e.pre
 $("start").onclick=async()=>{
   if($("start").getAttribute("aria-disabled")==="true"){(projectOk()?$("vision"):$("project")).focus();return;}
   const crew=[...CORE.map(x=>x[0]),...extraNames()];
-  if(on("sketchpad"))crew.push("Sketchpad_001");
-  if(on("aisocket"))crew.push("AI_Socket_001");
-  if(on("teacher"))crew.push("Agent_Teacher_001");
-  if(building()>=3)crew.push("Design_Inspector_001");
+  ADDONS.forEach(([id,r])=>{if(on(id))crew.push(r);});
+  if(building()>=3)crew.push("Design Inspector");
   const choices={project:$("project").value.normalize("NFC").trim(),vision:$("vision").value,crew,asks_first:["Spending money","Keys or passwords","Deleting anything",...state.asks]};
   window.musterChoices=choices;
   try{const r=await fetch("/save",{method:"POST",headers:{"Content-Type":"application/json","X-Muster-Token":"__MUSTER_TOKEN__"},body:JSON.stringify(choices)});if(!r.ok)throw 0;$("form").style.display="none";$("done").style.display="block";document.title="Muster setup: saved";}

@@ -7,14 +7,14 @@ manager; it hands the work out, and nobody checks their own work.
 ## The crew
 | Worker | What it does |
 |---|---|
-| Manager_001 | Your go-between and record keeper. Sorts what you say into orders, questions and ideas, keeps your list, and only asks you one question at a time. Never builds. |
-| Builder_A_001 | Builds what you ask for. |
-| Designer_001 | Builds what people see. |
-| Inspector_001 | Checks the work, and checks the manager's record keeping. Never builds. |
+| Manager_<your project>_001 | Your go-between and record keeper. Sorts what you say into orders, questions and ideas, keeps your list, and only asks you one question at a time. Never builds. |
+| Builder A_<your project>_001 | Builds what you ask for. |
+| Designer_<your project>_001 | Builds what people see. |
+| Inspector_<your project>_001 | Checks the work, and checks the manager's record keeping. Never builds. |
 
-Add-ons you can pick on the setup page: extra builders (Builder_B_001 and up), Sketchpad_001 (for playing with
-ideas), AI_Socket_001 (for plugging in other AIs), and Agent_Teacher_001 (train your own agent in Claude Console).
-When three or more workers build, a second inspector, Design_Inspector_001, joins to check what people see.
+Add-ons you can pick on the setup page: extra builders (Builder B_<your project>_001 and up), Sketchpad_<your project>_001 (for playing with
+ideas), AI Socket_<your project>_001 (for plugging in other AIs), and Agent Teacher_<your project>_001 (train your own agent in Claude Console).
+When three or more workers build, a second inspector, Design Inspector_<your project>_001, joins to check what people see.
 
 ## Install
 **In the Claude desktop app:** open the Code tab, start a chat, and send this message:

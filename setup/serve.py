@@ -19,9 +19,9 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 LOCKED = ["Spending money", "Keys or passwords", "Deleting anything"]
-CORE = ["Manager_001", "Builder_A_001", "Designer_001", "Inspector_001"]
-ADDONS = {"Sketchpad_001", "AI_Socket_001", "Agent_Teacher_001", "Design_Inspector_001"}
-EXTRA_BUILDER = re.compile(r"^Builder_[B-Z]_001$")
+CORE = ["Manager", "Builder A", "Designer", "Inspector"]
+ADDONS = {"Sketchpad", "AI Socket", "Agent Teacher", "Design Inspector"}
+EXTRA_BUILDER = re.compile(r"^Builder [B-Z]$")
 PATH_BREAKERS = set('/\\:*?"<>|')
 HIDDEN = {"Cc", "Cf", "Cs", "Co", "Cn", "Zl", "Zp"}
 

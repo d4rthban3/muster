@@ -10,8 +10,9 @@ owner disagree, the owner wins.
   check, never the owner's approval.
 
 ## 2. Every worker is a whole chat
-- Each worker is its own chat, named by role, an underscore and three digits: `Manager_001`, `Builder_A_001`,
-  `Designer_001`, `Inspector_001`. The digits count renewals (see 9).
+- Each worker is its own chat, named: role or job (plain words, may hold a space), an underscore, the project name as
+  typed on the setup page, an underscore, three digits. Made-up examples: `Manager_PantryPal_001`,
+  `Builder A_PantryPal_001`, `Design Inspector_PantryPal_001`. The digits count renewals (see 9).
 - The manager works in the main project folder. Every other chat works in its own copy of the project folder, so no
   two chats edit the same files at once.
 - The crew's shared files (`muster/`: the owner's list, the rules pages, the board, the crew list) are one copy, in the

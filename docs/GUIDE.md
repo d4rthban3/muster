@@ -19,9 +19,9 @@ You do not need a project folder: Muster makes one for you, in a folder called M
 4. Type a short name for your project in "Project name". Your project's folder and its group in the sidebar get
    this name.
 5. In the next box, write what you are building and your vision, in your own words.
-6. Your crew shows as cards: Manager_001, Builder_A_001, Designer_001 and Inspector_001 are always there.
-7. Add any add-ons you want: extra builders, Sketchpad_001, AI_Socket_001, Agent_Teacher_001. When three or more
-   workers build, Design_Inspector_001 appears on its own.
+6. Your crew shows as cards: Manager_<your project>_001, Builder A_<your project>_001, Designer_<your project>_001 and Inspector_<your project>_001 are always there.
+7. Add any add-ons you want: extra builders, Sketchpad_<your project>_001, AI Socket_<your project>_001, Agent Teacher_<your project>_001. When three or more
+   workers build, Design Inspector_<your project>_001 appears on its own.
 8. "What the crew asks you first": spending money, keys or passwords, and deleting anything are always on. Type
    anything else you want to be asked about first, and press Add.
 9. Press Start, then go back to Claude.
@@ -30,7 +30,7 @@ You do not need a project folder: Muster makes one for you, in a folder called M
 If you already have a project folder and open the chat in it, setup asks whether to use that folder or make a new one.
 
 ## 3. Working with your crew
-- Talk only to **Manager_001**. In the desktop app it is in the sidebar, in a group named after your project. In a
+- Talk only to **Manager_<your project>_001**. In the desktop app it is in the sidebar, in a group named after your project. In a
   terminal, the manager is the chat you open in your project's folder with the one line the setup gives you; to look
   in on another worker, type `claude agents --cwd .` there, pick it, and press the left arrow key to go back.
 - Say what you want in your own words. The manager sorts it: an **order** goes straight to a worker; a **question**
@@ -44,6 +44,6 @@ If you already have a project folder and open the chat in it, setup asks whether
 
 ## 4. What happens on its own
 - Every worker is its own chat with its own copy of your project folder, so no two workers edit the same file.
-- When a chat gets long, it hands over to a fresh one with the next number (Builder_A_002, and so on). Old chats are
+- When a chat gets long, it hands over to a fresh one with the next number (Builder A_<your project>_002, and so on). Old chats are
   kept, never deleted.
 - Nobody checks their own work: builders hand finished work to an inspector, who passes it or sends it back.

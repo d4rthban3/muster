@@ -19,11 +19,11 @@ description: How the manager writes orders. Use whenever the manager hands work 
 ## Order shape
 Made-up example:
 ```
-To:      Builder_A_001
+To:      Builder A_PantryPal_001
 Job:     filter button move
 Owner's words: "filter button right of the pills" (owner's list, item 7)
 Owns:    the home page files in your folder copy, line of work "builder/filter-move"
 Out:     the pills themselves, any other page
-Done:    the owner's words above; the two checks; READY to Inspector_001
+Done:    the owner's words above; the two checks; READY to Inspector_PantryPal_001
 ```
 A worker starting fresh gets the five-line note instead (`muster/START-NOTE.md`), with this job under Open.

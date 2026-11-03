@@ -80,7 +80,7 @@ def main():
         return 1
 
     mine, others, closed, unreadable = [], [], 0, []
-    word = re.compile(r"(?<![\w-])(%s|all)(?![\w-])" % re.escape(role), re.I)
+    word = re.compile(r"(?<![\w-])(?<!\w )(%s|all)(?![\w-])" % re.escape(role), re.I)
     for name in ("BOARD.md", "BOARD-ARCHIVE.md"):
         path = os.path.join(root, "muster", name)
         text, err = read(path)

@@ -79,6 +79,10 @@ def main():
     token = secrets.token_urlsafe(24)
     with open(os.path.join(HERE, "index.html"), "rb") as fh:
         page = fh.read().replace(b"__MUSTER_TOKEN__", token.encode())
+    fonts = {}
+    for name in ("dm-sans.woff2", "manrope.woff2"):
+        with open(os.path.join(HERE, "..", "docs", "fonts", name), "rb") as fh:
+            fonts["/fonts/" + name] = fh.read()
     allowed = set()
 
     class Handler(BaseHTTPRequestHandler):
@@ -91,6 +95,14 @@ def main():
         def do_GET(self):
             if not self.own_host():
                 self.send_error(403)
+                return
+            if self.path in fonts:
+                body = fonts[self.path]
+                self.send_response(200)
+                self.send_header("Content-Type", "font/woff2")
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
                 return
             if self.path not in ("/", "/index.html"):
                 self.send_error(404)

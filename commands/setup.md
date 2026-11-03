@@ -8,12 +8,22 @@ to four).
 Every file you name to them is a clickable link (for example [muster/CREW.md](muster/CREW.md)), never bare text
 or a code span.
 
-## 0. Which folder is their project?
-The project folder is the folder this chat was opened in. If that folder is the person's home folder, or is Muster's
-own plugin folder (it has `.claude-plugin/plugin.json`), stop and ask one question: which
-folder is their project (name the likely folders, each a button). Name the folder you will use in your first line to them, as a link.
-Check that Muster is installed for every folder, not just one: run `claude plugin list` and look at muster's scope.
-If it is not "user", tell the person in one line and offer to fix it (one question with two buttons: "reinstall it for every folder", my pick, or "leave it"). On the first, run `claude plugin install muster@muster-kit --scope user`.
+## Before anything: check, don't try and fail
+A beginner should never see a step fail. Before each step, check what it needs (the right folder, git, python3, the
+setup page's answer) and only run the step when the check passes. If a check fails, say plainly what to do and stop.
+
+## 0. Setup runs only in the chat opened in their project folder
+Opening a chat in a folder is what makes the app ask the person to trust that folder, so setup must run in a chat
+that was opened in their project folder. The project folder is the folder this chat was opened in.
+If that folder is the person's home folder, is Muster's own plugin folder (it has `.claude-plugin/plugin.json`), or
+the person says their project is somewhere else: **stop at once, before writing or running anything**, and tell them
+in plain words, in two lines: open a new chat in your project's folder (pick that folder when you start the chat, and
+say yes if the app asks you to trust it), then type `/muster:setup` there.
+Otherwise, name the folder in your first line to them, as a link.
+Then check that Muster is installed for every folder, not just one: run `claude plugin list` and look at muster's
+scope. If it is not "user", tell the person in one line and offer to fix it (one question with two buttons:
+"reinstall it for every folder", my pick, or "leave it"). On the first, run
+`claude plugin install muster@muster-kit --scope user`.
 
 ## 0a. Is there a crew here already?
 If `muster/CREW.md` or `muster/setup-choices.json` already exists in this project, stop. Tell the person a crew is
@@ -42,11 +52,12 @@ On "set it up now":
    the step cannot fail for lack of a name: `git add -A`, then
    `git -c user.name="Muster" -c user.email="muster@localhost" commit -m "First version"` (add `--allow-empty` if
    there is nothing to save).
-If git is not installed, say so plainly and stop. If the folder already has a version history but its `.gitignore`
+Check `git --version` before asking; if git is not installed, say so plainly and stop before asking anything. If the folder already has a version history but its `.gitignore`
 does not list `.claude/`, add that one line (the crew's folder copies live there).
 
 ## 1. Open the setup page
-Run, in the background, from the project folder:
+Check `python3 --version` first; if it is missing, say so plainly and stop. Run, in the background, from the project
+folder:
 `python3 "${CLAUDE_PLUGIN_ROOT}/setup/serve.py" "<project folder>"`
 It prints the page address (`http://localhost:<number>/`). Then open it:
 - **In the Claude desktop app:** open the address in the side browser.
@@ -116,8 +127,9 @@ page by the main project folder's full path.
   1. Tell the person in plain words that one or two trust boxes are about to appear: one lets Claude work in their
      project folder; one lets the crew's chats start there. The workers' own copies inherit that trust and ask nothing
      more. If an older trust box from another folder is still waiting, they answer that one first.
-  2. Start Manager_001 first (it works in the main folder). Wait until its start succeeds. If it is refused for
-     trust, tell the person what to press, wait for them to say they pressed it, and start it again yourself.
+  2. Start Manager_001 first (it works in the main folder). Because this chat was opened in the project folder, the
+     folder is already trusted, so the start should not fail. Wait until it succeeds. If it is refused for trust all
+     the same, tell the person what to press, wait for them to say they pressed it, and start it again yourself.
   3. Only when the manager is running, start every other worker. If one is still refused for trust, do the same:
      say what to press, wait, start it again yourself.
 - **Desktop app:** detach every crew chat to the top level as soon as it starts, so none sits under this chat or

@@ -37,7 +37,7 @@ permission as usual.
 | Part | What it does |
 |---|---|
 | `setup/serve.py` | shows the setup page on your own computer only (`localhost`) and saves your choices to `muster/setup-choices.json`, then stops |
-| `/muster:setup` | creates `CLAUDE.md` (if you have none) and the `muster/` folder in your project; never overwrites a file; saves nothing to your project's history; starts the crew's chats, each in its own copy of your project folder |
+| `/muster:setup` | creates `CLAUDE.md` (if you have none) and the `muster/` folder in your project; never overwrites a file; if your folder has no version history yet, asks you first and, on your yes, sets one up and saves your current files as the first version; starts the crew's chats, each in its own copy of your project folder |
 | `skills/board-digest/scripts/board_digest.py` | reads `muster/BOARD.md` and `muster/BOARD-ARCHIVE.md` and prints the entries for one worker; writes nothing |
 | `skills/held-work/scripts/push_check.sh` | runs `git fetch` on your own online copy of the project (a network call to your git host) and shows what would be sent; sends nothing |
 | `skills/deploy-rules/scripts/fresh_clone.sh` | makes a fresh copy of a project you name, from a folder or web address (a network call if it is a web address) |

@@ -9,6 +9,15 @@ If `muster/CREW.md` or `muster/setup-choices.json` already exists in this projec
 already set up here and ask one question with lettered choices (A: leave it as it is; B: open the setup page anyway, keeping every file that is
 already there). Do nothing else until they answer.
 
+## 0b. Can this folder hold separate copies for each worker?
+Each worker works in its own copy of the project folder, which needs the folder to keep a history of versions (git).
+If the folder has none yet (no `.git` here), tell the person in plain words and ask one question:
+A: set it up now (creates the version history and saves the current files as the first version; my pick);
+B: stop the setup.
+On A: run `git init`, then save everything already in the folder as the first version (`git add -A`, then
+`git commit -m "First version"`; if the folder is empty, `git commit --allow-empty -m "First version"`). If git is not
+installed, say so plainly and stop.
+
 ## 1. Open the setup page
 Run, in the background, from the project folder:
 `python3 "${CLAUDE_PLUGIN_ROOT}/setup/serve.py" "<project folder>"`
@@ -51,5 +60,5 @@ the "Running now" table of `muster/CREW.md`.
 
 ## 5. Tell the person
 In plain words, in three lines at most: the crew is running; from now on they talk to Manager_001 (and, in a
-terminal, how to open it: `claude attach Manager_001`); nothing has been saved to their project's history yet.
-Do not save (commit) anything yourself.
+terminal, how to open it: `claude attach Manager_001`); only the first version (if you made one in 0b) has been saved to their project's history.
+Do not save (commit) anything else yourself.

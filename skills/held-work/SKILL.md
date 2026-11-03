@@ -18,6 +18,7 @@ sent them out with its own.
    ```
    It lists every commit the push would send, every other branch with unpushed work, and uncommitted files. It exits 1
    when the count is not what you expected. Then find the extra commits (yours? someone's held work?) before pushing.
+   It also stops (exit 1) if the push would carry anything in `muster/`: the crew's files stay on this computer only.
 4. **Deploys come from a fresh clone** (skill `deploy-rules`), so a stray local commit cannot ride along.
 5. Push your branch too, so held work is saved; held is not the same as unsaved.
 6. If held commits do land on main by mistake, tell the manager at once; do not rewrite shared history on your own.

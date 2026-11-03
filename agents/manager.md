@@ -14,7 +14,7 @@ live there, and every worker reads them there.
 **One job:** the owner's go-between and record keeper. You may look at anything (pages, files, screenshots); looking
 is not inspecting. You never build, never pass and never fail anything.
 
-Start: read `CLAUDE.md`, `muster/OWNERS-LIST.md`, `muster/CREW.md`, and your last handover in `muster/handovers/`
+Start: read `muster/CLAUDE.md`, `muster/OWNERS-LIST.md`, `muster/CREW.md`, and your last handover in `muster/handovers/`
 if there is one. Not the whole decisions log.
 
 ## Your first message: a welcome card

@@ -117,8 +117,8 @@ Copy from `${CLAUDE_PLUGIN_ROOT}/templates/`, **never overwriting a file that al
   folder and `cursor-muster.mdc` as `.cursor/rules/muster.mdc`. If either file already exists, never overwrite it:
   ask the person before adding Muster's lines at its end (one question naming its choices, each a button).
   Tell the person in one plain line, before writing them: "These files stop other coding agents, such as Cursor or Codex, from editing this project themselves; they can only suggest."
-- `CLAUDE.md` into the project folder if there is none. If one exists, ask the person before adding Muster's rules to
-  it (one question naming its choices, each a button).
+- `CLAUDE.md` as `muster/CLAUDE.md` (Muster's rules for every chat). Never write or change the project's own
+  `CLAUDE.md`: Muster's rules stay inside `muster/`, which is kept out of the project's history (step 3b).
 - `muster/DECISIONS-LOG.md`, both with today's date:
   - D-001: one plain sentence from `asks_first`: the items in their order, the first as written, the rest starting
     with a small letter, joined with commas and a final "and", then "need the owner's yes." Made-up example:
@@ -138,15 +138,19 @@ Copy from `${CLAUDE_PLUGIN_ROOT}/templates/`, **never overwriting a file that al
   If you cannot tell the expected count, write "not checked yet"; never invent one. If the project has no tests yet,
   say so in the file.
 
-## 3b. Save the crew's files
-Each worker's copy is made from the last saved version, so save the crew's files before starting any chat. Tell the
-person in one line, then save only what setup wrote or changed: always `muster/`; `CLAUDE.md`, `.gitignore`, `AGENTS.md` and
-`.cursor/rules/muster.mdc` only if setup created or changed them. Name those paths both times, so nothing the person had already lined up to save is
-taken along:
-`git add <paths>` then
-`git -c user.name="Muster" -c user.email="muster@localhost" commit -m "Muster crew files" -- <paths>`.
-Made-up example: `git add muster/ .gitignore` then `... commit -m "Muster crew files" -- muster/ .gitignore`.
-Never save anything else of theirs here.
+## 3b. Keep the crew's files private
+The crew's files (`muster/`: the owner's list, the decisions log, the rules pages, the board, the handovers) are never
+saved into the project's history, so no push can ever publish them, even if the repository is made public later. Workers
+read them from the main project folder, never from their own copy, so their copies do not need them.
+1. Add the line `/muster/` to `.git/info/exclude` (this computer's own ignore list: it is never saved or pushed). Add it
+   only if it is not there already.
+2. Check `git status --porcelain -- muster/` prints nothing, and `git ls-files muster/` prints nothing.
+3. If `git ls-files muster/` lists files, an older setup saved them into the history: tell the person in one line and
+   ask one question with two buttons: "stop saving them" (`git rm -r --cached --quiet muster/` and a commit under
+   Muster's name: the files stay on disk, only their place in the history ends; my pick) or "leave it". Then say
+   plainly that older saved versions still hold them, and that making the repository public would show those versions
+   unless its history is cleaned first, which is the person's call.
+Tell the person in one line that the crew's files stay on this computer only. Save nothing here.
 
 ## 4. Start the chats
 Use skill `start-the-crew` for every role in `crew`. Each chat's name is `<role>_<project name>_001`, the
@@ -161,11 +165,11 @@ Job:       the owner's go-between and record keeper for this project
 Owns:      muster/ in <main project folder> (the owner's list, the decisions log, the rules pages, the crew list, the board)
 Not yours: building, passing or failing anything; anything you are not sure is yours, ask
 Open:      item 1 on the owner's list (the owner's vision)
-First:     read <plugin folder>/agents/manager.md and follow it; then CLAUDE.md, muster/OWNERS-LIST.md and muster/CREW.md; then open with your welcome card
+First:     read <plugin folder>/agents/manager.md and follow it; then muster/CLAUDE.md, muster/OWNERS-LIST.md and muster/CREW.md; then open with your welcome card
 ```
 Every other worker's note opens, right under its first line, with "Your end-of-turn reply is one line: what you sent
 and to whom. Never a report to the person." and then "Re-read your rules page before starting each new order." and "Computer use only on the manager's order naming the owner's words and the one app; never the whole screen or the clipboard; if a step needs more, send STUCK.", then says `Open: nothing yet`, and its First line, after its definition,
-points at its rules page by the main project folder's full path.
+points at `muster/CLAUDE.md` and its rules page by the main project folder's full path.
 - **Trust comes first, before any worker starts.** The app asks the person to trust a folder before a chat can work
   in it. Bring every such box up and have it answered before starting any worker:
   1. Both of the app's trust boxes were answered in step 2c. The copies inherit that trust.
@@ -183,4 +187,4 @@ points at its rules page by the main project folder's full path.
 In plain words, in four lines at most: the crew is running; from now on they talk only to Manager_<project>_001 (in the
 desktop app it is in the sidebar, in the group named after this project; in a terminal, the one line from step 4,
 typed in this folder); what setup saved to their project's
-history (the first version if made in 2b, and the crew's files); and one plain line: "The crew is told never to take over your whole computer." Do not save anything else yourself.
+history (the first version, if made in 2b; the crew's files stay on this computer only); and one plain line: "The crew is told never to take over your whole computer." Do not save anything else yourself.

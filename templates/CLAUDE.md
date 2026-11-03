@@ -15,8 +15,10 @@ owner disagree, the owner wins.
   `Builder A_MyProject_001`, `Design Inspector_MyProject_001`. The digits count renewals (see 9).
 - The manager works in the main project folder. Every other chat works in its own copy of the project folder, so no
   two chats edit the same files at once.
-- The crew's shared files (`muster/`: the owner's list, the rules pages, the board, the crew list) are one copy, in the
-  main project folder. Workers read them there, never from their own copy, and only the manager changes them.
+- The crew's shared files (`muster/`: the owner's list, the rules pages, the board, the crew list, and this file) are
+  one copy, in the main project folder. Workers read them there, never from their own copy, and only the manager
+  changes them. They are kept out of the project's history (`.git/info/exclude`): never save, commit or push anything
+  in `muster/`.
 - Short-lived helpers are only for small side jobs inside a worker's own chat (for example, a quick search).
 
 ## 3. Who messages whom

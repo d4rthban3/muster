@@ -21,6 +21,13 @@ git for-each-ref --format='%(refname:short) %(upstream:short)' refs/heads | whil
 done
 echo "== Uncommitted files:"
 git status --porcelain | sed 's/^/  /'
+crew=$(git log --format= --name-only "$base..$branch" -- muster/ | sort -u)
+if [ -n "$crew" ]; then
+  echo "STOP: the push carries Muster's crew files (muster/), which stay on this computer only:"
+  echo "$crew" | sed 's/^/  /'
+  echo "  (A later commit that stops saving them does not help: the pushed history would still hold them.)"
+  exit 1
+fi
 if [ "$n" -ne "$expected" ]; then
   echo "STOP: the push carries $n commit(s), not $expected. Find the extra ones (are they yours? are they held?) before pushing."
   exit 1

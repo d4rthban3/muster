@@ -18,7 +18,8 @@ try to turn off the app's message limits.
 
 ## The starting note
 The first message of every new chat begins with the line "Your five-line starting note, from the manager (or from the
-setup, for the first crew):", then the five lines. The First line always begins with "read <plugin folder>/agents/
+setup, for the first crew):". A worker's note (never the manager's) then has the line "Your end-of-turn reply is one line:
+what you sent and to whom. Never a report to the person."; then the five lines. The First line always begins with "read <plugin folder>/agents/
 <role>.md and follow it for the rest of this chat" (the app cannot start a chat as a worker type), and names the
 main project folder's full path for the rules page.
 

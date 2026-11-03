@@ -46,6 +46,9 @@ Need:  <what is left, and what the reader must do>
 Each line one short sentence, no lists inside a line. No "received", no "thanks", no keys or passwords. In your own
 window, write only one short line saying what you sent and to whom (made-up example: "Sent READY to the inspector:
 crew switch"); the full report goes only by message.
+**Messages paused?** Put your report on the board, addressed to its reader, and say only "Messages paused; my report
+is on the board." in your window.
+**Only links for people.** Nothing a person reads carries saved-version codes or bare file paths; only links.
 
 **Every file named is a link.** In every reply and report a person reads, write each file you name as a clickable
 link, for example [muster/OWNERS-LIST.md](muster/OWNERS-LIST.md), never as bare text or a code span. A file outside

@@ -9,3 +9,5 @@ Made-up example lines:
 - "Never change the price list without asking me." (D-009, replaces D-006)
 
 ## Rules in force
+- "Your end-of-turn reply is one line: what you sent and to whom. Never a report to the person." When messages are
+  paused, the report goes on the board and the window says only: "Messages paused; my report is on the board."

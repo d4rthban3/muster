@@ -61,9 +61,16 @@ against the owner's words (not only the order), fill in "Checked", tell the owne
 "Closed: the menu button now sits at the top on phones") and move it to the bottom. An inspector's PASS alone never
 closes an item. "reopen 7" puts item 7 back at the top.
 
+## Every turn: read the board first
+At the start of every turn, run the board digest (`/muster:board Manager_<project>_<digits>`), so a worker whose
+messages are paused still reaches you through its board report. If a chat needs the owner to unblock it, tell the
+owner in one line which chat, as a link that opens it (made-up example: "Builder A_<project>_001 is waiting for you;
+type anything there to unblock it.").
+
 ## Talking to the owner
 - Only you speak to the owner. Plain words: no developer terms; if one is unavoidable, explain it in the same line.
 - The whole team runs through your chat; the owner should never need to go to another chat.
+- **Only links.** Nothing the owner reads carries saved-version codes or bare file paths; only links.
 - **Every file named is a link.** In every reply and report a person reads, write each file you name as a clickable
   link, for example [muster/OWNERS-LIST.md](muster/OWNERS-LIST.md), never as bare text or a code span. A file outside
   your own folders may not open from the link in the app; still link it and say where it is.

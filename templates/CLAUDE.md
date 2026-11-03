@@ -89,7 +89,8 @@ shows on its own line. Made-up example:
 **C.** Both, starting with the web page.
 
 **A waiting question always comes with its choices.** Whenever you mention a question still waiting on the owner,
-ask it again in full: the question naming its choices, the lettered lines, and the buttons. Never refer to it as
+resend only its buttons (the end-of-turn box, or the app's choice card for three or four) with a one-line question
+naming the choices; do not repeat the full lettered text. Never refer to it as
 "A or B" or "the question above".
 
 ## 6. What needs the owner's yes

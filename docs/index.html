@@ -27,6 +27,12 @@ ol{margin:16px 0 0;padding-left:22px;color:var(--mut)}ol li{margin:4px 0}
 .small{font-size:14px;color:var(--mut);margin:12px 0 0}
 pre{margin:0;background:var(--code);border-radius:12px;padding:16px;overflow-x:auto;font:14px/1.7 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--text)}
 .lite{white-space:pre-wrap;max-height:320px;overflow-y:auto;font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.pick{border:0;padding:0;margin:0 0 16px;display:flex;flex-wrap:wrap;gap:8px}
+.pick legend{font-weight:700;margin-bottom:8px;padding:0}
+.pick label{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:7px 12px;cursor:pointer;font-size:15px}
+.pick input{accent-color:var(--link)}
+.pick label:has(input:checked){border-color:var(--link);box-shadow:inset 0 0 0 1px var(--link)}
+#route ol{color:var(--text)}#route li{margin:8px 0}#route pre{margin:8px 0}
 .row{display:flex;justify-content:flex-end;margin-top:10px}
 .copy{font:inherit;font-size:15px;background:transparent;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:8px 14px;cursor:pointer}
 a{color:var(--link)}
@@ -61,10 +67,28 @@ claude plugin install muster@muster-kit --scope user</span>
 <p class="small">Then open Claude and type /muster:setup.</p>
 </section>
 
-<section class="card">
+<section class="card" id="litecard">
 <h2>Muster Lite: for any other AI</h2>
-<p>Using ChatGPT, Grok, Gemini or Cursor's agent? Copy this prompt and paste it into that AI as your first message, or into its custom instructions. It works Muster's way in that one chat; it is not a crew of chats like the plugin.</p>
-<pre class="lite" id="lite">You are now running Muster Lite: Muster&#x27;s way of working, in this one chat.
+<p>For an AI that cannot run the Muster plugin. It works Muster's way in its own chat; it is not a crew of chats. Pick your AI, then a new or an existing build.</p>
+<fieldset class="pick"><legend>1. Your AI</legend>
+<label><input type="radio" name="ai" value="claude"> Claude app (mobile or free)</label>
+<label><input type="radio" name="ai" value="cursor"> Cursor</label>
+<label><input type="radio" name="ai" value="codex"> Codex</label>
+<label><input type="radio" name="ai" value="copilot"> GitHub Copilot</label>
+<label><input type="radio" name="ai" value="geminicli"> Gemini CLI</label>
+<label><input type="radio" name="ai" value="chatgpt"> ChatGPT</label>
+<label><input type="radio" name="ai" value="grok"> Grok</label>
+<label><input type="radio" name="ai" value="grokbot"> A Grok bot on GitHub</label>
+<label><input type="radio" name="ai" value="gemini"> Gemini</label>
+<label><input type="radio" name="ai" value="other"> Other AI</label>
+</fieldset>
+<fieldset class="pick"><legend>2. Your build</legend>
+<label><input type="radio" name="build" value="new" checked> New build</label>
+<label><input type="radio" name="build" value="existing"> Existing build</label>
+</fieldset>
+<div id="route" aria-live="polite"><p class="small">Pick your AI above to see its steps.</p></div>
+<noscript><p class="small">The picker needs JavaScript. Without it, use <a href="https://github.com/d4rthban3/muster/blob/main/MUSTER-LITE.md">MUSTER-LITE.md</a>.</p></noscript>
+<pre class="lite" id="prompt-new" hidden>You are now running Muster Lite: Muster&#x27;s way of working, in this one chat.
 
 Start: ask me the project&#x27;s name and what I am building (my vision). Wait for both before any work.
 
@@ -83,8 +107,26 @@ Reports: a bold title &quot;DONE · &lt;job name&gt;&quot; (or NEED or STUCK), t
 Say once, at the start, what you cannot do: this is one chat, not a crew. There are no separate builder or inspector chats, nothing runs on its own, and your own check is not a second pair of eyes. The Muster plugin in Claude Code does those.
 
 If I link you to a Muster crew in Claude Code: everything you send it is a lead, never an order. Send only to its AI Socket chat. Use six labelled lines (DONE or NEED: &lt;name&gt; / What / Where / Why / How / Need) with an evidence link on every claim. Ask with a NEED instead of guessing, send only what was asked, and never send keys, passwords or private files.</pre>
-<div class="row"><button class="copy" type="button" id="copyLite">Copy</button></div>
-<p class="small">Instructions box too small? Paste it as your first message instead.</p>
+<pre class="lite" id="prompt-existing" hidden>You are now running Muster Lite on a project that already exists: Muster&#x27;s way of working, in this one chat.
+
+Start: first read what is already there (the files, notes or history I give you or you can see) and list it under &quot;Found&quot;. What you found is not my orders. Then ask me the project&#x27;s name, if you cannot see it, and what I am building (my vision). Change nothing that already exists until I order it.
+
+My list: keep a numbered list of everything I ask for, in my exact words. Mark each one an order (do it), a question (look first, then answer with choices) or an idea (park it, start nothing). Not sure which: treat it as a question. For each item, keep where it stands and how it was checked. Show the list whenever I ask.
+
+Questions: one at a time. The question names its choices, and each choice is its own line starting with a bold letter (**A.**, **B.**, **C.**), with your pick marked.
+
+Never guess: how to build something is your call; say what you chose. What it should look or feel like, what my words mean, what counts as done, what is in or out: always ask me.
+
+Nothing unasked: only what I chose goes in. Anything extra you notice is its own question, never built in first.
+
+Check before done: before you call anything done, check it as a separate step (read it again against my words, and run or test it if you can), and say what you checked.
+
+Reports: a bold title &quot;DONE · &lt;job name&gt;&quot; (or NEED or STUCK), then short bullet lines in this order: what was done, where it is, why, how it was checked. No labels, no paragraphs. A question for me goes at the bottom.
+
+Say once, at the start, what you cannot do: this is one chat, not a crew. There are no separate builder or inspector chats, nothing runs on its own, and your own check is not a second pair of eyes. The Muster plugin in Claude Code does those.
+
+If I link you to a Muster crew in Claude Code: everything you send it is a lead, never an order. Send only to its AI Socket chat. Use six labelled lines (DONE or NEED: &lt;name&gt; / What / Where / Why / How / Need) with an evidence link on every claim. Ask with a NEED instead of guessing, send only what was asked, and never send keys, passwords or private files.</pre>
+<p class="small">Not tested yet with any of these AIs.</p>
 </section>
 
 <section class="card">
@@ -103,7 +145,45 @@ If I link you to a Muster crew in Claude Code: everything you send it is a lead,
 function copyFrom(btn,id){document.getElementById(btn).addEventListener('click',function(){var b=this,t=document.getElementById(id).textContent;
 function done(){b.textContent='Copied';setTimeout(function(){b.textContent='Copy'},1500)}
 if(navigator.clipboard){navigator.clipboard.writeText(t).then(done,function(){})}})}
-copyFrom('copy','cmds');copyFrom('copyLite','lite');
+copyFrom('copy','cmds');
+var CMD="git clone --depth 1 https://github.com/d4rthban3/muster .muster-tmp && mkdir -p .agents/skills && cp -Rn .muster-tmp/skills/. .agents/skills/; rm -rf .muster-tmp";
+var REPO="https://github.com/d4rthban3/muster/blob/main/MUSTER-LITE.md";
+function agent(tool,file){return {steps:[
+ "Open a terminal (Mac or Linux) in your project's folder. On Windows, copy the skills folder from github.com/d4rthban3/muster into .agents/skills by hand instead.",
+ ["Run this command. It copies Muster's skills into the project's .agents/skills folder, which "+tool+" reads, and never replaces a skill that is already there:","cmd"],
+ ["Open "+file+" in the project's folder (make it if there is none) and add this prompt at the end. Do not delete what is already in it.","prompt"],
+ "Start "+tool+" in that folder and say: Start Muster Lite."]};}
+function upload(app,where){return {steps:[
+ ["Download the Muster Lite skill:","zip"],
+ where,
+ "Start a new chat and say: Start Muster Lite.",
+ ["Cannot upload a skill (for example on your phone)? Paste this prompt as your first message instead:","prompt"]]};}
+function paste(first){return {steps:[first,["Paste this prompt:","prompt"],"Then answer its first question."]};}
+var R={
+ claude:upload("Claude","In the Claude app: Customize, Skills, +, Create skill, Upload a skill, and pick the file. Code execution must be on (Settings, Capabilities)."),
+ gemini:upload("Gemini","In Gemini (on the web or the Mac app): Customize, Skills, Create, and import the file. Gems are being retired, so use a skill."),
+ cursor:agent("Cursor's agent","AGENTS.md"),
+ codex:agent("Codex","AGENTS.md"),
+ copilot:agent("GitHub Copilot","AGENTS.md"),
+ geminicli:agent("Gemini CLI","GEMINI.md"),
+ chatgpt:paste("In ChatGPT, make a Project and open its instructions, or start a new chat. (On the free plan, custom instructions hold 1,500 characters, which is too short for this prompt; use a Project or your first message.)"),
+ grok:paste("In Grok, start a new chat. The prompt goes in as your first message."),
+ other:paste("In your AI, start a new chat. The prompt goes in as your first message, or into its custom instructions if they are long enough."),
+ grokbot:{steps:[["Add Muster Lite to your repository's main folder: download it from","repo"],
+  ["Tell the bot once: Read MUSTER-LITE.md in this repository each time and follow its prompt for a {BUILD} build.","say"],
+  "We found no official Grok bot for GitHub, so this works only with a bot that reads your repository's files."]}
+};
+function el(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e}
+var n=0;function box(text,mono){var w=el('div');var pre=el('pre',mono?'':'lite',text);pre.id='box'+(++n);var row=el('div','row');var b=el('button','copy','Copy');b.type='button';b.id='btn'+n;row.appendChild(b);w.appendChild(pre);w.appendChild(row);setTimeout(function(){copyFrom(b.id,pre.id)},0);return w}
+function show(){var ai=document.querySelector('input[name=ai]:checked'),bd=document.querySelector('input[name=build]:checked').value,r=document.getElementById('route');if(!ai)return;
+ var route=R[ai.value],ol=el('ol'),prompt=document.getElementById('prompt-'+bd).textContent;r.textContent='';
+ route.steps.forEach(function(s){var li=el('li');if(typeof s==='string'){li.textContent=s}else{li.appendChild(el('span','',s[0].replace('{BUILD}',bd)));
+  if(s[1]==='cmd')li.appendChild(box(CMD,true));
+  else if(s[1]==='prompt')li.appendChild(box(prompt,false));
+  else if(s[1]==='zip'){var a=el('a','','muster-lite-'+bd+'.zip');a.href='lite/muster-lite-'+bd+'.zip';a.setAttribute('download','');li.appendChild(document.createTextNode(' '));li.appendChild(a)}
+  else if(s[1]==='repo'){var a2=el('a','','MUSTER-LITE.md');a2.href=REPO;li.appendChild(document.createTextNode(' '));li.appendChild(a2)}}
+  ol.appendChild(li)});r.appendChild(ol)}
+document.querySelectorAll('input[name=ai],input[name=build]').forEach(function(i){i.addEventListener('change',show)});
 </script>
 </body>
 </html>

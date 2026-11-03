@@ -33,7 +33,7 @@ for kind in ("new", "existing"):
     text = prompt(kind)
     with open(os.path.join(ROOT, "docs", "lite", "muster-lite-%s.zip" % kind), "wb") as fh:
         fh.write(skill(kind, text))
-    page, n = re.subn(r'(<pre class="lite" id="prompt-%s">).*?(</pre>)' % kind,
+    page, n = re.subn(r'(<pre class="lite" id="prompt-%s"[^>]*>).*?(</pre>)' % kind,
                       lambda m: m.group(1) + html.escape(text) + m.group(2), page, flags=re.S)
     if n != 1:
         sys.exit("docs/index.html: no prompt box for %s" % kind)

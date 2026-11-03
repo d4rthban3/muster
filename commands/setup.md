@@ -10,24 +10,22 @@ or a code span.
 
 ## 0. Which folder is their project?
 The project folder is the folder this chat was opened in. If that folder is the person's home folder, or is Muster's
-own plugin folder (it has `.claude-plugin/plugin.json`), stop and ask one question with lettered choices: which
-folder is their project. Name the folder you will use in your first line to them, as a link.
+own plugin folder (it has `.claude-plugin/plugin.json`), stop and ask one question: which
+folder is their project (name the likely folders, each a button). Name the folder you will use in your first line to them, as a link.
 Check that Muster is installed for every folder, not just one: run `claude plugin list` and look at muster's scope.
-If it is not "user", tell the person in one line and offer to fix it (one question: A: reinstall it for every folder,
-my pick; B: leave it). On A run `claude plugin install muster@muster-kit --scope user`.
+If it is not "user", tell the person in one line and offer to fix it (one question with two buttons: "reinstall it for every folder", my pick, or "leave it"). On the first, run `claude plugin install muster@muster-kit --scope user`.
 
 ## 0a. Is there a crew here already?
 If `muster/CREW.md` or `muster/setup-choices.json` already exists in this project, stop. Tell the person a crew is
-already set up here and ask one question with lettered choices (A: leave it as it is; B: open the setup page anyway,
-keeping every file that is already there). Do nothing else until they answer.
+already set up here and ask one question with two buttons: "leave it as it is" or "open the setup page anyway, keeping every
+file that is already there". Do nothing else until they answer.
 
 ## 0b. Can this folder hold separate copies for each worker?
 Each worker works in its own copy of the project folder, made from the folder's last saved version. That needs the
 folder to keep a history of versions (git). If the folder has none yet (no `.git` here), tell the person in plain
-words and ask one question:
-A: set it up now (creates the version history and saves the current files as the first version; my pick);
-B: stop the setup.
-On A:
+words and ask one question with two buttons: "set it up now" (creates the version history and saves the current
+files as the first version; my pick) or "stop the setup".
+On "set it up now":
 1. Run `git init`.
 2. If there is no `.gitignore`, write one so private files and this computer's own settings are never saved, and tell
    the person in one line:
@@ -67,7 +65,7 @@ Copy from `${CLAUDE_PLUGIN_ROOT}/templates/`, **never overwriting a file that al
   `RULES-PAGE.md`; create empty `muster/BOARD-ARCHIVE.md`, and the folders `muster/rules/` and `muster/handovers/`
   (each with an empty `.gitkeep`, so they are saved).
 - `CLAUDE.md` into the project folder if there is none. If one exists, ask the person before adding Muster's rules to
-  it (one question, lettered choices).
+  it (one question naming its choices, each a button).
 - `muster/DECISIONS-LOG.md`, both with today's date:
   - D-001: one plain sentence from `asks_first`: the items in their order, the first as written, the rest starting
     with a small letter, joined with commas and a final "and", then "need the owner's yes." Made-up example:

@@ -58,7 +58,7 @@ The manager shows reports to the owner as cards (see `muster/REPORT.md`). Every 
   means, what counts as done, what matters more, what is in or out of the job): never fill them, however sure you
   feel. One NEED report instead.
 - **Nothing the owner did not choose goes in.** A gap or an extra you notice goes to the owner (through the manager)
-  as its own question with lettered choices. Never write it in first and offer to take it out.
+  as its own question that names its choices, each a button. Never write it in first and offer to take it out.
 
 ## 5b. Asking the owner a choice
 **Every choice is a button, and the question names the choices.** The question itself says the choices (made-up

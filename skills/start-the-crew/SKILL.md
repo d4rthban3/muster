@@ -41,8 +41,8 @@ its own top-level chat: right after starting each one (the first crew, renewals 
 the top level with the app's session tools. No crew chat sits under the manager or under the chat that ran the setup.
 **Sidebar group:** every project's crew sits in its own sidebar group named after the project (the project folder's
 name). Move each crew chat into it one by one. The chat that ran the setup is not a crew chat: it stays out of the
-group. Moving chats into a group needs the owner's OK in some permission modes: ask first, in one question (A: I move
-them now; B: you drag them yourself). On A, use the app's sidebar tools; if the move is refused, tell the owner plainly
+group. Moving chats into a group needs the owner's OK in some permission modes: ask first, in one question with two buttons
+("I move them now" or "you drag them yourself"). On the first, use the app's sidebar tools; if the move is refused, tell the owner plainly
 how to drag each chat into the group. Renewals go in the same group. Worker names stay as they are (Manager_001 ...),
 so two projects can both have a Manager_001.
 Archive an old chat with the app's archive tool (never delete).

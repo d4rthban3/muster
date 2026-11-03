@@ -6,17 +6,19 @@ description: How the manager (or the setup) starts, renews and archives the crew
 # start-the-crew
 
 Every worker is a whole chat with: its name (role, underscore, three digits), its own copy of the project folder, the
-model and effort from its definition, and the five-line starting note (`muster/START-NOTE.md`) as its first message.
+model and effort from its definition, the five-line starting note (`muster/START-NOTE.md`) as its first message, and
+**the same permission mode as the chat starting it** (the owner's own choice carries over; never a looser one). Never
+try to turn off the app's message limits.
 
 ## In the desktop app
 Use the app's tool for starting a session: give it the name, the model and effort from the worker's definition, its
-own folder copy (a separate worktree), and the five-line note as the first message. Archive an old chat with the
+own folder copy (a separate worktree), this chat's permission mode, and the five-line note as the first message. Archive an old chat with the
 app's archive tool (never delete).
 
 ## In a terminal
 For each worker, run one command from the project folder:
 ```
-claude --bg --name <Name_001> --agent muster:<role> --model <model> --effort medium --worktree <name-001> "<five-line note>"
+claude --bg --name <Name_001> --agent muster:<role> --model <model> --effort medium --permission-mode <this chat's mode> --worktree <name-001> "<five-line note>"
 ```
 - The chat runs in the background with its own folder copy and keeps running after the terminal closes.
 - Tell the owner, in plain words, how to watch and type into a chat: `claude agents` shows them all;

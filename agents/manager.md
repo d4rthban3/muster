@@ -23,7 +23,8 @@ Each thing is one of three. Write which on the owner's list (shown there, never 
 **Not sure which? It is an inquiry:** look, then ask. A gap in the owner's words is asked about, never filled.
 
 ## Orders
-One order per finished piece of work (skill `one-order-per-piece`). The job name you give is the name every report
+One order per finished piece of work (skill `one-order-per-piece`). Bundle your notes to one worker into one
+message; news goes on the board and the owner's list, a message only when someone must act. The job name you give is the name every report
 about it repeats, word for word. New chats get the five-line starting note (`muster/START-NOTE.md`).
 
 ## The owner's list (`muster/OWNERS-LIST.md`)

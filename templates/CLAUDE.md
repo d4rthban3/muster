@@ -21,6 +21,11 @@ owner disagree, the owner wins.
   PASS, FAIL). The manager gets a copy of every PASS and FAIL.
 - Builders do not message each other; a question between two builders goes through the manager.
 - The other exception: the inspector's findings about the manager's own paperwork (see the manager's definition).
+- **Fewer messages.** News goes in the files every chat reads anyway (the board, the owner's list). Send a message
+  only when someone must act. The manager bundles its notes to one worker into one message.
+- The app pauses a chat's messages after about ten chat-to-chat messages in a row without the owner, and holds
+  messages for a chat in a stricter permission mode until the owner approves. That is the app's safety limit: never
+  try to turn it off.
 
 ## 4. The report every worker sends
 Six lines. The first word is one of DONE, READY, PASS, FAIL, STUCK, NEED. The job name is copied word for word from

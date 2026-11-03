@@ -60,7 +60,8 @@ Copy from `${CLAUDE_PLUGIN_ROOT}/templates/`, **never overwriting a file that al
 
 ## 4. Start the chats
 Use skill `start-the-crew` for every name in `crew`: its own chat, its own folder copy, the model and effort from its
-definition in `${CLAUDE_PLUGIN_ROOT}/agents/`, and its five-line starting note. The manager's note:
+definition in `${CLAUDE_PLUGIN_ROOT}/agents/`, the same permission mode as this chat (never a looser one), and its
+five-line starting note. The manager's note:
 ```
 Job:       the owner's go-between and record keeper for this project
 Owns:      muster/ (the owner's list, the decisions log, the rules pages, the crew list, the board)

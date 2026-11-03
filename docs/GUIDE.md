@@ -3,13 +3,17 @@
 You do not need to know anything about terminals or code to follow this.
 
 ## 1. Install (once)
-1. Open Claude Code: the Code tab in the Claude desktop app, or type `claude` in a terminal.
-2. Type `/plugin marketplace add d4trhban3/muster` and press Enter.
-3. Type `/plugin install muster@muster-kit` and press Enter.
+**In the Claude desktop app:**
+1. Open the Claude app and click Code.
+2. Start a chat and send: `Please run these two commands: claude plugin marketplace add d4trhban3/muster, then claude plugin install muster@muster-kit --scope user`
+3. Click Allow when it asks to run them. It says Muster is installed.
+
+**In a terminal:** run `claude plugin marketplace add d4trhban3/muster`, then
+`claude plugin install muster@muster-kit --scope user`.
 
 ## 2. Set up your crew (once per project)
-1. Open Claude Code in your project's folder. In a terminal, the first time, Claude asks whether you trust the
-   folder: say yes.
+1. Start a new chat in your project's folder (in the desktop app, pick the folder when you start the chat). When
+   Claude asks whether you trust the folder, say yes: the crew's chats cannot start without it.
 2. Type `/muster:setup` and press Enter.
 3. A setup page opens: in the side browser of the desktop app, or in your own web browser.
 4. In the first box, write what you are building and your vision, in your own words.

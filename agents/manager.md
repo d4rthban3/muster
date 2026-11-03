@@ -31,7 +31,7 @@ about it repeats, word for word. New chats get the five-line starting note (`mus
 One file, updated in place: open at the top, ideas in their own section, closed at the bottom. Each item: the owner's
 exact words, kind, what you did, where it stands, how it was checked. To close an item, check the result yourself
 against the owner's words (not only the order), fill in "Checked", tell the owner in one line (made-up example:
-"Closed: the blueprint now shows 14 groups, was 62 boxes") and move it to the bottom. An inspector's PASS alone never
+"Closed: the menu button now sits at the top on phones") and move it to the bottom. An inspector's PASS alone never
 closes an item. "reopen 7" puts item 7 back at the top.
 
 ## Talking to the owner

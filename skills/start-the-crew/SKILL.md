@@ -11,9 +11,17 @@ model and effort from its definition, the five-line starting note (`muster/START
 try to turn off the app's message limits.
 
 ## In the desktop app
-Use the app's tool for starting a session: give it the name, the model and effort from the worker's definition, its
-own folder copy (a separate worktree), this chat's permission mode, and the five-line note as the first message. Archive an old chat with the
-app's archive tool (never delete).
+Use the app's tool for starting a session. Chat names there take only small letters, digits and dashes, so give it:
+- the short name: the worker's name in small letters with dashes (made-up example: `builder-a-001`);
+- the title: the worker's real name (`Builder_A_001`), which is what the owner sees;
+- the model and effort from the worker's definition, its own folder copy (a separate worktree), and this chat's
+  permission mode;
+- the five-line note as the first message. The app cannot start a chat as a worker type, so the note's First line
+  begins with "read <plugin folder>/agents/<role>.md and follow it for the rest of this chat".
+If the app says the folder is not trusted, tell the owner plainly to say yes to the trust box, then try again.
+Archive an old chat with the app's archive tool (never delete).
+
+
 
 ## In a terminal
 For each worker, run one command from the project folder:

@@ -17,15 +17,18 @@ ideas), AI_Socket_001 (for plugging in other AIs), and Agent_Teacher_001 (train 
 When three or more workers build, a second inspector, Design_Inspector_001, joins to check what people see.
 
 ## Install
-In Claude Code (the Code tab of the Claude desktop app, or a terminal), type these two lines, one at a time:
+**In the Claude desktop app:** open the Code tab, start a chat, and send this message:
 ```
-/plugin marketplace add d4trhban3/muster
-/plugin install muster@muster-kit
+Please run these two commands: claude plugin marketplace add d4trhban3/muster, then claude plugin install muster@muster-kit --scope user
 ```
-Then, in the folder of your project, type:
+Then start a new chat in your project's folder and type `/muster:setup`.
+
+**In a terminal:** run these two commands, then open Claude in your project's folder and type `/muster:setup`:
 ```
-/muster:setup
+claude plugin marketplace add d4trhban3/muster
+claude plugin install muster@muster-kit --scope user
 ```
+
 A setup page opens. Write what you are building, pick your crew, and press Start. Muster starts the chats for you.
 Step by step: [docs/GUIDE.md](docs/GUIDE.md).
 
@@ -37,7 +40,7 @@ permission as usual.
 | Part | What it does |
 |---|---|
 | `setup/serve.py` | shows the setup page on your own computer only (`localhost`) and saves your choices to `muster/setup-choices.json`, then stops |
-| `/muster:setup` | creates `CLAUDE.md` (if you have none) and the `muster/` folder in your project; never overwrites a file; if your folder has no version history yet, asks you first and, on your yes, sets one up and saves your current files as the first version; starts the crew's chats, each in its own copy of your project folder |
+| `/muster:setup` | creates `CLAUDE.md` (if you have none) and the `muster/` folder in your project; never overwrites a file; if your folder has no version history yet, asks you first and, on your yes, sets one up and saves your current files as the first version; saves the crew's own files (`CLAUDE.md`, `.gitignore`, `muster/`) as a version so each worker's copy has them; starts the crew's chats, each in its own copy of your project folder |
 | `skills/board-digest/scripts/board_digest.py` | reads `muster/BOARD.md` and `muster/BOARD-ARCHIVE.md` and prints the entries for one worker; writes nothing |
 | `skills/held-work/scripts/push_check.sh` | runs `git fetch` on your own online copy of the project (a network call to your git host) and shows what would be sent; sends nothing |
 | `skills/deploy-rules/scripts/fresh_clone.sh` | makes a fresh copy of a project you name, from a folder or web address (a network call if it is a web address) |

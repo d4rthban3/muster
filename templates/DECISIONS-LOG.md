@@ -14,8 +14,8 @@ Affects: <roles / areas>
 
 ## Standing decisions (written at setup from the owner's choices)
 ### D-001 · <date> · What the crew asks the owner first
-Decision: Spending money, keys or passwords, and deleting anything need the owner's yes. <plus anything the owner
-added on the setup page, in their words>
+Decision: <one plain sentence: the setup page's list joined with commas and a final "and", then "need the owner's
+yes." Made-up example: "Spending money, keys or passwords, deleting anything and changing prices need the owner's yes.">
 Why: chosen on the setup page.
 Supersedes: none
 Affects: all

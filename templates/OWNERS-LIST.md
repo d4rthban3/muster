@@ -13,9 +13,9 @@ Each item has five parts:
 
 Made-up example:
 ```
-7. "the blueprint is a mess, clean it up"
+7. "the menu is hard to find on my phone"
    Kind: inquiry
-   Did: looked at the blueprint page: 62 boxes and 99 wires on one screen, hard to follow. Asked: group them, or hide the old ones?
+   Did: looked on a phone: the menu button sits below the first screen. Asked: move it to the top, or add a fixed menu button?
    Stands: waiting on you
    Checked: (not done yet)
 ```

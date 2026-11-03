@@ -12,19 +12,22 @@ You do not need to know anything about terminals or code to follow this.
 `claude plugin install muster@muster-kit --scope user`.
 
 ## 2. Set up your crew (once per project)
-1. Start a new chat in your project's folder (in the desktop app, pick the folder when you start the chat). When
-   Claude asks whether you trust the folder, say yes: the crew's chats cannot start without it.
-2. Type `/muster:setup` and press Enter. If your folder is brand new, setup first gives it a version history and
-   asks you to open a new chat in the same folder once more (press "Trust repository" if the app asks), then type
-   `/muster:setup` again.
+You do not need a project folder: Muster makes one for you, in a folder called Muster in your home folder.
+1. Start a chat in Claude Code (any folder, or none).
+2. Type `/muster:setup` and press Enter.
 3. A setup page opens: in the side browser of the desktop app, or in your own web browser.
-4. In the first box, write what you are building and your vision, in your own words.
-5. Your crew shows as cards: Manager_001, Builder_A_001, Designer_001 and Inspector_001 are always there.
-6. Add any add-ons you want: extra builders, Sketchpad_001, AI_Socket_001, Agent_Teacher_001. When three or more
+4. Type a short name for your project in "Project name". Your project's folder and its group in the sidebar get
+   this name.
+5. In the next box, write what you are building and your vision, in your own words.
+6. Your crew shows as cards: Manager_001, Builder_A_001, Designer_001 and Inspector_001 are always there.
+7. Add any add-ons you want: extra builders, Sketchpad_001, AI_Socket_001, Agent_Teacher_001. When three or more
    workers build, Design_Inspector_001 appears on its own.
-7. "What the crew asks you first": spending money, keys or passwords, and deleting anything are always on. Type
+8. "What the crew asks you first": spending money, keys or passwords, and deleting anything are always on. Type
    anything else you want to be asked about first, and press Add.
-8. Press Start, then go back to Claude. It starts your crew.
+9. Press Start, then go back to Claude.
+10. The app asks you to trust your new project folder twice: press "Trust workspace", then "Trust repository".
+11. Muster starts your crew.
+If you already have a project folder and open the chat in it, setup asks whether to use that folder or make a new one.
 
 ## 3. Working with your crew
 - Talk only to **Manager_001**. In the desktop app it is in the sidebar, in a group named after your project. In a

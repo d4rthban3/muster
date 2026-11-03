@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Serve the Muster setup page on this computer only, and save the owner's choices.
 
-Usage: python3 serve.py <project-folder>
+Usage: python3 serve.py <choices-file>
 
-Prints the page address. When the owner presses Start, the choices are saved to
-<project-folder>/muster/setup-choices.json and the helper stops. Nothing leaves this computer.
+Prints the page address. When the owner presses Start, the choices are saved to <choices-file>
+(setup uses ~/Muster/.setup-choices.json) and the helper stops. Nothing leaves this computer.
 Only the page this helper served can save: it must send the one-time key printed into the page,
 from this helper's own address, as JSON, in the expected shape.
 """
@@ -25,9 +25,11 @@ EXTRA_BUILDER = re.compile(r"^Builder_[B-Z]_001$")
 
 def check_choices(choices):
     """Return the choices if they have exactly the expected shape, else raise ValueError."""
-    if not isinstance(choices, dict) or set(choices) != {"vision", "crew", "asks_first"}:
+    if not isinstance(choices, dict) or set(choices) != {"project", "vision", "crew", "asks_first"}:
         raise ValueError("wrong fields")
-    vision, crew, asks = choices["vision"], choices["crew"], choices["asks_first"]
+    project, vision, crew, asks = choices["project"], choices["vision"], choices["crew"], choices["asks_first"]
+    if not isinstance(project, str) or not project.strip() or len(project) > 40:
+        raise ValueError("project")
     if not isinstance(vision, str) or not vision.strip() or len(vision) > 4000:
         raise ValueError("vision")
     if not isinstance(crew, list) or len(crew) > 40 or len(set(crew)) != len(crew):
@@ -46,11 +48,11 @@ def check_choices(choices):
 
 
 def main():
-    if len(sys.argv) != 2 or not os.path.isdir(sys.argv[1]):
-        print("usage: serve.py <project-folder>")
+    if len(sys.argv) != 2:
+        print("usage: serve.py <choices-file>")
         return 2
-    out_dir = os.path.join(os.path.abspath(sys.argv[1]), "muster")
-    out_file = os.path.join(out_dir, "setup-choices.json")
+    out_file = os.path.abspath(os.path.expanduser(sys.argv[1]))
+    out_dir = os.path.dirname(out_file)
     token = secrets.token_urlsafe(24)
     with open(os.path.join(HERE, "index.html"), "rb") as fh:
         page = fh.read().replace(b"__MUSTER_TOKEN__", token.encode())

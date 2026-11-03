@@ -29,8 +29,13 @@ Use the app's tool for starting a session. Chat names there take only small lett
 - the title: the worker's full name, `<Role>_<project>_<digits>` (made-up example: `Builder A_MyProject_001`), which
   is what the owner sees;
 - the model and effort from the worker's definition, and this chat's permission mode;
-- the folder: the main project folder itself for the manager (no copy); its own copy (a separate worktree) for every
-  other worker;
+- the folder: the main project folder itself for the manager (no copy). For every other worker, **make its copy
+  yourself first**: the app cannot make copies of a project folder it has no record of, which is every folder setup
+  has just made, so its own copy option fails there. From the main project folder run
+  `git worktree add '.claude/worktrees/<short-name>' -b 'muster/<short-name>'` (made-up example:
+  `git worktree add '.claude/worktrees/builder-a-001' -b 'muster/builder-a-001'`; `.claude/` is kept out of saved
+  versions), then start the worker in that copy's full path as a plain folder, with the app's own copy option off. A
+  renewal starts in the same copy as the chat it replaces.
 - the starting note as the first message.
 **Order:** start the manager first, in the main folder, and wait until it is running; only then start the other
 workers (their copies inherit the folder's trust).
@@ -42,7 +47,9 @@ it, **start the chats again yourself**; never leave the owner to start them by h
 its own top-level chat: right after starting each one (the first crew, renewals and new workers alike), detach it to
 the top level with the app's session tools. No crew chat sits under the manager or under the chat that ran the setup.
 **Sidebar group:** every project's crew sits in its own sidebar group named with the project name the owner gave on
-the setup page. Move each crew chat into it one by one. The chat that ran the setup is not a crew chat: it stays out of the
+the setup page. Once every crew chat is running, make the group (or use one with that exact name) and move each crew
+chat into it one by one. Never skip this step or leave it silently undone: if any chat is not in the group at the end,
+say so in one line with what to do. The chat that ran the setup is not a crew chat: it stays out of the
 group. Moving chats into a group needs the owner's OK in some permission modes: ask first, in one question with two buttons
 ("I move them now" or "you drag them yourself"). On the first, use the app's sidebar tools; if the move is refused, tell the owner plainly
 how to drag each chat into the group. Renewals go in the same group. Each name carries its project, so two

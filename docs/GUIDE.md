@@ -6,7 +6,7 @@ You do not need to know anything about terminals or code to follow this.
 **In the Claude desktop app:**
 1. Open the Claude app and click Code.
 2. Start a chat and send: `Please run these two commands: claude plugin marketplace add d4trhban3/muster, then claude plugin install muster@muster-kit --scope user`
-3. Click Allow when it asks to run them. It says Muster is installed.
+3. Click Allow when it asks to run them. It says Muster is installed for every folder ("scope: user").
 
 **In a terminal:** run `claude plugin marketplace add d4trhban3/muster`, then
 `claude plugin install muster@muster-kit --scope user`.
@@ -26,8 +26,8 @@ You do not need to know anything about terminals or code to follow this.
 
 ## 3. Working with your crew
 - Talk only to **Manager_001**. In the desktop app it is in the sidebar, in a group named after your project. In a
-  terminal, type `claude agents --cwd .` in your project's folder to see this project's workers, pick Manager_001 to
-  open it, and press the left arrow key to go back.
+  terminal, the manager is the chat you open in your project's folder with the one line the setup gives you; to look
+  in on another worker, type `claude agents --cwd .` there, pick it, and press the left arrow key to go back.
 - Say what you want in your own words. The manager sorts it: an **order** goes straight to a worker; a **question**
   ("why does this look off?") gets looked into and answered with choices; an **idea** is parked on your list without
   starting work.

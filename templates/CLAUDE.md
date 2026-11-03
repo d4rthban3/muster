@@ -12,7 +12,10 @@ owner disagree, the owner wins.
 ## 2. Every worker is a whole chat
 - Each worker is its own chat, named by role, an underscore and three digits: `Manager_001`, `Builder_A_001`,
   `Designer_001`, `Inspector_001`. The digits count renewals (see 9).
-- Each chat works in its own copy of the project folder, so no two chats edit the same files at once.
+- The manager works in the main project folder. Every other chat works in its own copy of the project folder, so no
+  two chats edit the same files at once.
+- The crew's shared files (`muster/`: the owner's list, the rules pages, the board, the crew list) are one copy, in the
+  main project folder. Workers read them there, never from their own copy, and only the manager changes them.
 - Short-lived helpers are only for small side jobs inside a worker's own chat (for example, a quick search).
 
 ## 3. Who messages whom

@@ -96,7 +96,7 @@ textarea{width:100%;min-height:110px;resize:vertical;border:1px solid var(--line
     <div class="err" id="err">Could not save. Go back to Claude and ask it to open the setup again.</div>
   </div>
 
-  <div class="done" id="done">
+  <div class="done" id="done" role="status" aria-live="polite">
     <div class="tick">&#10003;</div>
     <h2>Saved</h2>
     <p class="hint">Go back to Claude. It is starting your crew.</p>
@@ -139,7 +139,7 @@ $("start").onclick=async()=>{
   if(building()>=3)crew.push("Design_Inspector_001");
   const choices={vision:$("vision").value,crew,asks_first:["Spending money","Keys or passwords","Deleting anything",...state.asks]};
   window.musterChoices=choices;
-  try{const r=await fetch("/save",{method:"POST",headers:{"Content-Type":"application/json","X-Muster-Token":"__MUSTER_TOKEN__"},body:JSON.stringify(choices)});if(!r.ok)throw 0;$("form").style.display="none";$("done").style.display="block";}
+  try{const r=await fetch("/save",{method:"POST",headers:{"Content-Type":"application/json","X-Muster-Token":"__MUSTER_TOKEN__"},body:JSON.stringify(choices)});if(!r.ok)throw 0;$("form").style.display="none";$("done").style.display="block";document.title="Muster setup: saved";}
   catch(e){$("err").style.display="block";}
 };
 render();

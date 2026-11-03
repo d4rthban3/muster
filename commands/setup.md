@@ -10,6 +10,9 @@ or a code span.
 The project folder is the folder this chat was opened in. If that folder is the person's home folder, or is Muster's
 own plugin folder (it has `.claude-plugin/plugin.json`), stop and ask one question with lettered choices: which
 folder is their project. Name the folder you will use in your first line to them, as a link.
+Check that Muster is installed for every folder, not just one: run `claude plugin list` and look at muster's scope.
+If it is not "user", tell the person in one line and offer to fix it (one question: A: reinstall it for every folder,
+my pick; B: leave it). On A run `claude plugin install muster@muster-kit --scope user`.
 
 ## 0a. Is there a crew here already?
 If `muster/CREW.md` or `muster/setup-choices.json` already exists in this project, stop. Tell the person a crew is
@@ -93,27 +96,30 @@ Made-up example: `git add muster/ .gitignore` then `... commit -m "Muster crew f
 Never save anything else of theirs here.
 
 ## 4. Start the chats
-First tell the person, in one line: the app may ask them to trust this folder before the crew's chats can start, and
-they should say yes (in the desktop app a box appears; in a terminal, run `claude` in the folder once and say yes).
-Then use skill `start-the-crew` for every name in `crew`: its own chat, its own folder copy, the model and effort
-from its definition in `${CLAUDE_PLUGIN_ROOT}/agents/`, the same permission mode as this chat (never a looser one),
-and its five-line starting note. The note's First line always begins with the worker's definition, because the
-desktop app cannot start a chat as a worker type:
-`First: read ${CLAUDE_PLUGIN_ROOT}/agents/<role>.md and follow it for the rest of this chat; then ...`
-(write the real path, not the `${...}` name). The manager's note:
+Use skill `start-the-crew` for every name in `crew`. The manager works in the main project folder (no copy); every
+other worker gets its own copy. Each gets the model and effort from its definition in `${CLAUDE_PLUGIN_ROOT}/agents/`,
+the same permission mode as this chat (never a looser one), and its starting note, which begins with the line "Your
+five-line starting note, from the manager (or from the setup, for the first crew):". Write the real paths, not the
+`${...}` names. The manager's note:
 ```
+Your five-line starting note, from the manager (or from the setup, for the first crew):
 Job:       the owner's go-between and record keeper for this project
-Owns:      muster/ (the owner's list, the decisions log, the rules pages, the crew list, the board)
+Owns:      muster/ in <main project folder> (the owner's list, the decisions log, the rules pages, the crew list, the board)
 Not yours: building, passing or failing anything; anything you are not sure is yours, ask
 Open:      item 1 on the owner's list (the owner's vision)
 First:     read <plugin folder>/agents/manager.md and follow it; then CLAUDE.md, muster/OWNERS-LIST.md and muster/CREW.md; then sort item 1
 ```
-Every other worker's note says `Open: nothing yet` and, after its definition, points `First` at its rules page.
-Write each started chat into the "Running now" table of `muster/CREW.md`. In the desktop app, every crew chat goes in
-one sidebar group named after the project (skill `start-the-crew`).
+Every other worker's note says `Open: nothing yet`, and its First line, after its definition, points at its rules
+page by the main project folder's full path.
+- **Trust:** if a start is refused because the folder is not trusted, tell the person in plain words what to press
+  (skill `start-the-crew`, including an older trust box from another folder that may be waiting), wait for them to say
+  they pressed it, then start the chats again yourself.
+- **Desktop app:** ask before moving the chats into the project's sidebar group (skill `start-the-crew`).
+- **Terminal:** the manager is the one chat the person opens themselves in this folder; give them its one line.
+- The manager owns `muster/CREW.md` in the main folder: write each started chat into its "Running now" table there.
 
 ## 5. Tell the person
 In plain words, in three lines at most: the crew is running; from now on they talk only to Manager_001 (in the
-desktop app it is in the sidebar, in the group named after this project; in a terminal, `claude agents --cwd .`
-from this folder, then pick Manager_001); what setup saved to their project's
+desktop app it is in the sidebar, in the group named after this project; in a terminal, the one line from step 4,
+typed in this folder); what setup saved to their project's
 history (the first version if made in 0b, and the crew's files). Do not save anything else yourself.

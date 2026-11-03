@@ -111,7 +111,10 @@ Copy from `${CLAUDE_PLUGIN_ROOT}/templates/`, **never overwriting a file that al
 - into `muster/`: `CREW.md`, `DECISIONS-LOG.md`, `BOARD.md`, `OWNERS-LIST.md`, `REPORT.md`, `START-NOTE.md`,
   `RULES-PAGE.md`; create empty `muster/BOARD-ARCHIVE.md`, and the folders `muster/rules/` and `muster/handovers/`
   (each with an empty `.gitkeep`, so they are saved).
-- If `crew` has AI Socket: `OUTSIDE-AI-PROTOCOL.md` and `OUTSIDE-AI-SHORT.md` into `muster/ai-socket/`.
+- If `crew` has AI Socket: `OUTSIDE-AI-PROTOCOL.md` and `OUTSIDE-AI-SHORT.md` into `muster/ai-socket/`; and, for
+  coding agents that read a project's rules files but cannot run Muster (leads only), `agents-md.md` as `AGENTS.md` in the project
+  folder and `cursor-muster.mdc` as `.cursor/rules/muster.mdc`. If either file already exists, never overwrite it:
+  ask the person before adding Muster's lines at its end (one question naming its choices, each a button).
 - `CLAUDE.md` into the project folder if there is none. If one exists, ask the person before adding Muster's rules to
   it (one question naming its choices, each a button).
 - `muster/DECISIONS-LOG.md`, both with today's date:
@@ -135,8 +138,8 @@ Copy from `${CLAUDE_PLUGIN_ROOT}/templates/`, **never overwriting a file that al
 
 ## 3b. Save the crew's files
 Each worker's copy is made from the last saved version, so save the crew's files before starting any chat. Tell the
-person in one line, then save only what setup wrote or changed: always `muster/`; `CLAUDE.md` and `.gitignore` only
-if setup created or changed them. Name those paths both times, so nothing the person had already lined up to save is
+person in one line, then save only what setup wrote or changed: always `muster/`; `CLAUDE.md`, `.gitignore`, `AGENTS.md` and
+`.cursor/rules/muster.mdc` only if setup created or changed them. Name those paths both times, so nothing the person had already lined up to save is
 taken along:
 `git add <paths>` then
 `git -c user.name="Muster" -c user.email="muster@localhost" commit -m "Muster crew files" -- <paths>`.

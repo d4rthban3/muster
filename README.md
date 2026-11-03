@@ -33,6 +33,14 @@ A setup page opens. Give your project a short name, write what you are building,
 Muster makes your project's folder (in a Muster folder in your home folder) and starts the chats for you.
 Step by step: [docs/GUIDE.md](docs/GUIDE.md).
 
+## Who runs what
+| App | How it works with Muster |
+|---|---|
+| Claude Code (desktop app, terminal, web, VS Code and JetBrains) | Runs the plugin. |
+| Cowork | Takes plugins; the crew start is untested there. |
+| Coding agents that read a project's rules files (Cursor's agent, Codex, Gemini CLI) | Cannot run the plugin. They follow the outside-AI protocol: leads only, through AI Socket, never changing the project. Setup writes `AGENTS.md` and `.cursor/rules/muster.mdc` so they see it. |
+| Chat AIs | Cannot run the plugin. They follow the outside-AI protocol, pasted once into their instructions. |
+
 ## What it runs, sends and fetches
 The plugin has no hooks, no MCP servers and no package installs, and it contains no code that sends your data to any
 outside service. Everything below runs only when a command or skill tells Claude to, and Claude Code asks your

@@ -36,7 +36,8 @@ Use the app's tool for starting a session. Chat names there take only small lett
   `git worktree add '.claude/worktrees/builder-a-001' -b 'muster/builder-a-001'`; `.claude/` is kept out of saved
   versions), then start the worker in that copy's full path as a plain folder, with the app's own copy option off. If
   that copy's folder already exists, use it as it is; if only its branch exists, run
-  `git worktree add '.claude/worktrees/<short-name>' 'muster/<short-name>'` (no `-b`). A renewal starts in the same copy
+  `git worktree add '.claude/worktrees/<short-name>' 'muster/<short-name>'` (no `-b`). If git says the copy is "missing but already
+  registered", run `git worktree prune`, then add it again. A renewal starts in the same copy
   as the chat it replaces.
 - the starting note as the first message.
 **Order:** start the manager first, in the main folder, and wait until it is running; only then start the other

@@ -14,9 +14,22 @@ Each worker works in its own copy of the project folder, which needs the folder 
 If the folder has none yet (no `.git` here), tell the person in plain words and ask one question:
 A: set it up now (creates the version history and saves the current files as the first version; my pick);
 B: stop the setup.
-On A: run `git init`, then save everything already in the folder as the first version (`git add -A`, then
-`git commit -m "First version"`; if the folder is empty, `git commit --allow-empty -m "First version"`). If git is not
-installed, say so plainly and stop.
+On A:
+1. Run `git init`.
+2. If there is no `.gitignore`, write one so private files are never saved, and tell the person in one line:
+   ```
+   .env
+   .env.*
+   *.pem
+   *.key
+   node_modules/
+   .DS_Store
+   ```
+3. Save the current files as the first version, under Muster's name so the person's own name is never recorded and
+   the step cannot fail for lack of a name: `git add -A`, then
+   `git -c user.name="Muster" -c user.email="muster@localhost" commit -m "First version"` (add `--allow-empty` if
+   there is nothing to save).
+If git is not installed, say so plainly and stop.
 
 ## 1. Open the setup page
 Run, in the background, from the project folder:

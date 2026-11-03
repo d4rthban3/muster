@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Install Muster</title>
+<meta name="description" content="Install Muster, a crew of Claude Code chats, in one click.">
+<link rel="icon" href="data:,">
+<style>
+:root{--bg:#f6f7f9;--card:#ffffff;--text:#181c24;--mut:#5b6474;--line:#dde1e8;--acc:#c85f24;--acc-text:#ffffff;--code:#eef0f4}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#181c24;--card:#202633;--text:#eceff4;--mut:#9aa4b5;--line:#2f3645;--acc:#e07a40;--acc-text:#181c24;--code:#0e1118}}
+:root[data-theme="dark"]{--bg:#181c24;--card:#202633;--text:#eceff4;--mut:#9aa4b5;--line:#2f3645;--acc:#e07a40;--acc-text:#181c24;--code:#0e1118}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:17px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+main{max-width:640px;margin:0 auto;padding:48px 16px 64px}
+.dots{display:flex;gap:8px;margin-bottom:28px}.dots i{width:14px;height:14px;border-radius:50%;background:var(--text);opacity:.85}.dots i:first-child{background:var(--acc);opacity:1}
+h1{font-size:40px;line-height:1.1;margin:0 0 10px;letter-spacing:-.5px}
+.lead{color:var(--mut);margin:0 0 32px;font-size:19px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px;margin-bottom:20px}
+h2{font-size:20px;margin:0 0 6px}
+.card p{margin:0 0 16px;color:var(--mut)}
+.btn{display:block;text-align:center;background:var(--acc);color:var(--acc-text);text-decoration:none;font-weight:700;font-size:20px;padding:18px 20px;border-radius:14px}
+.btn:focus-visible,.copy:focus-visible,a:focus-visible{outline:3px solid var(--acc);outline-offset:3px}
+ol{margin:16px 0 0;padding-left:22px;color:var(--mut)}ol li{margin:4px 0}
+.small{font-size:14px;color:var(--mut);margin:12px 0 0}
+pre{margin:0;background:var(--code);border-radius:12px;padding:16px;overflow-x:auto;font:14px/1.7 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--text)}
+.row{display:flex;justify-content:flex-end;margin-top:10px}
+.copy{font:inherit;font-size:15px;background:transparent;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:8px 14px;cursor:pointer}
+a{color:var(--acc)}
+footer{color:var(--mut);font-size:14px;margin-top:32px}footer p{margin:4px 0}
+</style>
+</head>
+<body>
+<main>
+<div class="dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+<h1>Install Muster</h1>
+<p class="lead">A crew of Claude Code chats: a manager you talk to, builders, a designer and an inspector. Set up from one page.</p>
+
+<section class="card">
+<h2>In the Claude desktop app</h2>
+<p>Press the button. A new Claude Code chat opens with the install message already written.</p>
+<a class="btn" href="claude://code/new?q=Please%20install%20the%20Muster%20plugin%20for%20me.%20Run%20these%20two%20commands%3A%20claude%20plugin%20marketplace%20add%20d4rthban3%2Fmuster%2C%20then%20claude%20plugin%20install%20muster%40muster-kit%20--scope%20user.%20When%20both%20are%20done%2C%20tell%20me%20to%20start%20a%20new%20chat%20and%20type%20%2Fmuster%3Asetup.">Open in Claude Code</a>
+<ol>
+<li>Press Enter to send the message.</li>
+<li>When Claude asks, click Allow.</li>
+<li>When it is done, start a new chat and type <strong>/muster:setup</strong>.</li>
+</ol>
+<p class="small">Nothing happens? You may not have the desktop app yet; use the commands below, or get the app.</p>
+</section>
+
+<section class="card">
+<h2>In a terminal</h2>
+<p>Run these two commands, then open Claude and type the last line.</p>
+<pre id="cmds">claude plugin marketplace add d4rthban3/muster
+claude plugin install muster@muster-kit --scope user
+/muster:setup</pre>
+<div class="row"><button class="copy" type="button" id="copy">Copy</button></div>
+</section>
+
+<section class="card">
+<h2>No Claude yet?</h2>
+<p>Muster runs inside Claude Code. Get the Claude app first, then come back here.</p>
+<a href="https://claude.com/download">Get Claude</a>
+</section>
+
+<footer>
+<p>All rights reserved. You may install and use Muster for your own projects; anything else needs permission (see <a href="https://github.com/d4rthban3/muster/blob/main/LICENSE">LICENSE</a>).</p>
+<p>Muster is a community plugin. It is not made or supported by Anthropic.</p>
+<p><a href="https://github.com/d4rthban3/muster">github.com/d4rthban3/muster</a></p>
+</footer>
+</main>
+<script>
+document.getElementById('copy').addEventListener('click',function(){var b=this,t=document.getElementById('cmds').textContent;
+function done(){b.textContent='Copied';setTimeout(function(){b.textContent='Copy'},1500)}
+if(navigator.clipboard){navigator.clipboard.writeText(t).then(done,function(){})}});
+</script>
+</body>
+</html>

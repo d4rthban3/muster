@@ -21,7 +21,7 @@ LOCKED = ["Spending money", "Keys or passwords", "Deleting anything"]
 CORE = ["Manager_001", "Builder_A_001", "Designer_001", "Inspector_001"]
 ADDONS = {"Sketchpad_001", "AI_Socket_001", "Agent_Teacher_001", "Design_Inspector_001"}
 EXTRA_BUILDER = re.compile(r"^Builder_[B-Z]_001$")
-PROJECT_NAME = re.compile(r"^[A-Za-z0-9 _-]{1,40}$")
+PROJECT_NAME = re.compile(r"[^\W_]|[ _-]")
 
 
 def check_choices(choices):
@@ -29,7 +29,9 @@ def check_choices(choices):
     if not isinstance(choices, dict) or set(choices) != {"project", "vision", "crew", "asks_first"}:
         raise ValueError("wrong fields")
     project, vision, crew, asks = choices["project"], choices["vision"], choices["crew"], choices["asks_first"]
-    if not isinstance(project, str) or not PROJECT_NAME.match(project) or not re.search(r"[A-Za-z0-9]", project):
+    if (not isinstance(project, str) or not 1 <= len(project) <= 40
+            or not all(PROJECT_NAME.fullmatch(ch) for ch in project)
+            or not any(ch.isalnum() for ch in project)):
         raise ValueError("project")
     if not isinstance(vision, str) or not vision.strip() or len(vision) > 4000:
         raise ValueError("vision")

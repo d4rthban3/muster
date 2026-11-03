@@ -128,16 +128,16 @@ function render(){
   $("extra").value=state.extra;$("extraNames").textContent=state.extra?extraNames().join(", "):"None";
   const a=$("asks");a.querySelectorAll(".chip:not(.locked)").forEach(x=>x.remove());
   state.asks.forEach((t,i)=>{const e=document.createElement("span");e.className="chip";e.append(document.createTextNode(t));const r=document.createElement("button");r.type="button";r.setAttribute("aria-label","Remove "+t);r.textContent="×";r.onclick=()=>{state.asks.splice(i,1);render();};e.append(r);a.append(e);});
-  $("start").setAttribute("aria-disabled",($("vision").value.trim()&&/[A-Za-z0-9]/.test($("project").value))?"false":"true");
+  $("start").setAttribute("aria-disabled",($("vision").value.trim()&&/[\p{L}\p{N}]/u.test($("project").value))?"false":"true");
 }
 $("plus").onclick=()=>{if(state.extra<letters.length){state.extra++;render();}};
 $("minus").onclick=()=>{if(state.extra>0){state.extra--;render();}};
 ["sketchpad","aisocket","teacher"].forEach(id=>$(id).onclick=()=>{$(id).setAttribute("aria-checked",on(id)?"false":"true");render();});
-$("vision").oninput=render;$("project").oninput=()=>{const c=$("project").value.replace(/[^A-Za-z0-9 _-]/g,"");if(c!==$("project").value)$("project").value=c;render();};
+$("vision").oninput=render;$("project").oninput=()=>{const c=$("project").value.replace(/[^\p{L}\p{N} _-]/gu,"");if(c!==$("project").value)$("project").value=c;render();};
 function addAsk(){const v=$("askInput").value.trim();if(v&&state.asks.length<20){state.asks.push(v);$("askInput").value="";render();}}
 $("askAdd").onclick=addAsk;$("askInput").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();addAsk();}};
 $("start").onclick=async()=>{
-  if($("start").getAttribute("aria-disabled")==="true"){(/[A-Za-z0-9]/.test($("project").value)?$("vision"):$("project")).focus();return;}
+  if($("start").getAttribute("aria-disabled")==="true"){(/[\p{L}\p{N}]/u.test($("project").value)?$("vision"):$("project")).focus();return;}
   const crew=[...CORE.map(x=>x[0]),...extraNames()];
   if(on("sketchpad"))crew.push("Sketchpad_001");
   if(on("aisocket"))crew.push("AI_Socket_001");

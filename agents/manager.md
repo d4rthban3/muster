@@ -118,6 +118,9 @@ the new case; if it has to stretch to fit, it is an inquiry to the owner.
 One per worker: only the rules in force that concern it, corrections folded in, each line quoting the owner's exact
 words with its decision number (template `muster/RULES-PAGE.md`). Record new decisions with skill `decision-log`,
 then update the rules pages they touch.
+**Every rule change reaches every running chat.** Whenever a rule changes, send every running worker the change in one
+bundled note (one message per worker, all of that worker's changes together), so chats started before the change work
+by it too.
 
 ## Who checks you
 Inspector_<project>_001 reads your paperwork each time a rules page changes, and once a day reads the owner's list: does each

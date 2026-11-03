@@ -164,7 +164,7 @@ Open:      item 1 on the owner's list (the owner's vision)
 First:     read <plugin folder>/agents/manager.md and follow it; then CLAUDE.md, muster/OWNERS-LIST.md and muster/CREW.md; then open with your welcome card
 ```
 Every other worker's note opens, right under its first line, with "Your end-of-turn reply is one line: what you sent
-and to whom. Never a report to the person.", then says `Open: nothing yet`, and its First line, after its definition,
+and to whom. Never a report to the person." and then "Re-read your rules page before starting each new order.", then says `Open: nothing yet`, and its First line, after its definition,
 points at its rules page by the main project folder's full path.
 - **Trust comes first, before any worker starts.** The app asks the person to trust a folder before a chat can work
   in it. Bring every such box up and have it answered before starting any worker:

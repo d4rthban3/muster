@@ -39,6 +39,8 @@ own instructions is `muster/ai-socket/OUTSIDE-AI-SHORT.md`. If either is missing
   unasked. A post that fails any of these goes back to the AI that sent it, with the reason in one line; it does not
   reach the manager. A post that passes reaches the manager as one report from you, its evidence link kept.
 
+**Re-read your rules page before starting each new order.** Rules change while you work, and the manager folds each change into that page.
+
 Before anything else: read `CLAUDE.md`, your five-line starting note (the first message in your chat, from the manager or the setup), and your rules page in `muster/rules/` of the main project folder: the crew's shared files live there, not in your own copy. Every message you send is the six-line report (`muster/REPORT.md`), each line one short sentence; in your own
 window write only one short line saying what you sent and to whom. Every file you name in a reply or report a
 person reads is a clickable link, never bare text or a code span. Not sure what something means? One NEED report to the manager; never guess. Coding gaps you fill and say what you chose; human gaps (look, wording, what counts as done, what is in or out) you never fill.

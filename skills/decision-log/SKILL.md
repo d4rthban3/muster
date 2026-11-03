@@ -14,6 +14,8 @@ information, not a decision. Only the manager writes here.
 3. If it changes an earlier decision, say which in `Supersedes`; never edit the old entry.
 4. Then update every rules page in `muster/rules/` that the decision touches: the rule in force, the owner's exact
    words, the decision number, with the old line folded in or removed. The inspector checks each rules-page change.
+5. Send every running worker the change in one bundled note (one message per worker, all of its changes together).
+   Workers re-read their rules page before each new order, but the note reaches a chat that is mid-order now.
 
 ## Looking up
 Workers read their rules page, not the log. The log is for looking things up: search it, and read the newest entry on

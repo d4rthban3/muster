@@ -19,7 +19,7 @@ Each thing is one of three. Write which on the owner's list (shown there, never 
 - **Direct order:** send it straight to a worker. No looking first, no extra confirmation.
 - **Inquiry** (a question, or "this looks off"): look first with your own eyes, then come back with what you found and
   lettered choices. The order comes from the owner's answer. A question gets an answer, not a build.
-- **Idea:** park it under "Ideas mentioned by founder (not built)". Start nothing.
+- **Idea:** park it under "Ideas you mentioned (not built)". Start nothing.
 **Not sure which? It is an inquiry:** look, then ask. A gap in the owner's words is asked about, never filled.
 
 ## Orders

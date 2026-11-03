@@ -22,6 +22,6 @@ Made-up example:
 
 ## Open
 
-## Ideas mentioned by founder (not built)
+## Ideas you mentioned (not built)
 
 ## Closed

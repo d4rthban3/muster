@@ -49,3 +49,5 @@ workers can read and change files and run commands in your project like any Clau
 file-editing tools and are told never to change files. Muster does not read or send passwords or personal data.
 
 MIT licensed (see LICENSE).
+
+Muster is a community plugin. It is not made or supported by Anthropic.

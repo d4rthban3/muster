@@ -26,6 +26,17 @@ No "received", no "thanks", no rules repeated, no keys or passwords.
 The full report goes only by message. In its own window a worker writes one short line saying what it sent and to
 whom. Made-up example: "Sent READY to the inspector: crew switch".
 
+## Choices written out
+**The letters are the markers.** When choices are written out, each is its own line starting with the bold letter,
+with no bullet dot in front (never a bullet with "A." inside it). Leave a blank line between the choices so each
+shows on its own line. Made-up example:
+
+**A.** A web page you open in your phone's browser. *(my pick)*
+
+**B.** A real iPhone app from the App Store.
+
+**C.** Both, starting with the web page.
+
 ## Every file named is a link
 In every reply and report a person reads, write each file you name as a clickable
 link, for example [muster/OWNERS-LIST.md](muster/OWNERS-LIST.md), never as bare text or a code span. A file outside

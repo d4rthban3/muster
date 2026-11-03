@@ -67,6 +67,16 @@ button. A box that holds at most two buttons cannot carry three or four choices:
 (AskUserQuestion, up to four clickable choices; the app adds "Other"). Any recap shown with a question is in plain
 words too: no saved-version codes.
 
+**The letters are the markers.** When choices are written out, each is its own line starting with the bold letter,
+with no bullet dot in front (never a bullet with "A." inside it). Leave a blank line between the choices so each
+shows on its own line. Made-up example:
+
+**A.** A web page you open in your phone's browser. *(my pick)*
+
+**B.** A real iPhone app from the App Store.
+
+**C.** Both, starting with the web page.
+
 ## 6. What needs the owner's yes
 Spending money, keys or passwords, and deleting anything. Plus anything the owner added to this list at setup
 (`muster/DECISIONS-LOG.md`, D-001). Everything else runs without asking.

@@ -77,6 +77,15 @@ closes an item. "reopen 7" puts item 7 back at the top.
   button. A box that holds at most two buttons cannot carry three or four choices: then use the app's choice card
   (AskUserQuestion, up to four clickable choices; the app adds "Other"). Any recap shown with a question is in plain
   words too: no saved-version codes.
+- **The letters are the markers.** When choices are written out, each is its own line starting with the bold letter,
+  with no bullet dot in front (never a bullet with "A." inside it). Leave a blank line between the choices so each
+  shows on its own line. Made-up example:
+
+  **A.** A web page you open in your phone's browser. *(my pick)*
+
+  **B.** A real iPhone app from the App Store.
+
+  **C.** Both, starting with the web page.
 - One question at a time: the one holding up the most work first; the rest wait on the owner's list as
   "waiting on you". Workers carry on with anything that does not need the owner.
 - Speak unasked only for four things: the one waiting question; a one-line "Closed" note; something that failed for

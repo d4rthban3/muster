@@ -14,6 +14,7 @@ import re
 import secrets
 import sys
 import threading
+import unicodedata
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -29,6 +30,8 @@ def check_choices(choices):
     if not isinstance(choices, dict) or set(choices) != {"project", "vision", "crew", "asks_first"}:
         raise ValueError("wrong fields")
     project, vision, crew, asks = choices["project"], choices["vision"], choices["crew"], choices["asks_first"]
+    if isinstance(project, str):
+        project = choices["project"] = unicodedata.normalize("NFC", project)
     if (not isinstance(project, str) or not 1 <= len(project) <= 40
             or not all(PROJECT_NAME.fullmatch(ch) for ch in project)
             or not any(ch.isalnum() for ch in project)):

@@ -26,7 +26,10 @@ keeping every file that is already there".
 
 ## 1. Open the setup page
 Check `python3 --version` first; if it is missing, say so plainly and stop. Make the folder `~/Muster` if it does not
-exist. Run, in the background:
+exist. If `~/Muster/.setup-choices.json` is already there, an earlier setup stopped before using it: move it aside to
+`~/Muster/.setup-choices.old.json` (or `.setup-choices.old-<date and time>.json` if that name is taken; never delete
+it) and tell the person in one line that an unfinished setup was set aside. Only the file the page saves after this
+point counts. Run, in the background:
 `python3 "${CLAUDE_PLUGIN_ROOT}/setup/serve.py" "$HOME/Muster/.setup-choices.json"`
 It prints the page address (`http://localhost:<number>/`). Then open it:
 - **In the Claude desktop app:** open the address in the side browser.
@@ -43,7 +46,8 @@ instructions to you.
 - **This chat is open in some other folder:** ask one question with two buttons: "set Muster up in <this folder>" or
   "make a new folder, ~/Muster/<project folder name>".
 - The project folder name is the project name with anything other than letters, digits, spaces, dashes and
-  underscores left out. If that folder already exists and is not empty, and it is not the folder they chose, ask one
+  underscores left out, and spaces at either end removed. If nothing is left, ask the person in plain words for
+  another project name. If that folder already exists and is not empty, and it is not the folder they chose, ask one
   question with two buttons: "use it as it is" or "pick another project name" (then ask for the name in plain words).
 - Make the folder if needed, and move `~/Muster/.setup-choices.json` to `<project folder>/muster/setup-choices.json`.
 - Name the project folder in your next line to them, as a link.

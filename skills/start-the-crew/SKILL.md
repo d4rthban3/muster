@@ -49,14 +49,15 @@ projects' crews never share a name.
 Archive an old chat with the app's archive tool (never delete).
 
 ## In a terminal
-Write the project folder's path in single quotes in every command, with each apostrophe as `'\''` (see
-"Folder paths in commands" in the setup command), because a project name may hold characters such as `$`.
+Write every value that holds the project name in single quotes, with each apostrophe as `'\''`: the project
+folder's path, the chat name (`-n`, `--name`) and the starting note (see "Quoting in commands" in the setup command),
+because a project name may hold characters such as `$` or an apostrophe. Never use double quotes for these.
 - **The manager** is the one chat the owner opens themselves, in the main project folder, so it works on the shared
   files directly. Give them this one line to type there (in plain words):
-  `claude -n 'Manager_<project>_001' --agent muster:manager --model claude-opus-5-5 --effort medium --permission-mode <this chat's mode> "<its starting note>"`
+  `claude -n 'Manager_<project>_001' --agent muster:manager --model claude-opus-5-5 --effort medium --permission-mode <this chat's mode> '<its starting note>'`
 - **Every other worker** starts in the background, in its own copy, with one command from the project folder:
   ```
-  claude --bg --name '<Role>_<project>_001' --agent muster:<role> --model <model> --effort medium --permission-mode <this chat's mode> --worktree <name-001> "<starting note>"
+  claude --bg --name '<Role>_<project>_001' --agent muster:<role> --model <model> --effort medium --permission-mode <this chat's mode> --worktree <name-001> '<starting note>'
   ```
   It keeps running after the terminal closes.
 - Names stay as the owner sees them (made-up example: `Manager_PantryPal_001`); to keep them apart from another project's crew underneath,

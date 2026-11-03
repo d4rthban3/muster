@@ -25,8 +25,9 @@ You do not need to know anything about terminals or code to follow this.
 8. Press Start, then go back to Claude. It starts your crew.
 
 ## 3. Working with your crew
-- Talk only to **Manager_001**. In the desktop app it is in the sidebar. In a terminal, type `claude agents` to see
-  every worker, `claude attach Manager_001` to open the manager, and the left arrow key to go back.
+- Talk only to **Manager_001**. In the desktop app it is in the sidebar, in a group named after your project. In a
+  terminal, type `claude agents --cwd .` in your project's folder to see this project's workers, pick Manager_001 to
+  open it, and press the left arrow key to go back.
 - Say what you want in your own words. The manager sorts it: an **order** goes straight to a worker; a **question**
   ("why does this look off?") gets looked into and answered with choices; an **idea** is parked on your list without
   starting work.

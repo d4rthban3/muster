@@ -19,6 +19,9 @@ Use the app's tool for starting a session. Chat names there take only small lett
 - the five-line note as the first message. The app cannot start a chat as a worker type, so the note's First line
   begins with "read <plugin folder>/agents/<role>.md and follow it for the rest of this chat".
 If the app says the folder is not trusted, tell the owner plainly to say yes to the trust box, then try again.
+**Sidebar group:** every project's crew sits in its own sidebar group named after the project (the project folder's
+name). Create the group with the app's sidebar tools if it does not exist yet, and put every crew chat in it, renewals
+too. Worker names stay as they are (Manager_001 ...), so two projects can both have a Manager_001.
 Archive an old chat with the app's archive tool (never delete).
 
 
@@ -29,9 +32,12 @@ For each worker, run one command from the project folder:
 claude --bg --name <Name_001> --agent muster:<role> --model <model> --effort medium --permission-mode <this chat's mode> --worktree <name-001> "<five-line note>"
 ```
 - The chat runs in the background with its own folder copy and keeps running after the terminal closes.
-- Tell the owner, in plain words, how to watch and type into a chat: `claude agents` shows them all;
-  `claude attach <Name_001>` opens one; the left arrow key returns.
-- Archive: `claude stop <Name_001>`. The conversation is kept and can be opened again with `claude attach`.
+- Names stay as the owner sees them (Manager_001 ...); to keep them apart from another project's crew underneath,
+  write each chat's id (printed when it starts) into `muster/CREW.md` and use the id, not the name, in `claude attach`,
+  `claude stop` and renewals.
+- Tell the owner, in plain words, how to watch and type into a chat: from the project folder, `claude agents --cwd .`
+  shows only this project's crew; pick a chat to open it; the left arrow key returns.
+- Archive: `claude stop <its id>`. The conversation is kept and can be opened again with `claude attach <its id>`.
 - The folder must have been opened in Claude once (the trust question). If a start fails with "not trusted", tell the
   owner plainly to run `claude` in the project folder once and say yes, then try again.
 

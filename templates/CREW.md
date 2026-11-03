@@ -15,8 +15,8 @@ Kept by the manager. One row per chat that is running now. Old chats move to "Ar
 | Agent_Teacher (add-on) | "Train your own agent in Claude Console": the agent learns from its saved memory, its checked results and reviewed changes to its instructions, not by retraining the model | spends money or uses a key without the owner's yes |
 
 ## Running now
-| Name | Model | Effort | Folder copy | Started |
-|---|---|---|---|---|
+| Name | Model | Effort | Folder copy | Chat id (terminal only) | Started |
+|---|---|---|---|---|---|
 
 ## Archived
 | Name | Model | Archived on | Handover |

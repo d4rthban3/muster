@@ -106,9 +106,11 @@ Open:      item 1 on the owner's list (the owner's vision)
 First:     read <plugin folder>/agents/manager.md and follow it; then CLAUDE.md, muster/OWNERS-LIST.md and muster/CREW.md; then sort item 1
 ```
 Every other worker's note says `Open: nothing yet` and, after its definition, points `First` at its rules page.
-Write each started chat into the "Running now" table of `muster/CREW.md`.
+Write each started chat into the "Running now" table of `muster/CREW.md`. In the desktop app, every crew chat goes in
+one sidebar group named after the project (skill `start-the-crew`).
 
 ## 5. Tell the person
 In plain words, in three lines at most: the crew is running; from now on they talk only to Manager_001 (in the
-desktop app it is in the sidebar; in a terminal, `claude attach Manager_001`); what setup saved to their project's
+desktop app it is in the sidebar, in the group named after this project; in a terminal, `claude agents --cwd .`
+from this folder, then pick Manager_001); what setup saved to their project's
 history (the first version if made in 0b, and the crew's files). Do not save anything else yourself.

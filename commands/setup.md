@@ -55,8 +55,10 @@ Tell the person, in one line, that the setup page is open and to press Start whe
 instructions to you.
 
 ## 2. The project folder
-- **This chat is open in their home folder, in no folder, in `~/Muster` itself, or in Muster's own plugin folder**
-  (it has `.claude-plugin/plugin.json`): the project folder is `~/Muster/<project folder name>`.
+- **This chat is open in their home folder, in no folder, in `~/Muster` itself, or in Muster's installed copy** (the
+  folder is `${CLAUDE_PLUGIN_ROOT}` itself, or anywhere under `~/.claude/plugins/`): the project folder is
+  `~/Muster/<project folder name>`. A folder that only holds a `.claude-plugin/plugin.json`, such as someone's own
+  working copy of a plugin with its own version history, is not the installed copy: it is "some other folder" below.
 - **This chat is open in some other folder:** ask one question with two buttons: "set Muster up in <this folder>" or
   "make a new folder, ~/Muster/<project folder name>".
 - The project folder name is the project name exactly as the person typed it (the page and the helper already refuse

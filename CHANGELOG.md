@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.8
+Affects: the manager (its definition is now a short "Manager checklist", 3.5 KB instead of 12 KB, read every turn; the full rules moved unchanged to skill manager-details, read only when needed; keeps muster/LOOK-BOOK.md); the designer and the design inspector (read muster/LOOK-BOOK.md for the owner's approved looks); setup (copies the look book into new projects).
+Owner's words: "see both, update, and get it live within our weekly usage limit." (D-015)
+
 ## 0.3.7
 Affects: people who use Muster in ChatGPT or Grok Bot (the guides and the Grok Bot profile now list the inspector's third answer, OWNER CALL); the Claude Code crew is unchanged.
 Owner's words: "inspector gets a third answer, OWNER CALL, for taste questions" (D-015)

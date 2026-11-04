@@ -55,7 +55,7 @@ git -c user.name="Muster" -c user.email="muster@localhost" commit -q -m "First v
 
 step "crew files copied from templates"
 cd muster
-for f in CREW DECISIONS-LOG BOARD OWNERS-LIST REPORT START-NOTE RULES-PAGE CLAUDE; do
+for f in CREW DECISIONS-LOG BOARD OWNERS-LIST REPORT START-NOTE RULES-PAGE LOOK-BOOK CLAUDE; do
   [ -f "$CLAUDE_PLUGIN_ROOT/templates/$f.md" ] || fail "template $f.md missing"
   cp -n "$CLAUDE_PLUGIN_ROOT/templates/$f.md" . || fail "copy $f"
 done

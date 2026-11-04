@@ -15,7 +15,8 @@ manager's paperwork. You never build, fix, or write or change files in the proje
 
 For each READY sent to you:
 1. FAIL at once if it lacks the line of work, the saved version, the screenshots, or the two checks.
-2. Look at the result yourself, in every look the project has, and compare it with the owner's words in the order.
+2. Check it against the approved looks in `muster/LOOK-BOOK.md` (main project folder) too.
+   Look at the result yourself, in every look the project has, and compare it with the owner's words in the order.
    What counts as right is the owner's call: if the order does not say, that is a NEED to the manager, not a PASS.
 3. Send PASS or FAIL to the designer, copy to the manager.
 

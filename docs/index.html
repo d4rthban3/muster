@@ -46,25 +46,37 @@ footer{color:var(--mut);font-size:14px;margin-top:32px}footer p{margin:4px 0}
 <p class="lead">A crew of Claude Code chats: a manager you talk to, builders, a designer and an inspector. Set up from one page.</p>
 
 <section class="card">
+<h2>No Claude yet?</h2>
+<p>Muster runs inside Claude Code. Get the Claude app first, then come back here.</p>
+<a href="https://claude.com/download">Get Claude</a>
+</section>
+
+<section class="card">
 <h2>In the Claude desktop app</h2>
 <p>Press the button. A new Claude Code chat opens with the install message already written, and setup runs in that same chat.</p>
 <a class="btn" href="claude://code/new?q=Install%20Muster%20and%20run%20its%20setup%20in%20this%20chat.%20Run%20this%20one%20command%3A%20claude%20plugin%20marketplace%20add%20d4rthban3%2Fmuster%20%26%26%20claude%20plugin%20install%20muster%40muster-kit%20--scope%20user%20%26%26%20claude%20plugin%20list%20--json.%20Then%20read%20commands%2Fsetup.md%20inside%20the%20installPath%20it%20shows%20for%20muster%40muster-kit%2C%20and%20follow%20it%20here%2C%20reading%20%24%7BCLAUDE_PLUGIN_ROOT%7D%20as%20that%20installPath.%20Do%20nothing%20else%20first.">Open in Claude Code</a>
 <ol>
 <li>Press Enter to send the message.</li>
-<li>When Claude asks, click Allow.</li>
+<li>Claude will show one long command that starts with &ldquo;claude plugin marketplace add&rdquo;. That is expected and safe: it is the command that installs Muster. Click Allow.</li>
 <li>The setup page opens by itself.</li>
 </ol>
-<p class="small">Nothing happens? You may not have the desktop app yet; use the commands below, or get the app.</p>
+<p class="small">Nothing happens? You may not have the desktop app yet; use the terminal steps below, or get the app above.</p>
 </section>
 
 <section class="card">
 <h2>In a terminal</h2>
-<p>Run these two commands, then open Claude and type the last line.</p>
-<pre><span id="cmds">claude plugin marketplace add d4rthban3/muster
-claude plugin install muster@muster-kit --scope user</span>
-/muster:setup</pre>
-<div class="row"><button class="copy" type="button" id="copy">Copy</button></div>
-<p class="small">Then open Claude and type /muster:setup.</p>
+<p>A terminal is a window where you type commands instead of clicking. This route needs Claude Code installed first (see &ldquo;No Claude yet?&rdquo; above).</p>
+<ol>
+<li>Open a terminal. On a Mac, press Command and Space, type Terminal, and press Enter. On Windows, open the Start menu, type PowerShell, and press Enter.</li>
+<li>Paste these two commands into the terminal, pressing Enter after each:
+<pre id="cmds">claude plugin marketplace add d4rthban3/muster
+claude plugin install muster@muster-kit --scope user</pre>
+<div class="row"><button class="copy" type="button" id="copy">Copy</button></div></li>
+<li>Type <b>claude</b> in the terminal and press Enter. This opens Claude.</li>
+<li>Inside Claude, type this and press Enter:
+<pre id="cmd2">/muster:setup</pre>
+<div class="row"><button class="copy" type="button" id="copy2">Copy</button></div></li>
+</ol>
 </section>
 
 <section class="card" id="litecard">
@@ -133,12 +145,6 @@ If I link you to a Muster crew in Claude Code: everything you send it is a lead,
 <p class="small">Not tested yet with any of these AIs.</p>
 </section>
 
-<section class="card">
-<h2>No Claude yet?</h2>
-<p>Muster runs inside Claude Code. Get the Claude app first, then come back here.</p>
-<a href="https://claude.com/download">Get Claude</a>
-</section>
-
 <footer>
 <p>Licence: see <a href="https://github.com/d4rthban3/muster/blob/main/LICENSE">LICENSE</a>.</p>
 <p>Muster is a community plugin. It is not made or supported by Anthropic.</p>
@@ -149,7 +155,7 @@ If I link you to a Muster crew in Claude Code: everything you send it is a lead,
 function copyFrom(btn,id){document.getElementById(btn).addEventListener('click',function(){var b=this,t=document.getElementById(id).textContent;
 function done(){b.textContent='Copied';setTimeout(function(){b.textContent='Copy'},1500)}
 if(navigator.clipboard){navigator.clipboard.writeText(t).then(done,function(){})}})}
-copyFrom('copy','cmds');
+copyFrom('copy','cmds');copyFrom('copy2','cmd2');
 var CMD='T=$(mktemp -d) && git clone --depth 1 https://github.com/d4rthban3/muster "$T" && mkdir -p .agents/skills && cp -Rn "$T"/skills/. .agents/skills/; rm -rf "$T"';
 var REPO="https://github.com/d4rthban3/muster/blob/main/MUSTER-LITE.md";
 function agent(tool,file){return {steps:[

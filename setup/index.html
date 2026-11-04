@@ -56,6 +56,7 @@ textarea{width:100%;min-height:110px;resize:vertical;border:1px solid var(--line
   <div id="form">
     <section>
       <h2><label for="project">Project name</label></h2>
+      <p class="hint">Up to 40 characters. It can't start with a dot or contain / \ : * ? " &lt; &gt; |, because your project's folder is named after it.</p>
       <input id="project" class="name" maxlength="40" autocomplete="off" aria-describedby="projectWhy">
       <p class="why" id="projectWhy" role="status" aria-live="polite"></p>
     </section>
@@ -110,7 +111,7 @@ textarea{width:100%;min-height:110px;resize:vertical;border:1px solid var(--line
   <div class="done" id="done" role="status" aria-live="polite">
     <div class="tick">&#10003;</div>
     <h2>Saved</h2>
-    <p class="hint">Go back to Claude. It is starting your crew.</p>
+    <p class="hint">Go back to Claude. It will ask you a few more questions, such as whether you trust your project&rsquo;s folder, and then start your crew. That is normal.</p>
   </div>
 </div>
 <script>

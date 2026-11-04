@@ -5,6 +5,7 @@
 set -u
 cd "$(dirname "$0")/.."
 base=${1:-origin/main}
+git fetch -q origin 2>/dev/null || echo "note: could not fetch origin; the published version may be old"
 v() { python3 -c 'import json,sys;d=json.load(open(sys.argv[1]));print(d.get("version") or [p for p in d["plugins"] if p["name"]=="muster"][0].get("version",""))' "$1"; }
 pv=$(v .claude-plugin/plugin.json); mv=$(v .claude-plugin/marketplace.json)
 [ "$pv" = "$mv" ] || { echo "STOP: plugin.json says $pv, marketplace.json says $mv"; exit 1; }

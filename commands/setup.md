@@ -14,7 +14,7 @@ this file names a skill (for example `start-the-crew`), read `${CLAUDE_PLUGIN_RO
 it.
 
 ## Before anything: check, don't try and fail
-A beginner should never see a step fail. Before each step, check what it needs (git, python3, the setup page's
+A beginner should never see a step fail. Before each step, check what it needs (git, Python, the setup page's
 answer, the folder's trust) and only run the step when the check passes. If a check fails, say plainly what to do and
 stop. Setup works whatever folder this chat is open in, or none.
 
@@ -28,7 +28,7 @@ the person to type. Write the folder as its full path (`/Users/<name>/Muster/...
 with `~` inside the quotes: a `~` inside quotes is not understood as the home folder.
 
 ## A missing tool
-Used when `python3` or `git` is missing. The person never opens Terminal and never types anything: you run the install
+Used when Python or `git` is missing (see step 1 for how Python is found). The person never opens Terminal and never types anything: you run the install
 yourself and they only press Allow (and, on a Mac, the buttons on the Mac's own box). Tell them, in plain words and no
 jargon: "Muster needs a small free tool on your computer, <Python or Git>, and it is not there yet. I will install it
 now; press Allow when I ask."
@@ -57,12 +57,14 @@ is already set up there: ask one question with two buttons: "leave it as it is" 
 keeping every file that is already there".
 
 ## 1. Open the setup page
-Check `python3 --version` first; if it is missing, follow "A missing tool" above, and carry on only when it is there. Make the folder `~/Muster` if it does not
+Find Python first: run `sh "${CLAUDE_PLUGIN_ROOT}/scripts/find-python.sh"`. It tries `python3`, `python` and `py -3` for
+real (on Windows `python3` is often only a Store stub that fails) and prints the one that works; call it `<python>` below.
+If it prints nothing, Python is missing: follow "A missing tool" above, and carry on only when it is there. Make the folder `~/Muster` if it does not
 exist. If `~/Muster/.setup-choices.json` is already there, an earlier setup stopped before using it: move it aside to
 `~/Muster/.setup-choices.old.json` (or `.setup-choices.old-<date and time>.json` if that name is taken; never delete
 it) and tell the person in one line that an unfinished setup was set aside. Only the file the page saves after this
 point counts. Run, in the background:
-`python3 "${CLAUDE_PLUGIN_ROOT}/setup/serve.py" "$HOME/Muster/.setup-choices.json"`
+`<python> "${CLAUDE_PLUGIN_ROOT}/setup/serve.py" "$HOME/Muster/.setup-choices.json"`
 It prints the page address (`http://localhost:<number>/`). Then open it:
 - **In the Claude desktop app:** open the address in the side browser.
 - **Anywhere else:** open it in the person's own browser (`open <address>` on a Mac, `xdg-open <address>` on Linux,
@@ -125,10 +127,12 @@ copies). Both must be answered before any worker start is tried, so no step show
   another folder is still waiting, tell them plainly which to answer first.
 - **Otherwise, in a terminal** (only for someone already using one; the desktop app is the route for everyone else): say it in small steps, in plain words: (1) open
   a new Terminal window (on a Mac, press Command and Space, type Terminal, and press Enter; on Windows, open the Start
-  menu, type PowerShell, and press Enter); (2) copy this line (show it as the one line to copy, with the project folder's full path
-  quoted as in "Quoting in commands", never `~`): `cd '<project folder's full path>' && claude`; (3) click in the
-  Terminal window, paste it (Command+V on a Mac, Ctrl+Shift+V on Linux, a right-click on Windows) and press Enter;
-  (4) say yes to the question that asks whether to trust the folder; (5) type `/muster:setup` and press Enter. Tell
+  menu, type PowerShell, and press Enter); (2) copy this one line (the project folder's full path in single quotes,
+  never `~`; an apostrophe inside the name is written `'\''` for Mac and Linux and `''` (two apostrophes) for
+  PowerShell): `cd '<project folder's full path>'`; (3) click in the Terminal window, paste it (Command+V on a Mac,
+  Ctrl+Shift+V on Linux, a right-click on Windows) and press Enter; (4) type `claude` and press Enter, then say yes to
+  the question that asks whether to trust the folder; (5) type `/muster:setup` and press Enter. Never join the two
+  commands with `&&`: the older Windows PowerShell rejects it. Tell
   them setup carries on from where it stopped (step 0a).
 
 ## 3. Write the crew's files

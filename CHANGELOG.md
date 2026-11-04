@@ -2,6 +2,11 @@
 
 Each version names which workers it affects.
 
+## 0.3.12
+Affects: every worker and the manager (a short "Usage first" rule at the top of muster/CLAUDE.md, pointed to by a line at the top of every agent definition; usage-habits and spend-diligence now overlap less).
+Owner's words: "whatever you just did to be hyper vigilant with conserving my usage... that needs to be at the core of muster." (D-016)
+>>>>>>> 5c01574 (Usage first: the owner's usage is the first rule of every chat (D-016); version 0.3.10)
+
 ## 0.3.11
 Affects: everyone who visits the site or the setup page (the owner's redesign of the install page and the three guide pages, and the new Muster logo in the site's header, favicon, home-screen icon and share card, and in the setup page's header and favicon). The crew itself is unchanged.
 Owner's words: "site update in and make sure the plugin itself and the domain carry the logo image." (D-017)

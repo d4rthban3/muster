@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.7
+Affects: people who use Muster in ChatGPT or Grok Bot (the guides and the Grok Bot profile now list the inspector's third answer, OWNER CALL); the Claude Code crew is unchanged.
+Owner's words: "inspector gets a third answer, OWNER CALL, for taste questions" (D-015)
+
 ## 0.3.5
 Affects: people who use Muster in ChatGPT or Grok Bot (new guide pages and a compatibility table, all marked untested; platform profile files in platforms/); the install page (one link line). The Claude Code crew itself is unchanged.
 Owner's words: "all" (D-015), on the ChatGPT and Grok Bot editions.

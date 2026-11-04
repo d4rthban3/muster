@@ -14,6 +14,6 @@ reports: { end_of_turn_reply: six_line_report }
 choices: question_buttons
 renewal_handovers: off
 archive: hide_from_sidebar
-messages: { default: held, wake_on: [order, READY, PASS, FAIL, STUCK, NEED] }
+messages: { default: held, wake_on: [order, READY, PASS, FAIL, OWNER CALL, STUCK, NEED] }
 crew_files: "a Muster folder outside the project's history"
 updates: { check: routine_weekly, deliver: bundled_note_per_role }

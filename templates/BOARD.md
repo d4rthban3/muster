@@ -2,10 +2,10 @@
 
 The record of finished pieces: one entry per finished piece, in the six-line report shape.
 It wakes nobody: if someone must act, also send them a direct message.
-When messages are paused, the report goes here instead, addressed to its reader; the manager reads the board every turn.
+When messages are paused, the report goes here instead, addressed to its reader; the manager reads the board at a session's start, before a session ends, and when a worker says its report is on the board.
 
 ## Rules
-1. At the start of a session and before finishing, run `/muster:board <your name>`. Read in full every entry addressed to you or to ALL.
+1. At the start of a session and before a session ends, run `/muster:board <your name>`. Read in full every entry addressed to you or to ALL.
 2. Answer every open entry addressed to you before new work.
 3. Close an entry (`Status: done`) when it is answered; do not delete it.
 4. The manager moves entries older than 48 hours to `BOARD-ARCHIVE.md` when this file passes 50 KB.

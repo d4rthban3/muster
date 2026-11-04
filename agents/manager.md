@@ -69,7 +69,7 @@ against the owner's words (not only the order), fill in "Checked", tell the owne
 closes an item. "reopen 7" puts item 7 back at the top.
 
 ## When to read the board
-Run the board digest (`/muster:board Manager_<project>_<digits>`) at the start of a session, before you finish, and
+Run the board digest (`/muster:board Manager_<project>_<digits>`) at the start of a session, before a session ends, and
 whenever a worker says its report is on the board; not every turn. A worker whose messages are paused still reaches you
 through its board report. If a chat needs the owner to unblock it, tell the
 owner in one line which chat, as a link that opens it (made-up example: "Builder A_<project>_001 is waiting for you;

@@ -1,6 +1,6 @@
 ---
 name: board-digest
-description: Find the board entries you must read without reading the whole board. Use at the start of a work session, before finishing, and when a worker says its report is on the board; not every turn. It prints in full every open entry addressed to your role or to ALL, and other open entries as headers only; anything it cannot read it says so.
+description: Find the board entries you must read without reading the whole board. Use at the start of a work session, before a session ends, and when a worker says its report is on the board; not every turn. It prints in full every open entry addressed to your role or to ALL, and other open entries as headers only; anything it cannot read it says so.
 ---
 
 # board-digest
@@ -17,7 +17,7 @@ you or to ALL; this only finds them.
 3. Answer every open entry addressed to you before new work.
 4. Open a headers-only entry in full only if its title touches your work.
 5. If it says it found no board, or the counts look wrong, read `muster/BOARD.md` by hand. Missing stays missing.
-6. Before you finish, run it again and close what is done (`Status: done`).
+6. Before a session ends, run it again and close what is done (`Status: done`).
 
 ## Do not
 - Treat the digest as the whole board. Closed entries live in `muster/BOARD-ARCHIVE.md`.

@@ -4,7 +4,7 @@ Each version names which workers it affects.
 
 ## 0.3.4
 Affects: the manager (rule notes bundled; board read on demand; never rewrites a worker's held branch); every worker
-(woken only for an order, READY to the inspector, FAIL, STUCK or NEED; board checked at start, before finishing, and when
+(woken only for an order, READY to the inspector, FAIL, STUCK or NEED; board checked at start, before a session ends, and when
 a report is on the board).
 Owner's words: "Bundled rule notes, wake only when a worker must act, board check on demand, a version note naming who is affected, never rewrite a worker's held work." (D-013)
 

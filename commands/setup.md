@@ -28,14 +28,19 @@ the person to type. Write the folder as its full path (`/Users/<name>/Muster/...
 with `~` inside the quotes: a `~` inside quotes is not understood as the home folder.
 
 ## A missing tool
-Used when `python3` or `git` is missing. Tell the person, in plain words and no jargon: "Muster needs a small free
-tool on your computer, <Python or Git>, and it is not there yet." Then, for their computer:
-- **Mac:** "Your Mac may be showing a box that offers to install the 'command line developer tools'. If it is, press
-  Install, then Agree, and wait a few minutes. If there is no box, open Terminal, type `xcode-select --install` and
-  press Enter; the box appears." This one install gives both Python and Git.
-- **Windows:** Python from python.org/downloads and Git from git-scm.com/download/win; accept the usual choices.
-- **Linux:** the computer's usual installer (for example `sudo apt install python3 git`).
-Then: "When the install finishes, tell me 'done' here and I will carry on." Stop until they do; then check again.
+Used when `python3` or `git` is missing. The person never opens Terminal and never types anything: you run the install
+yourself and they only press Allow (and, on a Mac, the buttons on the Mac's own box). Tell them, in plain words and no
+jargon: "Muster needs a small free tool on your computer, <Python or Git>, and it is not there yet. I will install it
+now; press Allow when I ask."
+- **Mac:** run `xcode-select --install`. The Mac then shows its own box: tell them "Press Install, then Agree, and wait
+  a few minutes." This one install gives both Python and Git. (If it says the tools are already installed, check again.)
+- **Windows:** run `winget install --id Python.Python.3.12 -e` for Python and `winget install --id Git.Git -e` for Git
+  (winget comes with Windows 10 and 11), whichever is missing. If winget is missing, send them to python.org/downloads or
+  git-scm.com/download/win and say to accept the usual choices.
+- **Linux:** an install needs the computer's password, which you never type or ask for. Tell them plainly that this one
+  needs their computer's own installer (for example `sudo apt install python3 git`), which they run in their terminal.
+After the install, wait until it finishes, then check again yourself; do not ask them to type "done". If it still fails,
+say so in one line with what to do, and stop.
 
 ## 0. Is Muster installed for every folder?
 Run `claude plugin list` and look at muster's scope. If it is not "user", tell the person in one line and offer to
@@ -115,8 +120,9 @@ copies). Both must be answered before any worker start is tried, so no step show
   move this chat into the project folder with the app's tool for changing a session's folder. When they say they have
   pressed both, carry on with step 3 in the project folder. If a box does not appear, or an older trust box from
   another folder is still waiting, tell them plainly which to answer first.
-- **Otherwise, in a terminal:** the person may never have used one, so say it in small steps, in plain words: (1) open
-  a new Terminal window; (2) copy this line (show it as the one line to copy, with the project folder's full path
+- **Otherwise, in a terminal** (only for someone already using one; the desktop app is the route for everyone else): say it in small steps, in plain words: (1) open
+  a new Terminal window (on a Mac, press Command and Space, type Terminal, and press Enter; on Windows, open the Start
+  menu, type PowerShell, and press Enter); (2) copy this line (show it as the one line to copy, with the project folder's full path
   quoted as in "Quoting in commands", never `~`): `cd '<project folder's full path>' && claude`; (3) click in the
   Terminal window, paste it (Command+V on a Mac, Ctrl+Shift+V on Linux, a right-click on Windows) and press Enter;
   (4) say yes to the question that asks whether to trust the folder; (5) type `/muster:setup` and press Enter. Tell

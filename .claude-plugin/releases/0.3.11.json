@@ -1,0 +1,14 @@
+{
+  "version": "0.3.11",
+  "changed_files": [
+    "docs/",
+    "setup/index.html",
+    "assets/"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "site"
+  ],
+  "records_change": false,
+  "note": "Site redesign and the Muster logo (the Designer's release); no worker is affected."
+}

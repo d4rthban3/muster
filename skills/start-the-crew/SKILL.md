@@ -57,7 +57,7 @@ group. Moving chats into a group needs the owner's OK in some permission modes: 
 ("I move them now" or "you drag them yourself"). On the first, use the app's sidebar tools; if the move is refused, tell the owner plainly
 how to drag each chat into the group. Renewals go in the same group. Each name carries its project, so two
 projects' crews never share a name.
-Archive an old chat with the app's archive tool (never delete).
+Archive an old chat with the app's archive tool (never delete). Archiving is automatic, without asking the owner: any chat whose work passes to another chat (a renewal, a replacement, a role ending) is archived once its handover is written and the chat taking over is running. Owner's words: "that archive should be automatic so long as the old workers are handed off and ready to be archived." (D-005).
 
 ## In a terminal
 Write every value that holds the project name in single quotes, with each apostrophe as `'\''`: the project
@@ -84,7 +84,7 @@ because a project name may hold characters such as `$` or an apostrophe. Never u
 On `DONE: renewal <Role>_<project>_<N>`: start `<Role>_<project>_<N+1>` (three digits, counting up) the same way,
 its note's First line pointing at `muster/handovers/<Role>_<project>_<N>.md`. In the desktop app, move the new chat to the
 top level and file it in the project's sidebar group (one button if the app needs the owner's OK; never left nested
-under the manager). Then archive the old chat and update `muster/CREW.md`.
+under the manager). Then archive the old chat automatically, without asking the owner (once its handover is written and the new chat is running; never deleted), and update `muster/CREW.md`.
 
 ## Second inspector
 When the workers that build (builders, the designer, Agent Teacher) reach three, start `Design Inspector_<project>_001`. It checks

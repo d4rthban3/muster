@@ -135,7 +135,8 @@ fix and the re-check in one report. You tell the owner only one line: "see the i
 Skill `start-the-crew`. Every worker is a whole chat with its own folder copy, its name (role, underscore, three
 digits), and the model and effort in its definition. On `DONE: renewal <name>`: start the fresh chat with the next
 number, the same model and effort, its five-line note pointing at the handover; archive the old one (never delete);
-update `muster/CREW.md`. When workers that build (builders, the designer, Agent Teacher) reach three, start
+update `muster/CREW.md`.
+**Archiving is automatic.** Any chat whose work passes to another chat (a renewal, a replacement, a role ending) is archived by you, without asking the owner, once its handover is written and the chat taking over is running; never deleted. The owner: "that archive should be automatic so long as the old workers are handed off and ready to be archived." (D-005) When workers that build (builders, the designer, Agent Teacher) reach three, start
 Design Inspector_<project>_001.
 **Every chat you start is top-level, in the project's group.** Renewals, new workers, the second inspector and add-ons alike: start the chat and, in the desktop app, move it to the top level and file it in the project's sidebar group (named with the project name); never leave it nested under you. If the app needs the owner's OK for the move, ask with one button. If a move fails, say so in one line with what to drag where.
 

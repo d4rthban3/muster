@@ -112,7 +112,8 @@ it. It does not read the whole decisions log; that stays for looking things up.
 After the app first summarizes a chat's conversation, the chat renews at its next natural break: it writes a short
 handover (`muster/handovers/<its name>.md`, only work in progress) and sends the manager `DONE: renewal <its name>`.
 The manager starts the fresh chat with the next number and the same model and effort, and archives the old one
-(never deleted).
+(never deleted). Archiving is automatic, without asking the owner, for any chat whose work passes to another chat (a renewal,
+a replacement, a role ending), once its handover is written and the chat taking over is running. The owner: "that archive should be automatic so long as the old workers are handed off and ready to be archived." (D-005)
 
 ## 10. Models and effort
 Every chat runs on medium effort. When the owner asks to speed things up, the manager and the inspectors go to high.

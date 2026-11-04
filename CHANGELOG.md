@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.11
+Affects: everyone who visits the site or the setup page (the owner's redesign of the install page and the three guide pages, and the new Muster logo in the site's header, favicon, home-screen icon and share card, and in the setup page's header and favicon). The crew itself is unchanged.
+Owner's words: "site update in and make sure the plugin itself and the domain carry the logo image." (D-017)
+
 ## 0.3.10
 Affects: whoever pushes a site with SVG pictures (the leak scan now allows the standard SVG namespace, www.w3.org; nothing else changes).
 Owner's words: "site update in and make sure the plugin itself and the domain carry the logo image." (D-017)

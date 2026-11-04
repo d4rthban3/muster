@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Muster setup</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%221024%22%20height=%221024%22%20viewBox=%220%200%201024%201024%22%3E%3Crect%20width=%221024%22%20height=%221024%22%20rx=%22224%22%20fill=%22%23FFDB58%22/%3E%3Ccircle%20cx=%22512%22%20cy=%22330%22%20r=%22130%22%20fill=%22%23191C24%22/%3E%3Ccircle%20cx=%22242%22%20cy=%22650%22%20r=%2274%22%20fill=%22%23191C24%22/%3E%3Ccircle%20cx=%22422%22%20cy=%22650%22%20r=%2274%22%20fill=%22%23191C24%22/%3E%3Ccircle%20cx=%22602%22%20cy=%22650%22%20r=%2274%22%20fill=%22%23191C24%22/%3E%3Ccircle%20cx=%22782%22%20cy=%22650%22%20r=%2274%22%20fill=%22%23191C24%22/%3E%3Crect%20x=%22108%22%20y=%22770%22%20width=%22808%22%20height=%2244%22%20rx=%2222%22%20fill=%22%235A3AE8%22/%3E%3C/svg%3E" type="image/svg+xml">
 <style>
 @font-face{font-family:"DM Sans";src:url("/fonts/dm-sans.woff2") format("woff2");font-weight:100 1000;font-display:swap}
 @font-face{font-family:Manrope;src:url("/fonts/manrope.woff2") format("woff2");font-weight:200 800;font-display:swap}
@@ -13,7 +14,7 @@
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg) radial-gradient(circle at 100% 0,var(--glow),transparent 45%) no-repeat;min-height:100vh;color:var(--text);font:16px/1.45 "DM Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
 .wrap{max-width:760px;margin:0 auto;padding:28px 16px 64px}
-.brand{display:flex;align-items:center;gap:10px;font-family:Manrope,"DM Sans",-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;font-weight:800;font-size:20px}
+.brand svg{flex:none}.brand{display:flex;align-items:center;gap:10px;font-family:Manrope,"DM Sans",-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;font-weight:800;font-size:20px}
 .dots{display:flex;gap:6px}.dots i{width:12px;height:12px;border-radius:50%;background:var(--text);display:block}.dots i:first-child{background:var(--dot1);box-shadow:0 0 0 1px var(--line)}
 section{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px;margin-top:18px}
 h2{font-family:Manrope,"DM Sans",-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;font-weight:700;font-size:18px;margin:0 0 4px}
@@ -51,7 +52,7 @@ textarea{width:100%;min-height:110px;resize:vertical;border:1px solid var(--line
 </head>
 <body>
 <div class="wrap">
-  <div class="brand"><span class="dots"><i></i><i></i><i></i></span> Muster</div>
+  <div class="brand"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" aria-hidden="true" viewBox="0 0 1024 1024"><rect width="1024" height="1024" rx="224" fill="#FFDB58"/><circle cx="512" cy="330" r="130" fill="#191C24"/><circle cx="242" cy="650" r="74" fill="#191C24"/><circle cx="422" cy="650" r="74" fill="#191C24"/><circle cx="602" cy="650" r="74" fill="#191C24"/><circle cx="782" cy="650" r="74" fill="#191C24"/><rect x="108" y="770" width="808" height="44" rx="22" fill="#5A3AE8"/></svg> Muster</div>
 
   <div id="form">
     <section>

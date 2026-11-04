@@ -5,46 +5,34 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Install Muster</title>
 <meta name="description" content="Install Muster, a crew of Claude Code chats, in one click.">
-<link rel="icon" href="data:,">
-<style>
-@font-face{font-family:"DM Sans";src:url("fonts/dm-sans.woff2") format("woff2");font-weight:100 1000;font-display:swap}
-@font-face{font-family:Manrope;src:url("fonts/manrope.woff2") format("woff2");font-weight:200 800;font-display:swap}
-:root{--bg:#f7f5ff;--card:#ffffff;--text:#0a0c0e;--mut:#555b69;--line:#e1dbf6;--acc:#FFDB58;--acc-text:#0a0c0e;--acc-edge:rgba(10,12,14,.18);--link:#5a3ae8;--code:#efecfb;--dot1:#FFDB58;--glow:rgba(108,77,251,.20);--accsoft:rgba(255,219,88,.45);--ok:#FFDB58}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0a0c0e;--card:#14161b;--text:#f4eeff;--mut:#9aa1ae;--line:rgba(244,238,255,.15);--acc:#FFDB58;--acc-text:#0a0c0e;--acc-edge:transparent;--link:#FFDB58;--code:#07080a;--dot1:#FFDB58;--glow:rgba(108,77,251,.28);--accsoft:rgba(255,219,88,.14);--ok:#FFDB58}}
-:root[data-theme="dark"]{--bg:#0a0c0e;--card:#14161b;--text:#f4eeff;--mut:#9aa1ae;--line:rgba(244,238,255,.15);--acc:#FFDB58;--acc-text:#0a0c0e;--acc-edge:transparent;--link:#FFDB58;--code:#07080a;--dot1:#FFDB58;--glow:rgba(108,77,251,.28);--accsoft:rgba(255,219,88,.14);--ok:#FFDB58}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg) radial-gradient(circle at 100% 0,var(--glow),transparent 45%) no-repeat;min-height:100vh;color:var(--text);font:17px/1.55 "DM Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
-main{max-width:640px;margin:0 auto;padding:48px 16px 64px}
-.dots{display:flex;gap:8px;margin-bottom:28px}.dots i{width:14px;height:14px;border-radius:50%;background:var(--text);opacity:.85}.dots i:first-child{background:var(--dot1);opacity:1;box-shadow:0 0 0 1px var(--line)}
-h1{font-family:Manrope,"DM Sans",-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;font-size:44px;line-height:1;margin:0 0 12px;letter-spacing:-.035em;font-weight:800}
-.lead{color:var(--mut);margin:0 0 32px;font-size:19px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px;margin-bottom:20px}
-h2{font-family:Manrope,"DM Sans",-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;font-weight:700;font-size:20px;margin:0 0 6px}
-.card p{margin:0 0 16px;color:var(--mut)}
-.btn{display:block;text-align:center;background:var(--acc);color:var(--acc-text);text-decoration:none;font-weight:700;font-size:20px;padding:18px 20px;border-radius:14px;border:1px solid var(--acc-edge)}
-.btn:focus-visible,.copy:focus-visible,a:focus-visible{outline:3px solid var(--link);outline-offset:3px}
-ol{margin:16px 0 0;padding-left:22px;color:var(--mut)}ol li{margin:4px 0}
-.small{font-size:14px;color:var(--mut);margin:12px 0 0}
-pre{margin:0;background:var(--code);border-radius:12px;padding:16px;overflow-x:auto;font:14px/1.7 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--text)}
-.lite{white-space:pre-wrap;max-height:320px;overflow-y:auto;font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-.pick{border:0;padding:0;margin:0 0 16px;display:flex;flex-wrap:wrap;gap:8px}
-.pick legend{font-weight:700;margin-bottom:8px;padding:0}
-.pick label{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:7px 12px;cursor:pointer;font-size:15px}
-.pick input{accent-color:var(--link)}
-.pick label:has(input:checked){border-color:var(--link);box-shadow:inset 0 0 0 1px var(--link)}
-#route ol{color:var(--text)}#route li{margin:8px 0}#route pre{margin:8px 0}
-.row{display:flex;justify-content:flex-end;margin-top:10px}
-.copy{font:inherit;font-size:15px;background:transparent;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:8px 14px;cursor:pointer}
-a{color:var(--link)}
-.term{margin:24px 0 0}.term summary{cursor:pointer;color:var(--link);font-size:15px;text-decoration:underline;margin-bottom:12px;width:max-content;max-width:100%}.term summary:focus-visible{outline:3px solid var(--link);outline-offset:3px}
-footer{color:var(--mut);font-size:14px;margin-top:32px}footer p{margin:4px 0}
-</style>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="assets/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="assets/favicon-16.png" sizes="16x16" type="image/png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<meta name="theme-color" content="#f4eeff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#191C24" media="(prefers-color-scheme: dark)">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Install Muster">
+<meta property="og:description" content="Install Muster, a crew of Claude Code chats, in one click.">
+<meta property="og:url" content="https://d4rthban3.github.io/muster/">
+<meta property="og:image" content="https://d4rthban3.github.io/muster/assets/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Muster logo: a mustard tile with a leader dot above a row of four crew dots on a purple line">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-<main>
-<div class="dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-head"><div class="in">
+<a class="brand" href="./"><img src="assets/logo.svg" alt="" width="36" height="36">Muster</a>
+<a class="gh" href="https://github.com/d4rthban3/muster">GitHub</a>
+</div></header>
+<main id="main">
+<div class="hero"><div class="hero-txt">
 <h1>Install Muster</h1>
 <p class="lead">A crew of Claude Code chats: a manager you talk to, builders, a designer and an inspector. Set up from one page.</p>
+</div><svg class="crew" viewBox="0 0 160 120" aria-hidden="true" focusable="false"><circle class="lead-dot" cx="80" cy="30" r="20"/><circle class="m" cx="29" cy="78" r="11"/><circle class="m" cx="63" cy="78" r="11"/><circle class="m" cx="97" cy="78" r="11"/><circle class="m" cx="131" cy="78" r="11"/><rect class="ln" x="8" y="100" width="144" height="7" rx="3.5"/></svg></div>
 
 <section class="card">
 <h2>No Claude yet?</h2>
@@ -150,6 +138,7 @@ claude plugin install muster@muster-kit --scope user</pre>
 </div>
 </details>
 
+<div class="rule" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
 <footer>
 <p>Licence: see <a href="https://github.com/d4rthban3/muster/blob/main/LICENSE">LICENSE</a>.</p>
 <p>Muster is a community plugin. It is not made or supported by Anthropic.</p>

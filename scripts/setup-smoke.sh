@@ -33,20 +33,12 @@ curl -fsS -o /dev/null "${URL}fonts/dm-sans.woff2" || fail "font did not load"
 TOKEN=$(grep -o 'X-Muster-Token":"[^"]*' "$SCRATCH/page.html" | cut -d'"' -f3)
 [ -n "$TOKEN" ] || fail "no one-time key in the page"
 BODY=$($PY -c 'import json,sys;print(json.dumps({"project":sys.argv[1],"vision":"A shop. é “quotes”","crew":["Manager","Builder A","Designer","Inspector"],"asks_first":["Spending money","Keys or passwords","Deleting anything"]}))' "$PROJECT")
+CODE=$(curl -s -o /dev/null -w '%{http_code}' -X POST "${URL}save" -H "Content-Type: application/json" -H "X-Muster-Token: wrong" --data-binary "$BODY" || true)
+[ "$CODE" = 403 ] || fail "wrong key got HTTP $CODE, not 403"
 curl -fsS -X POST "${URL}save" -H "Content-Type: application/json" -H "X-Muster-Token: $TOKEN" --data-binary "$BODY" | grep -q saved || fail "save refused"
 wait "$SERVE_PID" || fail "serve.py did not stop cleanly after saving"
 [ -s "$HOME/Muster/.setup-choices.json" ] || fail "choices file missing"
 $PY -c 'import json,sys;d=json.load(open(sys.argv[1],encoding="utf-8"));assert d["project"]==sys.argv[2],d' "$HOME/Muster/.setup-choices.json" "$PROJECT" || fail "saved project name differs"
-# a wrong key must be refused
-step "serve.py refuses a wrong key"
-$PY "$ROOT/setup/serve.py" "$SCRATCH/x.json" > "$SCRATCH/serve2.out" 2>&1 &
-P2=$!
-U2=""; for _ in $(seq 1 50); do U2=$(grep -o 'http://[^ ]*' "$SCRATCH/serve2.out" | head -1 || true); [ -n "$U2" ] && break; sleep 0.2; done
-[ -n "$U2" ] || { cat "$SCRATCH/serve2.out"; fail "second serve.py printed no address"; }
-CODE=$(curl -s -o /dev/null -w '%{http_code}' -X POST "${U2}save" -H "Content-Type: application/json" -H "X-Muster-Token: wrong" --data-binary "$BODY" || true)
-kill "$P2" 2>/dev/null || true
-[ "$CODE" = 403 ] || fail "wrong key got HTTP $CODE, not 403"
-
 step "project folder, awkward name"
 FOLDER="$HOME/Muster/$PROJECT"
 mkdir -p "$FOLDER/muster"

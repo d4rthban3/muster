@@ -72,7 +72,8 @@ git worktree add '.claude/worktrees/builder-a-001' -b 'muster/builder-a-001' >/d
 step "tests on disk are listed in CHECKS.md (scripts/check-tests.py)"
 $PY "$ROOT/scripts/check-tests.py" "$FOLDER" || fail "no test files should pass"
 : > "$FOLDER/test_demo.py"
-if $PY "$ROOT/scripts/check-tests.py" "$FOLDER" >/dev/null; then fail "unlisted test file was not caught"; fi
+$PY "$ROOT/scripts/check-tests.py" "$FOLDER" | tee "$SCRATCH/ct.out" || true
+grep -q "1 test file(s) on disk, 1 missing" "$SCRATCH/ct.out" || fail "unlisted test file was not caught: $(cat "$SCRATCH/ct.out")"
 echo "test_demo.py: demo | python -m pytest | not checked yet" > "$FOLDER/muster/CHECKS.md"
 $PY "$ROOT/scripts/check-tests.py" "$FOLDER" || fail "listed test file was refused"
 

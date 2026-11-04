@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.5
+Affects: people who use Muster in ChatGPT or Grok Bot (new guide pages and a compatibility table, all marked untested; platform profile files in platforms/); the install page (one link line). The Claude Code crew itself is unchanged.
+Owner's words: "all" (D-015), on the ChatGPT and Grok Bot editions.
+
 ## 0.3.4
 Affects: the manager (rule notes bundled; board read on demand; never rewrites a worker's held branch); every worker
 (woken only for an order, READY, PASS, FAIL, STUCK or NEED; board checked at start, before a session ends, and when

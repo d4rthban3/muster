@@ -1,0 +1,19 @@
+# Platform profile: Claude Code (how Muster runs today). Tested: Mac, Windows and Linux (setup, by a free GitHub test).
+muster_core: ">=0.3.4"
+status: tested
+install: "plugin marketplace + one-click install message; /muster:setup"
+plugin_root: "${CLAUDE_PLUGIN_ROOT}"
+commands: { board: "skill board-digest", setup: "/muster:setup" }
+roles:
+  manager:          { home: own_chat }
+  builder:          { home: own_chat, copy: worktree }
+  designer:         { home: own_chat, copy: worktree }
+  inspector:        { home: own_chat }
+  design_inspector: { home: own_chat }
+reports: { end_of_turn_reply: one_line, message: six_line_report }
+choices: buttons
+renewal_handovers: on
+archive: automatic_after_handoff
+messages: { default: chat_to_chat, wake_on: [order, READY, PASS, FAIL, STUCK, NEED] }
+crew_files: "muster/, kept out of git"
+updates: { check: "claude plugin update", deliver: bundled_note_per_role }

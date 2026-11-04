@@ -1,0 +1,17 @@
+# Platform profile: ChatGPT Projects. UNTESTED: written from a plan, never run.
+muster_core: ">=0.3.4"
+status: untested
+install: "by hand: one Project, instructions pasted, records added as Sources (see docs/chatgpt.html)"
+commands: { board: "read BOARD", setup: "none" }
+roles:
+  manager:          { home: pinned_chat }
+  builder:          { home: chat_per_outcome, copy: "local project or Codex branch only" }
+  designer:         { home: chat_per_outcome }
+  inspector:        { home: fresh_chat_per_READY }
+reports: { handoff: "six-line card on BOARD" }
+messages: { transport: "self-contained order plus BOARD handoff card" }
+records: "Project Sources: OWNERS-LIST, DECISIONS-LOG, BOARD, CREW, REPORT, CHECKS"
+folder_access: "local project or Codex only; a normal Project has none"
+renewal_handovers: replaced_by_handoff_card
+archive: "by hand after final PASS"
+updates: { delivery: "versioned instructions copy, bundled note per affected role" }

@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Muster in Grok Bot</title>
+<meta name="description" content="How to run the Muster crew in Grok Bot. Untested.">
+<link rel="icon" href="data:,">
+<style>
+
+@font-face{font-family:"DM Sans";src:url("fonts/dm-sans.woff2") format("woff2");font-weight:100 1000;font-display:swap}
+@font-face{font-family:Manrope;src:url("fonts/manrope.woff2") format("woff2");font-weight:200 800;font-display:swap}
+:root{--bg:#f7f5ff;--card:#ffffff;--text:#0a0c0e;--mut:#555b69;--line:#e1dbf6;--acc:#FFDB58;--acc-text:#0a0c0e;--acc-edge:rgba(10,12,14,.18);--link:#5a3ae8;--code:#efecfb;--dot1:#FFDB58;--glow:rgba(108,77,251,.20);--accsoft:rgba(255,219,88,.45);--ok:#FFDB58}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0a0c0e;--card:#14161b;--text:#f4eeff;--mut:#9aa1ae;--line:rgba(244,238,255,.15);--acc:#FFDB58;--acc-text:#0a0c0e;--acc-edge:transparent;--link:#FFDB58;--code:#07080a;--dot1:#FFDB58;--glow:rgba(108,77,251,.28);--accsoft:rgba(255,219,88,.14);--ok:#FFDB58}}
+:root[data-theme="dark"]{--bg:#0a0c0e;--card:#14161b;--text:#f4eeff;--mut:#9aa1ae;--line:rgba(244,238,255,.15);--acc:#FFDB58;--acc-text:#0a0c0e;--acc-edge:transparent;--link:#FFDB58;--code:#07080a;--dot1:#FFDB58;--glow:rgba(108,77,251,.28);--accsoft:rgba(255,219,88,.14);--ok:#FFDB58}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg) radial-gradient(circle at 100% 0,var(--glow),transparent 45%) no-repeat;min-height:100vh;color:var(--text);font:17px/1.55 "DM Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+main{max-width:640px;margin:0 auto;padding:48px 16px 64px}
+.dots{display:flex;gap:8px;margin-bottom:28px}.dots i{width:14px;height:14px;border-radius:50%;background:var(--text);opacity:.85}.dots i:first-child{background:var(--dot1);opacity:1;box-shadow:0 0 0 1px var(--line)}
+h1{font-family:Manrope,"DM Sans",-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;font-size:44px;line-height:1;margin:0 0 12px;letter-spacing:-.035em;font-weight:800}
+.lead{color:var(--mut);margin:0 0 32px;font-size:19px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px;margin-bottom:20px}
+h2{font-family:Manrope,"DM Sans",-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;font-weight:700;font-size:20px;margin:0 0 6px}
+.card p{margin:0 0 16px;color:var(--mut)}
+.btn{display:block;text-align:center;background:var(--acc);color:var(--acc-text);text-decoration:none;font-weight:700;font-size:20px;padding:18px 20px;border-radius:14px;border:1px solid var(--acc-edge)}
+.btn:focus-visible,.copy:focus-visible,a:focus-visible{outline:3px solid var(--link);outline-offset:3px}
+ol{margin:16px 0 0;padding-left:22px;color:var(--mut)}ol li{margin:4px 0}
+.small{font-size:14px;color:var(--mut);margin:12px 0 0}
+pre{margin:0;background:var(--code);border-radius:12px;padding:16px;overflow-x:auto;font:14px/1.7 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--text)}
+.lite{white-space:pre-wrap;max-height:320px;overflow-y:auto;font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.pick{border:0;padding:0;margin:0 0 16px;display:flex;flex-wrap:wrap;gap:8px}
+.pick legend{font-weight:700;margin-bottom:8px;padding:0}
+.pick label{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:7px 12px;cursor:pointer;font-size:15px}
+.pick input{accent-color:var(--link)}
+.pick label:has(input:checked){border-color:var(--link);box-shadow:inset 0 0 0 1px var(--link)}
+#route ol{color:var(--text)}#route li{margin:8px 0}#route pre{margin:8px 0}
+.row{display:flex;justify-content:flex-end;margin-top:10px}
+.copy{font:inherit;font-size:15px;background:transparent;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:8px 14px;cursor:pointer}
+a{color:var(--link)}
+.term{margin:24px 0 0}.term summary{cursor:pointer;color:var(--link);font-size:15px;text-decoration:underline;margin-bottom:12px;width:max-content;max-width:100%}.term summary:focus-visible{outline:3px solid var(--link);outline-offset:3px}
+footer{color:var(--mut);font-size:14px;margin-top:32px}footer p{margin:4px 0}
+table{width:100%;border-collapse:collapse;font-size:15px;margin:8px 0}th,td{text-align:left;vertical-align:top;border-bottom:1px solid var(--line);padding:8px 8px 8px 0}th{font-weight:700}.tag{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:2px 10px;font-size:13px;color:var(--mut)}.back{display:inline-block;margin-bottom:20px}.wide{max-width:860px}.card ol,.card ul{color:var(--text)}.card li{margin:6px 0}.card pre{margin:10px 0 0;white-space:pre-wrap}.tbl{overflow-x:auto}
+</style>
+</head>
+<body>
+<main>
+<a class="back" href="./">&larr; Install Muster</a>
+<h1>Muster in Grok Bot</h1>
+<p class="lead">How to run the crew in Grok Bot. <span class="tag">untested</span></p>
+<section class="card">
+<h2>Read this first</h2>
+<p><b>Untested.</b> Nobody has run a new Muster crew in Grok Bot from these steps. They come from a written plan built on an earlier hand-made setup, and one step (a single link that brings the helper bots and routines with it) is not known to work. For what works where, see the <a href="compatibility.html">compatibility table</a>. Plain Grok, without Grok Bot's tools, can only use <a href="./#litecard">Muster Lite</a>.</p>
+</section>
+<section class="card">
+<h2>Set up</h2>
+<ol>
+<li>Open a shareable Muster bot template (the Manager with its setup prompt). There is no official one yet; until there is, ask the Manager bot to set up from the Muster repository.</li>
+<li>Add Muster's skills to your skills library once. Every bot of yours then shares them, so a new Muster version is one update, not a copy per project.</li>
+<li>The Manager asks the setup questions with buttons: project name, what you are building, and which crew.</li>
+<li>It makes a helper bot for each role that needs memory (Builders and the Designer). Checks that should start fresh, like the Inspector, run as background jobs in the Manager's chat instead.</li>
+<li>It writes only your project's records (owner's list, decisions, board, crew) in a Muster folder kept out of your project's history.</li>
+<li>Optional: a routine that posts the board digest, and one that checks for a new Muster version.</li>
+</ol>
+</section>
+<section class="card">
+<h2>Which role runs where</h2>
+<div class="tbl"><table>
+<tr><th>Role</th><th>Runs as</th><th>Why</th></tr>
+<tr><td>Manager</td><td>Your own chat</td><td>You talk only to it.</td></tr>
+<tr><td>Builder, Designer</td><td>Helper bot</td><td>They build over many turns and gain from remembering the project.</td></tr>
+<tr><td>Inspector, Design Inspector</td><td>Background job (high effort)</td><td>Fresh eyes on every READY, and no extra round trip.</td></tr>
+<tr><td>Board digest, leak scan</td><td>Background job (low effort), or a routine</td><td>One-shot jobs; no need to run every turn.</td></tr>
+</table></div>
+</section>
+<section class="card">
+<h2>What is different from Claude Code</h2>
+<ul>
+<li>A helper bot's reply is its six-line report; there is no separate end-of-turn line.</li>
+<li>Messages are held by default. Wake a bot only for an order, a FAIL, STUCK or NEED, and put anything it must obey inside its next order.</li>
+<li>Long chats are summarized by the app, so there are no renewal handover files. Archiving means hiding the chat from the sidebar.</li>
+<li>Choices use the app's question buttons.</li>
+</ul>
+</section>
+
+<footer>
+<p>Muster is a community plugin. It is not made or supported by Anthropic.</p>
+<p><a href="https://github.com/d4rthban3/muster">github.com/d4rthban3/muster</a></p>
+</footer>
+</main>
+<script>
+document.querySelectorAll('.copy').forEach(function(b){b.addEventListener('click',function(){var t=document.getElementById(b.dataset.for).textContent;
+if(navigator.clipboard){navigator.clipboard.writeText(t).then(function(){b.textContent='Copied';setTimeout(function(){b.textContent='Copy'},1500)},function(){})}})});
+</script>
+</body>
+</html>

@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What works where</title>
+<meta name="description" content="Which Muster features work on Claude Code, ChatGPT and Grok Bot.">
+<link rel="icon" href="data:,">
+<style>
+
+@font-face{font-family:"DM Sans";src:url("fonts/dm-sans.woff2") format("woff2");font-weight:100 1000;font-display:swap}
+@font-face{font-family:Manrope;src:url("fonts/manrope.woff2") format("woff2");font-weight:200 800;font-display:swap}
+:root{--bg:#f7f5ff;--card:#ffffff;--text:#0a0c0e;--mut:#555b69;--line:#e1dbf6;--acc:#FFDB58;--acc-text:#0a0c0e;--acc-edge:rgba(10,12,14,.18);--link:#5a3ae8;--code:#efecfb;--dot1:#FFDB58;--glow:rgba(108,77,251,.20);--accsoft:rgba(255,219,88,.45);--ok:#FFDB58}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0a0c0e;--card:#14161b;--text:#f4eeff;--mut:#9aa1ae;--line:rgba(244,238,255,.15);--acc:#FFDB58;--acc-text:#0a0c0e;--acc-edge:transparent;--link:#FFDB58;--code:#07080a;--dot1:#FFDB58;--glow:rgba(108,77,251,.28);--accsoft:rgba(255,219,88,.14);--ok:#FFDB58}}
+:root[data-theme="dark"]{--bg:#0a0c0e;--card:#14161b;--text:#f4eeff;--mut:#9aa1ae;--line:rgba(244,238,255,.15);--acc:#FFDB58;--acc-text:#0a0c0e;--acc-edge:transparent;--link:#FFDB58;--code:#07080a;--dot1:#FFDB58;--glow:rgba(108,77,251,.28);--accsoft:rgba(255,219,88,.14);--ok:#FFDB58}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg) radial-gradient(circle at 100% 0,var(--glow),transparent 45%) no-repeat;min-height:100vh;color:var(--text);font:17px/1.55 "DM Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+main{max-width:640px;margin:0 auto;padding:48px 16px 64px}
+.dots{display:flex;gap:8px;margin-bottom:28px}.dots i{width:14px;height:14px;border-radius:50%;background:var(--text);opacity:.85}.dots i:first-child{background:var(--dot1);opacity:1;box-shadow:0 0 0 1px var(--line)}
+h1{font-family:Manrope,"DM Sans",-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;font-size:44px;line-height:1;margin:0 0 12px;letter-spacing:-.035em;font-weight:800}
+.lead{color:var(--mut);margin:0 0 32px;font-size:19px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px;margin-bottom:20px}
+h2{font-family:Manrope,"DM Sans",-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;font-weight:700;font-size:20px;margin:0 0 6px}
+.card p{margin:0 0 16px;color:var(--mut)}
+.btn{display:block;text-align:center;background:var(--acc);color:var(--acc-text);text-decoration:none;font-weight:700;font-size:20px;padding:18px 20px;border-radius:14px;border:1px solid var(--acc-edge)}
+.btn:focus-visible,.copy:focus-visible,a:focus-visible{outline:3px solid var(--link);outline-offset:3px}
+ol{margin:16px 0 0;padding-left:22px;color:var(--mut)}ol li{margin:4px 0}
+.small{font-size:14px;color:var(--mut);margin:12px 0 0}
+pre{margin:0;background:var(--code);border-radius:12px;padding:16px;overflow-x:auto;font:14px/1.7 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--text)}
+.lite{white-space:pre-wrap;max-height:320px;overflow-y:auto;font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.pick{border:0;padding:0;margin:0 0 16px;display:flex;flex-wrap:wrap;gap:8px}
+.pick legend{font-weight:700;margin-bottom:8px;padding:0}
+.pick label{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:7px 12px;cursor:pointer;font-size:15px}
+.pick input{accent-color:var(--link)}
+.pick label:has(input:checked){border-color:var(--link);box-shadow:inset 0 0 0 1px var(--link)}
+#route ol{color:var(--text)}#route li{margin:8px 0}#route pre{margin:8px 0}
+.row{display:flex;justify-content:flex-end;margin-top:10px}
+.copy{font:inherit;font-size:15px;background:transparent;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:8px 14px;cursor:pointer}
+a{color:var(--link)}
+.term{margin:24px 0 0}.term summary{cursor:pointer;color:var(--link);font-size:15px;text-decoration:underline;margin-bottom:12px;width:max-content;max-width:100%}.term summary:focus-visible{outline:3px solid var(--link);outline-offset:3px}
+footer{color:var(--mut);font-size:14px;margin-top:32px}footer p{margin:4px 0}
+table{width:100%;border-collapse:collapse;font-size:15px;margin:8px 0}th,td{text-align:left;vertical-align:top;border-bottom:1px solid var(--line);padding:8px 8px 8px 0}th{font-weight:700}.tag{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:2px 10px;font-size:13px;color:var(--mut)}.back{display:inline-block;margin-bottom:20px}.wide{max-width:860px}.card ol,.card ul{color:var(--text)}.card li{margin:6px 0}.card pre{margin:10px 0 0;white-space:pre-wrap}.tbl{overflow-x:auto}
+</style>
+</head>
+<body>
+<main class="wide">
+<a class="back" href="./">&larr; Install Muster</a>
+<h1>What works where</h1>
+<p class="lead">Which Muster features work on Claude Code, ChatGPT and Grok Bot.</p>
+<section class="card">
+<p><b>Only Claude Code has been tested.</b> Every ChatGPT and Grok Bot cell comes from a written plan, not a real run, and says so. See the <a href="chatgpt.html">ChatGPT guide</a> and the <a href="grokbot.html">Grok Bot guide</a>.</p>
+<div class="tbl"><table>
+<tr><th></th><th>Claude Code</th><th>ChatGPT</th><th>Grok Bot</th></tr>
+<tr><th scope="row">Setup in one click</th><td>Yes: the install button and setup page (tested on Mac, Windows and Linux by a GitHub test; the button itself on Mac)</td><td>No: set up by hand. <i>untested</i></td><td>Setup prompt with question buttons. <i>untested</i></td></tr>
+<tr><th scope="row">A separate chat for each role</th><td>Yes</td><td>Yes, one chat per role in one Project. <i>untested</i></td><td>Yes: helper bots for Builders and the Designer; background jobs for checks. <i>untested</i></td></tr>
+<tr><th scope="row">Chat-to-chat messages</th><td>Yes</td><td>No: the board carries every handoff. <i>untested</i></td><td>Replies are the reports; messages held by default. <i>untested</i></td></tr>
+<tr><th scope="row">Shared crew records</th><td>Yes: the muster/ folder</td><td>Yes: Project Sources. <i>untested</i></td><td>Yes: a Muster folder outside project history. <i>untested</i></td></tr>
+<tr><th scope="row">Rules and skills</th><td>Plugin skills and slash commands</td><td>Project instructions only. <i>untested</i></td><td>Skills library, installed once. <i>untested</i></td></tr>
+<tr><th scope="row">Own copy of the code for each builder</th><td>Yes: a worktree each</td><td>Only with a local project or Codex. <i>untested</i></td><td>Yes, on its shared computer. <i>untested</i></td></tr>
+<tr><th scope="row">Independent Inspector</th><td>Yes: its own chat</td><td>Yes: a fresh chat for every READY. <i>untested</i></td><td>Yes: a background job. <i>untested</i></td></tr>
+<tr><th scope="row">Renewal handovers</th><td>Yes</td><td>Replaced by a handoff card on the board. <i>untested</i></td><td>Off: the app summarizes. <i>untested</i></td></tr>
+<tr><th scope="row">Archiving finished chats</th><td>Yes (automatic once work is handed off)</td><td>Yes, by hand. <i>untested</i></td><td>Hide from the sidebar. <i>untested</i></td></tr>
+<tr><th scope="row">Scheduled checks</th><td>Not used by Muster</td><td>Not in the plan</td><td>Routines. <i>untested</i></td></tr>
+<tr><th scope="row">Updates</th><td>Plugin update</td><td>Replace the instructions by hand. <i>untested</i></td><td>Update the skills library; a version-check routine. <i>untested</i></td></tr>
+<tr><th scope="row">Muster Lite</th><td>Not needed</td><td>Works as a pasted prompt</td><td>Works as a pasted prompt</td></tr>
+</table></div>
+</section>
+
+<footer>
+<p>Muster is a community plugin. It is not made or supported by Anthropic.</p>
+<p><a href="https://github.com/d4rthban3/muster">github.com/d4rthban3/muster</a></p>
+</footer>
+</main>
+<script>
+document.querySelectorAll('.copy').forEach(function(b){b.addEventListener('click',function(){var t=document.getElementById(b.dataset.for).textContent;
+if(navigator.clipboard){navigator.clipboard.writeText(t).then(function(){b.textContent='Copied';setTimeout(function(){b.textContent='Copy'},1500)},function(){})}})});
+</script>
+</body>
+</html>

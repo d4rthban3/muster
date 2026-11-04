@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Muster in ChatGPT</title>
+<meta name="description" content="How to run the Muster crew in a ChatGPT Project. Untested.">
+<link rel="icon" href="data:,">
+<style>
+
+@font-face{font-family:"DM Sans";src:url("fonts/dm-sans.woff2") format("woff2");font-weight:100 1000;font-display:swap}
+@font-face{font-family:Manrope;src:url("fonts/manrope.woff2") format("woff2");font-weight:200 800;font-display:swap}
+:root{--bg:#f7f5ff;--card:#ffffff;--text:#0a0c0e;--mut:#555b69;--line:#e1dbf6;--acc:#FFDB58;--acc-text:#0a0c0e;--acc-edge:rgba(10,12,14,.18);--link:#5a3ae8;--code:#efecfb;--dot1:#FFDB58;--glow:rgba(108,77,251,.20);--accsoft:rgba(255,219,88,.45);--ok:#FFDB58}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0a0c0e;--card:#14161b;--text:#f4eeff;--mut:#9aa1ae;--line:rgba(244,238,255,.15);--acc:#FFDB58;--acc-text:#0a0c0e;--acc-edge:transparent;--link:#FFDB58;--code:#07080a;--dot1:#FFDB58;--glow:rgba(108,77,251,.28);--accsoft:rgba(255,219,88,.14);--ok:#FFDB58}}
+:root[data-theme="dark"]{--bg:#0a0c0e;--card:#14161b;--text:#f4eeff;--mut:#9aa1ae;--line:rgba(244,238,255,.15);--acc:#FFDB58;--acc-text:#0a0c0e;--acc-edge:transparent;--link:#FFDB58;--code:#07080a;--dot1:#FFDB58;--glow:rgba(108,77,251,.28);--accsoft:rgba(255,219,88,.14);--ok:#FFDB58}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg) radial-gradient(circle at 100% 0,var(--glow),transparent 45%) no-repeat;min-height:100vh;color:var(--text);font:17px/1.55 "DM Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+main{max-width:640px;margin:0 auto;padding:48px 16px 64px}
+.dots{display:flex;gap:8px;margin-bottom:28px}.dots i{width:14px;height:14px;border-radius:50%;background:var(--text);opacity:.85}.dots i:first-child{background:var(--dot1);opacity:1;box-shadow:0 0 0 1px var(--line)}
+h1{font-family:Manrope,"DM Sans",-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;font-size:44px;line-height:1;margin:0 0 12px;letter-spacing:-.035em;font-weight:800}
+.lead{color:var(--mut);margin:0 0 32px;font-size:19px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px;margin-bottom:20px}
+h2{font-family:Manrope,"DM Sans",-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;font-weight:700;font-size:20px;margin:0 0 6px}
+.card p{margin:0 0 16px;color:var(--mut)}
+.btn{display:block;text-align:center;background:var(--acc);color:var(--acc-text);text-decoration:none;font-weight:700;font-size:20px;padding:18px 20px;border-radius:14px;border:1px solid var(--acc-edge)}
+.btn:focus-visible,.copy:focus-visible,a:focus-visible{outline:3px solid var(--link);outline-offset:3px}
+ol{margin:16px 0 0;padding-left:22px;color:var(--mut)}ol li{margin:4px 0}
+.small{font-size:14px;color:var(--mut);margin:12px 0 0}
+pre{margin:0;background:var(--code);border-radius:12px;padding:16px;overflow-x:auto;font:14px/1.7 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--text)}
+.lite{white-space:pre-wrap;max-height:320px;overflow-y:auto;font:13px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.pick{border:0;padding:0;margin:0 0 16px;display:flex;flex-wrap:wrap;gap:8px}
+.pick legend{font-weight:700;margin-bottom:8px;padding:0}
+.pick label{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:7px 12px;cursor:pointer;font-size:15px}
+.pick input{accent-color:var(--link)}
+.pick label:has(input:checked){border-color:var(--link);box-shadow:inset 0 0 0 1px var(--link)}
+#route ol{color:var(--text)}#route li{margin:8px 0}#route pre{margin:8px 0}
+.row{display:flex;justify-content:flex-end;margin-top:10px}
+.copy{font:inherit;font-size:15px;background:transparent;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:8px 14px;cursor:pointer}
+a{color:var(--link)}
+.term{margin:24px 0 0}.term summary{cursor:pointer;color:var(--link);font-size:15px;text-decoration:underline;margin-bottom:12px;width:max-content;max-width:100%}.term summary:focus-visible{outline:3px solid var(--link);outline-offset:3px}
+footer{color:var(--mut);font-size:14px;margin-top:32px}footer p{margin:4px 0}
+table{width:100%;border-collapse:collapse;font-size:15px;margin:8px 0}th,td{text-align:left;vertical-align:top;border-bottom:1px solid var(--line);padding:8px 8px 8px 0}th{font-weight:700}.tag{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:2px 10px;font-size:13px;color:var(--mut)}.back{display:inline-block;margin-bottom:20px}.wide{max-width:860px}.card ol,.card ul{color:var(--text)}.card li{margin:6px 0}.card pre{margin:10px 0 0;white-space:pre-wrap}.tbl{overflow-x:auto}
+</style>
+</head>
+<body>
+<main>
+<a class="back" href="./">&larr; Install Muster</a>
+<h1>Muster in ChatGPT</h1>
+<p class="lead">How to run the crew in a ChatGPT Project. <span class="tag">untested</span></p>
+<section class="card">
+<h2>Read this first</h2>
+<p><b>Untested.</b> Nobody has run Muster in ChatGPT yet; these steps come from a written plan, not a real run. ChatGPT has no Muster plugin, so you do the setup by hand, and a few things Claude Code does for you (starting chats, passing messages) become things you do. For what works where, see the <a href="compatibility.html">compatibility table</a>.</p>
+</section>
+<section class="card">
+<h2>Set up</h2>
+<ol>
+<li>Make one ChatGPT Project called &ldquo;Muster &mdash; your project name&rdquo;. One Project holds the whole crew; do not make one per worker.</li>
+<li>Open the Project's instructions and paste this:
+<pre id="pi"># Muster, ChatGPT profile
+
+This Project runs one small crew. The owner talks only to the Manager chat. The owner&#x27;s current words win over every older record.
+
+The durable record is the Project&#x27;s muster/ Sources: OWNERS-LIST, DECISIONS-LOG, BOARD, CREW, REPORT, and CHECKS. Do not assume a sibling chat can see your transcript. Every worker receives a complete order and records a six-line handoff on BOARD.
+
+Roles: Manager turns owner requests into orders and never builds; Builder and Designer do only named orders; Inspector never edits the work it reviews and is the only role that can return PASS or FAIL.
+
+Before marking READY, run the checks in CHECKS and name the evidence. Ask one NEED question for an unclear human choice; do not invent the answer. Never send messages, publish, spend money, use credentials, or delete material without the owner&#x27;s explicit approval.
+
+For repository work, use only the folder, branch, worktree, and tools named in the order. Report STUCK if access or scope is missing. At natural completion, add a handoff card to BOARD and archive the worker chat when the Manager confirms there is no remaining handoff.</pre>
+<div class="row"><button class="copy" type="button" data-for="pi">Copy</button></div></li>
+<li>Add these files to the Project's Sources: OWNERS-LIST, DECISIONS-LOG, BOARD, CREW, REPORT and CHECKS (plain text or Markdown pages; the Muster repository has the shapes in its templates folder).</li>
+<li>Start a chat in the Project called &ldquo;Manager &mdash; your project name&rdquo;, pin it, and paste this as its first message:
+<pre id="mp">You are Manager for [project], a Muster crew. [Your name] is the only owner. Read the Project instructions and the current muster/ sources before acting.
+
+Your job is to turn the owner&#x27;s words into small, ordered board cards; keep the durable records current; give one clear choice whenever a human decision is missing; and coordinate independent Builder, Designer, and Inspector chats. You never implement the deliverable yourself and you never mark work passed.
+
+For each order, record: exact owner wording, desired result, scope and exclusions, acceptance checks, source links, approvals needed, assigned role, and status. Give every worker a self-contained order and require its six-line handoff card on BOARD. Send every READY to an Inspector that did not do the work. Tell the owner only what changed, what supports it, what is blocked, and the single next decision when one is needed.
+
+Do not assume you can read a worker&#x27;s transcript. Ask the owner before sending messages, changing shared documents, spending money, or using a credential.</pre>
+<div class="row"><button class="copy" type="button" data-for="mp">Copy</button></div></li>
+<li>Talk only to the Manager. It tells you when to open a Builder, Designer or Inspector chat.</li>
+</ol>
+</section>
+<section class="card">
+<h2>How a job goes</h2>
+<ol>
+<li>You tell the Manager what you want. It writes your exact words on the board and, if something is unclear, asks you one question with choices.</li>
+<li>The Manager opens a worker chat in the same Project and pastes in a complete order, because a worker cannot read another chat.</li>
+<li>The worker does only that order and writes a six-line report (READY, DONE, NEED or STUCK) on the board.</li>
+<li>A different Inspector chat checks every READY and writes PASS or FAIL. Nobody passes their own work.</li>
+<li>The Manager tells you the result and archives the finished worker chat. The records stay in the Project.</li>
+</ol>
+</section>
+<section class="card">
+<h2>Working on code</h2>
+<p>A normal ChatGPT Project cannot open a folder on your computer. For real code, attach the folder as a local project, or send the build order to Codex. Give each builder working at the same time its own branch, and do not let two chats edit the same files. In a normal Project, do not expect saved commits or separate copies of the code.</p>
+</section>
+<section class="card">
+<h2>What is different from Claude Code</h2>
+<ul>
+<li>No slash commands or plugin skills: the rules live in the Project instructions.</li>
+<li>No chat-to-chat messages: the board is the record, and the Manager copies the right card into each order.</li>
+<li>No plugin updates: keep one versioned copy of these instructions and tell affected workers when it changes.</li>
+</ul>
+</section>
+
+<footer>
+<p>Muster is a community plugin. It is not made or supported by Anthropic.</p>
+<p><a href="https://github.com/d4rthban3/muster">github.com/d4rthban3/muster</a></p>
+</footer>
+</main>
+<script>
+document.querySelectorAll('.copy').forEach(function(b){b.addEventListener('click',function(){var t=document.getElementById(b.dataset.for).textContent;
+if(navigator.clipboard){navigator.clipboard.writeText(t).then(function(){b.textContent='Copied';setTimeout(function(){b.textContent='Copy'},1500)},function(){})}})});
+</script>
+</body>
+</html>

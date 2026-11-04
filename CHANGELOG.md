@@ -4,9 +4,9 @@ Each version names which workers it affects.
 
 ## 0.3.4
 Affects: the manager (rule notes bundled; board read on demand; never rewrites a worker's held branch); every worker
-(woken only for an order, FAIL, STUCK or NEED; board checked at start, before a session ends, and when
+(woken only for an order, READY, PASS, FAIL, STUCK or NEED; board checked at start, before a session ends, and when
 a report is on the board).
-Decision: D-013 (usage savers).
+Owner's words: "Bundled rule notes, wake only when a worker must act, board check on demand, a version note naming who is affected, never rewrite a worker's held work." (D-013, wake list by D-014)
 
 ## 0.3.3
 Affects: anyone running setup (Windows, Mac and Linux tested by a free GitHub test; Python found by its working name; missing git or Python installed by Claude).

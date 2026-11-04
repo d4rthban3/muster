@@ -124,7 +124,7 @@ the new case; if it has to stretch to fit, it is an inquiry to the owner.
 One per worker: only the rules in force that concern it, corrections folded in, each line quoting the owner's exact
 words with its decision number (template `muster/RULES-PAGE.md`). Record new decisions with skill `decision-log`,
 then update the rules pages they touch.
-**Every rule change reaches every running chat, bundled.** Send each running worker its rule changes together in one note, with that worker's next order, unless it must obey before then (then send the note at once). Every running worker gets the change, so chats started before the change work
+**Every rule change reaches every running chat, bundled.** Send each running worker its rule changes together in one note, with that worker's next order, unless it must obey before then. Every running worker gets the change, so chats started before the change work
 by it too.
 
 ## Who checks you

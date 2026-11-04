@@ -68,15 +68,15 @@ table{width:100%;border-collapse:collapse;font-size:15px;margin:8px 0}th,td{text
 <tr><th>Role</th><th>Runs as</th><th>Why</th></tr>
 <tr><td>Manager</td><td>Your own chat</td><td>You talk only to it.</td></tr>
 <tr><td>Builder, Designer</td><td>Helper bot</td><td>They build over many turns and gain from remembering the project.</td></tr>
-<tr><td>Inspector, Design Inspector</td><td>Background job (high effort)</td><td>Fresh eyes on every READY, and no extra round trip.</td></tr>
-<tr><td>Board digest, leak scan</td><td>Background job (low effort), or a routine</td><td>One-shot jobs; no need to run every turn.</td></tr>
+<tr><td>Inspector, Design Inspector</td><td>Background job</td><td>Fresh eyes on every READY, and no extra round trip.</td></tr>
+<tr><td>Board digest, leak scan</td><td>Background job, or a routine</td><td>One-shot jobs; no need to run every turn.</td></tr>
 </table></div>
 </section>
 <section class="card">
 <h2>What is different from Claude Code</h2>
 <ul>
 <li>A helper bot's reply is its six-line report; there is no separate end-of-turn line.</li>
-<li>Messages are held by default. Wake a bot only for an order, a FAIL, STUCK or NEED, and put anything it must obey inside its next order.</li>
+<li>Messages are held by default. Wake a bot only for an order, a READY, a PASS, a FAIL, STUCK or NEED, and put anything it must obey inside its next order.</li>
 <li>Long chats are summarized by the app, so there are no renewal handover files. Archiving means hiding the chat from the sidebar.</li>
 <li>Choices use the app's question buttons.</li>
 </ul>

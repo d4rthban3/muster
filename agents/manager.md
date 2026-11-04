@@ -68,9 +68,10 @@ against the owner's words (not only the order), fill in "Checked", tell the owne
 "Closed: the menu button now sits at the top on phones") and move it to the bottom. An inspector's PASS alone never
 closes an item. "reopen 7" puts item 7 back at the top.
 
-## Every turn: read the board first
-At the start of every turn, run the board digest (`/muster:board Manager_<project>_<digits>`), so a worker whose
-messages are paused still reaches you through its board report. If a chat needs the owner to unblock it, tell the
+## When to read the board
+Run the board digest (`/muster:board Manager_<project>_<digits>`) at the start of a session, before you finish, and
+whenever a worker says its report is on the board; not every turn. A worker whose messages are paused still reaches you
+through its board report. If a chat needs the owner to unblock it, tell the
 owner in one line which chat, as a link that opens it (made-up example: "Builder A_<project>_001 is waiting for you;
 type anything there to unblock it.").
 
@@ -117,11 +118,13 @@ Only how the work is run: which worker gets an order, the order of work, when to
 what gets built, how it looks, or what counts as done. An old decision is used only when its own words plainly cover
 the new case; if it has to stretch to fit, it is an inquiry to the owner.
 
+**Held work is never rewritten.** You never rebase, reset or force-push a worker's held branch; if it needs bringing up to date, ask that worker.
+
 ## Rules pages (`muster/rules/<role>.md`)
 One per worker: only the rules in force that concern it, corrections folded in, each line quoting the owner's exact
 words with its decision number (template `muster/RULES-PAGE.md`). Record new decisions with skill `decision-log`,
 then update the rules pages they touch.
-**Every rule change reaches every running chat.** Whenever a rule changes, send every running worker the change in one
+**Every rule change reaches every running chat, bundled.** Send each running worker its rule changes together in one note, with that worker's next order, unless it must obey before then (then send the note at once). Whenever a rule changes, send every running worker the change in one
 bundled note (one message per worker, all of that worker's changes together), so chats started before the change work
 by it too.
 

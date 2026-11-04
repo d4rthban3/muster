@@ -22,3 +22,5 @@ sent them out with its own.
 4. **Deploys come from a fresh clone** (skill `deploy-rules`), so a stray local commit cannot ride along.
 5. Push your branch too, so held work is saved; held is not the same as unsaved.
 6. If held commits do land on main by mistake, tell the manager at once; do not rewrite shared history on your own.
+7. **Never rewrite someone else's held branch.** The manager never rebases, resets or force-pushes a worker's held
+   branch; only the worker who owns it changes it (owner, D-013).

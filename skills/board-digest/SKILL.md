@@ -1,6 +1,6 @@
 ---
 name: board-digest
-description: Find the board entries you must read without reading the whole board. Use at the start of every work session and again before finishing. It prints in full every open entry addressed to your role or to ALL, and other open entries as headers only; anything it cannot read it says so.
+description: Find the board entries you must read without reading the whole board. Use at the start of a work session, before finishing, and when a worker says its report is on the board; not every turn. It prints in full every open entry addressed to your role or to ALL, and other open entries as headers only; anything it cannot read it says so.
 ---
 
 # board-digest

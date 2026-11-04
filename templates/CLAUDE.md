@@ -35,7 +35,11 @@ owner disagree, the owner wins.
 - Builders do not message each other; a question between two builders goes through the manager.
 - The other exception: the inspector's findings about the manager's own paperwork (see the manager's definition).
 - **Fewer messages.** News goes in the files every chat reads anyway (the board, the owner's list). Send a message
-  only when someone must act. The manager bundles its notes to one worker into one message.
+  only when someone must act. The manager bundles its notes to one worker into one message, sent with that worker's
+  next order unless the worker must obey before then.
+- **Wake a worker only when it must act:** an order, a READY sent to the inspector, a FAIL, a STUCK or a NEED. Everything
+  else is news and goes on the board. Check the board at a session's start, before finishing, and when a worker says its
+  report is on the board; not every turn.
 - The app pauses a chat's messages after about ten chat-to-chat messages in a row without the owner, and holds
   messages for a chat in a stricter permission mode until the owner approves. That is the app's safety limit: never
   try to turn it off.

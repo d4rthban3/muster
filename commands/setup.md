@@ -72,7 +72,8 @@ version history (git). Check `git --version` first; if git is not installed, say
 - **An existing folder with no history:** ask one question with two buttons: "set it up now" (creates the version
   history and saves the current files as the first version; my pick) or "stop the setup".
 To set it up:
-1. `git init` in the project folder.
+1. `git init` in the project folder, then add the line `/muster/` to `.git/info/exclude` before anything is saved, so
+   the crew's files can never enter the first version (step 3b).
 2. If there is no `.gitignore`, write one so private files and this computer's own settings are never saved, and tell
    the person in one line:
    ```
@@ -107,6 +108,8 @@ full path, never `~`),
   say yes to the trust question, and type `/muster:setup` there; setup carries on from where it stopped (step 0a).
 
 ## 3. Write the crew's files
+First, before writing anything, run item 3 of step 3b (a `muster/` folder already in the history), and add the
+exclude line of its item 1.
 Copy from `${CLAUDE_PLUGIN_ROOT}/templates/`, **never overwriting a file that already exists**:
 - into `muster/`: `CREW.md`, `DECISIONS-LOG.md`, `BOARD.md`, `OWNERS-LIST.md`, `REPORT.md`, `START-NOTE.md`,
   `RULES-PAGE.md`; create empty `muster/BOARD-ARCHIVE.md`, and the folders `muster/rules/` and `muster/handovers/`
@@ -145,9 +148,11 @@ read them from the main project folder, never from their own copy, so their copi
 1. Add the line `/muster/` to `.git/info/exclude` (this computer's own ignore list: it is never saved or pushed). Add it
    only if it is not there already.
 2. Check `git status --porcelain -- muster/` prints nothing, and `git ls-files muster/` prints nothing.
-3. If `git ls-files muster/` lists files, an older setup saved them into the history: tell the person in one line and
-   ask one question with two buttons: "stop saving them" (`git rm -r --cached --quiet muster/` and a commit under
-   Muster's name: the files stay on disk, only their place in the history ends; my pick) or "leave it". Then say
+3. If `git ls-files muster/` lists files, the history already holds a `muster/` folder: either an older setup saved
+   the crew's files, or the project has a folder of its own with that name. Tell the person in one line and ask one
+   question with two buttons: "they are Muster's crew files: stop saving them" (`git rm -r --cached --quiet muster/`
+   and a commit under Muster's name: the files stay on disk, only their place in the history ends) or "it is my
+   project's own folder: stop the setup" (Muster's files need that name, so nothing is written). Then say
    plainly that older saved versions still hold them, and that making the repository public would show those versions
    unless its history is cleaned first, which is the person's call.
 Tell the person in one line that the crew's files stay on this computer only. Save nothing here.

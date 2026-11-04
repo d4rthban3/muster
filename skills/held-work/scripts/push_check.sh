@@ -8,10 +8,12 @@ set -u
 expected=$1; remote=${2:-origin}; branch=${3:-$(git rev-parse --abbrev-ref HEAD)}
 git fetch -q "$remote" 2>/dev/null || echo "note: could not fetch $remote; remote state may be old"
 base="$remote/$branch"
-git rev-parse -q --verify "$base" >/dev/null || base=$(git rev-list --max-parents=0 "$branch" | tail -1)
+range="$base..$branch"
+# First push (no such branch on the remote): the whole branch goes out, its first commit included.
+git rev-parse -q --verify "$base" >/dev/null || range="$branch"
 echo "== Push of '$branch' to $remote would send:"
-git log --format='  %h %an  %s' "$base..$branch"
-n=$(git rev-list --count "$base..$branch")
+git log --format='  %h %an  %s' $range
+n=$(git rev-list --count $range)
 echo "== $n commit(s); you expected $expected"
 echo "== Other local branches ahead of their remote (held work; stays unpushed unless it is the push):"
 git for-each-ref --format='%(refname:short) %(upstream:short)' refs/heads | while read -r b up; do
@@ -21,7 +23,7 @@ git for-each-ref --format='%(refname:short) %(upstream:short)' refs/heads | whil
 done
 echo "== Uncommitted files:"
 git status --porcelain | sed 's/^/  /'
-crew=$(git log --format= --name-only "$base..$branch" -- muster/ | sort -u)
+crew=$(git log --format= --name-only $range -- ':(top)muster/' | sort -u)
 if [ -n "$crew" ]; then
   echo "STOP: the push carries Muster's crew files (muster/), which stay on this computer only:"
   echo "$crew" | sed 's/^/  /'

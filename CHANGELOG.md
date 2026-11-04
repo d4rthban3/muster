@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.10
+Affects: whoever pushes a site with SVG pictures (the leak scan now allows the standard SVG namespace, www.w3.org; nothing else changes).
+Owner's words: "site update in and make sure the plugin itself and the domain carry the logo image." (D-017)
+
 ## 0.3.9
 Affects: the manager (runs `scripts/muster-update.py` to bring a project's copied crew files up to a new version; gets one note per affected worker to pass on); every project already set up (its muster/ rule files can now be updated without touching its records). Each version now has a manifest in .claude-plugin/releases/ (changed files, affected roles, affected platforms, whether records change).
 Also: the free test now plays a pretend order, READY and PASS on a scratch project (scripts/check-report.py) and runs the update on it; it fails if any of that breaks.

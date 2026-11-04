@@ -1,0 +1,8 @@
+{
+  "version": "0.3.10",
+  "changed_files": ["scripts/scan-leaks.sh", "CHANGELOG.md"],
+  "affected_roles": ["Designer"],
+  "affected_platforms": ["claude-code"],
+  "records_change": false,
+  "note": "The leak scan allows the standard SVG namespace so SVG logos can be pushed."
+}

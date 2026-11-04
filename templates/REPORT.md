@@ -1,10 +1,10 @@
 # The report every worker sends
 
 Every message a worker sends (to the manager, to the inspector, or back to a builder) is six lines. The first word is
-always one of six: DONE, READY, PASS, FAIL, STUCK, NEED.
+always one of six: DONE, READY, PASS, FAIL, STUCK, NEED (the inspector may also answer OWNER CALL, see below).
 
 ```
-<FIRST WORD>: <job name, copied word for word from the manager's order>
+<FIRST WORD>: <job name, copied word for word from the manager's order> [ID <role>-<job>-<number>]
 What:  <what was done, one plain sentence>
 Where: <where it is: the line of work and the saved version, a file, or a page address>; touches: <none, or the shared thing it touches, by name>
 Why:   <the reason, or the decision it comes from>
@@ -12,10 +12,14 @@ How:   <what was checked, with real numbers, or "not checked">
 Need:  <what is left out; what you need from the reader, and by when if it matters>
 ```
 
+The ID is short and counts up for that role and job (made-up example: `[ID Builder A-crew switch-2]`). A message whose
+ID you have already seen is a repeat: drop it, do not answer it twice.
+
 What the six first words mean:
 - **DONE**: finished a job that needs no inspection.
 - **READY**: finished; asking the inspector to check it.
 - **PASS** / **FAIL**: the inspector's answer.
+- **OWNER CALL** (inspector only): a thing only the owner can decide; goes to the manager, who asks the owner.
 - **STUCK**: cannot go on; says why.
 - **NEED**: needs something only the reader can give (an answer, a choice, a yes).
 

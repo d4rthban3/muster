@@ -82,7 +82,7 @@ because a project name may hold characters such as `$` or an apostrophe. Never u
 
 ## Renewal
 On `DONE: renewal <Role>_<project>_<N>`: start `<Role>_<project>_<N+1>` (three digits, counting up) the same way,
-its note's First line pointing at `muster/handovers/<Role>_<project>_<N>.md`. In the desktop app, move the new chat to the
+its note's First line pointing at `muster/handovers/<Role>_<project>_<N>.md` (only if the old chat wrote one; a chat with no job in progress writes none). In the desktop app, move the new chat to the
 top level and file it in the project's sidebar group (one button if the app needs the owner's OK; never left nested
 under the manager). Then archive the old chat automatically, without asking the owner (once its handover is written and the new chat is running; never deleted), and update `muster/CREW.md`.
 

@@ -9,7 +9,7 @@ Saves reading the whole board. You still read the board's rules once and still r
 you or to ALL; this only finds them.
 
 ## Steps
-1. Run it from inside the project with your chat's name (Manager_<project>_001, Builder A_<project>_001, Inspector_<project>_001, ...):
+1. Run it from inside the project with your chat's name (with no name it reads as Manager) (Manager_<project>_001, Builder A_<project>_001, Inspector_<project>_001, ...):
    `python3 "${CLAUDE_PLUGIN_ROOT}/skills/board-digest/scripts/board_digest.py" "<your name>"`
 2. Read what it prints, in full. Check the first line names the real `muster/BOARD.md` and when it last changed. The next
    line says how many entries concern you (printed in full), how many others are open (headers only), how many are

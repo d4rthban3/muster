@@ -19,6 +19,10 @@ you or to ALL; this only finds them.
 5. If it says it found no board, or the counts look wrong, read `muster/BOARD.md` by hand. Missing stays missing.
 6. Before a session ends, run it again and close what is done (`Status: done`).
 
+## The "Waiting on:" line
+The digest prints it. The manager alone runs it with `--write-waiting` to keep the one line at the top of `muster/BOARD.md`
+current; it changes nothing else in the file. Everyone else never writes the board with it.
+
 ## Do not
 - Treat the digest as the whole board. Closed entries live in `muster/BOARD-ARCHIVE.md`.
 - Edit the script or point it at another file.

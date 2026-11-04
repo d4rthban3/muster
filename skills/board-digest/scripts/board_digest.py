@@ -69,11 +69,34 @@ def read(path):
         return None, str(err)
 
 
+def write_waiting_line(path, line):
+    """Set the single "Waiting on:" line right under the board's title; changes nothing else."""
+    text, err = read(path)
+    if text is None:
+        print("NOT WRITTEN: %s" % err)
+        return
+    lines = text.split("\n")
+    for i, l in enumerate(lines):
+        if l.startswith("Waiting on:"):
+            lines[i] = line
+            break
+    else:
+        lines[1:1] = ["", line] if lines and lines[0].startswith("#") else []
+        if not (lines and lines[0].startswith("#")):
+            lines[0:0] = [line, ""]
+    with open(path, "w", encoding="utf-8", newline="") as fh:
+        fh.write("\n".join(lines))
+    print("Wrote the Waiting on line at the top of %s" % path)
+
+
 def main():
     # With no role name, read as the manager (the chat that reads the whole board).
-    name = sys.argv[1].strip() if len(sys.argv) > 1 and sys.argv[1].strip() else "Manager"
-    role = name.lower()
-    root = find_root(sys.argv[2] if len(sys.argv) > 2 else os.getcwd())
+    # --write-waiting (manager only): also rewrite the one "Waiting on:" line at the top of muster/BOARD.md.
+    write_waiting = "--write-waiting" in sys.argv
+    args = [a for a in sys.argv[1:] if a != "--write-waiting"]
+    who = args[0].strip() if args and args[0].strip() else "Manager"
+    role = who.lower()
+    root = find_root(args[1] if len(args) > 1 else os.getcwd())
     if root is None:
         print("NOT FOUND: no muster/BOARD.md in this folder or any parent. Read the board by hand.")
         return 1
@@ -99,13 +122,16 @@ def main():
 
     print("%d entries concern %s (printed in full), %d other open (headers only), "
           "%d done/closed (hidden), %d unreadable files"
-          % (len(mine), name, len(others), closed, len(unreadable)))
+          % (len(mine), who, len(others), closed, len(unreadable)))
     waiting = {}
     for _n, body in mine + [(n, h) for n, h in others]:
         m = re.search(r"->\s*([^|]+?)\s*\|", body.splitlines()[0] if body else "")
         if m:
             waiting[m.group(1)] = waiting.get(m.group(1), 0) + 1
-    print("Waiting on: " + (", ".join("%s (%d)" % kv for kv in sorted(waiting.items())) or "nobody"))
+    line = "Waiting on: " + (", ".join("%s (%d)" % kv for kv in sorted(waiting.items())) or "nobody")
+    print(line)
+    if write_waiting:
+        write_waiting_line(os.path.join(root, "muster", "BOARD.md"), line)
     for item in unreadable:
         print("UNREADABLE:", item)
     for name, body in mine:

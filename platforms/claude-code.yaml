@@ -14,6 +14,6 @@ reports: { end_of_turn_reply: one_line, message: six_line_report }
 choices: buttons
 renewal_handovers: on
 archive: automatic_after_handoff
-messages: { default: chat_to_chat, wake_on: [order, READY, PASS, FAIL, STUCK, NEED] }
+messages: { default: chat_to_chat, wake_on: [order, READY, PASS, FAIL, OWNER CALL, STUCK, NEED] }
 crew_files: "muster/, kept out of git"
 updates: { check: "claude plugin update", deliver: bundled_note_per_role }

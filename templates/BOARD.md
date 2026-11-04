@@ -1,5 +1,7 @@
 # Board
 
+Waiting on: nobody
+
 The record of finished pieces: one entry per finished piece, in the six-line report shape.
 It wakes nobody: if someone must act, also send them a direct message.
 When messages are paused, the report goes here instead, addressed to its reader; the manager reads the board at a session's start, before a session ends, and when a worker says its report is on the board.

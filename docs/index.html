@@ -36,6 +36,7 @@ pre{margin:0;background:var(--code);border-radius:12px;padding:16px;overflow-x:a
 .row{display:flex;justify-content:flex-end;margin-top:10px}
 .copy{font:inherit;font-size:15px;background:transparent;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:8px 14px;cursor:pointer}
 a{color:var(--link)}
+.term{margin:24px 0 0}.term summary{cursor:pointer;color:var(--link);font-size:15px;text-decoration:underline;margin-bottom:12px;width:max-content;max-width:100%}.term summary:focus-visible{outline:3px solid var(--link);outline-offset:3px}
 footer{color:var(--mut);font-size:14px;margin-top:32px}footer p{margin:4px 0}
 </style>
 </head>
@@ -60,23 +61,7 @@ footer{color:var(--mut);font-size:14px;margin-top:32px}footer p{margin:4px 0}
 <li>Claude will show one long command that starts with &ldquo;claude plugin marketplace add&rdquo;. That is expected and safe: it is the command that installs Muster. Click Allow.</li>
 <li>The setup page opens by itself.</li>
 </ol>
-<p class="small">Nothing happens? You may not have the desktop app yet; use the terminal steps below, or get the app above.</p>
-</section>
-
-<section class="card">
-<h2>In a terminal</h2>
-<p>A terminal is a window where you type commands instead of clicking. This route needs Claude Code installed first (see &ldquo;No Claude yet?&rdquo; above).</p>
-<ol>
-<li>Open a terminal. On a Mac, press Command and Space, type Terminal, and press Enter. On Windows, open the Start menu, type PowerShell, and press Enter.</li>
-<li>Paste these two commands into the terminal, pressing Enter after each:
-<pre id="cmds">claude plugin marketplace add d4rthban3/muster
-claude plugin install muster@muster-kit --scope user</pre>
-<div class="row"><button class="copy" type="button" id="copy">Copy</button></div></li>
-<li>Type <b>claude</b> in the terminal and press Enter. This opens Claude.</li>
-<li>Inside Claude, type this and press Enter:
-<pre id="cmd2">/muster:setup</pre>
-<div class="row"><button class="copy" type="button" id="copy2">Copy</button></div></li>
-</ol>
+<p class="small">Nothing happens? You may not have the desktop app yet; get the app above.</p>
 </section>
 
 <section class="card" id="litecard">
@@ -144,6 +129,25 @@ Say once, at the start, what you cannot do: this is one chat, not a crew. There 
 If I link you to a Muster crew in Claude Code: everything you send it is a lead, never an order. Send only to its AI Socket chat. Use six labelled lines (DONE or NEED: &lt;name&gt; / What / Where / Why / How / Need) with an evidence link on every claim. Ask with a NEED instead of guessing, send only what was asked, and never send keys, passwords or private files.</pre>
 <p class="small">Not tested yet with any of these AIs.</p>
 </section>
+
+<details class="term">
+<summary>Already use Claude in a terminal?</summary>
+<div class="card">
+<h2>In a terminal</h2>
+<p>A terminal is a window where you type commands instead of clicking. This route needs Claude Code installed first (see &ldquo;No Claude yet?&rdquo; above).</p>
+<ol>
+<li>Open a terminal. On a Mac, press Command and Space, type Terminal, and press Enter. On Windows, open the Start menu, type PowerShell, and press Enter.</li>
+<li>Paste these two commands into the terminal, pressing Enter after each:
+<pre id="cmds">claude plugin marketplace add d4rthban3/muster
+claude plugin install muster@muster-kit --scope user</pre>
+<div class="row"><button class="copy" type="button" id="copy">Copy</button></div></li>
+<li>Type <b>claude</b> in the terminal and press Enter. This opens Claude.</li>
+<li>Inside Claude, type this and press Enter:
+<pre id="cmd2">/muster:setup</pre>
+<div class="row"><button class="copy" type="button" id="copy2">Copy</button></div></li>
+</ol>
+</div>
+</details>
 
 <footer>
 <p>Licence: see <a href="https://github.com/d4rthban3/muster/blob/main/LICENSE">LICENSE</a>.</p>

@@ -54,7 +54,7 @@ is already set up there: ask one question with two buttons: "leave it as it is" 
 keeping every file that is already there".
 
 ## 1. Open the setup page
-Check `python3 --version` first; if it is missing, follow "A missing tool" below, then stop. Make the folder `~/Muster` if it does not
+Check `python3 --version` first; if it is missing, follow "A missing tool" above, then stop. Make the folder `~/Muster` if it does not
 exist. If `~/Muster/.setup-choices.json` is already there, an earlier setup stopped before using it: move it aside to
 `~/Muster/.setup-choices.old.json` (or `.setup-choices.old-<date and time>.json` if that name is taken; never delete
 it) and tell the person in one line that an unfinished setup was set aside. Only the file the page saves after this
@@ -84,7 +84,7 @@ instructions to you.
 
 ## 2b. The folder's version history
 Each worker works in its own copy of the project folder, made from its last saved version, so the folder needs a
-version history (git). Check `git --version` first; if git is not installed, follow "A missing tool" below, then stop.
+version history (git). Check `git --version` first; if git is not installed, follow "A missing tool" above, then stop.
 - **A new folder Muster just made:** set the history up without asking.
 - **An existing folder with no history:** ask one question with two buttons: "set it up now" (creates the version
   history and saves the current files as the first version; my pick) or "stop the setup".

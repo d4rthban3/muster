@@ -34,13 +34,16 @@ jargon: "Muster needs a small free tool on your computer, <Python or Git>, and i
 now; press Allow when I ask."
 - **Mac:** run `xcode-select --install`. The Mac then shows its own box: tell them "Press Install, then Agree, and wait
   a few minutes." This one install gives both Python and Git. (If it says the tools are already installed, check again.)
-- **Windows:** run `winget install --id Python.Python.3.12 -e` for Python and `winget install --id Git.Git -e` for Git
-  (winget comes with Windows 10 and 11), whichever is missing. If winget is missing, send them to python.org/downloads or
+- **Windows:** winget (it comes with Windows 10 and 11) asks to accept the source's and the package's terms, and
+  accepting terms is the person's call: ask one question with two buttons, "yes, accept them and install" or "stop".
+  On yes, run `winget install --id Python.Python.3.12 -e --accept-source-agreements --accept-package-agreements` for
+  Python and `winget install --id Git.Git -e --accept-source-agreements --accept-package-agreements` for Git,
+  whichever is missing. If winget is missing, send them to python.org/downloads or
   git-scm.com/download/win and say to accept the usual choices.
 - **Linux:** an install needs the computer's password, which you never type or ask for. Tell them plainly that this one
   needs their computer's own installer (for example `sudo apt install python3 git`), which they run in their terminal.
-After the install, wait until it finishes, then check again yourself; do not ask them to type "done". If it still fails,
-say so in one line with what to do, and stop.
+After the install, wait until it finishes, then check again yourself; do not ask them to type "done". If the tool is
+there, carry on with setup. Only if it is still missing, say so in one line with what to do, and stop.
 
 ## 0. Is Muster installed for every folder?
 Run `claude plugin list` and look at muster's scope. If it is not "user", tell the person in one line and offer to
@@ -54,7 +57,7 @@ is already set up there: ask one question with two buttons: "leave it as it is" 
 keeping every file that is already there".
 
 ## 1. Open the setup page
-Check `python3 --version` first; if it is missing, follow "A missing tool" above, then stop. Make the folder `~/Muster` if it does not
+Check `python3 --version` first; if it is missing, follow "A missing tool" above, and carry on only when it is there. Make the folder `~/Muster` if it does not
 exist. If `~/Muster/.setup-choices.json` is already there, an earlier setup stopped before using it: move it aside to
 `~/Muster/.setup-choices.old.json` (or `.setup-choices.old-<date and time>.json` if that name is taken; never delete
 it) and tell the person in one line that an unfinished setup was set aside. Only the file the page saves after this
@@ -84,7 +87,7 @@ instructions to you.
 
 ## 2b. The folder's version history
 Each worker works in its own copy of the project folder, made from its last saved version, so the folder needs a
-version history (git). Check `git --version` first; if git is not installed, follow "A missing tool" above, then stop.
+version history (git). Check `git --version` first; if git is not installed, follow "A missing tool" above, and carry on only when it is there.
 - **A new folder Muster just made:** set the history up without asking.
 - **An existing folder with no history:** ask one question with two buttons: "set it up now" (creates the version
   history and saves the current files as the first version; my pick) or "stop the setup".

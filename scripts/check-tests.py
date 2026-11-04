@@ -16,6 +16,9 @@ SKIP = {".git", "node_modules", ".claude", "muster"}
 
 def main():
     root = os.path.abspath(sys.argv[1] if len(sys.argv) > 1 else os.getcwd())
+    if not os.path.isdir(root):
+        print("not a folder: " + root)
+        return 2
     found = []
     for here, dirs, files in os.walk(root):
         dirs[:] = [d for d in dirs if d not in SKIP]

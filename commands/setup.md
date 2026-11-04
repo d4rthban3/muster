@@ -54,8 +54,8 @@ fix it (one question with two buttons: "reinstall it for every folder", my pick,
 Claude Code updates a marketplace by itself only when its auto-update switch is on, and it is off for a marketplace like
 this one. No file in Muster can turn it on; only the person's own settings can. Ask one question with two buttons,
 in plain words: "Keep Muster up to date by itself whenever it improves?" with "yes, keep it up to date" (my pick) or
-"no, I will update it myself". On yes, run `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/enable-autoupdate.py"` (use the
-Python found in step 1); it sets one switch in their Claude settings, keeps everything else and saves a backup copy.
+"no, I will update it myself". On yes, find Python as step 1 says (`sh "${CLAUDE_PLUGIN_ROOT}/scripts/find-python.sh"`; if it prints nothing, skip this step and
+say so in one line, setup carries on), then run `<python> "${CLAUDE_PLUGIN_ROOT}/scripts/enable-autoupdate.py"`; it sets one switch in their Claude settings, keeps everything else and saves a backup copy.
 If it says muster-kit is not declared, or the switch does not hold, tell them in one line: open `/plugin`, go to
 Marketplaces, pick muster-kit and choose Enable auto-update. Updates reach a chat the next time Claude Code starts.
 

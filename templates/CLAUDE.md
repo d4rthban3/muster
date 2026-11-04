@@ -37,7 +37,7 @@ owner disagree, the owner wins.
 - **Fewer messages.** News goes in the files every chat reads anyway (the board, the owner's list). Send a message
   only when someone must act. The manager bundles its notes to one worker into one message, sent with that worker's
   next order unless the worker must obey before then.
-- **Wake a worker only when it must act:** an order, a READY sent to the inspector, a FAIL, a STUCK or a NEED. Everything
+- **Wake a worker only when it must act:** an order, a FAIL, a STUCK or a NEED. Everything
   else is news and goes on the board. Check the board at a session's start, before a session ends, and when a worker says its
   report is on the board; not every turn.
 - The app pauses a chat's messages after about ten chat-to-chat messages in a row without the owner, and holds

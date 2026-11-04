@@ -37,7 +37,7 @@ owner disagree, the owner wins.
 - **Fewer messages.** News goes in the files every chat reads anyway (the board, the owner's list). Send a message
   only when someone must act. The manager bundles its notes to one worker into one message, sent with that worker's
   next order unless the worker must obey before then.
-- **Wake a worker only when it must act:** an order, a READY, a PASS, a FAIL, a STUCK or a NEED. Everything
+- **Wake a worker only when it must act:** an order, a READY, a PASS, a FAIL, an OWNER CALL, a STUCK or a NEED. Everything
   else is news and goes on the board. Check the board at a session's start, before a session ends, and when a worker says its
   report is on the board; not every turn.
 - The app pauses a chat's messages after about ten chat-to-chat messages in a row without the owner, and holds
@@ -45,10 +45,11 @@ owner disagree, the owner wins.
   try to turn it off.
 
 ## 4. The report every worker sends
-Six lines. The first word is one of DONE, READY, PASS, FAIL, STUCK, NEED. The job name is copied word for word from
+Six lines. The first word is one of DONE, READY, PASS, FAIL, STUCK, NEED (the inspector may also send OWNER CALL: a thing only the
+owner can decide, which the manager turns into a question). Each report ends its first line with a short ID, `[ID <role>-<job>-<number>]`; a message whose ID you have seen is a repeat and is dropped. The job name is copied word for word from
 the manager's order. Full shape and a made-up example: `muster/REPORT.md`.
 ```
-<FIRST WORD>: <job name>
+<FIRST WORD>: <job name> [ID <role>-<job>-<number>]
 What:  <what was done>
 Where: <where it is>; touches: <none, or the shared thing it touches>
 Why:   <the reason>
@@ -113,11 +114,12 @@ A new chat reads its own rules page (`muster/rules/<its role>.md`) and the five-
 it. It does not read the whole decisions log; that stays for looking things up.
 
 ## 9. Renewal
-After the app first summarizes a chat's conversation, the chat renews at its next natural break: it writes a short
-handover (`muster/handovers/<its name>.md`, only work in progress) and sends the manager `DONE: renewal <its name>`.
+After the app first summarizes a chat's conversation, the chat renews at its next natural break. If a job is in progress it writes a short handover
+(`muster/handovers/<its name>.md`: what is open, the files that matter, the next step); with no job in progress it
+writes none. Then it sends the manager `DONE: renewal <its name>`.
 The manager starts the fresh chat with the next number and the same model and effort, and archives the old one
 (never deleted). Archiving is automatic, without asking the owner, for any chat whose work passes to another chat (a renewal,
-a replacement, a role ending), once its handover is written and the chat taking over is running. The owner: "that archive should be automatic so long as the old workers are handed off and ready to be archived." (D-005)
+a replacement, a role ending), once its handover is written (if it needed one) and the chat taking over is running. The owner: "that archive should be automatic so long as the old workers are handed off and ready to be archived." (D-005)
 
 ## 10. Models and effort
 Every chat runs on medium effort. When the owner asks to speed things up, the manager and the inspectors go to high.

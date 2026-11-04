@@ -69,4 +69,16 @@ git worktree add '.claude/worktrees/builder-a-001' -b 'muster/builder-a-001' >/d
 [ -z "$(git status --porcelain)" ] || fail "worktree shows as a change (.claude/ not ignored)"
 [ ! -e .claude/worktrees/builder-a-001/muster ] || fail "crew files leaked into the worker's copy"
 
+step "tests on disk are listed in CHECKS.md (scripts/check-tests.py)"
+$PY "$ROOT/scripts/check-tests.py" "$FOLDER" || fail "no test files should pass"
+: > "$FOLDER/test_demo.py"
+if $PY "$ROOT/scripts/check-tests.py" "$FOLDER" >/dev/null; then fail "unlisted test file was not caught"; fi
+echo "test_demo.py: demo | python -m pytest | not checked yet" > "$FOLDER/muster/CHECKS.md"
+$PY "$ROOT/scripts/check-tests.py" "$FOLDER" || fail "listed test file was refused"
+
+step "board digest with no role name, and the Waiting on line"
+printf '# Board\n\n## Entries\n### 2026-01-31 | READY | Builder A_X_001 -> Inspector_X_001 | demo\nStatus: open\n' > "$FOLDER/muster/BOARD.md"
+OUT=$(cd "$FOLDER" && $PY "$ROOT/skills/board-digest/scripts/board_digest.py") || fail "digest with no role failed"
+echo "$OUT" | grep -q "Waiting on: Inspector_X_001 (1)" || fail "no Waiting on line: $OUT"
+
 echo; echo "ALL STEPS PASSED"

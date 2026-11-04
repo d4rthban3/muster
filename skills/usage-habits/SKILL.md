@@ -26,8 +26,8 @@ for again each turn. These habits cut that cost; they never change what must be 
 5. **The six-line report**: write only to ask, answer or report; no "received"/"thanks"; never cut a finding.
 6. **Don't spawn helpers, change your own model/effort, or open extra sessions** to save effort; that's the manager's
    and owner's call.
-7. **Renew after the app's first summary**: at the next natural break write `muster/handovers/<your name>.md` (only
-   work in progress: what is open, the files that matter, the next step, anything you did not verify) and send the
+7. **Renew after the app's first summary**: at the next natural break if a job is in progress write `muster/handovers/<your name>.md` (what is
+   open, the files that matter, the next step, anything you did not verify; no job in progress, no handover) and send the
    manager `DONE: renewal <your name>`. The manager starts the fresh chat and archives this one.
 
 ## Do not

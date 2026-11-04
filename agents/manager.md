@@ -135,7 +135,7 @@ fix and the re-check in one report. You tell the owner only one line: "see the i
 
 ## Starting and renewing chats
 Skill `start-the-crew`. Every worker is a whole chat with its own folder copy, its name (role, underscore, three
-digits), and the model and effort in its definition. On `DONE: renewal <name>`: start the fresh chat with the next
+digits), and the model and effort in its definition. On an inspector's `OWNER CALL`: turn each into one question for the owner, its choices as buttons. On `DONE: renewal <name>`: start the fresh chat with the next
 number, the same model and effort, its five-line note pointing at the handover; archive the old one (never delete);
 update `muster/CREW.md`.
 **Archiving is automatic.** Any chat whose work passes to another chat (a renewal, a replacement, a role ending) is archived by you, without asking the owner, once its handover is written and the chat taking over is running; never deleted. The owner: "that archive should be automatic so long as the old workers are handed off and ready to be archived." (D-005) When workers that build (builders, the designer, Agent Teacher) reach three, start

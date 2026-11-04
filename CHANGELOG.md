@@ -2,6 +2,11 @@
 
 Each version names which workers it affects.
 
+## 0.3.5
+Affects: every worker (reports carry a short ID; a repeat is dropped; READY shows the exact test command with pass and fail counts; a builder names any new test file; a chat with no job in progress writes no handover); the inspector (a third answer, OWNER CALL); the manager (turns each OWNER CALL into a question; the board digest reads as Manager with no name and prints a "Waiting on:" line).
+Scripts: scripts/check-tests.py (test files on disk must be in muster/CHECKS.md), run in the free test.
+Owner's words: "see both, update, and get it live within our weekly usage limit." (D-015)
+
 ## 0.3.4
 Affects: the manager (rule notes bundled; board read on demand; never rewrites a worker's held branch); every worker
 (woken only for an order, READY, PASS, FAIL, STUCK or NEED; board checked at start, before a session ends, and when

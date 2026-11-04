@@ -70,10 +70,9 @@ def read(path):
 
 
 def main():
-    if len(sys.argv) < 2:
-        print("usage: board_digest.py <ROLE> [project-dir]")
-        return 2
-    role = sys.argv[1].strip().lower()
+    # With no role name, read as the manager (the chat that reads the whole board).
+    name = sys.argv[1].strip() if len(sys.argv) > 1 and sys.argv[1].strip() else "Manager"
+    role = name.lower()
     root = find_root(sys.argv[2] if len(sys.argv) > 2 else os.getcwd())
     if root is None:
         print("NOT FOUND: no muster/BOARD.md in this folder or any parent. Read the board by hand.")
@@ -100,7 +99,13 @@ def main():
 
     print("%d entries concern %s (printed in full), %d other open (headers only), "
           "%d done/closed (hidden), %d unreadable files"
-          % (len(mine), sys.argv[1], len(others), closed, len(unreadable)))
+          % (len(mine), name, len(others), closed, len(unreadable)))
+    waiting = {}
+    for _n, body in mine + [(n, h) for n, h in others]:
+        m = re.search(r"->\s*([^|]+?)\s*\|", body.splitlines()[0] if body else "")
+        if m:
+            waiting[m.group(1)] = waiting.get(m.group(1), 0) + 1
+    print("Waiting on: " + (", ".join("%s (%d)" % kv for kv in sorted(waiting.items())) or "nobody"))
     for item in unreadable:
         print("UNREADABLE:", item)
     for name, body in mine:

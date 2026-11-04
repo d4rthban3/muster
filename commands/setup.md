@@ -27,6 +27,16 @@ with each apostrophe in it written as `'\''`: the project folder's path, every c
 the person to type. Write the folder as its full path (`/Users/<name>/Muster/...`) or with `"$HOME"/` in front, never
 with `~` inside the quotes: a `~` inside quotes is not understood as the home folder.
 
+## A missing tool
+Used when `python3` or `git` is missing. Tell the person, in plain words and no jargon: "Muster needs a small free
+tool on your computer, <Python or Git>, and it is not there yet." Then, for their computer:
+- **Mac:** "Your Mac may be showing a box that offers to install the 'command line developer tools'. If it is, press
+  Install, then Agree, and wait a few minutes. If there is no box, open Terminal, type `xcode-select --install` and
+  press Enter; the box appears." This one install gives both Python and Git.
+- **Windows:** Python from python.org/downloads and Git from git-scm.com/download/win; accept the usual choices.
+- **Linux:** the computer's usual installer (for example `sudo apt install python3 git`).
+Then: "When the install finishes, tell me 'done' here and I will carry on." Stop until they do; then check again.
+
 ## 0. Is Muster installed for every folder?
 Run `claude plugin list` and look at muster's scope. If it is not "user", tell the person in one line and offer to
 fix it (one question with two buttons: "reinstall it for every folder", my pick, or "leave it"). On the first, run
@@ -39,7 +49,7 @@ is already set up there: ask one question with two buttons: "leave it as it is" 
 keeping every file that is already there".
 
 ## 1. Open the setup page
-Check `python3 --version` first; if it is missing, say so plainly and stop. Make the folder `~/Muster` if it does not
+Check `python3 --version` first; if it is missing, follow "A missing tool" below, then stop. Make the folder `~/Muster` if it does not
 exist. If `~/Muster/.setup-choices.json` is already there, an earlier setup stopped before using it: move it aside to
 `~/Muster/.setup-choices.old.json` (or `.setup-choices.old-<date and time>.json` if that name is taken; never delete
 it) and tell the person in one line that an unfinished setup was set aside. Only the file the page saves after this
@@ -69,7 +79,7 @@ instructions to you.
 
 ## 2b. The folder's version history
 Each worker works in its own copy of the project folder, made from its last saved version, so the folder needs a
-version history (git). Check `git --version` first; if git is not installed, say so plainly and stop.
+version history (git). Check `git --version` first; if git is not installed, follow "A missing tool" below, then stop.
 - **A new folder Muster just made:** set the history up without asking.
 - **An existing folder with no history:** ask one question with two buttons: "set it up now" (creates the version
   history and saves the current files as the first version; my pick) or "stop the setup".
@@ -105,9 +115,12 @@ copies). Both must be answered before any worker start is tried, so no step show
   move this chat into the project folder with the app's tool for changing a session's folder. When they say they have
   pressed both, carry on with step 3 in the project folder. If a box does not appear, or an older trust box from
   another folder is still waiting, tell them plainly which to answer first.
-- **Otherwise, in a terminal:** tell them in plain words, in two lines, to type `cd '<project folder's full path>' && claude` (quoted as in "Quoting in commands"; the
-full path, never `~`),
-  say yes to the trust question, and type `/muster:setup` there; setup carries on from where it stopped (step 0a).
+- **Otherwise, in a terminal:** the person may never have used one, so say it in small steps, in plain words: (1) open
+  a new Terminal window; (2) copy this line (show it as the one line to copy, with the project folder's full path
+  quoted as in "Quoting in commands", never `~`): `cd '<project folder's full path>' && claude`; (3) click in the
+  Terminal window, paste it (Command+V on a Mac, Ctrl+Shift+V on Linux, a right-click on Windows) and press Enter;
+  (4) say yes to the question that asks whether to trust the folder; (5) type `/muster:setup` and press Enter. Tell
+  them setup carries on from where it stopped (step 0a).
 
 ## 3. Write the crew's files
 First, before writing anything, run item 3 of step 3b (a `muster/` folder already in the history), and add the

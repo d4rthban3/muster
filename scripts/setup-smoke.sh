@@ -10,6 +10,7 @@ CLAUDE_PLUGIN_ROOT=$ROOT
 SCRATCH=$(mktemp -d)
 export HOME="$SCRATCH/home"; mkdir -p "$HOME"
 export GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null GIT_CONFIG_NOSYSTEM=1   # a computer with no git settings
+native() { if command -v cygpath >/dev/null 2>&1; then cygpath -m "$1"; else echo "$1"; fi; }   # Windows Python needs C:/ paths, not /tmp/
 step() { echo; echo "== $*"; }
 fail() { echo "FAIL: $*"; exit 1; }
 
@@ -70,12 +71,12 @@ git worktree add '.claude/worktrees/builder-a-001' -b 'muster/builder-a-001' >/d
 [ ! -e .claude/worktrees/builder-a-001/muster ] || fail "crew files leaked into the worker's copy"
 
 step "tests on disk are listed in CHECKS.md (scripts/check-tests.py)"
-$PY "$ROOT/scripts/check-tests.py" "$FOLDER" || fail "no test files should pass"
+$PY "$ROOT/scripts/check-tests.py" "$(native "$FOLDER")" || fail "no test files should pass"
 : > "$FOLDER/test_demo.py"
-$PY "$ROOT/scripts/check-tests.py" "$FOLDER" | tee "$SCRATCH/ct.out" || true
+$PY "$ROOT/scripts/check-tests.py" "$(native "$FOLDER")" | tee "$SCRATCH/ct.out" || true
 grep -q "1 test file(s) on disk, 1 missing" "$SCRATCH/ct.out" || fail "unlisted test file was not caught: $(cat "$SCRATCH/ct.out")"
 echo "test_demo.py: demo | python -m pytest | not checked yet" > "$FOLDER/muster/CHECKS.md"
-$PY "$ROOT/scripts/check-tests.py" "$FOLDER" || fail "listed test file was refused"
+$PY "$ROOT/scripts/check-tests.py" "$(native "$FOLDER")" || fail "listed test file was refused"
 
 step "board digest with no role name, and the Waiting on line"
 printf '# Board\n\n## Entries\n### 2026-01-31 | READY | Builder A_X_001 -> Inspector_X_001 | demo\nStatus: open\n' > "$FOLDER/muster/BOARD.md"

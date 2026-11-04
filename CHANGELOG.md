@@ -10,6 +10,10 @@ Owner's words: "inspector gets a third answer, OWNER CALL, for taste questions" 
 Affects: people who use Muster in ChatGPT or Grok Bot (new guide pages and a compatibility table, all marked untested; platform profile files in platforms/); the install page (one link line). The Claude Code crew itself is unchanged.
 Owner's words: "all" (D-015), on the ChatGPT and Grok Bot editions.
 
+## 0.3.7
+Affects: the manager (a short "Manager checklist" at the top of its definition, linking to the unchanged details; keeps muster/LOOK-BOOK.md); the designer and the design inspector (read muster/LOOK-BOOK.md for the owner's approved looks); setup (copies the look book into new projects).
+Owner's words: "see both, update, and get it live within our weekly usage limit." (D-015)
+
 ## 0.3.6
 Affects: every worker (reports carry a short ID; a repeat is dropped; READY shows the exact test command with pass and fail counts; a builder names any new test file; a chat with no job in progress writes no handover); the inspector (a third answer, OWNER CALL); the manager (turns each OWNER CALL into a question; the board digest reads as Manager with no name and prints a "Waiting on:" line, and with --write-waiting keeps that one line at the top of BOARD.md).
 Scripts: scripts/check-tests.py (test files on disk must be in muster/CHECKS.md), run in the free test.

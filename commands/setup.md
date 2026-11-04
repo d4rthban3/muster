@@ -140,7 +140,7 @@ First, before writing anything, run item 3 of step 3b (a `muster/` folder alread
 exclude line of its item 1.
 Copy from `${CLAUDE_PLUGIN_ROOT}/templates/`, **never overwriting a file that already exists**:
 - into `muster/`: `CREW.md`, `DECISIONS-LOG.md`, `BOARD.md`, `OWNERS-LIST.md`, `REPORT.md`, `START-NOTE.md`,
-  `RULES-PAGE.md`; create empty `muster/BOARD-ARCHIVE.md`, and the folders `muster/rules/` and `muster/handovers/`
+  `RULES-PAGE.md`, `LOOK-BOOK.md`; create empty `muster/BOARD-ARCHIVE.md`, and the folders `muster/rules/` and `muster/handovers/`
   (each with an empty `.gitkeep`, so they are saved).
 - If `crew` has AI Socket: `OUTSIDE-AI-PROTOCOL.md` and `OUTSIDE-AI-SHORT.md` into `muster/ai-socket/`, and an empty
   `muster/inbox/.gitkeep` (where coding agents leave their posts); and, for

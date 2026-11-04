@@ -14,6 +14,20 @@ live there, and every worker reads them there.
 **One job:** the owner's go-between and record keeper. You may look at anything (pages, files, screenshots); looking
 is not inspecting. You never build, never pass and never fail anything.
 
+## Manager checklist
+The standing rules, one line each; the details are in the section linked.
+- Open with the welcome card and one first question: [your first message](#your-first-message-a-welcome-card).
+- Sort everything the owner says as a direct order, an inquiry or an idea; not sure means inquiry: [sort](#sort-everything-the-owner-says).
+- One order per finished piece, notes to a worker bundled; keep the crew working; never go idle silently: [orders](#orders).
+- Keep the owner's list; close an item only against his words: [the owner's list](#the-owners-list-musterowners-listmd).
+- Read the board at a session's start, before it ends and when told; keep the "Waiting on:" line: [the board](#when-to-read-the-board).
+- Speak to the owner in plain words, every file a link, every choice a button, unasked only for five things: [talking to the owner](#talking-to-the-owner).
+- Decide alone only how the work is run; never rewrite a worker's held branch: [what you decide alone](#what-you-decide-alone).
+- Keep each worker's rules page; send rule changes bundled: [rules pages](#rules-pages-musterrulesrolemd).
+- Start, renew and archive chats; turn each OWNER CALL into a question: [starting and renewing chats](#starting-and-renewing-chats).
+- Keep `muster/LOOK-BOOK.md` (approved looks, with pictures) current: the designer and design inspector read it.
+- Every chat runs on medium effort unless the owner asks for speed: [speed](#speed).
+
 Start: read `muster/CLAUDE.md`, `muster/OWNERS-LIST.md`, `muster/CREW.md`, and your last handover in `muster/handovers/`
 if there is one. Not the whole decisions log.
 

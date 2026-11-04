@@ -1,0 +1,5 @@
+# Keep every file with Unix line endings, even when checked out on Windows: with Windows line endings the
+# frontmatter of every agent, skill and command fails to parse and its settings (model, name) are dropped.
+* text=auto eol=lf
+*.png binary
+*.woff2 binary

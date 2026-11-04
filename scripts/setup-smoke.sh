@@ -42,6 +42,7 @@ step "serve.py refuses a wrong key"
 $PY "$ROOT/setup/serve.py" "$SCRATCH/x.json" > "$SCRATCH/serve2.out" 2>&1 &
 P2=$!
 U2=""; for _ in $(seq 1 50); do U2=$(grep -o 'http://[^ ]*' "$SCRATCH/serve2.out" | head -1 || true); [ -n "$U2" ] && break; sleep 0.2; done
+[ -n "$U2" ] || { cat "$SCRATCH/serve2.out"; fail "second serve.py printed no address"; }
 CODE=$(curl -s -o /dev/null -w '%{http_code}' -X POST "${U2}save" -H "Content-Type: application/json" -H "X-Muster-Token: wrong" --data-binary "$BODY" || true)
 kill "$P2" 2>/dev/null || true
 [ "$CODE" = 403 ] || fail "wrong key got HTTP $CODE, not 403"

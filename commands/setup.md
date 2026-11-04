@@ -50,6 +50,15 @@ Run `claude plugin list` and look at muster's scope. If it is not "user", tell t
 fix it (one question with two buttons: "reinstall it for every folder", my pick, or "leave it"). On the first, run
 `claude plugin install muster@muster-kit --scope user`.
 
+## 0b. Keep Muster up to date by itself
+Claude Code updates a marketplace by itself only when its auto-update switch is on, and it is off for a marketplace like
+this one. No file in Muster can turn it on; only the person's own settings can. Ask one question with two buttons,
+in plain words: "Keep Muster up to date by itself whenever it improves?" with "yes, keep it up to date" (my pick) or
+"no, I will update it myself". On yes, run `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/enable-autoupdate.py"` (use the
+Python found in step 1); it sets one switch in their Claude settings, keeps everything else and saves a backup copy.
+If it says muster-kit is not declared, or the switch does not hold, tell them in one line: open `/plugin`, go to
+Marketplaces, pick muster-kit and choose Enable auto-update. Updates reach a chat the next time Claude Code starts.
+
 ## 0a. Carrying on from an earlier setup?
 If the folder this chat is open in holds `muster/setup-choices.json` but no `muster/CREW.md`, an earlier setup
 stopped part way (for example, to have the folder trusted): carry on from the step it reached, without opening the page again. If it holds `muster/CREW.md`, a crew

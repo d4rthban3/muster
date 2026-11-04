@@ -119,4 +119,13 @@ grep -q '"my own words"' "$FOLDER/muster/OWNERS-LIST.md" || fail "a record was o
 grep -q "Note for" "$SCRATCH/upd.out" || fail "no per-worker note printed: $(cat "$SCRATCH/upd.out")"
 $PY "$ROOT/scripts/muster-update.py" "$FN" | grep -q "Already up to date" || fail "second run did not stop"
 
+step "auto-update switch (scripts/enable-autoupdate.py) in a scratch settings folder"
+AU="$SCRATCH/claude-config"; mkdir -p "$AU"
+printf '{"theme":"dark","extraKnownMarketplaces":{"muster-kit":{"source":{"source":"github","repo":"d4rthban3/muster"}}}}' > "$AU/settings.json"
+CLAUDE_CONFIG_DIR=$(native "$AU") $PY "$ROOT/scripts/enable-autoupdate.py" | grep -q "now on\|is on" || fail "auto-update switch not set"
+$PY -c 'import json,sys;d=json.load(open(sys.argv[1]));e=d["extraKnownMarketplaces"]["muster-kit"];assert e["autoUpdate"] is True and d["theme"]=="dark" and e["source"]["repo"]=="d4rthban3/muster"' "$(native "$AU/settings.json")" || fail "settings not kept or switch missing"
+[ -f "$AU/settings.json.muster-backup" ] || fail "no backup kept"
+printf '{}' > "$AU/settings.json"
+if CLAUDE_CONFIG_DIR=$(native "$AU") $PY "$ROOT/scripts/enable-autoupdate.py" >/dev/null; then fail "wrote a switch for an undeclared marketplace"; fi
+
 echo; echo "ALL STEPS PASSED"

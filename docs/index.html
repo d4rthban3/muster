@@ -150,32 +150,37 @@ function copyFrom(btn,id){document.getElementById(btn).addEventListener('click',
 function done(){b.textContent='Copied';setTimeout(function(){b.textContent='Copy'},1500)}
 if(navigator.clipboard){navigator.clipboard.writeText(t).then(done,function(){})}})}
 copyFrom('copy','cmds');copyFrom('copy2','cmd2');
-var CMD='T=$(mktemp -d) && git clone --depth 1 https://github.com/d4rthban3/muster "$T" && mkdir -p .agents/skills && cp -Rn "$T"/skills/. .agents/skills/; rm -rf "$T"';
 var REPO="https://github.com/d4rthban3/muster/blob/main/MUSTER-LITE.md";
-function agent(tool,file){return {steps:[
- "Open a terminal (Mac or Linux) in your project's folder. On Windows, copy the skills folder from github.com/d4rthban3/muster into .agents/skills by hand instead.",
- ["Run this command. It copies Muster's skills into the project's .agents/skills folder, which "+tool+" reads, and never replaces a skill that is already there:","cmd"],
- ["Open "+file+" in the project's folder (make it if there is none) and add this prompt at the end. Do not delete what is already in it.","prompt"],
- "Start "+tool+" in that folder and say: Start Muster Lite."]};}
+var RAW="https://raw.githubusercontent.com/d4rthban3/muster/main/MUSTER-LITE.md";
+var OPT=["Or, if you prefer, add this file to your repository:","repo"];
+var NOWEB="Your AI cannot open web addresses? Then use the paste route below instead.";
+function agent(tool){return {steps:[
+ "Open "+tool+" in your project's folder.",
+ ["Paste this as your first message. Your AI reads Muster Lite from Muster's live page on GitHub each time, so you add no file to your project and it updates by itself:","live"],
+ NOWEB,
+ ["Paste this prompt as your first message instead:","prompt"],
+ OPT]};}
 function upload(app,where){return {steps:[
+ ["Start a new chat and paste this as your first message. Your AI reads Muster Lite from Muster's live page on GitHub each time, so it updates by itself:","live"],
+ "Your AI cannot open web addresses (the Claude app on a phone may not)? Then upload the Muster Lite skill instead:",
  ["Download the Muster Lite skill:","zip"],
  where,
  "Start a new chat and say: Start Muster Lite.",
- ["Cannot upload a skill (for example on your phone)? Paste this prompt as your first message instead:","prompt"]]};}
-function paste(first){return {steps:[first,["Paste this prompt:","prompt"],"Then answer its first question."]};}
+ ["Cannot upload a skill either? Paste this prompt as your first message:","prompt"]]};}
+function paste(first){return {steps:[first,["Paste this as your first message. Your AI reads Muster Lite from Muster's live page on GitHub each time, so it updates by itself:","live"],NOWEB,["Paste this prompt as your first message instead:","prompt"],OPT]};}
 var R={
  claude:upload("Claude","In the Claude app: Customize, Skills, +, Create skill, Upload a skill, and pick the file. Code execution must be on (Settings, Capabilities)."),
  gemini:upload("Gemini","In Gemini (on the web or the Mac app): Customize, Skills, Create, and import the file. Gems are being retired, so use a skill."),
- cursor:agent("Cursor's agent","AGENTS.md"),
- codex:agent("Codex","AGENTS.md"),
- copilot:agent("GitHub Copilot","AGENTS.md"),
- geminicli:agent("Gemini CLI","GEMINI.md"),
- chatgpt:paste("In ChatGPT, make a Project and open its instructions, or start a new chat. (On the free plan, custom instructions are too short for this prompt; use a Project or your first message.)"),
- grok:paste("In Grok, start a new chat. The prompt goes in as your first message."),
- other:paste("In your AI, start a new chat. The prompt goes in as your first message, or into its custom instructions if they are long enough."),
- grokbot:{steps:[["Add Muster Lite to your repository's main folder: download it from","repo"],
-  ["Tell the bot once: Read MUSTER-LITE.md in this repository each time and follow its prompt for a {BUILD} build.","say"],
-  "We found no official Grok bot for GitHub, so this works only with a bot that reads your repository's files."]}
+ cursor:agent("Cursor's agent"),
+ codex:agent("Codex"),
+ copilot:agent("GitHub Copilot"),
+ geminicli:agent("Gemini CLI"),
+ chatgpt:paste("In ChatGPT, start a new chat (or make a Project and use its instructions)."),
+ grok:paste("In Grok, start a new chat."),
+ other:paste("In your AI, start a new chat."),
+ grokbot:{steps:[["Tell the bot once, in a comment or a message: Read https://raw.githubusercontent.com/d4rthban3/muster/main/MUSTER-LITE.md each time and follow its prompt for a {BUILD} build. You add no file to your repository, and it updates by itself.","say"],
+  OPT,
+  "We found no official Grok bot for GitHub, so this works only with a bot that can open web addresses."]}
 };
 function el(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e}
 var n=0;function box(text,mono){var w=el('div');var pre=el('pre',mono?'':'lite',text);pre.id='box'+(++n);var row=el('div','row');var b=el('button','copy','Copy');b.type='button';b.id='btn'+n;row.appendChild(b);w.appendChild(pre);w.appendChild(row);setTimeout(function(){copyFrom(b.id,pre.id)},0);return w}
@@ -184,6 +189,7 @@ function show(){var ai=document.querySelector('input[name=ai]:checked'),bd=docum
  route.steps.forEach(function(s){var li=el('li');if(typeof s==='string'){li.textContent=s}else{li.appendChild(el('span','',s[0].replace('{BUILD}',bd)));
   if(s[1]==='cmd')li.appendChild(box(CMD,true));
   else if(s[1]==='prompt')li.appendChild(box(prompt,false));
+  else if(s[1]==='live')li.appendChild(box('Start Muster Lite. Read '+RAW+' now and each time you start, and follow the section "The prompt: '+bd+' build" in it.',true));
   else if(s[1]==='zip'){var a=el('a','','muster-lite-'+bd+'.zip');a.href='lite/muster-lite-'+bd+'.zip';a.setAttribute('download','');li.appendChild(document.createTextNode(' '));li.appendChild(a)}
   else if(s[1]==='repo'){var a2=el('a','','MUSTER-LITE.md');a2.href=REPO;li.appendChild(document.createTextNode(' '));li.appendChild(a2)}}
   ol.appendChild(li)});r.appendChild(ol)}

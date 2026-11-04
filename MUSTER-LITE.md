@@ -16,13 +16,10 @@ own.
 ## How each AI takes it
 | AI | How | Tested |
 |---|---|---|
-| Codex, Cursor's agent, Gemini CLI, GitHub Copilot | Muster's skills copied into the project's `.agents/skills/` folder, and the prompt below added to the file the tool reads each time: `AGENTS.md` (Codex, Cursor, Copilot) or `GEMINI.md` (Gemini CLI) | not tested yet |
-| Claude app (mobile, or the free versions of Claude) | the Muster Lite skill uploaded (Customize, Skills, +, Create skill, Upload a skill; code execution on), or the prompt pasted as your first message | not tested yet |
-| Gemini app | the Muster Lite skill uploaded (Customize, Skills, Create; web or Mac app), or the prompt pasted as your first message | not tested yet |
-| ChatGPT | the prompt pasted into a Project's instructions, or as your first message | not tested yet |
-| Grok | the prompt pasted as your first message | not tested yet |
-| A Grok bot on GitHub | `MUSTER-LITE.md` kept in the repository, and the bot told to read it each time (no official xAI GitHub bot was found) | not tested yet |
-| Any other AI | the prompt pasted as your first message | not tested yet |
+| Codex, Cursor's agent, Gemini CLI, GitHub Copilot, ChatGPT, Grok, any other AI that can open web addresses | one message: "Start Muster Lite. Read the live MUSTER-LITE.md on GitHub now and each time you start, and follow its prompt." Nothing is added to your project, and it updates when Muster does; or, if you prefer, add this file to your repository | not tested yet |
+| Claude app (mobile, or the free versions of Claude), Gemini app | the same message; if the AI cannot open web addresses, the Muster Lite skill uploaded (Customize, Skills; code execution on for Claude), or the prompt below pasted as your first message | not tested yet |
+| A Grok bot on GitHub | the bot told once to read the live MUSTER-LITE.md each time; no file added to your repository (no official xAI GitHub bot was found) | not tested yet |
+| An AI that cannot open web addresses | the prompt below pasted as your first message | not tested yet |
 
 ## The prompt: new build
 <!-- lite:new -->

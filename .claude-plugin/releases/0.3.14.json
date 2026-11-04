@@ -1,0 +1,19 @@
+{
+  "version": "0.3.14",
+  "changed_files": [
+    "MUSTER-LITE.md",
+    "docs/index.html",
+    "docs/lite/",
+    "scripts/enable-autoupdate.py",
+    "scripts/setup-smoke.sh",
+    "commands/setup.md",
+    "CHANGELOG.md"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "lite",
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Muster Lite is read live from GitHub; setup offers to turn on Claude Code's auto-update for the Muster marketplace."
+}

@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.10
+Affects: every worker and the manager (a short "Usage first" rule at the top of muster/CLAUDE.md, pointed to by a line at the top of every agent definition; usage-habits and spend-diligence now overlap less).
+Owner's words: "whatever you just did to be hyper vigilant with conserving my usage... that needs to be at the core of muster." (D-016)
+
 ## 0.3.9
 Affects: the manager (runs `scripts/muster-update.py` to bring a project's copied crew files up to a new version; gets one note per affected worker to pass on); every project already set up (its muster/ rule files can now be updated without touching its records). Each version now has a manifest in .claude-plugin/releases/ (changed files, affected roles, affected platforms, whether records change).
 Also: the free test now plays a pretend order, READY and PASS on a scratch project (scripts/check-report.py) and runs the update on it; it fails if any of that breaks.

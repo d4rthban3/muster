@@ -5,13 +5,14 @@ description: Be diligent and efficient with paid spend and model usage. Use befo
 
 # spend-diligence
 
+The short rule is "Usage first" at the top of `muster/CLAUDE.md`; this skill covers money and paid runs.
+
 Money and usage are the owner's. Only a **new paid spend** needs their yes; everything else should still be lean.
 
 ## Habits
 1. **Free first.** Check for a free library, tier or local method before paying (skill `build-or-buy`).
 2. **Cap paid tests.** Decide the most a test may cost before it runs; stop at the cap.
-3. **Short orders, no repeat checks.** Don't re-run a check whose inputs haven't changed; don't re-read a file you
-   just wrote.
+3. **No repeat checks** (see `usage-habits`).
 4. **Right-size the model.** Reading and searching can use a smaller model; keep the large one for design-heavy work.
    The owner sets models; don't change yours on your own.
 5. **Replay beats waiting.** Test on saved history rather than waiting for live events.

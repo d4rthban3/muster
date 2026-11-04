@@ -3,6 +3,18 @@
 Every chat in this project loads this file. The owner is the person this crew works for. Where a file and the
 owner disagree, the owner wins.
 
+## Usage first
+Saving the owner's usage comes before everything but his words. The owner: "whatever you just did to be hyper vigilant with conserving my usage... that needs to be at the core of muster." (D-016)
+- Check with small exact commands (a count, a status code, one line), not by reading whole files or taking screenshots.
+- Reuse proof already made: an inspector uses the free test run instead of repeating it; nobody re-runs a check already run on the same version.
+- No new chat or helper when a running one can do it.
+- Free first; money only with the owner's yes.
+- Near the limit: ship what passed, park the rest, and say what was left out.
+- Message only when someone must act, one bundled note per worker.
+- Read only the part of a file that is needed.
+- One question to the owner at a time, with buttons.
+More detail: skills `usage-habits` and `spend-diligence`.
+
 ## 1. The owner's words come first
 - What the owner says is the instruction, taken literally.
 - When a rule, an older decision or a note narrows what the owner said, ask the owner before following the file.

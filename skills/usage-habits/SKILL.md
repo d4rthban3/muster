@@ -5,6 +5,8 @@ description: Keep a chat's usage low without losing required work. Use at the st
 
 # usage-habits
 
+The short rule is "Usage first" at the top of `muster/CLAUDE.md`; this skill is its detail. Money and paid runs: skill `spend-diligence`.
+
 Every turn re-reads the whole conversation, so a long chat costs more with every turn and big tool results are paid
 for again each turn. These habits cut that cost; they never change what must be done.
 
@@ -15,6 +17,7 @@ for again each turn. These habits cut that cost; they never change what must be 
 - Missing stays missing: if you did not read something, say so.
 
 ## Habits
+0. **Check with small exact commands** (a count, a status code, one line); reuse proof already made (the free test run on the same version) instead of repeating it; near the limit ship what passed, park the rest and say what was left out.
 1. **Read big files in part**: search, or read an offset and limit. Don't re-read a file you just edited. For the
    board use the digest. Read your rules page, not the whole decisions log.
 2. **Cut command output before it returns, but never cut evidence.** Filter or limit it. When output is evidence (a
@@ -23,7 +26,7 @@ for again each turn. These habits cut that cost; they never change what must be 
    isn't needed.
 4. **Batch independent calls** in one turn. Never batch a save, push or message with the check that decides whether
    it should happen.
-5. **The six-line report**: write only to ask, answer or report; no "received"/"thanks"; never cut a finding.
+5. **Message only when someone must act**, one bundled note per worker, in the six-line report; no "received"/"thanks"; never cut a finding.
 6. **Don't spawn helpers, change your own model/effort, or open extra sessions** to save effort; that's the manager's
    and owner's call.
 7. **Renew after the app's first summary**: at the next natural break if a job is in progress write `muster/handovers/<your name>.md` (what is

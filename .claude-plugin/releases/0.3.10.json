@@ -1,0 +1,8 @@
+{
+  "version": "0.3.10",
+  "changed_files": ["templates/CLAUDE.md", "agents/*.md", "skills/usage-habits/SKILL.md", "skills/spend-diligence/SKILL.md", "CHANGELOG.md"],
+  "affected_roles": ["Manager", "Builder", "Designer", "Inspector", "Design Inspector", "Sketchpad", "AI Socket", "Agent Teacher"],
+  "affected_platforms": ["claude-code"],
+  "records_change": false,
+  "note": "Usage first is now the first rule of muster/CLAUDE.md; run scripts/muster-update.py to copy it into a project."
+}

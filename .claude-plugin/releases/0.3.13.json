@@ -1,0 +1,17 @@
+{
+  "version": "0.3.13",
+  "changed_files": [
+    "assets/",
+    "README.md",
+    ".claude-plugin/plugin.json",
+    ".claude-plugin/icon.png",
+    "muster-icon.png",
+    "CHANGELOG.md"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "The plugin carries the Muster logo (icon field in plugin.json) and the README shows it; no worker is affected."
+}

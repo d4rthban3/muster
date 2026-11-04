@@ -1,3 +1,10 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/muster-lockup-dark.png">
+    <img src="assets/muster-lockup-light.png" alt="Muster" width="360">
+  </picture>
+</p>
+
 # Muster: a crew of Claude Code chats
 
 Muster turns Claude Code into a small crew: a squad of workers geared to finish tasks efficiently, with a very high eye

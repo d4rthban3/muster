@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.13
+Affects: anyone who installs or reads about the plugin (the plugin now carries the Muster logo in its manifest and the README shows it at the top); no worker is affected. The marketplace file has no icon field in Claude Code, so only the plugin carries it.
+Owner's words: "make sure the plugin itself and the domain carry the logo image." (D-017)
+
 ## 0.3.12
 Affects: every worker and the manager (a short "Usage first" rule at the top of muster/CLAUDE.md, pointed to by a line at the top of every agent definition; usage-habits and spend-diligence now overlap less).
 Owner's words: "whatever you just did to be hyper vigilant with conserving my usage... that needs to be at the core of muster." (D-016)

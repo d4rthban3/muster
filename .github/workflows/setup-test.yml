@@ -1,0 +1,39 @@
+# Free test (GitHub's standard runners only, no secrets): on every push, install Muster from the pushed branch and run
+# setup's own steps headless on a fresh Windows, Mac and Linux computer. It cannot press the desktop app's buttons.
+name: setup-test
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  setup:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install the claude command
+        run: npm install -g @anthropic-ai/claude-code
+      - name: Install Muster from this branch
+        run: |
+          export CLAUDE_CONFIG_DIR="$RUNNER_TEMP/claude-config"
+          claude plugin marketplace add "$GITHUB_WORKSPACE"
+          claude plugin install muster@muster-kit --scope user
+          claude plugin list --json > "$RUNNER_TEMP/plugins.json"
+          cat "$RUNNER_TEMP/plugins.json"
+          node -e 'const p=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).find(x=>x.id==="muster@muster-kit");if(!p||!p.enabled){process.exit(1)}console.log(p.installPath)' "$RUNNER_TEMP/plugins.json" > "$RUNNER_TEMP/installpath.txt"
+          claude plugin validate "$GITHUB_WORKSPACE"
+      - name: Run setup's steps from the installed copy
+        run: |
+          INSTALLED=$(cat "$RUNNER_TEMP/installpath.txt")
+          test -f "$INSTALLED/scripts/setup-smoke.sh"
+          bash "$INSTALLED/scripts/setup-smoke.sh"

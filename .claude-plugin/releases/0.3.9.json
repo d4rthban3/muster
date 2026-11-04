@@ -1,0 +1,15 @@
+{
+  "version": "0.3.9",
+  "changed_files": [
+    ".claude-plugin/releases/0.3.9.json",
+    "scripts/muster-update.py",
+    "scripts/check-report.py",
+    "scripts/setup-smoke.sh",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "affected_roles": ["Manager"],
+  "affected_platforms": ["claude-code"],
+  "records_change": false,
+  "note": "New update tools: run scripts/muster-update.py on a project to bring its copied crew files up to this version."
+}

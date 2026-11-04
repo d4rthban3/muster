@@ -66,3 +66,11 @@ file-editing tools and are told never to change files. Muster does not read or s
 MIT licensed (see LICENSE).
 
 Muster is a community plugin. It is not made or supported by Anthropic.
+
+## Updating a project's crew files
+`claude plugin update` brings the plugin itself up to date. A project's own copies of the rule files
+(`muster/CLAUDE.md`, `REPORT.md`, `START-NOTE.md`, `RULES-PAGE.md`) are separate; the manager brings them up to date with
+`python3 scripts/muster-update.py <project folder>` (prints what it would do) and then `--apply`. It keeps each old copy in
+`muster/superseded/`, never touches the project's own records (the owner's list, decisions log, board, crew list, look book,
+rules pages, handovers), and prints one note per worker named as affected in the version's manifest
+(`.claude-plugin/releases/<version>.json`). It uses no network.

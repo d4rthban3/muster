@@ -2,6 +2,11 @@
 
 Each version names which workers it affects.
 
+## 0.3.9
+Affects: the manager (runs `scripts/muster-update.py` to bring a project's copied crew files up to a new version; gets one note per affected worker to pass on); every project already set up (its muster/ rule files can now be updated without touching its records). Each version now has a manifest in .claude-plugin/releases/ (changed files, affected roles, affected platforms, whether records change).
+Also: the free test now plays a pretend order, READY and PASS on a scratch project (scripts/check-report.py) and runs the update on it; it fails if any of that breaks.
+Owner's words: "see both, update, and get it live within our weekly usage limit." (D-015)
+
 ## 0.3.8
 Affects: the manager (its definition is now a short "Manager checklist", 3.5 KB instead of 12 KB, read every turn; the full rules moved unchanged to skill manager-details, read only when needed; keeps muster/LOOK-BOOK.md); the designer and the design inspector (read muster/LOOK-BOOK.md for the owner's approved looks); setup (copies the look book into new projects).
 Owner's words: "see both, update, and get it live within our weekly usage limit." (D-015)

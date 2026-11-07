@@ -1,0 +1,19 @@
+{
+  "version": "0.3.17",
+  "changed_files": [
+    "agents/builder.md",
+    "agents/designer.md",
+    "scripts/setup-smoke.sh",
+    "scripts/ship.sh",
+    "skills/deploy-rules/SKILL.md"
+  ],
+  "affected_roles": [
+    "Builder",
+    "Designer"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "One-command shipping: scripts/ship.sh takes main's version plus one, writes the release file and changelog, runs the checks, pushes without forcing and waits for the site"
+}

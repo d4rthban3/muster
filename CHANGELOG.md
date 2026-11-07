@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.17
+Affects: Builder, Designer.
+One-command shipping: scripts/ship.sh takes main's version plus one, writes the release file and changelog, runs the checks, pushes without forcing and waits for the site
+
 ## 0.3.16
 Affects: the inspector (reads one green free-test run instead of repeating the leak scan, plugin check and test-file check); every builder and the designer (their READY is judged on that run). The leak scan now looks at the branch's own history only.
 Owner's words: "C. Checks moved onto GitHub's free test computers. The leak scan, the plugin check and the report checker run on every change, so the inspector reads one green result instead of repeating them." (D-019)

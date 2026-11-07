@@ -128,6 +128,12 @@ $PY -c 'import json,sys;d=json.load(open(sys.argv[1]));e=d["extraKnownMarketplac
 printf '{}' > "$AU/settings.json"
 if CLAUDE_CONFIG_DIR=$(native "$AU") $PY "$ROOT/scripts/enable-autoupdate.py" >/dev/null; then fail "wrote a switch for an undeclared marketplace"; fi
 
+step "scripts/live-check.sh proves served content (version, and a page line) and refuses what is not served"
+LV=$(curl -fsS https://raw.githubusercontent.com/d4rthban3/muster/main/.claude-plugin/plugin.json | grep -o '"version": *"[^"]*"' | head -1 | sed 's/.*"\([^"]*\)"$/\1/')
+LIVE_CHECK_TRIES=2 bash "$ROOT/scripts/live-check.sh" "$LV" | grep -q "LIVE PROVEN" || fail "live check did not prove the published version $LV"
+if LIVE_CHECK_TRIES=1 bash "$ROOT/scripts/live-check.sh" 0.0.1 >/dev/null; then fail "live check accepted a wrong version"; fi
+if LIVE_CHECK_TRIES=1 bash "$ROOT/scripts/live-check.sh" "$LV" docs/index.html "a line that is certainly not on the page 9f3k" >/dev/null; then fail "live check accepted a missing page line"; fi
+
 step "scripts/ship.sh on a scratch repository (dry run, then a real push to a scratch remote)"
 SH="$SCRATCH/ship"; mkdir -p "$SH/remote.git" "$SH/work"
 git init -q --bare "$SH/remote.git"

@@ -4,7 +4,7 @@
 # It: fetches; rebases THIS branch only on origin/main; takes main's version plus one; writes the release file and the
 # CHANGELOG entry from your note; runs version-check, the leak scan and a push look; pushes this branch under a new name
 # (never forced), waits for the free test to go green, pushes to main fast-forward only; waits for the free test on
-# main and the site's rebuild; checks the live page answers. It stops at the first failure and says why. It never
+# main and the site's rebuild; proves the new content is served (published version, and a changed line of the site). It stops at the first failure and says why. It never
 # force-pushes, never touches another branch, and never pushes anything in muster/.
 # --dry-run: do everything on this computer, push nothing. --no-wait: push, but do not wait on GitHub (used by the test).
 set -u
@@ -60,6 +60,12 @@ n=$(git rev-list --count origin/main..HEAD)
 echo "== the push carries $n commit(s):"; git log --format='  %h %s' origin/main..HEAD
 crew=$(git log --format= --name-only origin/main..HEAD -- ':(top)muster/' | sort -u)
 [ -z "$crew" ] || stop "the push would carry crew files (muster/): $crew"
+# a changed line of a site page, so the live check can prove the new page (not the old one) is served
+proof_file=""; proof_line=""
+for f in $(git diff --name-only origin/main HEAD -- docs | grep '\.html$'); do
+  l=$(git diff -U0 origin/main HEAD -- "$f" | grep '^+' | grep -v '^+++' | sed 's/^+//' | awk 'length($0)>=25 && length($0)<=200' | head -1)
+  if [ -n "$l" ]; then proof_file=$f; proof_line=$l; break; fi
+done
 if [ $dry = 1 ]; then echo "SHIP DRY RUN OK: would push $new; nothing was pushed"; exit 0; fi
 tmp="ship/$new"
 git push -q origin "HEAD:refs/heads/$tmp" || stop "could not push the branch copy $tmp"
@@ -79,9 +85,7 @@ if [ $wait = 1 ]; then
   for _ in $(seq 1 60); do
     s=$(gh run list --branch main --limit 4 --json headSha,status,conclusion --jq '[.[]|select(.headSha=="'"$(git rev-parse HEAD)"'")]|map(.status+"/"+(.conclusion//""))|join(" ")' 2>/dev/null)
     case "$s" in *in_progress*|*queued*|"") sleep 15;; *failure*) stop "a run on main failed: $s";; *) break;; esac; done
-  url=$(sed -n 's/.*\(https:\/\/[a-z0-9]*\.github\.io\/[a-z]*\/\).*/\1/p' README.md | head -1); url=${url:-https://d4rthban3.github.io/muster/}
-  code=$(curl -s -o /dev/null -w '%{http_code}' "$url")
-  [ "$code" = 200 ] || stop "the live page $url answered $code"
-  echo "== the live page $url answers 200"
+  echo "== proving the new content is served (the published version, and a changed line of the site if the site changed)"
+  bash scripts/live-check.sh "$new" $proof_file "$proof_line" || stop "the new content is not being served yet; run scripts/live-check.sh \"$new\" again in a few minutes"
 fi
 echo "SHIPPED $new"

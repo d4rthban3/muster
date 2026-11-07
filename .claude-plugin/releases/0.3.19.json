@@ -1,0 +1,26 @@
+{
+  "version": "0.3.19",
+  "changed_files": [
+    "scripts/usage.py",
+    "scripts/usage-statusline.py",
+    "scripts/enable-usage-meter.py",
+    "scripts/check-report.py",
+    "templates/REPORT.md",
+    "templates/CLAUDE.md",
+    "commands/setup.md",
+    "agents/manager.md",
+    "skills/ready-checks/SKILL.md",
+    "CHANGELOG.md"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Builder",
+    "Designer",
+    "Inspector"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Usage meter: each DONE and READY carries a Usage line from scripts/usage.py; setup can turn on the status line that saves usage; the crew pauses at 90% of the week."
+}

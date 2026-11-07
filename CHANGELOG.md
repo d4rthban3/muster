@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.19
+Affects: every worker (a DONE or READY carries a seventh Usage line from scripts/usage.py; nothing is invented when a figure cannot be read); the manager (pauses the crew and tells the owner what is left when the week is at 90% or more); setup (one new question, with two buttons, to turn on the status line that saves usage).
+Owner's words: "E. A usage meter. Each job reports roughly what it cost, and the crew pauses itself, saying what's left, before your weekly limit." (D-019)
+
 ## 0.3.18
 Affects: the manager (records every choice the owner makes word for word under his list item with scripts/record-choice.py; reads the open "Report a snag" issues at a session's start with scripts/snags and turns each into a list item and an order).
 Owner's words: "B. Your choices recorded automatically. When you click a button, your exact words and the option's text go straight onto your list." (D-019)

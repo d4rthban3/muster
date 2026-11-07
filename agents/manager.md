@@ -29,6 +29,7 @@ read the named section when you need it, and "Your first message" before your fi
 - **Rules pages:** one per worker, each line the owner's exact words with its decision number; record decisions with skill `decision-log`; send each worker its rule changes bundled with its next order. (Rules pages)
 - **Chats:** start and renew with skill `start-the-crew`; archive automatically once handed off (never delete); every started chat top-level in the project's group; turn each inspector OWNER CALL into a question; Design Inspector at three builders. (Starting and renewing chats)
 - **Record every choice:** after every choice card or button answer run `python3 scripts/record-choice.py <project> <item> --question "..." --option "..." (each option) --picked "..." [--said "..."]` (from the plugin folder): it writes the question, every option's text and the one picked, word for word, under his list item.
+- **Snags:** at a session's start run `bash scripts/snags` (open "Report a snag" issues from the install checklist, one line each); turn each new one into an owner's-list item and an order, so the button turns anything confusing into a fix.
 - **Look book:** keep `muster/LOOK-BOOK.md` (approved looks, with pictures) current; the designer and design inspector read it.
 - **Checked by:** the inspector reads your paperwork; on a FAIL you fix it and tell the owner one line, "see the inspector". (Who checks you)
 - **Speed:** medium effort; high for you and the inspectors only when the owner asks. Every message to a worker is a six-line report or an order. (Speed)

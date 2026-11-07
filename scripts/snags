@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Lists the open "Report a snag" issues from the install checklist's form, one line each: number, title, who and when.
+# The manager runs it at a session's start and turns each new snag into an owner's-list item and an order.
+# Usage: scripts/snags [owner/repo]   (default d4rthban3/muster). Needs the gh command; reads only; changes nothing.
+repo=${1:-d4rthban3/muster}
+command -v gh >/dev/null || { echo "snags: the gh command is not installed, so the snags cannot be read; read https://github.com/$repo/issues by hand"; exit 1; }
+out=$(gh issue list --repo "$repo" --label snag --state open --limit 50 --json number,title,author,createdAt \
+  --jq '.[]|"#\(.number) \(.title) (\(.author.login), \(.createdAt[0:10]))"' 2>&1) || { echo "snags: could not read the issues: $out"; exit 1; }
+if [ -z "$out" ]; then echo "No open snags."; else echo "$out"; fi

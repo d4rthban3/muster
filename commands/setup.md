@@ -59,6 +59,15 @@ say so in one line, setup carries on), then run `<python> "${CLAUDE_PLUGIN_ROOT}
 If it says muster-kit is not declared, or the switch does not hold, tell them in one line: open `/plugin`, go to
 Marketplaces, pick muster-kit and choose Enable auto-update. Updates reach a chat the next time Claude Code starts.
 
+## 0c. A usage meter
+Muster can show each job's cost and warn before the weekly limit, but only if Claude Code's status line saves that
+figure. Ask one question with two buttons, in plain words: "Show how much of your usage each job takes, and pause the
+crew before your weekly limit?" with "yes, turn it on" (my pick) or "no, leave it off". On yes, find Python as step 1
+says, then run `<python> "${CLAUDE_PLUGIN_ROOT}/scripts/enable-usage-meter.py" <python>`. It sets Claude Code's status
+line in their settings, keeps everything else, and never replaces a status line they already have (then tell them in one
+line that the weekly figure stays unreadable). The weekly figure exists only for claude.ai Pro, Max and Ultra plans; say so
+if the meter later shows "not readable".
+
 ## 0a. Carrying on from an earlier setup?
 If the folder this chat is open in holds `muster/setup-choices.json` but no `muster/CREW.md`, an earlier setup
 stopped part way (for example, to have the folder trusted): carry on from the step it reached, without opening the page again. If it holds `muster/CREW.md`, a crew

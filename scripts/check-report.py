@@ -11,8 +11,11 @@ FIRST = r"(DONE|READY|PASS|FAIL|OWNER CALL|STUCK|NEED)"
 
 def check(text):
     lines = [l for l in text.strip().splitlines() if l.strip()]
+    usage = None
+    if len(lines) == 7 and lines[6].startswith("Usage:"):
+        usage = lines.pop()
     if len(lines) != 6:
-        return "expected 6 lines, found %d" % len(lines)
+        return "expected 6 lines (and a Usage line on DONE and READY), found %d" % len(lines)
     m = re.match(r"^%s: .+ \[ID [^\]]+-\d+\]$" % FIRST, lines[0])
     if not m:
         return "first line must be 'FIRST WORD: job name [ID role-job-number]'"
@@ -21,6 +24,8 @@ def check(text):
             return "expected a line starting %s" % label
     if "touches:" not in lines[2]:
         return "Where line lacks 'touches:'"
+    if m.group(1) in ("DONE", "READY") and usage is None:
+        return "a DONE or READY needs a Usage line (scripts/usage.py prints it)"
     if m.group(1) == "READY" and not re.search(r"\d+\s*(/|of)\s*\d+|\d+ passed", lines[4]):
         return "READY's How line shows no test count"
     return None

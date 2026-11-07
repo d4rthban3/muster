@@ -1,6 +1,6 @@
 # The report every worker sends
 
-Every message a worker sends (to the manager, to the inspector, or back to a builder) is six lines. The first word is
+Every message a worker sends (to the manager, to the inspector, or back to a builder) is six lines (a DONE or READY adds a seventh, the Usage line, below). The first word is
 always one of six: DONE, READY, PASS, FAIL, STUCK, NEED (the inspector may also answer OWNER CALL, see below).
 
 ```
@@ -14,6 +14,10 @@ Need:  <what is left out; what you need from the reader, and by when if it matte
 
 The ID is short and counts up for that role and job (made-up example: `[ID Builder A-crew switch-2]`). A message whose
 ID you have already seen is a repeat: drop it, do not answer it twice.
+
+Usage line (DONE and READY only): `Usage: ` and what can really be read, from `python3 scripts/usage.py`, for example
+`Usage: session $0.31 at list price; week 41% used (resets Thu 06 Feb); read at 14:39`. When a part cannot be read it
+says so ("week limit not readable"); never type a number the script did not print.
 
 What the six first words mean:
 - **DONE**: finished a job that needs no inspection.

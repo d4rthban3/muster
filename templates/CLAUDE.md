@@ -9,6 +9,7 @@ Saving the owner's usage comes before everything but his words. The owner: "what
 - Reuse proof already made: an inspector uses the free test run instead of repeating it; nobody re-runs a check already run on the same version.
 - No new chat or helper when a running one can do it.
 - Free first; money only with the owner's yes.
+- **Pause before the weekly limit:** `scripts/usage.py` exits 3 when the week is at 90% or more. Then start no new order, finish and park what is running, and the manager tells the owner what is done, what is left, and when the week resets.
 - Near the limit: ship what passed, park the rest, and say what was left out.
 - Message only when someone must act, one bundled note per worker.
 - Read only the part of a file that is needed.
@@ -57,7 +58,7 @@ More detail: skills `usage-habits` and `spend-diligence`.
   try to turn it off.
 
 ## 4. The report every worker sends
-Six lines. The first word is one of DONE, READY, PASS, FAIL, STUCK, NEED (the inspector may also send OWNER CALL: a thing only the
+Six lines, and a seventh `Usage:` line on every DONE and READY (the output of `scripts/usage.py`; if a part cannot be read it says so, and no number is ever invented). The first word is one of DONE, READY, PASS, FAIL, STUCK, NEED (the inspector may also send OWNER CALL: a thing only the
 owner can decide, which the manager turns into a question). Each report ends its first line with a short ID, `[ID <role>-<job>-<number>]`; a message whose ID you have seen is a repeat and is dropped. The job name is copied word for word from
 the manager's order. Full shape and a made-up example: `muster/REPORT.md`.
 ```

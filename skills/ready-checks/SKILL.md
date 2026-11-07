@@ -23,6 +23,7 @@ Where: <line of work and saved version>; touches: <none, or the shared database,
 Why:   <the order or decision it comes from>
 How:   test command `<the exact command>`: <passed>/<total> passed, <failed> failed on the combined work; searched for <thing>: <n> other places, <fixed / listed>
 Need:  <what is left out, or "nothing; ready for the inspector">
+Usage: <the line scripts/usage.py prints>
 ```
 If you add a test file, name it on the Where line: the manager adds it to `muster/CHECKS.md`, and `scripts/check-tests.py`
 (run in the free test) fails when a test file on disk is missing from that list.

@@ -32,7 +32,19 @@ except OSError as err:
     sys.exit("record-choice: cannot read %s (%s)" % (path, err))
 if a.picked not in a.option and not a.said:
     sys.exit("record-choice: the picked text is not one of the options; pass it exactly, or pass --said for his own words")
-start = next((i for i, l in enumerate(lines) if re.match(r"^%d\.\s" % a.item, l)), None)
+# look only outside fenced ``` blocks (the list's made-up examples live in one) and, if the list has an "## Open"
+# heading, only from there on
+fenced, begun, start = False, not any(l.strip() == "## Open" for l in lines), None
+for i, l in enumerate(lines):
+    if l.strip().startswith("```"):
+        fenced = not fenced
+        continue
+    if fenced:
+        continue
+    if l.strip() == "## Open":
+        begun = True
+    if begun and start is None and re.match(r"^%d\.\s" % a.item, l):
+        start = i
 if start is None:
     sys.exit("record-choice: item %d not found in %s" % (a.item, path))
 end = start + 1

@@ -1,0 +1,18 @@
+{
+  "version": "0.3.21",
+  "changed_files": [
+    "scripts/live-check.sh",
+    "scripts/ship.sh",
+    "scripts/setup-smoke.sh",
+    "CHANGELOG.md"
+  ],
+  "affected_roles": [
+    "Builder",
+    "Designer"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "ship.sh now proves the new content is served: the published plugin.json version and, if the site changed, a changed line of the live page, retrying until both match."
+}

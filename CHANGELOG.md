@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.21
+Affects: every builder and the designer (when they ship with scripts/ship.sh it now proves the NEW content is served, not only that the page answers: the published plugin.json version, and a changed line of the live page if the site changed, retrying until both match or about ten minutes pass).
+Owner's words: "A. ...picks the next free version number, writes the release note, runs every check, uploads, waits for the site to rebuild and confirms it's live." (D-019)
+
 ## 0.3.20
 Affects: the manager (starts Builder B only when two open pieces touch different files, and archives it automatically when its work has run out; the rule and the overlap test are in skill start-the-crew and the manager's checklist).
 Owner's words: "D. Two builders when the work allows. Builder B is started only when two pieces touch different files, and stopped when the work runs out." (D-019)

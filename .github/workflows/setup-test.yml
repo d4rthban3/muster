@@ -29,7 +29,6 @@ jobs:
       - name: Test files are listed (check-tests.py)
         run: python3 scripts/check-tests.py .
   setup:
-  setup:
     strategy:
       fail-fast: false
       matrix:

@@ -1,0 +1,16 @@
+{
+  "version": "0.3.20",
+  "changed_files": [
+    "skills/start-the-crew/SKILL.md",
+    "agents/manager.md",
+    "CHANGELOG.md"
+  ],
+  "affected_roles": [
+    "Manager"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Two builders only when the work allows: how to tell two pieces do not overlap, when to start Builder B and when to archive it."
+}

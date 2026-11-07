@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.20
+Affects: the manager (starts Builder B only when two open pieces touch different files, and archives it automatically when its work has run out; the rule and the overlap test are in skill start-the-crew and the manager's checklist).
+Owner's words: "D. Two builders when the work allows. Builder B is started only when two pieces touch different files, and stopped when the work runs out." (D-019)
+
 ## 0.3.19
 Affects: every worker (a DONE or READY carries a seventh Usage line from scripts/usage.py; nothing is invented when a figure cannot be read); the manager (pauses the crew and tells the owner what is left when the week is at 90% or more); setup (one new question, with two buttons, to turn on the status line that saves usage).
 Owner's words: "E. A usage meter. Each job reports roughly what it cost, and the crew pauses itself, saying what's left, before your weekly limit." (D-019)

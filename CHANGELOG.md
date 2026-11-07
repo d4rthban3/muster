@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.15
+Affects: anyone doing a first run in the Claude desktop app (a one-page checklist on the site, linked from the install page, with a "Report a snag" button that opens a short GitHub form); the crew itself is unchanged.
+Owner's words: "F. Your desktop run, made easy. A one-page checklist, plus a "report a snag" button that turns anything confusing into a fix." (D-019)
+
 ## 0.3.14
 Affects: everyone using Muster Lite (every route on the install page now has the AI read Muster Lite from Muster's live GitHub page each time, so nothing is added to a project and it updates by itself; adding the file to a repository is a one-line option; the paste route stays for an AI that cannot open web addresses); everyone running setup (one new question, with two buttons, to keep Muster up to date by itself). No worker is affected.
 Owner's words: "it should just read the active repository (users shouldnt have to set up their own repo unless they want to) and muster should automatically update for users when we update the github." (D-018)

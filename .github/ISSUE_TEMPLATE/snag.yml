@@ -1,0 +1,33 @@
+name: Report a snag
+description: Something in the first desktop run was confusing, stuck or different from the checklist.
+title: "Snag: "
+labels: ["snag"]
+body:
+  - type: dropdown
+    id: step
+    attributes:
+      label: Which step were you on?
+      options:
+        - 1. Press Open in Claude Code
+        - 2. Press Enter and click Allow
+        - 3. The auto-update question
+        - 4. The setup page
+        - 5. The two trust boxes
+        - 6. The chat moves into the project folder
+        - 7. The crew starts
+        - 8. The sidebar question
+        - Not on the list
+    validations:
+      required: true
+  - type: textarea
+    id: saw
+    attributes:
+      label: What did you see?
+      description: Say it in your own words. What you expected, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: picture
+    attributes:
+      label: A picture (optional)
+      description: Drag a screenshot into this box.

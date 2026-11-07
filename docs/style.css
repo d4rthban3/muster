@@ -60,3 +60,5 @@ table{width:100%;border-collapse:collapse;font-size:15px;margin:8px 0}th,td{text
 .back{display:inline-flex;margin-bottom:22px;font-weight:600}.card ol,.card ul{color:var(--text)}.card li{margin:6px 0}.card pre{margin:10px 0 0;white-space:pre-wrap}.tbl{overflow-x:auto}
 @media (max-width:600px){h1{font-size:38px}.hero{flex-direction:column-reverse;align-items:flex-start;gap:18px}.crew{width:110px}.card{padding:20px}.brand{font-size:20px}.brand img{width:32px;height:32px}}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}.btn:hover,.btn:active{transform:none}}
+
+.see{display:inline-block;margin-top:4px;color:var(--mut);font-size:15px}

@@ -1,0 +1,16 @@
+{
+  "version": "0.3.15",
+  "changed_files": [
+    "docs/checklist.html",
+    "docs/index.html",
+    "docs/style.css",
+    ".github/ISSUE_TEMPLATE/snag.yml",
+    "CHANGELOG.md"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "A first-run checklist page for the desktop app and a Report a snag form; the crew itself is unchanged."
+}

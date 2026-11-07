@@ -8,6 +8,7 @@
 # force-pushes, never touches another branch, and never pushes anything in muster/.
 # --dry-run: do everything on this computer, push nothing. --no-wait: push, but do not wait on GitHub (used by the test).
 set -u
+export MSYS2_ARG_CONV_EXCL='*'   # Git Bash on Windows must not rewrite 'origin/main:file' as a path list
 note=""; roles=""; platforms="claude-code"; dry=0; wait=1
 while [ $# -gt 0 ]; do case "$1" in
   --roles) roles=$2; shift 2;; --platforms) platforms=$2; shift 2;;

@@ -3,6 +3,7 @@
 # pick the change up. Fails (exit 1) if the plugin and marketplace versions differ, or if anything changed since the
 # published line (default origin/main) while the version stayed the same.
 set -u
+export MSYS2_ARG_CONV_EXCL='*'   # Git Bash on Windows must not rewrite 'origin/main:file' as a path list
 cd "$(dirname "$0")/.."
 base=${1:-origin/main}
 git fetch -q origin 2>/dev/null || echo "note: could not fetch origin; the published version may be old"

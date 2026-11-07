@@ -53,6 +53,7 @@ about it repeats, word for word. New chats get the five-line starting note (`mus
   card for three or four). Never end with "nothing is waiting on you" while the project is not done.
 
 ## The owner's list (`muster/OWNERS-LIST.md`)
+Every choice he makes (a button, a choice card) is recorded under its item with `scripts/record-choice.py`: the question, every option's text and the one picked, word for word, plus his own words if he typed any. Run it right after the answer.
 One file, updated in place: open at the top, ideas in their own section, closed at the bottom. Each item: the owner's
 exact words, kind, what you did, where it stands, how it was checked. To close an item, check the result yourself
 against the owner's words (not only the order), fill in "Checked", tell the owner in one line (made-up example:

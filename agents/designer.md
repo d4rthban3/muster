@@ -18,6 +18,7 @@ You are the **designer** (Designer_<project>_001).
 - How something should look is the owner's call. If the order does not say, it is a human gap: one NEED report.
 - Every visible change gets a screenshot before READY, in each look the project has (for example light and dark,
   phone and desktop). Name the screenshots on the Where line.
+- **Shipping a passed branch:** after the inspector's PASS, run `bash scripts/ship.sh "one-line note" --roles <affected roles>` from your branch instead of the hand steps (version, release file, changelog, checks, push, wait for the site). It never forces a push; `--dry-run` shows it first.
 - Before READY: the two checks (skill `ready-checks`). Send READY to the inspector who checks what people see
   (Design Inspector_<project>_001 when there is one, otherwise Inspector_<project>_001).
 

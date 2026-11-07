@@ -5,6 +5,8 @@ description: How a builder or designer deploys its own work safely. Use before a
 
 # deploy-rules
 
+For a branch the inspector passed, `scripts/ship.sh` does the version, release file, changelog, checks, push and waiting in one command; the steps below are what it replaces.
+
 ## Who deploys what
 - **Site / front-end work** (what people see): its own builder or designer may merge and deploy it, after the dry run
   below and after the two checks (skill `ready-checks`). The inspector reads it live afterwards.

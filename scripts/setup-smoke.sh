@@ -128,4 +128,29 @@ $PY -c 'import json,sys;d=json.load(open(sys.argv[1]));e=d["extraKnownMarketplac
 printf '{}' > "$AU/settings.json"
 if CLAUDE_CONFIG_DIR=$(native "$AU") $PY "$ROOT/scripts/enable-autoupdate.py" >/dev/null; then fail "wrote a switch for an undeclared marketplace"; fi
 
+step "scripts/ship.sh on a scratch repository (dry run, then a real push to a scratch remote)"
+SH="$SCRATCH/ship"; mkdir -p "$SH/remote.git" "$SH/work"
+git init -q --bare "$SH/remote.git"
+cd "$SH/work"; git init -q -b main; git remote add origin "$SH/remote.git"
+mkdir -p .claude-plugin/releases scripts
+cp "$ROOT/scripts/ship.sh" "$ROOT/scripts/find-python.sh" "$ROOT/scripts/version-check.sh" "$ROOT/scripts/scan-leaks.sh" scripts/
+printf '{\n  "name": "muster",\n  "version": "1.2.3"\n}\n' > .claude-plugin/plugin.json
+printf '{\n  "name": "muster-kit",\n  "plugins": [\n    {\n      "name": "muster",\n      "version": "1.2.3"\n    }\n  ]\n}\n' > .claude-plugin/marketplace.json
+printf '# Changelog\n\nEach version names who is affected.\n\n## 1.2.3\nold\n' > CHANGELOG.md
+git add -A; git -c user.name=t -c user.email=t@localhost commit -q -m base; git push -q origin main
+git checkout -q -b builder/demo; echo hi > file.txt; git add -A; git -c user.name=t -c user.email=t@localhost commit -q -m "change"
+export GIT_AUTHOR_NAME=t GIT_AUTHOR_EMAIL=t@localhost GIT_COMMITTER_NAME=t GIT_COMMITTER_EMAIL=t@localhost
+bash scripts/ship.sh "demo change" --roles Builder --dry-run | tee "$SH/dry.out" | tail -2
+grep -q "SHIP DRY RUN OK: would push 1.2.4" "$SH/dry.out" || fail "ship dry run did not say 1.2.4: $(cat "$SH/dry.out")"
+[ "$(git -C "$SH/remote.git" rev-parse main)" = "$(git rev-parse origin/main)" ] || fail "the dry run pushed"
+bash scripts/ship.sh "second try" --roles Builder --dry-run >/dev/null 2>&1 || true
+git reset -q --hard HEAD~1
+bash scripts/ship.sh "demo change" --roles Builder --no-wait | tail -2 | tee "$SH/real.out"
+grep -q "SHIPPED 1.2.4" "$SH/real.out" || fail "ship did not finish: $(cat "$SH/real.out")"
+git -C "$SH/remote.git" show main:.claude-plugin/plugin.json | grep -q '"1.2.4"' || fail "main on the remote lacks 1.2.4"
+git -C "$SH/remote.git" show main:.claude-plugin/releases/1.2.4.json | grep -q "demo change" || fail "no release file on the remote"
+git -C "$SH/remote.git" show main:CHANGELOG.md | grep -q "^## 1.2.4" || fail "no changelog entry on the remote"
+git -C "$SH/remote.git" for-each-ref --format='%(refname)' | grep -q "ship/" && fail "the temporary ship branch was left behind"
+cd "$FOLDER"
+
 echo; echo "ALL STEPS PASSED"

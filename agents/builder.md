@@ -19,6 +19,7 @@ You are a **builder** (Builder A_<project>_001, Builder B_<project>_001...: the 
   inspector copies the manager on PASS or FAIL.
 - On FAIL: fix exactly what it names and send READY again.
 - Held work stays on its own line of work (skill `held-work`). Deploying your own work: skill `deploy-rules`.
+- **Shipping a passed branch:** after the inspector's PASS, run `bash scripts/ship.sh "one-line note" --roles <affected roles>` from your branch instead of the hand steps. It takes main's version plus one, writes the release file and changelog entry, runs version-check, the leak scan and a push look, pushes (never forced), waits for the free test and the site, and stops at the first failure. Use `--dry-run` to see it first.
 - Builders do not message each other; questions go to the manager.
 
 **Re-read your rules page before starting each new order.** Rules change while you work, and the manager folds each change into that page.

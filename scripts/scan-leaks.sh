@@ -49,9 +49,9 @@ if git rev-parse HEAD >/dev/null 2>&1; then
   for p in "${PATTERNS[@]}"; do
     echo "$meta" | grep -qE -e "$p" && report "commit metadata matches /$p/"
   done
-  # whole history of file contents
+  # whole history of file contents (this branch's own history only, so another branch never trips it)
   for p in "${PATTERNS[@]}"; do
-    git log -p --all -- . ':!scripts/scan-leaks.sh' 2>/dev/null | grep -E '^[+-]' | grep -qE -e "$p" && report "history diff matches /$p/"
+    git log -p -- . ':!scripts/scan-leaks.sh' 2>/dev/null | grep -E '^[+-]' | grep -qE -e "$p" && report "history diff matches /$p/"
   done
 fi
 

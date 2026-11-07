@@ -60,6 +60,9 @@ against the owner's words (not only the order), fill in "Checked", tell the owne
 "Closed: the menu button now sits at the top on phones") and move it to the bottom. An inspector's PASS alone never
 closes an item. "reopen 7" puts item 7 back at the top.
 
+## Snags
+The install checklist has a "Report a snag" button. Each report is a GitHub issue labelled `snag`. At a session's start run `bash scripts/snags`; for each new snag add an item to the owner's list (his words are the issue's) and write the order for it. Close the issue only after the fix is live.
+
 ## When to read the board
 Run the board digest (`/muster:board Manager_<project>_<digits>`) at the start of a session, before a session ends, and
 whenever a worker says its report is on the board; not every turn. After you read it, run it once more with `--write-waiting`

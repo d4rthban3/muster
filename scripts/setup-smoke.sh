@@ -140,17 +140,31 @@ printf '# Changelog\n\nEach version names who is affected.\n\n## 1.2.3\nold\n' >
 git add -A; git -c user.name=t -c user.email=t@localhost commit -q -m base; git push -q origin main
 git checkout -q -b builder/demo; echo hi > file.txt; git add -A; git -c user.name=t -c user.email=t@localhost commit -q -m "change"
 export GIT_AUTHOR_NAME=t GIT_AUTHOR_EMAIL=t@localhost GIT_COMMITTER_NAME=t GIT_COMMITTER_EMAIL=t@localhost
+BEFORE=$(git rev-parse HEAD)
 bash scripts/ship.sh "demo change" --roles Builder --dry-run | tee "$SH/dry.out" | tail -2
 grep -q "SHIP DRY RUN OK: would push 1.2.4" "$SH/dry.out" || fail "ship dry run did not say 1.2.4: $(cat "$SH/dry.out")"
 [ "$(git -C "$SH/remote.git" rev-parse main)" = "$(git rev-parse origin/main)" ] || fail "the dry run pushed"
-bash scripts/ship.sh "second try" --roles Builder --dry-run >/dev/null 2>&1 || true
-git reset -q --hard HEAD~1
+[ "$(git rev-parse HEAD)" = "$BEFORE" ] || fail "the dry run left a commit on the branch"
+[ -z "$(git status --porcelain --untracked-files=no)" ] || fail "the dry run left changes"
+bash scripts/ship.sh "second try" --roles Builder --dry-run >"$SH/dry2.out" 2>&1 || { cat "$SH/dry2.out"; fail "second dry run failed"; }; [ "$(git rev-parse HEAD)" = "$BEFORE" ] || fail "a second dry run changed the branch"
 bash scripts/ship.sh "demo change" --roles Builder --no-wait | tail -2 | tee "$SH/real.out"
 grep -q "SHIPPED 1.2.4" "$SH/real.out" || fail "ship did not finish: $(cat "$SH/real.out")"
 git -C "$SH/remote.git" show main:.claude-plugin/plugin.json | grep -q '"1.2.4"' || fail "main on the remote lacks 1.2.4"
 git -C "$SH/remote.git" show main:.claude-plugin/releases/1.2.4.json | grep -q "demo change" || fail "no release file on the remote"
 git -C "$SH/remote.git" show main:CHANGELOG.md | grep -q "^## 1.2.4" || fail "no changelog entry on the remote"
 git -C "$SH/remote.git" for-each-ref --format='%(refname)' | grep -q "ship/" && fail "the temporary ship branch was left behind"
+git checkout -q -b builder/demo2 origin/main; echo two > two.txt
+printf '{\n  "name": "muster",\n  "version": "1.2.5"\n}\n' > .claude-plugin/plugin.json
+printf '{\n  "name": "muster-kit",\n  "plugins": [\n    {\n      "name": "muster",\n      "version": "1.2.5"\n    }\n  ]\n}\n' > .claude-plugin/marketplace.json
+printf '{"version":"1.2.5","note":"my own note"}\n' > .claude-plugin/releases/1.2.5.json
+$PY - <<'PY'
+c = open("CHANGELOG.md").read(); i = c.index("\n## ") + 1
+open("CHANGELOG.md", "w").write(c[:i] + "## 1.2.5\nAffects: Builder.\nmy own note\n\n" + c[i:])
+PY
+git add -A; git commit -q -m "change two"
+bash scripts/ship.sh "a different note" --no-wait > "$SH/keep.out" 2>&1; grep -q "SHIPPED 1.2.5" "$SH/keep.out" || { cat "$SH/keep.out"; fail "ship refused a branch that already has its version"; }
+[ "$(grep -c '^## 1.2.5' CHANGELOG.md)" = 1 ] || fail "the changelog entry was doubled"
+grep -q "my own note" .claude-plugin/releases/1.2.5.json || fail "the branch's own release file was overwritten"
 cd "$FOLDER"
 
 echo; echo "ALL STEPS PASSED"

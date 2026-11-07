@@ -21,15 +21,24 @@ branch=$(git rev-parse --abbrev-ref HEAD)
 [ "$branch" != main ] && [ "$branch" != HEAD ] || stop "run it from your own branch, not main"
 [ -z "$(git status --porcelain --untracked-files=no)" ] || stop "uncommitted changes; save them first"
 git fetch -q origin || stop "could not fetch origin"
+orig=$(git rev-parse HEAD)
+# a dry run leaves the branch exactly as it was, even if it stops early
+[ $dry = 1 ] && trap 'git reset -q --hard "$orig" 2>/dev/null' EXIT
 git rebase origin/main >/dev/null 2>&1 || { git rebase --abort >/dev/null 2>&1; stop "rebasing $branch on origin/main hit a conflict; fix it by hand and run again"; }
 py=$(sh "$(dirname "$0")/find-python.sh") || stop "no working Python 3"
 ver=$(git show origin/main:.claude-plugin/plugin.json | $py -c 'import json,sys;print(json.load(sys.stdin)["version"])')
 new=$($py -c 'import sys;a=sys.argv[1].split(".");a[-1]=str(int(a[-1])+1);print(".".join(a))' "$ver")
+have=$($py -c 'import json;print(json.load(open(".claude-plugin/plugin.json"))["version"])')
 files=$(git diff --name-only origin/main HEAD | paste -sd, -)
 [ -n "$files" ] || stop "nothing differs from origin/main"
 echo "== main is $ver; shipping $new ($files)"
+keep=0
+if [ "$have" = "$new" ] && [ -f ".claude-plugin/releases/$new.json" ] && grep -q "^## $new\$" CHANGELOG.md; then keep=1; echo "== the branch already carries version $new, its release file and its changelog entry: keeping them"
+elif [ "$have" != "$ver" ]; then stop "the branch says version $have; main is $ver, so it should be $ver (to be replaced) or $new (complete); fix by hand"; fi
+if [ $keep = 0 ]; then
 $py - "$new" "$note" "$roles" "$platforms" "$files" <<'PY' || stop "could not write the release files"
-import json, re, sys
+import json, os, re, sys
+os.makedirs(".claude-plugin/releases", exist_ok=True)
 v, note, roles, plat, files = sys.argv[1:6]
 for p in (".claude-plugin/plugin.json", ".claude-plugin/marketplace.json"):
     t = open(p, encoding="utf-8").read()
@@ -44,6 +53,7 @@ open("CHANGELOG.md", "w", encoding="utf-8").write(c[:i] + entry + c[i:])
 PY
 git add -A .claude-plugin CHANGELOG.md
 git commit -q -m "Version $new: $note" || stop "could not save the version commit"
+fi
 bash scripts/version-check.sh || stop "version-check failed"
 bash scripts/scan-leaks.sh >/dev/null 2>&1 || { bash scripts/scan-leaks.sh 2>&1 | tail -5; stop "the leak scan failed"; }
 n=$(git rev-list --count origin/main..HEAD)

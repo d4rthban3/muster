@@ -94,7 +94,7 @@ echo "$OUT" | grep -q "Waiting on: Inspector_X_001 (1)" || fail "no Waiting on l
 step "a pretend order, READY and PASS on this project"
 mkdir -p "$SCRATCH/msgs"
 printf 'Job:     pretend job\n' > "$SCRATCH/msgs/order.txt"
-printf 'READY: pretend job [ID Builder A-pretend job-1]\nWhat:  changed one line\nWhere: line of work builder/x, saved version abc1234; touches: none\nWhy:   the pretend order\nHow:   test command `echo ok`: 3/3 passed, 0 failed\nNeed:  nothing; ready for the inspector\n' > "$SCRATCH/msgs/ready.txt"
+printf 'READY: pretend job [ID Builder A-pretend job-1]\nWhat:  changed one line\nWhere: line of work builder/x, saved version abc1234; touches: none\nWhy:   the pretend order\nHow:   test command `echo ok`: 3/3 passed, 0 failed\nNeed:  nothing; ready for the inspector\nUsage: session $0.10 at list price; week 12%% used; read at 10:00\n' > "$SCRATCH/msgs/ready.txt"
 printf 'PASS: pretend job [ID Inspector-pretend job-1]\nWhat:  checked it\nWhere: builder/x; touches: none\nWhy:   the READY\nHow:   3/3 passed on my own run\nNeed:  nothing\n' > "$SCRATCH/msgs/pass.txt"
 printf 'READY: pretend job\nWhat: x\n' > "$SCRATCH/msgs/bad.txt"
 for m in ready pass; do $PY "$ROOT/scripts/check-report.py" "$(native "$SCRATCH/msgs/$m.txt")" | grep -q '^OK' || fail "$m report refused"; done
@@ -176,5 +176,24 @@ tr '\n' '~' < "$FOLDER/muster/OWNERS-LIST.md" | grep -q '7\. "real seven"~   Kin
 tr '\n' '~' < "$FOLDER/muster/OWNERS-LIST.md" | grep -q 'made-up example~   Kind: x~```' || fail "the made-up example was changed"
 if $PY "$ROOT/scripts/record-choice.py" "$FN" 9 --question q --option "A. x" --picked "A. x" >/dev/null 2>&1; then fail "a missing item was accepted"; fi
 if $PY "$ROOT/scripts/record-choice.py" "$FN" 2 --question q --option "A. x" --picked "C. nope" >/dev/null 2>&1; then fail "a picked text outside the options was accepted"; fi
+
+step "usage meter: status line saves usage, usage.py reads it, pauses near the limit, settings kept"
+UM="$SCRATCH/um"; mkdir -p "$UM"; export_cfg=$(native "$UM")
+printf '{"theme":"dark"}' > "$UM/settings.json"
+CLAUDE_CONFIG_DIR=$export_cfg $PY "$ROOT/scripts/enable-usage-meter.py" "$PY" | grep -q "is on" || fail "usage meter not turned on"
+$PY -c 'import json,sys;d=json.load(open(sys.argv[1]));assert d["theme"]=="dark" and d["statusLine"]["type"]=="command"' "$(native "$UM/settings.json")" || fail "settings not kept or no statusLine"
+[ -f "$UM/muster-usage/statusline.py" ] || fail "status line script not copied"
+echo '{"session_id":"s1","cost":{"total_cost_usd":0.31},"rate_limits":{"seven_day":{"used_percentage":41.2,"resets_at":1738857600}}}' | CLAUDE_CONFIG_DIR=$export_cfg $PY "$UM/muster-usage/statusline.py" | grep -q "week 41%" || fail "status line did not print the week"
+rc=0; CLAUDE_CONFIG_DIR=$export_cfg $PY "$ROOT/scripts/usage.py" > "$SCRATCH/u1.out" || rc=$?
+grep -q "Usage: session \$0.31 at list price; week 41% used" "$SCRATCH/u1.out" && [ $rc = 0 ] || fail "usage.py wrong: $(cat "$SCRATCH/u1.out") rc=$rc"
+echo '{"session_id":"s2","rate_limits":{"seven_day":{"used_percentage":95}}}' | CLAUDE_CONFIG_DIR=$export_cfg $PY "$UM/muster-usage/statusline.py" >/dev/null
+rc=0; CLAUDE_CONFIG_DIR=$export_cfg $PY "$ROOT/scripts/usage.py" >/dev/null || rc=$?; [ $rc = 3 ] || fail "usage.py did not exit 3 at 95%"
+echo '{"session_id":"s3"}' | CLAUDE_CONFIG_DIR=$export_cfg $PY "$UM/muster-usage/statusline.py" >/dev/null
+CLAUDE_CONFIG_DIR=$export_cfg $PY "$ROOT/scripts/usage.py" | grep -q "week limit not readable" || fail "usage.py invented a weekly number"
+printf '{"statusLine":{"type":"command","command":"mine"}}' > "$UM/settings.json"
+rc=0; CLAUDE_CONFIG_DIR=$export_cfg $PY "$ROOT/scripts/enable-usage-meter.py" "$PY" >/dev/null || rc=$?; [ $rc = 4 ] || fail "replaced someone's own status line"
+grep -q '"mine"' "$UM/settings.json" || fail "own status line changed"
+printf 'READY: x [ID Builder A-x-1]\nWhat: a\nWhere: b; touches: none\nWhy: c\nHow: 3/3 passed\nNeed: d\n' > "$SCRATCH/msgs/nousage.txt"
+if $PY "$ROOT/scripts/check-report.py" "$(native "$SCRATCH/msgs/nousage.txt")" >/dev/null; then fail "a READY without a Usage line was accepted"; fi
 
 echo; echo "ALL STEPS PASSED"

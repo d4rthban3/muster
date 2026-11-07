@@ -1,0 +1,18 @@
+{
+  "version": "0.3.16",
+  "changed_files": [
+    ".github/workflows/setup-test.yml",
+    "scripts/scan-leaks.sh",
+    "scripts/check-json.py",
+    "agents/inspector.md",
+    "CHANGELOG.md"
+  ],
+  "affected_roles": [
+    "Inspector"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "The free test now also runs the leak scan, the plugin check and the test-file check; the inspector reads that run first and repeats none of it."
+}

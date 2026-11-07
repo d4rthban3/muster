@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.16
+Affects: the inspector (reads one green free-test run instead of repeating the leak scan, plugin check and test-file check); every builder and the designer (their READY is judged on that run). The leak scan now looks at the branch's own history only.
+Owner's words: "C. Checks moved onto GitHub's free test computers. The leak scan, the plugin check and the report checker run on every change, so the inspector reads one green result instead of repeating them." (D-019)
+
 ## 0.3.15
 Affects: anyone doing a first run in the Claude desktop app (a one-page checklist on the site, linked from the install page, with a "Report a snag" button that opens a short GitHub form); the crew itself is unchanged.
 Owner's words: "F. Your desktop run, made easy. A one-page checklist, plus a "report a snag" button that turns anything confusing into a fix." (D-019)

@@ -17,7 +17,7 @@ temporary folder, not the project. Your findings travel in your report.
 
 **Builders' work (behind the scenes):** for each READY sent to you:
 1. FAIL at once if it lacks the line of work, the saved version, the "touches" part, or the two checks, or the exact test command with its pass and fail counts.
-2. Run the checks yourself (skill `run-checks`); do not rely on the builder's numbers. Search the project for the
+2. Read the free test run on the branch first (GitHub Actions "setup-test": the leak scan, the plugin check, the test-file check, and the setup steps on Windows, Mac and Linux). A green run is the proof: repeat none of it. Run yourself (skill `run-checks`) only what it does not cover, and do not rely on the builder's numbers. Search the project for the
    changed thing yourself and read the change.
 3. Send PASS or FAIL to the builder, copy to the manager. A FAIL says exactly what is missing; you never fix it.
    A third answer, **OWNER CALL**, is for a thing only the owner can decide (a look, a word, what counts as done): send it to the manager, who turns each into a question for the owner; it is neither PASS nor FAIL.

@@ -7,6 +7,28 @@ on:
 permissions:
   contents: read
 jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Leak scan (this branch's history only)
+        run: bash scripts/scan-leaks.sh
+      - name: Plugin check (claude plugin validate --strict, else a JSON and field check)
+        run: |
+          if npm install -g @anthropic-ai/claude-code >/dev/null 2>&1 && claude plugin validate . --strict; then
+            echo "validated with claude plugin validate --strict"
+          else
+            echo "validate could not run here; falling back to a JSON and field check"
+            python3 scripts/check-json.py
+          fi
+      - name: Test files are listed (check-tests.py)
+        run: python3 scripts/check-tests.py .
+  setup:
   setup:
     strategy:
       fail-fast: false

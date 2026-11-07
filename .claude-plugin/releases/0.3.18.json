@@ -1,0 +1,19 @@
+{
+  "version": "0.3.18",
+  "changed_files": [
+    "scripts/record-choice.py",
+    "scripts/snags",
+    "agents/manager.md",
+    "skills/manager-details/SKILL.md",
+    "scripts/setup-smoke.sh",
+    "CHANGELOG.md"
+  ],
+  "affected_roles": [
+    "Manager"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "The manager records every owner choice word for word under his list item (scripts/record-choice.py) and reads open snag issues at a session's start (scripts/snags)."
+}

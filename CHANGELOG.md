@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.18
+Affects: the manager (records every choice the owner makes word for word under his list item with scripts/record-choice.py; reads the open "Report a snag" issues at a session's start with scripts/snags and turns each into a list item and an order).
+Owner's words: "B. Your choices recorded automatically. When you click a button, your exact words and the option's text go straight onto your list." (D-019)
+
 ## 0.3.17
 Affects: Builder, Designer.
 One-command shipping: scripts/ship.sh takes main's version plus one, writes the release file and changelog, runs the checks, pushes without forcing and waits for the site

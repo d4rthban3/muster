@@ -86,6 +86,18 @@ its note's First line pointing at `muster/handovers/<Role>_<project>_<N>.md` (on
 top level and file it in the project's sidebar group (one button if the app needs the owner's OK; never left nested
 under the manager). Then archive the old chat automatically, without asking the owner (once its handover is written and the new chat is running; never deleted), and update `muster/CREW.md`.
 
+## Two builders, only when the work allows
+Builder A is the only builder by default. Start `Builder B_<project>_001` (same way as Builder A, its own folder copy,
+the same model and effort) only when two open pieces of work can run side by side, and stop it when they cannot.
+**Do the pieces overlap?** Read each order's "Owns" line. They do not overlap only if (1) no file or folder named in one
+is the same as, or inside, one named in the other, and (2) neither needs a change the other must land first (for
+example a script one calls and the other writes). Version files, the release file and CHANGELOG.md do not count: every
+piece touches them and shipping (`scripts/ship.sh`) rebases them. Not sure? Treat it as overlapping: one builder.
+**Start** Builder B only when at least two open orders fit the test above and each has a builder-sized piece to do; give
+it only an order of the second kind. **Stop** it when its last piece has passed and been pushed and no open order fits
+the test: write its handover only if a job is in progress, then archive it automatically, without asking the owner
+(D-005; never delete), and update `muster/CREW.md`. Builder B counts as a building worker for the "three workers" rule below.
+
 ## Second inspector
 When the workers that build (builders, the designer, Agent Teacher) reach three, start `Design Inspector_<project>_001`. It checks
 what people see; Inspector_<project>_001 keeps what is behind the scenes and the manager's paperwork. Like every chat the

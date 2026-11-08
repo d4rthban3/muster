@@ -216,6 +216,31 @@ git -C "$CU/clones/builder-a-laptop2" rev-parse --abbrev-ref HEAD | grep -q '^la
 $PY "$ROOT/cursor/setup.py" "$(native "$CU")/nothing here" --name X --join --computer laptop2 --other desk1 >/dev/null 2>&1 && fail "--join accepted a folder with no muster/"
 grep -q "^## 9c. Two founder computers" "$ROOT/templates/CLAUDE.md" || fail "the two-computer rules are missing from the core rules"
 
+step "an accented project name (D-011): folders, crew names, files, the board and the hooks read it back"
+AC="Pâtisserie"; CP="$ROOT/scripts/crew-plan.py"
+ACD="$SCRATCH/accent"; mkdir -p "$ACD"
+$PY "$ROOT/cursor/setup.py" "$(native "$ACD")/$AC" --name "$AC" --vision "a café: crème brûlée" > "$ACD/setup.out" 2>&1 || { cat "$ACD/setup.out"; fail "setup with an accented project name failed"; }
+AM="$ACD/$AC"
+[ -d "$AM/muster" ] && [ -f "$AM/muster/start-notes/Builder A_${AC}_001.md" ] || fail "the accented project's crew folder or starting note is missing"
+grep -q "$AC" "$AM/muster/start-notes/Builder A_${AC}_001.md" || fail "the starting note does not hold the accented name"
+[ -f "$ACD/${AC}_copies/builder-a-001/.cursor/rules/muster-builder.mdc" ] || fail "the accented project's worker copy is missing"
+[ -z "$(git -C "$AM" status --porcelain)" ] || fail "the accented project left files in its history: $(git -C "$AM" status --porcelain)"
+[ "$($PY "$CP" copy-name "Builder A_${AC}_002")" = "builder-a-002" ] || fail "copy-name wrong for an accented project"
+$PY "$CP" inspectors 4 --project "$AC" | grep -q "Inspector B_${AC}_001 <- Builder D" || fail "crew-plan lost the accented name"
+printf '# Board\n\n## Entries\n### 2026-01-31 | NEED | Builder A_%s_001 -> Manager_%s_001 | Crème brûlée\nStatus: open\nWhat: the café menu\n' "$AC" "$AC" > "$AM/muster/BOARD.md"
+$PY "$AM/muster/tools/board_digest.py" "Manager_${AC}_001" "$(native "$AM")" > "$ACD/digest.out" 2>&1 || { cat "$ACD/digest.out"; fail "the board digest failed on accented names"; }
+grep -q "Crème brûlée" "$ACD/digest.out" && grep -q "1 entries concern" "$ACD/digest.out" || fail "the board did not read back the accented entry: $(cat "$ACD/digest.out")"
+# the coded rules: the accented manager is the manager, the accented builder is not, and an accented report passes
+jl() { $PY -c 'import json,sys;print(json.dumps({"type":"user","message":{"content":sys.argv[1]}}))' "$1"; }   # a one-message transcript
+jl "You are Manager_${AC}_001" > "$ACD/mgr.txt"; jl "You are Builder A_${AC}_001, agents/builder.md. Report to Manager_${AC}_001." > "$ACD/bld.txt"
+ac_stop() { printf '{"hook_event_name":"Stop","cwd":"%s","last_assistant_message":"All done, nice.","transcript_path":"%s"}' "$(native "$ACD")" "$(native "$ACD")/$1" | $PY "$ROOT/hooks/rules-check.py"; }
+ac_stop mgr.txt | grep -q '"decision": "block"' || fail "the accented manager was not held to the manager's reply rule"
+ac_stop bld.txt | grep -q '"decision": "block"' || fail "the accented builder's non-card reply was not caught"
+REP="READY: Crème brûlée page [ID builder-a-1]\nWhat: a\nWhere: b; touches: none\nWhy: c\nHow: 3/3 passed\nNeed: nothing\nUsage: n"
+printf '{"hook_event_name":"PreToolUse","cwd":"%s","tool_name":"SendMessage","tool_input":{"to":"x","message":"%s"},"transcript_path":"%s"}' "$(native "$ACD")" "$REP" "$(native "$ACD")/bld.txt" | $PY "$ROOT/hooks/rules-check.py" | grep -q deny && fail "an accented, correct report was refused"
+cp "$ACD/mgr.txt" "$ACD/mgr2.txt"
+(cd "$AM" && printf '{"cwd":"%s","last_assistant_message":"Fine.","transcript_path":"%s"}' "$(native "$AM")" "$(native "$ACD")/mgr2.txt" | $PY "$ROOT/hooks/board-stop.py") | grep -q "Builder A_P.*tisserie_001 (NEED)" || fail "board-stop did not recognise the accented manager"
+
 step "scaling: inspector count, copy names, small or big, and the board archiving itself"
 CP="$ROOT/scripts/crew-plan.py"
 $PY "$CP" inspectors 3 --project Shop | grep -q "inspectors=1" || fail "3 builders must need 1 inspector"

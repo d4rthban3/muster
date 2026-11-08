@@ -20,6 +20,12 @@ import re
 import sys
 import time
 
+for _s in (sys.stdout, sys.stderr):  # a project name with accents must print on any computer, whatever its console encoding
+    try:
+        _s.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 CLOSED = {"done", "closed"}
 
 

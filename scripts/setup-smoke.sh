@@ -126,7 +126,12 @@ printf '# List\n\n## Open\n3. "make the header blue or maybe green, whatever loo
 if $PY "$ROOT/scripts/decide.py" "$FN" --item 3 --title "Mgr" --decision "blue" --why "w" --said "manager thinks blue fits" --chose "blue" >/dev/null 2>&1; then fail "decide.py took the manager's own line as his words"; fi
 if $PY "$ROOT/scripts/decide.py" "$FN" --item 3 --title "Vague" --decision "blue" --why "w" --said "whatever looks better" >/dev/null 2>&1; then fail "decide.py took words that do not name the choice"; fi
 if $PY "$ROOT/scripts/decide.py" "$FN" --item 3 --title "Vague" --decision "blue" --why "w" --said "whatever looks better" --chose "blue" >/dev/null 2>&1; then fail "decide.py took words that do not contain the option name"; fi
-$PY "$ROOT/scripts/decide.py" "$FN" --item 3 --title "Ok" --decision "blue" --why "w" --said "make the header blue or maybe green" --chose "blue" >/dev/null || fail "decide.py refused his quoted words that contain the option"
+if $PY "$ROOT/scripts/decide.py" "$FN" --item 3 --title "Piece" --decision "blue" --why "w" --said "make the header blue" --chose "blue" >/dev/null 2>&1; then fail "decide.py took a piece cut out of his line"; fi
+if $PY "$ROOT/scripts/decide.py" "$FN" --item 3 --title "Open" --decision "blue" --why "w" --said "make the header blue or maybe green, whatever looks better" --chose "blue" >/dev/null 2>&1; then fail "decide.py took his blue-or-green line as a pick of blue"; fi
+printf '# List\n\n## Open\n5. "use blue for the header"\n   Kind: question\n   Choice (2026-01-01): Which?\n     He said: pick green or blue, either\n\n6. "use green for the header"\n   Kind: question\n\n## Closed\n' > "$FOLDER/muster/OWNERS-LIST.md"
+if $PY "$ROOT/scripts/decide.py" "$FN" --item 5 --title "Names" --decision "blue" --why "w" --said "use blue for the header" --chose "blue" --others "header" >/dev/null 2>&1; then fail "decide.py ignored a second option named in his words"; fi
+if $PY "$ROOT/scripts/decide.py" "$FN" --item 5 --title "Hedge" --decision "blue" --why "w" --said "pick green or blue, either" --chose "blue" >/dev/null 2>&1; then fail "decide.py took a hedged He said line"; fi
+$PY "$ROOT/scripts/decide.py" "$FN" --item 5 --title "Ok" --decision "blue" --why "w" --said "use blue for the header" --chose "blue" --others "green" >/dev/null || fail "decide.py refused his whole clear line"
 if $PY "$ROOT/scripts/decide.py" "$FN" --item 1 --title "Nothing" --decision "red" --why "w" >/dev/null 2>&1; then fail "decide.py took a decision with no proof"; fi
 [ "$(grep -c '^### D-' "$FOLDER/muster/DECISIONS-LOG.md")" = 4 ] || fail "decisions log changed by a refused call"
 printf '# Board\n\n## Entries\n' > "$FOLDER/muster/BOARD.md"

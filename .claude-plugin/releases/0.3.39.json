@@ -1,0 +1,15 @@
+{
+  "version": "0.3.39",
+  "changed_files": [
+    "skills/start-the-crew/SKILL.md"
+  ],
+  "affected_roles": [
+    "Manager"
+  ],
+  "affected_platforms": [
+    "claude-code",
+    "cursor"
+  ],
+  "records_change": false,
+  "note": "The start-the-crew text now says an inspector may work in the main folder or in its own copy; either works."
+}

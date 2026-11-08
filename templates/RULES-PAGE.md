@@ -10,4 +10,4 @@ Made-up example lines:
 
 ## Rules in force
 - "Your end-of-turn reply is one line: what you sent and to whom. Never a report to the person." When messages are
-  paused, the report goes on the board and the window says only: "Messages paused; my report is on the board."
+  paused, the report goes on the board (with `Paused: yes`), the owner gets a notification if you can send one, and the window says only: "Messages paused; my report is on the board. Type anything here to unblock me."

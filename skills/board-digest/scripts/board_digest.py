@@ -123,15 +123,32 @@ def main():
     print("%d entries concern %s (printed in full), %d other open (headers only), "
           "%d done/closed (hidden), %d unreadable files"
           % (len(mine), who, len(others), closed, len(unreadable)))
-    waiting = {}
+    waiting, paused, owner_q = {}, [], []
     for _n, body in mine + [(n, h) for n, h in others]:
-        m = re.search(r"->\s*([^|]+?)\s*\|", body.splitlines()[0] if body else "")
-        if m:
+        first = body.splitlines()[0] if body else ""
+        m = re.search(r"->\s*([^|]+?)\s*\|", first)
+        parts = [p.strip(" #`") for p in first.split("|")]
+        kind = parts[1].upper() if len(parts) > 1 else ""
+        is_paused = bool(re.search(r"^\s*paused\s*:\s*yes", body, re.I | re.M))
+        sender = re.sub(r"\s*->.*", "", parts[2]) if len(parts) > 2 else "?"
+        if is_paused:
+            paused.append(sender)
+        elif m:
             waiting[m.group(1)] = waiting.get(m.group(1), 0) + 1
-    line = "Waiting on: " + (", ".join("%s (%d)" % kv for kv in sorted(waiting.items())) or "nobody")
+        if is_paused or kind in ("NEED", "STUCK", "OWNER CALL"):
+            owner_q.append((kind, sender, parts[3] if len(parts) > 3 else "", is_paused))
+    bits = ["%s (%d)" % kv for kv in sorted(waiting.items())]
+    bits += ["waiting for you: type in %s" % p for p in paused]
+    line = "Waiting on: " + (", ".join(bits) or "nobody")
     print(line)
     if write_waiting:
         write_waiting_line(os.path.join(root, "muster", "BOARD.md"), line)
+    if owner_q:
+        print("\nOWNER QUESTIONS (ask the owner the top one as a choice card before ending your turn, unless his own words answer it):")
+        order = {"OWNER CALL": 0, "STUCK": 1, "NEED": 2}
+        for kind, sender, job, is_p in sorted(owner_q, key=lambda q: (not q[3], order.get(q[0], 3))):
+            print("  %s from %s: %s%s" % (kind or "REPORT", sender, job,
+                  "  [PAUSED: waiting for you, type in %s]" % sender if is_p else ""))
     for item in unreadable:
         print("UNREADABLE:", item)
     for name, body in mine:

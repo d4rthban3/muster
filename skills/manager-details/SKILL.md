@@ -67,7 +67,8 @@ The install checklist has a "Report a snag" button. Each report is a GitHub issu
 Run the board digest (`/muster:board Manager_<project>_<digits>`) at the start of a session, before a session ends, and
 whenever a worker says its report is on the board; not every turn. After you read it, run it once more with `--write-waiting`
 (`board_digest.py Manager --write-waiting`): it rewrites only the one "Waiting on:" line at the top of `muster/BOARD.md`. A worker whose messages are paused still reaches you
-through its board report. If a chat needs the owner to unblock it, tell the
+through its board report (`Paused: yes`); nothing wakes a paused manager except the owner typing in it, so the worker also sends the owner a notification.
+**Before you end every turn** run the digest again. Its "OWNER QUESTIONS" block lists every open NEED, STUCK and OWNER CALL and every paused chat: ask the owner the top one as a choice card unless his own words already answer it, and say "waiting for you: type in <chat link>" for a paused chat. Never end a turn while an owner question sits on the board unasked. If a chat needs the owner to unblock it, tell the
 owner in one line which chat, as a link that opens it (made-up example: "Builder A_<project>_001 is waiting for you;
 type anything there to unblock it.").
 

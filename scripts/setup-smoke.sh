@@ -91,6 +91,12 @@ head -3 "$FOLDER/muster/BOARD.md" | grep -q "^Waiting on: Inspector_X_001 (1)" |
 [ "$(grep -c "^Waiting on:" "$FOLDER/muster/BOARD.md")" = 1 ] || fail "second write added another line"
 echo "$OUT" | grep -q "Waiting on: Inspector_X_001 (1)" || fail "no Waiting on line: $OUT"
 
+step "a paused chat reaches the owner through the board"
+printf '# Board\n\n## Entries\n### 2026-01-31 | NEED | Builder A_X_001 -> Manager | demo\nStatus: open\nPaused: yes\n' > "$FOLDER/muster/BOARD.md"
+OUT3=$(cd "$FOLDER" && $PY "$ROOT/skills/board-digest/scripts/board_digest.py" Manager --write-waiting) || fail "digest of a paused entry failed"
+echo "$OUT3" | grep -q "^OWNER QUESTIONS" || fail "no OWNER QUESTIONS block for a paused NEED: $OUT3"
+head -3 "$FOLDER/muster/BOARD.md" | grep -q "^Waiting on: waiting for you: type in Builder A_X_001" || fail "Waiting on line does not name the paused chat: $(head -4 "$FOLDER/muster/BOARD.md")"
+
 step "a pretend order, READY and PASS on this project"
 mkdir -p "$SCRATCH/msgs"
 printf 'Job:     pretend job\n' > "$SCRATCH/msgs/order.txt"

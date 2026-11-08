@@ -72,8 +72,13 @@ Need:  <what is left, and what the reader must do>
 Each line one short sentence, no lists inside a line. No "received", no "thanks", no keys or passwords. In your own
 window, write only one short line saying what you sent and to whom (made-up example: "Sent READY to the inspector:
 crew switch"); the full report goes only by message.
-**Messages paused?** Put your report on the board, addressed to its reader, and say only "Messages paused; my report
-is on the board." in your window.
+**Messages paused?** Write your report on the board yourself (never in a notes file), addressed to its reader, with the
+line `Paused: yes` under its Status line. If you have PushNotification, also send the owner one naming your chat and
+saying "type anything there to unblock it". Say only "Messages paused; my report is on the board. Type anything here
+to unblock me." in your window. Nothing can wake a paused chat except the owner typing in it, so the board and the
+notification are how he finds out. The manager, before it ends any turn, runs the board check and asks the owner the
+top open NEED, STUCK or OWNER CALL (and every `Paused: yes` chat) as a choice card; it never ends a turn with an owner
+question sitting on the board unasked.
 **Only links for people.** Nothing a person reads carries saved-version codes or bare file paths; only links.
 
 **Every file named is a link.** In every reply and report a person reads, write each file you name as a clickable

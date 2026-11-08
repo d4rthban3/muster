@@ -4,7 +4,7 @@ Waiting on: nobody
 
 The record of finished pieces: one entry per finished piece, in the six-line report shape.
 It wakes nobody: if someone must act, also send them a direct message.
-When messages are paused, the report goes here instead, addressed to its reader; the manager reads the board at a session's start, before a session ends, and when a worker says its report is on the board.
+When messages are paused, the report goes here instead (never in another file), addressed to its reader, with the line `Paused: yes` under its Status line, so the "Waiting on:" line says "waiting for you: type in <chat>"; the manager reads the board at a session's start, before a session ends, and when a worker says its report is on the board.
 
 ## Rules
 1. At the start of a session and before a session ends, run `/muster:board <your name>`. Read in full every entry addressed to you or to ALL.

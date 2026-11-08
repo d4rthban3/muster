@@ -5,6 +5,7 @@
   "report": {"require_id": false, "require_usage": false},
   "orders": "free",
   "record_choice": "decide.py",
+  "protected": ["/Claude Code/Founder/FOUNDER-LIST\\.md$", "/Claude Code/PINR-claudecode-handoff/pinr-claude-code-starter-v2/DECISIONS-LOG\\.md$", "/Claude Code/manager/rules/", "/Claude Code/CLAUDE\\.md$"],
   "talk_check": false,
   "board": "PINR-claudecode-handoff/pinr-claude-code-starter-v2/handoff/BOARD.md",
   "board_style": "lines",

@@ -47,6 +47,9 @@ send = lambda msg, t, to="x": run("PreToolUse", tool_name="SendMessage", tool_in
 cases = [
     ("a good READY goes through", send(good, b), False),
     ("a reply of 'noted' is refused", send("noted", b), True),
+    ("'noted, thanks' is refused", send("noted, thanks", b), True),
+    ("'Got it. Thanks and will do!' is refused", send("Got it. Thanks and will do!", b), True),
+    ("a real message that starts with 'ok' is not called social", "BAD" if "no 'noted'" in send("ok, I will start the build now and report when the test passes", b) else "", False),
     ("a free-form message is refused", send("hey, can you look at this?", b), True),
     ("a READY with no test count is refused", send(good.replace("3/3 passed", "fine"), b), True),
     ("an order that quotes his words goes through", send(order, m), False),

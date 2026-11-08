@@ -251,8 +251,11 @@ def block(reason):
 
 
 # ---- PreToolUse -----------------------------------------------------------------------------------------------
-SOCIAL = re.compile(r"^\s*(noted|received|thanks|thank you|got it|ok(ay)?|ack(nowledged)?|will do)\b[\s.!]*$", re.I)
+_SOC = r"(?:noted|received|thanks|thank you|got it|ok(?:ay)?|ack(?:nowledged)?|will do|and)"
+SOCIAL = re.compile(r"^\s*%s\b(?:[\s.,!;&-]+%s\b)*[\s.,!;&-]*$" % (_SOC, _SOC), re.I)  # only social words, however many ("noted, thanks")
 PROTECTED = re.compile(r"/muster/(OWNERS-LIST\.md|DECISIONS-LOG\.md|CREW\.md|CLAUDE\.md|rules/|RULES-PAGE\.md|REPORT\.md)")
+if PROFILE.get("protected"):  # a project's own manager-only paths (regexes on the path with forward slashes)
+    PROTECTED = re.compile(PROTECTED.pattern + "|" + "|".join("(?:%s)" % x for x in PROFILE["protected"]))
 
 
 def recipient_is_manager(to, root):

@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.44
+Affects: Manager, Builder, Designer, Inspector.
+PINR install fixes: board path from the folder holding .muster-checks; the plugin's hooks stand down where a project has its own copy
+
 ## 0.3.43
 Affects: Manager, Builder, Designer, Inspector.
 project profile for the coded checks (PINR): chat names, report shape, decide.py, board path, no second talk check

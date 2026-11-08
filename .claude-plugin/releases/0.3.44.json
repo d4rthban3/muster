@@ -1,0 +1,24 @@
+{
+  "version": "0.3.44",
+  "changed_files": [
+    "hooks/board-stop.py",
+    "hooks/board-stop.sh",
+    "hooks/rules-check.py",
+    "hooks/rules-check.sh",
+    "hooks/talk-check.py",
+    "hooks/talk-check.sh",
+    "profiles/pinr.json",
+    "scripts/profile-selftest.py"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Builder",
+    "Designer",
+    "Inspector"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "PINR install fixes: board path from the folder holding .muster-checks; the plugin's hooks stand down where a project has its own copy"
+}

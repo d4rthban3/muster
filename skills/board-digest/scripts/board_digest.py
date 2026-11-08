@@ -14,6 +14,7 @@ An entry is printed in full when its header names ROLE or ALL.
 Other entries that are not done/closed are printed as headers only.
 Anything that cannot be read is reported, never hidden.
 """
+import glob
 import os
 import re
 import sys
@@ -102,6 +103,7 @@ def main():
         return 1
 
     mine, others, closed, unreadable = [], [], 0, []
+    board_entries = []
     word = re.compile(r"(?<![\w-])(?<!\w )(%s|all)(?![\w-])" % re.escape(role), re.I)
     for name in ("BOARD.md", "BOARD-ARCHIVE.md"):
         path = os.path.join(root, "muster", name)
@@ -113,6 +115,8 @@ def main():
         stamp = time.strftime("%Y-%m-%d %H:%M", time.localtime(os.path.getmtime(path)))
         print("Read %s, last changed %s" % (path, stamp))
         for header, lines, status in parse(text):
+            if name == "BOARD.md":
+                board_entries.append((header, lines, status))
             if status in CLOSED:
                 closed += 1
             elif word.search(header):
@@ -125,18 +129,47 @@ def main():
           % (len(mine), who, len(others), closed, len(unreadable)))
     waiting, paused, owner_q = {}, [], []
     for _n, body in mine + [(n, h) for n, h in others]:
-        first = body.splitlines()[0] if body else ""
-        m = re.search(r"->\s*([^|]+?)\s*\|", first)
-        parts = [p.strip(" #`") for p in first.split("|")]
-        kind = parts[1].upper() if len(parts) > 1 else ""
-        is_paused = bool(re.search(r"^\s*paused\s*:\s*yes", body, re.I | re.M))
-        sender = re.sub(r"\s*->.*", "", parts[2]) if len(parts) > 2 else "?"
-        if is_paused:
-            paused.append(sender)
-        elif m:
+        m = re.search(r"->\s*([^|]+?)\s*\|", body.splitlines()[0] if body else "")
+        if m:
             waiting[m.group(1)] = waiting.get(m.group(1), 0) + 1
-        if is_paused or kind in ("NEED", "STUCK", "OWNER CALL"):
-            owner_q.append((kind, sender, parts[3] if len(parts) > 3 else "", is_paused))
+    # who is paused NOW: a chat's LAST entry on the board decides. A later entry from the same chat (any kind), a
+    # "Paused: no" line, or Status done/closed clears an older "Paused: yes"; a paused line older than the chat's last
+    # entry is never used (D-020, resume).
+    seq = []
+    for _h, lines, status in board_entries:
+        first = lines[0] if lines else ""
+        parts = [p.strip(" #`") for p in first.split("|")]
+        sender = re.sub(r"\s*->.*", "", parts[2]) if len(parts) > 2 else "?"
+        body = "\n".join(lines)
+        yes = bool(re.search(r"^\s*paused\s*:\s*yes", body, re.I | re.M)) and not re.search(r"^\s*paused\s*:\s*no", body, re.I | re.M)
+        seq.append((sender, parts[1].upper() if len(parts) > 1 else "", parts[3] if len(parts) > 3 else "", yes, status))
+    last = {}
+    for i, s in enumerate(seq):
+        last[s[0]] = i
+    for i, (sender, kind, job, yes, status) in enumerate(seq):
+        if status in CLOSED:
+            continue
+        is_p = yes and last[sender] == i
+        if is_p:
+            paused.append(sender)
+            mt = re.search(r"->\s*([^|]+?)\s*\|", board_entries[i][1][0] if board_entries[i][1] else "")
+            if mt and waiting.get(mt.group(1)):
+                waiting[mt.group(1)] -= 1
+                if not waiting[mt.group(1)]:
+                    del waiting[mt.group(1)]
+        if is_p or kind in ("NEED", "STUCK", "OWNER CALL"):
+            owner_q.append((kind, sender, job, is_p))
+    # fallback for a worker that cannot write the main board: a file .muster-paused in its own folder copy
+    for p in sorted(glob.glob(os.path.join(root, ".claude", "worktrees", "*", ".muster-paused"))):
+        who_p = os.path.basename(os.path.dirname(p))
+        try:
+            with open(p, encoding="utf-8") as fh:
+                who_p = (fh.readline().strip() or who_p)
+        except OSError:
+            pass
+        if who_p not in paused:
+            paused.append(who_p)
+            owner_q.append(("", who_p, "paused (marker file)", True))
     bits = ["%s (%d)" % kv for kv in sorted(waiting.items())]
     bits += ["waiting for you: type in %s" % p for p in paused]
     line = "Waiting on: " + (", ".join(bits) or "nobody")

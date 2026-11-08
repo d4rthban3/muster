@@ -36,6 +36,9 @@ title line "FIRST WORD · job name", then two or three bullet lines (what, the r
 or what it needs from him), plain words, files as links. Made-up example: title "READY · crew switch", "- moved the
 switch to the top bar", "- 12 of 12 checks pass; the inspector has it".
 
+## When messages are paused, and when they resume
+A paused worker writes its report on the board with the line `Paused: yes`. When it can act again (the owner typed in its chat) its first act is to close those entries: `Status: done` and the line `Paused: no`. A chat counts as paused only while its last entry on the board says `Paused: yes`; a later entry from the same chat, `Paused: no` or `Status: done` clears it. A worker that cannot write the main board leaves a one-line file `.muster-paused` in its own folder (deleted on resume).
+
 ## Choices written out
 **The letters are the markers.** When choices are written out, each is its own line starting with the bold letter,
 with no bullet dot in front (never a bullet with "A." inside it). Leave a blank line between the choices so each

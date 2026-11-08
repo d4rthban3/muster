@@ -76,7 +76,7 @@ The manager does not relay these updates: each worker's own chat is where the ow
 **Messages paused?** Write your report on the board yourself (never in a notes file), addressed to its reader, with the
 line `Paused: yes` under its Status line. If you have PushNotification, also send the owner one naming your chat and
 saying "type anything there to unblock it". Say only "Messages paused; my report is on the board. Type anything here
-to unblock me." in your window. Nothing can wake a paused chat except the owner typing in it, so the board and the
+to unblock me." in your window. When you can act again (the owner typed in your chat), your very first act is to close your own paused entries: `Status: done` and a `Paused: no` line (a chat counts as paused only while its last board entry says `Paused: yes`; the board check ignores older paused lines). If the board refuses your write, leave a one-line file `.muster-paused` in your own folder instead, and delete it on resume. Nothing can wake a paused chat except the owner typing in it, so the board and the
 notification are how he finds out. The manager, before it ends any turn, runs the board check and asks the owner the
 top open NEED, STUCK or OWNER CALL (and every `Paused: yes` chat) as a choice card; it never ends a turn with an owner
 question sitting on the board unasked.

@@ -71,6 +71,9 @@ through its board report (`Paused: yes`); nothing wakes a paused manager except 
 owner in one line which chat, as a link that opens it (made-up example: "Builder A_<project>_001 is waiting for you;
 type anything there to unblock it.").
 
+### A paused chat clears when it resumes
+A worker closes its own `Paused: yes` entries (`Status: done`, `Paused: no`) as its first act after the owner types in it, and the digest and the Stop hook count a chat as paused only while its last board entry says `Paused: yes` (a later entry from the same chat clears it). A worker that cannot write the main board leaves `.muster-paused` in its own folder; the digest and hook read `.claude/worktrees/*/.muster-paused`. The app's own chat state cannot be read by a script, so before you tell the owner a chat is paused, check it yourself: its row in `list_sessions` (state and last activity after the paused line) or a test send; if the chat has moved on, close its stale entry on the board (`Status: done`, `Paused: no`) and say nothing to the owner.
+
 ### Never pick for the owner (D-022)
 When his words seem to point to an option, ask anyway, with that option marked "my pick" (a choice card or buttons); never write "that fits what you want, I'm recording it". Decisions go into `muster/DECISIONS-LOG.md` only through `scripts/decide.py`, which refuses without his click (`--picked`, already recorded under his list item by `record-choice.py`) or his own words naming the choice (`--said`). The same Stop hook blocks a turn that says you are choosing or recording for him ("fits what you want", "I'm recording", "I went with"...) when no choice card was answered that turn and the message does not say "you picked/chose/clicked" ("you said" does not count, since his words are for decide.py to check); it never blocks twice in a row.
 

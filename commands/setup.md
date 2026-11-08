@@ -112,7 +112,7 @@ version history (git). Check `git --version` first; if git is not installed, fol
 - **An existing folder with no history:** ask one question with two buttons: "set it up now" (creates the version
   history and saves the current files as the first version; my pick) or "stop the setup".
 To set it up:
-1. `git init` in the project folder, then add the line `/muster/` to `.git/info/exclude` before anything is saved, so
+1. `git init` in the project folder, then add the lines `/muster/` and `/.muster-paused` to `.git/info/exclude` before anything is saved, so
    the crew's files can never enter the first version (step 3b).
 2. If there is no `.gitignore`, write one so private files and this computer's own settings are never saved, and tell
    the person in one line:
@@ -191,7 +191,7 @@ Copy from `${CLAUDE_PLUGIN_ROOT}/templates/`, **never overwriting a file that al
 The crew's files (`muster/`: the owner's list, the decisions log, the rules pages, the board, the handovers) are never
 saved into the project's history, so no push can ever publish them, even if the repository is made public later. Workers
 read them from the main project folder, never from their own copy, so their copies do not need them.
-1. Add the line `/muster/` to `.git/info/exclude` (this computer's own ignore list: it is never saved or pushed). Add it
+1. Add the lines `/muster/` and `/.muster-paused` to `.git/info/exclude` (this computer's own ignore list: it is never saved or pushed). Add it
    only if it is not there already.
 2. Check `git status --porcelain -- muster/` prints nothing, and `git ls-files muster/` prints nothing.
 3. If `git ls-files muster/` lists files, the history already holds a `muster/` folder: either an older setup saved

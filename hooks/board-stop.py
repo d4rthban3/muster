@@ -33,7 +33,7 @@ def entries(text):
             parts = [p.strip(" #`") for p in line.split("|")]
             frm = re.sub(r"\s*->.*", "", parts[2]) if len(parts) > 2 else ""
             cur = {"kind": parts[1].upper() if len(parts) > 1 else "", "from": frm,
-                   "job": parts[3] if len(parts) > 3 else "", "status": "open", "paused": False, "body": []}
+                   "job": parts[3] if len(parts) > 3 else "", "status": "open", "paused": False, "resumed": False, "body": []}
         elif cur is not None:
             cur["body"].append(line)
             m = re.match(r"^\s*status\s*:\s*([A-Za-z]+)", line, re.I)
@@ -41,6 +41,8 @@ def entries(text):
                 cur["status"] = m.group(1).lower()
             if re.match(r"^\s*paused\s*:\s*yes", line, re.I):
                 cur["paused"] = True
+            if re.match(r"^\s*paused\s*:\s*no", line, re.I):
+                cur["resumed"] = True
     if cur:
         out.append(cur)
     return out
@@ -125,8 +127,27 @@ def main():
     except OSError:
         return 0
     said = (data.get("last_assistant_message") or "").lower()
+    # fallback for a worker that cannot write the main board: a .muster-paused file in its own folder copy
+    import glob
+    for p in sorted(glob.glob(os.path.join(cwd, ".claude", "worktrees", "*", ".muster-paused"))):
+        who = os.path.basename(os.path.dirname(p))
+        try:
+            with open(p, encoding="utf-8") as fh:
+                who = fh.readline().strip() or who
+        except OSError:
+            pass
+        items.append({"kind": "", "from": who, "job": "", "status": "open", "paused": True, "resumed": False, "body": []})
     missed = []
-    for e in items:
+    # a chat is paused NOW only if its LAST entry on the board says "Paused: yes" and is open: a later entry from the
+    # same chat, "Paused: no", or Status done clears it (the owner typed in the chat and it carried on)
+    last = {}
+    for i, e in enumerate(items):
+        last[e["from"]] = i
+    for i, e in enumerate(items):
+        if e["paused"] and (e["resumed"] or last[e["from"]] != i):
+            e["paused"] = False
+            if e["kind"] not in ("NEED", "STUCK", "OWNER CALL"):
+                continue
         if e["status"] in ("done", "closed"):
             continue
         if not (e["paused"] or e["kind"] in ("NEED", "STUCK", "OWNER CALL")):

@@ -48,7 +48,7 @@ mv "$HOME/Muster/.setup-choices.json" "$FOLDER/muster/setup-choices.json"
 step "version history with the crew's folder kept out"
 cd "$FOLDER"
 git init -q
-echo '/muster/' >> .git/info/exclude
+printf '/muster/\n/.muster-paused\n' >> .git/info/exclude
 printf '.env\n.env.*\n*.pem\n*.key\nnode_modules/\n.DS_Store\n.claude/\n' > .gitignore
 git add -A
 git -c user.name="Muster" -c user.email="muster@localhost" commit -q -m "First version" || fail "first save failed with no git name set"
@@ -142,6 +142,26 @@ hook mgr-card false "So C fits what you want, and I am recording it." | grep -q 
 hook manager false "You picked B, so I am recording it." | grep -q . && fail "Stop hook blocked although the message says he picked"
 hook manager false "You said you want it calm, so C fits what you want, I am recording it." | grep -q '"decision": "block"' || fail "Stop hook let through 'you said ... I am recording it'"
 hook manager true "I am recording it." | grep -q . && fail "Stop hook blocked while already continuing"
+
+step "a paused chat that resumed reads clear; one that did not still blocks; the marker file works"
+printf '# Board\n\n## Entries\n### 2026-01-31 | DONE | Builder A_X_001 -> Manager | demo\nStatus: open\nPaused: yes\n' > "$FOLDER/muster/BOARD.md"
+hook manager false "all done" | grep -q '"decision": "block"' || fail "paused with no later line must still block"
+printf '### 2026-01-31 | DONE | Builder A_X_001 -> Manager | next job\nStatus: open\n' >> "$FOLDER/muster/BOARD.md"
+hook manager false "all done" | grep -q . && fail "a later entry from the same chat did not clear the paused line (hook)"
+OUT4=$(cd "$FOLDER" && $PY "$ROOT/skills/board-digest/scripts/board_digest.py" Manager)
+echo "$OUT4" | grep -q "waiting for you" && fail "digest still names a resumed chat paused: $OUT4"
+printf '# Board\n\n## Entries\n### 2026-01-31 | NEED | Builder A_X_001 -> Manager | demo\nStatus: open\nPaused: yes\nPaused: no\n' > "$FOLDER/muster/BOARD.md"
+hook manager false "all done" | grep -q '"decision": "block"' || fail "a NEED still waiting must block even when resumed"
+printf '# Board\n\n## Entries\n### 2026-01-31 | READY | Builder A_X_001 -> Inspector_X_001 | demo\nStatus: done\nPaused: yes\nPaused: no\n' > "$FOLDER/muster/BOARD.md"
+hook manager false "all done" | grep -q . && fail "Paused: no did not clear the paused line (hook)"
+printf '# Board\n\n## Entries\n### 2026-01-31 | READY | Builder A_X_001 -> Inspector_X_001 | demo\nStatus: open\nPaused: yes\n' > "$FOLDER/muster/BOARD.md"
+OUT5=$(cd "$FOLDER" && $PY "$ROOT/skills/board-digest/scripts/board_digest.py" Manager)
+echo "$OUT5" | grep -q "waiting for you: type in Builder A_X_001" || fail "digest missed a paused entry addressed to someone else: $OUT5"
+printf '# Board\n\n## Entries\n' > "$FOLDER/muster/BOARD.md"
+mkdir -p "$FOLDER/.claude/worktrees/builder-b-001"; printf 'Builder B_X_001\n' > "$FOLDER/.claude/worktrees/builder-b-001/.muster-paused"
+hook manager false "all done" | grep -q '"decision": "block"' || fail "the .muster-paused marker file was not read"
+rm -f "$FOLDER/.claude/worktrees/builder-b-001/.muster-paused"
+hook manager false "all done" | grep -q . && fail "hook spoke after the marker file was deleted"
 
 step "a pretend order, READY and PASS on this project"
 mkdir -p "$SCRATCH/msgs"

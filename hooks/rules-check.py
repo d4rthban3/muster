@@ -96,26 +96,32 @@ def order_problem(text):
     return None
 
 
+def _token_is_manager(tok):
+    """tok is a crew name or an agents/<role>.md path, as CREW_RE matched it."""
+    if re.match(r"agents[/\\]", tok):
+        return re.search(r"agents[/\\]manager\.md$", tok) is not None
+    return re.fullmatch(r"Manager_[A-Za-z0-9 ]*_\d{3}", tok) is not None or any(
+        re.fullmatch(x, tok) for x in PROFILE.get("manager_names", []))
+
+
 def is_manager(first):
-    """The chat's own role: its 'Job:' line in the starting note, else the first agents/<role>.md it names, else the first
-    crew name it uses. A worker's note that merely mentions the manager is not the manager."""
-    m = re.search(r"\bJob:\s*(%s)_" % ROLE, first)
+    """Only the chat's OWN name makes it the manager. Its own name is the first crew name that follows 'Job:', 'You are' or 'I am' (a summary says "I am **Manager_X_001**") in
+    its starting note (every such place is tried: 'You are operating in a git worktree' holds no name). Else the first
+    agents/<role>.md it names, else a Job line that says 'go-between' or 'record keeper'. A crew name that is merely
+    mentioned ("report to Manager_X_002", "Manager_X_001 gives every order") never makes a chat the manager."""
+    best = None
+    for lead in (r"\bJob:\s*[*`]{0,2}", r"\b(?:you are|i am|i'm)\s+(?:the\s+)?[*`]{0,2}"):
+        for m in re.finditer(lead, first, re.I):
+            c = CREW_RE.match(first, m.end())
+            if c and (best is None or m.start() < best[0]):
+                best = (m.start(), c.group(0))
+                break
+    if best:
+        return _token_is_manager(best[1])
+    m = re.search(r"agents[/\\](?:manager|builder|designer|inspector|design-inspector|sketchpad|ai-socket|agent-teacher)\.md", first)
     if m:
-        return m.group(1) == "Manager"
-    if PROFILE.get("manager_names"):
-        m = re.search(r"\bJob:\s*(\S[^:\n]*?)\s*[:,\n]", first)
-        if m and CREW_RE.search(m.group(1)):
-            return bool(MANAGER_RE.search(m.group(1)))
-    m = re.search(r"agents[/\\](manager|builder|designer|inspector|design-inspector|sketchpad|ai-socket|agent-teacher)\.md", first)
-    if m:
-        return m.group(1) == "manager"
-    m = re.search(r"\b(%s)_[^\s_][^_\n]*_\d{3}\b" % ROLE, first)
-    if m:
-        return m.group(1) == "Manager"
-    if PROFILE.get("manager_names"):
-        m = CREW_RE.search(first)
-        return bool(m) and bool(MANAGER_RE.fullmatch(m.group(0)))
-    return False
+        return _token_is_manager(m.group(0))
+    return re.search(r"\bJob:[^\n]*(go-between|record keeper)", first, re.I) is not None
 
 
 # ---- reading the event ----------------------------------------------------------------------------------------

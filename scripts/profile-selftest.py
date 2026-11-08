@@ -132,6 +132,22 @@ for rel in ("Founder/FOUNDER-LIST.md", "PINR-claudecode-handoff/pinr-claude-code
 add("7 the engine's own CLAUDE.md is not on the list", W(C + "/PINR-claudecode-handoff/pinr-claude-code-starter-v2/CLAUDE.md", site), False)
 add("7 a worker's ordinary file is not on the list", W(C + "/pinr-live/src/a.js", site), False)
 add("7 without the profile PINR's paths are not protected", run("rules-check.py", "PreToolUse", plain=True, tool_name="Write", tool_input={"file_path": C + "/CLAUDE.md"}, transcript_path=tr("You are Builder A_Muster_003")), False)
+# the manager test: only a chat's own name makes it the manager
+card = "**READY \u00b7 x**\n- a\n- b"
+ins = tr("Your starting note: report to Manager_PINR_002. Job: Look Inspector_PINR_001, reads the look work.")
+add("8 a PINR worker whose note says to report to Manager_PINR_002 is not the manager", run("rules-check.py", "Stop", last_assistant_message=card, transcript_path=ins), False)
+add("8 ...even when the manager is named first and its own name comes after 'You are'", run("rules-check.py", "Stop", last_assistant_message=card, transcript_path=tr("Manager_PINR_002 started this chat. You are Look Inspector_PINR_001.")), False)
+add("8 the PINR manager by 'Job:' is the manager", run("rules-check.py", "Stop", last_assistant_message=card, transcript_path=tr("Job: Manager_PINR_002, the founder's go-between. Workers: Site_PINR_002")), True)
+add("8 the PINR manager by 'You are' is the manager", run("rules-check.py", "Stop", last_assistant_message=card, transcript_path=tr("You are Manager_PINR_002. Look Inspector_PINR_001 reports to you.")), True)
+# real starting-note shapes (made-up names and ids)
+WT = "<system-reminder>\nYou are operating in a git worktree.\nWorktree path: /w/x\n</system-reminder>\n\nBackground (from the session that started this one):\nPINR is a project; its manager is Manager_PINR_002 and all reports go to Manager_PINR_002.\n\nTask:\n"
+add("8 a renewed PINR worker: 'You are operating in a git worktree', then 'You are Site_PINR_004' is a worker", run("rules-check.py", "Stop", last_assistant_message=card, transcript_path=tr(WT + "You are Site_PINR_004. Report to Manager_PINR_002.")), False)
+add("8 ...and by a Job line with a two-word name", run("rules-check.py", "Stop", last_assistant_message=card, transcript_path=tr(WT + "Job:   Look Inspector_PINR_002, reads the look work. Reports go to Manager_PINR_002.")), False)
+add("8 ...and PINRai_teacher_003", run("rules-check.py", "Stop", last_assistant_message=card, transcript_path=tr(WT + "You are PINRai_teacher_003.")), False)
+add("8 the renewed PINR manager behind the same worktree lines is the manager", run("rules-check.py", "Stop", last_assistant_message=card, transcript_path=tr(WT + "You are Manager_PINR_003.")), True)
+add("8 a Muster note 'You are one of the Muster crew ... Manager_Muster_001 gives every order' is a worker", run("rules-check.py", "Stop", plain=True, last_assistant_message=card, transcript_path=tr("Background: You are one of the Muster crew. Manager_Muster_001 gives every order. Builder A_Muster_001 builds. Task: read your rules page.")), False)
+add("8 setup's manager note (Job: go-between, agents/manager.md) is the manager", run("rules-check.py", "Stop", plain=True, last_assistant_message=card, transcript_path=tr("Task:\nJob:       the owner's go-between and record keeper for this project\nOwns: muster/\nFirst: read agents/manager.md")), True)
+add("8 a note naming only agents/builder.md is a worker even if it mentions the manager", run("rules-check.py", "Stop", plain=True, last_assistant_message=card, transcript_path=tr("Read agents/builder.md. Send reports to Manager_Muster_002.")), False)
 # shell writes into PINR's manager-only files
 B = lambda cmd, t, **k: run("rules-check.py", "PreToolUse", tool_name="Bash", tool_input={"command": cmd}, transcript_path=t, **k)
 P1 = '"%s/Founder/FOUNDER-LIST.md"' % C
@@ -145,6 +161,15 @@ add("9 a worker's ordinary shell write is allowed", B("echo x > /tmp/notes.txt &
 add("9 reading a protected file is allowed", B("cat " + P1 + " | head", site), False)
 add("9 copying a protected file out is allowed", B("cp " + P1 + " /tmp/copy.md", site), False)
 add("9 without the profile a shell write to the same path is not guarded", B("echo x >> " + P1, tr("You are Builder A_Muster_003"), plain=True), False)
+# a PINR start note whose Job line names no crew name and only mentions the manager: never the manager
+NOJOB = WT + "Job:       build the evidence web page (decision 438)\nOwns:      pinr-live/src/web/\nNot yours: the engine; report to Manager_PINR_002\nOpen:      the web page\n"
+add("8 a Job line with no crew name that mentions Manager_PINR_002 is a worker", run("rules-check.py", "Stop", last_assistant_message=card, transcript_path=tr(NOJOB)), False)
+add("8 ...and such a worker cannot write PINR's manager-only paths", run("rules-check.py", "PreToolUse", tool_name="Write", tool_input={"file_path": "/w/Claude Code/CLAUDE.md"}, transcript_path=tr(NOJOB)), True)
+add("8 ...and cannot shell-write them either", run("rules-check.py", "PreToolUse", tool_name="Bash", tool_input={"command": "echo x >> '/w/Claude Code/CLAUDE.md'"}, transcript_path=tr(NOJOB)), True)
+# a chat after its first summary: the first message is the summary
+SUM = "This session is being continued from a previous conversation that ran out of context.\n\nSummary: ... You are operating in a git worktree ... "
+add("8 a summarized manager ('I am **Manager_PINR_001**') is still the manager", run("rules-check.py", "Stop", last_assistant_message=card, transcript_path=tr(SUM + "I am **Manager_PINR_001**, the founder's go-between. Workers report to me.")), True)
+add("8 a summarized worker ('I am Site_PINR_003', manager named after) is still a worker", run("rules-check.py", "Stop", last_assistant_message=card, transcript_path=tr(SUM + "I am Site_PINR_003 and report to **Manager_PINR_002**.")), False)
 # install-checks and check-report
 IC = os.path.join(T, "ic")
 os.makedirs(IC)

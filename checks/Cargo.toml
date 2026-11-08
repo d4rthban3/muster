@@ -1,0 +1,15 @@
+[package]
+name = "muster-checks"
+version = "0.1.0"
+edition = "2021"
+description = "Muster's coded checks (worker-to-worker records first). Ready-built copies ship with the plugin; no Rust needed on a user's computer."
+license = "MIT"
+publish = false
+
+[dependencies]
+serde_json = "1"
+
+[profile.release]
+opt-level = "s"
+lto = true
+strip = true

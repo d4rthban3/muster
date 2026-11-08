@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.43
+Affects: Manager, Builder, Designer, Inspector.
+project profile for the coded checks (PINR): chat names, report shape, decide.py, board path, no second talk check
+
 ## 0.3.42
 Affects: Manager, Builder.
 Version number only (owner's list item 31, owner: "Bump to 0.3.42"): no other change from 0.3.41.

@@ -1,0 +1,24 @@
+{
+  "version": "0.3.43",
+  "changed_files": [
+    "hooks/board-stop.py",
+    "hooks/rules-check.py",
+    "hooks/talk-check.py",
+    "profiles/pinr.json",
+    "scripts/check-report.py",
+    "scripts/install-checks.py",
+    "scripts/profile-selftest.py",
+    "scripts/setup-smoke.sh"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Builder",
+    "Designer",
+    "Inspector"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "project profile for the coded checks (PINR): chat names, report shape, decide.py, board path, no second talk check"
+}

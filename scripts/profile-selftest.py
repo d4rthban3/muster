@@ -121,6 +121,17 @@ os.makedirs(os.path.dirname(rb))
 open(rb, "w").write("2026-11-08 | LIVE | Look Header_PINR_002 -> Manager | Paused: yes | x\n")
 real = lambda said: subprocess.run([PY, os.path.join(REAL, ".muster-checks", "board-stop.py")], input=json.dumps({"hook_event_name": "Stop", "cwd": REAL, "last_assistant_message": said, "transcript_path": mgr}), capture_output=True, text=True).stdout.strip()
 add("6 the shipped profile's board path is found from the folder holding .muster-checks", real("Fine."), True)
+# gaps: social replies of several words, and PINR's own manager-only paths
+add("7 'noted, thanks' is refused in a PINR chat", send("noted, thanks", site), True)
+add("7 'Thanks - got it' is refused too", send("Thanks - got it", site), True)
+W = lambda path, t: run("rules-check.py", "PreToolUse", tool_name="Write", tool_input={"file_path": path}, transcript_path=t)
+C = "/work/PINRroot/Claude Code"
+for rel in ("Founder/FOUNDER-LIST.md", "PINR-claudecode-handoff/pinr-claude-code-starter-v2/DECISIONS-LOG.md", "manager/rules/Site_001.md", "CLAUDE.md"):
+    add("7 a PINR worker cannot write %s" % rel, W(C + "/" + rel, site), True)
+    add("7 the PINR manager can write %s" % rel, W(C + "/" + rel, mgr), False)
+add("7 the engine's own CLAUDE.md is not on the list", W(C + "/PINR-claudecode-handoff/pinr-claude-code-starter-v2/CLAUDE.md", site), False)
+add("7 a worker's ordinary file is not on the list", W(C + "/pinr-live/src/a.js", site), False)
+add("7 without the profile PINR's paths are not protected", run("rules-check.py", "PreToolUse", plain=True, tool_name="Write", tool_input={"file_path": C + "/CLAUDE.md"}, transcript_path=tr("You are Builder A_Muster_003")), False)
 # install-checks and check-report
 IC = os.path.join(T, "ic")
 os.makedirs(IC)

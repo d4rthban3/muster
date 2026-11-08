@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.37
+Affects: Designer.
+Pointer glow: a deep purple spotlight follows the mouse or finger behind the cards, shown only after the first move (site and setup page)
+
 ## 0.3.36
 Affects: Designer.
 Remove the haze: no glow layer, solid header, no blur, full-colour divider dots (site and setup page)

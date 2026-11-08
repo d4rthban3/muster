@@ -1,0 +1,22 @@
+{
+  "version": "0.3.37",
+  "changed_files": [
+    "docs/chatgpt.html",
+    "docs/checklist.html",
+    "docs/compatibility.html",
+    "docs/cursor.html",
+    "docs/grokbot.html",
+    "docs/index.html",
+    "docs/spot.js",
+    "docs/style.css",
+    "setup/index.html"
+  ],
+  "affected_roles": [
+    "Designer"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Pointer glow: a deep purple spotlight follows the mouse or finger behind the cards, shown only after the first move (site and setup page)"
+}

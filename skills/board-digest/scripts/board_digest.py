@@ -4,6 +4,7 @@
 Read-only: reads muster/BOARD.md and muster/BOARD-ARCHIVE.md, writes nothing, no network.
 
 Usage:  python3 board_digest.py <ROLE> [project-dir]
+        python3 board_digest.py <ROLE> --board <path to BOARD.md>   (a project whose board is elsewhere; read-only)
 
 Entry format (see templates/BOARD.md):
     ### <date> | <DONE|READY|PASS|FAIL|STUCK|NEED> | <from> -> <to> | <job name>
@@ -95,9 +96,24 @@ def main():
     # --write-waiting (manager only): also rewrite the one "Waiting on:" line at the top of muster/BOARD.md.
     write_waiting = "--write-waiting" in sys.argv
     args = [a for a in sys.argv[1:] if a != "--write-waiting"]
+    board_arg = None
+    if "--board" in args:
+        i = args.index("--board")
+        board_arg = args[i + 1] if i + 1 < len(args) else ""
+        args = args[:i] + args[i + 2:]
+        if not board_arg:
+            print("NOT FOUND: --board needs the path of the board file.")
+            return 1
     who = args[0].strip() if args and args[0].strip() else "Manager"
     role = who.lower()
-    root = find_root(args[1] if len(args) > 1 else os.getcwd())
+    if board_arg:
+        board_arg = os.path.abspath(board_arg)
+        if not os.path.isfile(board_arg):
+            print("NOT FOUND: no board file at %s. Read the board by hand." % board_arg)
+            return 1
+        root = os.path.dirname(board_arg)
+    else:
+        root = find_root(args[1] if len(args) > 1 else os.getcwd())
     if root is None:
         print("NOT FOUND: no muster/BOARD.md in this folder or any parent. Read the board by hand.")
         return 1
@@ -106,7 +122,7 @@ def main():
     board_entries = []
     word = re.compile(r"(?<![\w-])(?<!\w )(%s|all)(?![\w-])" % re.escape(role), re.I)
     for name in ("BOARD.md", "BOARD-ARCHIVE.md"):
-        path = os.path.join(root, "muster", name)
+        path = os.path.join(root, name) if board_arg else os.path.join(root, "muster", name)
         text, err = read(path)
         if text is None:
             if name == "BOARD.md" or os.path.exists(path):
@@ -160,7 +176,7 @@ def main():
         if is_p or kind in ("NEED", "STUCK", "OWNER CALL"):
             owner_q.append((kind, sender, job, is_p))
     # fallback for a worker that cannot write the main board: a file .muster-paused in its own folder copy
-    for p in sorted(glob.glob(os.path.join(root, ".claude", "worktrees", "*", ".muster-paused"))):
+    for p in ([] if board_arg else sorted(glob.glob(os.path.join(root, ".claude", "worktrees", "*", ".muster-paused")))):
         who_p = os.path.basename(os.path.dirname(p))
         try:
             with open(p, encoding="utf-8") as fh:
@@ -174,7 +190,9 @@ def main():
     bits += ["waiting for you: type in %s" % p for p in paused]
     line = "Waiting on: " + (", ".join(bits) or "nobody")
     print(line)
-    if write_waiting:
+    if write_waiting and board_arg:
+        print("NOT WRITTEN: --write-waiting is not used with --board (read-only).")
+    elif write_waiting:
         try:  # the manager's run also keeps the board small: finished entries a day old or more move to the archive
             sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
             import board_archive

@@ -199,6 +199,11 @@ for f in CHANGES.md START-HERE.md git-as.sh tools/board_digest.py; do [ -f "$WS/
 [ -f "$WS/.cursor/rules/muster-laptop2-core.mdc" ] || fail "--join did not write this computer's Cursor rules in its workspace"
 grep -q "Never override desk1" "$WS/.cursor/rules/muster-laptop2-core.mdc" || fail "the two-computer lines are missing from the rules"
 grep -q "protocol page" "$WS/.cursor/rules/muster-laptop2-core.mdc" && grep -q "BUILDERS-LOG.md" "$WS/START-HERE.md" || fail "the protocol page and builders' log are not named for the second computer"
+# step 4 of START-HERE runs from the workspace and must reach the host's board (read-only)
+grep -q -- '--board "' "$WS/START-HERE.md" || fail "START-HERE step 4 does not pass the board to the digest"
+(cd "$WS" && $PY tools/board_digest.py Builder --board "$(native "$CM")/muster/BOARD.md" > "$CU/c2digest.out" 2>&1) || { cat "$CU/c2digest.out"; fail "the digest from the second computer's workspace failed"; }
+grep -q "^Read " "$CU/c2digest.out" && ! grep -q "NOT FOUND" "$CU/c2digest.out" || fail "the second computer's digest did not read the board: $(cat "$CU/c2digest.out")"
+[ "$(snap)" = "$BEFORE_SNAP" ] || fail "the second computer's digest changed the shared project"
 # a project with its own layout (board, rules and workspaces elsewhere), read-only
 PL="$CU/pinrlike"; mkdir -p "$PL/Proj/handoff" "$PL/ws2" ; echo "# board" > "$PL/Proj/handoff/BOARD.md"; echo r1 > "$PL/Proj/CLAUDE.md"; echo r2 > "$PL/Proj/READ-FIRST.md"
 PBEFORE=$(find "$PL" -type f | sort | xargs cksum | cksum)

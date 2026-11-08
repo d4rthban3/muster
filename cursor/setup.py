@@ -273,9 +273,9 @@ def join(a):
     if a.dry_run:
         print("DRY RUN: %s would join %s as the second computer. Nothing was written." % (a.computer, a.name))
         nf = lambda x: "" if os.path.exists(x) else " (not there yet)"
-        print("Would read (never write): board %s, protocol %s%s, builders log %s%s" % (board, protocol, nf(protocol), blog, nf(blog)))
+        print("Would read (never write): board %s, protocol %s%s, builders log %s%s" % (fwd(board), fwd(protocol), nf(protocol), fwd(blog), nf(blog)))
         for r in rules:
-            print("Would read (never write): rules %s" % r)
+            print("Would read (never write): rules %s" % fwd(r))
         print("Would write only in this computer's own places (%d):" % len(would))
         for w in would:
             print("  " + w)

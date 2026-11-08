@@ -8,7 +8,7 @@ You are working on "{{PROJECT}}" on {{COMPUTER}}, the second founder computer. {
 2. The builders' change log: {{BUILDERS_LOG}} (only the lines added since the last session; your own log says where you stopped).
 3. The rules:
 {{RULES}}
-4. The board, read-only: `python3 "{{WORKSPACE}}/tools/board_digest.py" "<your chat name>"` (board: {{BOARD}}).
+4. The board, read-only: `python3 "{{WORKSPACE}}/tools/board_digest.py" "<your chat name>" --board "{{BOARD}}"`.
 5. {{OTHER_WORKSPACE}}/CHANGES.md: everything {{OTHER}} has changed. Read it; never write to it.
 Then open {{WORKSPACE}}/CHANGES.md, your own log: at the end of every session add one entry that also says "Read: protocol and builders log through <the last line you read>".
 

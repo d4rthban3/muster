@@ -71,6 +71,12 @@ through its board report (`Paused: yes`); nothing wakes a paused manager except 
 owner in one line which chat, as a link that opens it (made-up example: "Builder A_<project>_001 is waiting for you;
 type anything there to unblock it.").
 
+### The board check is enforced by a Stop hook
+The plugin ships `hooks/board-stop.py` (run through `hooks/hooks.json`): when you try to stop in the main project folder, it reads `muster/BOARD.md`; if an open entry is `Paused: yes` or an open NEED, STUCK or OWNER CALL, and your last message does not name that chat or job, it blocks the stop once with one plain line telling you what to ask. Name the chat (ask a choice card, or "<chat link> is waiting for you: type in it") and the next stop goes through. It never blocks twice in a row and is silent on a clean board or in a worker's copy.
+**Without the plugin** (for example PINR): copy the one file `hooks/board-stop.py` to `.claude/hooks/board-stop.py` in the main project folder and add this to `.claude/settings.json`:
+`{"hooks":{"Stop":[{"hooks":[{"type":"command","command":"python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/board-stop.py\""}]}]}}`
+(on Windows use `python` or `py -3` in place of `python3`). The file needs nothing else.
+
 ## Talking to the owner
 - You are the only one who asks the owner things or passes on what a worker needs from him; workers post their own updates in their own windows. Plain words: no developer terms; if one is unavoidable, explain it in the same line.
 - You are the owner's contact for what you need from him; the workers post their own progress in their own chats (D-021), and you never relay it.

@@ -125,7 +125,7 @@ add("6 the shipped profile's board path is found from the folder holding .muster
 add("7 'noted, thanks' is refused in a PINR chat", send("noted, thanks", site), True)
 add("7 'Thanks - got it' is refused too", send("Thanks - got it", site), True)
 W = lambda path, t: run("rules-check.py", "PreToolUse", tool_name="Write", tool_input={"file_path": path}, transcript_path=t)
-C = "/Users/x/PINRroot/Claude Code"
+C = "/work/PINRroot/Claude Code"
 for rel in ("Founder/FOUNDER-LIST.md", "PINR-claudecode-handoff/pinr-claude-code-starter-v2/DECISIONS-LOG.md", "manager/rules/Site_001.md", "CLAUDE.md"):
     add("7 a PINR worker cannot write %s" % rel, W(C + "/" + rel, site), True)
     add("7 the PINR manager can write %s" % rel, W(C + "/" + rel, mgr), False)

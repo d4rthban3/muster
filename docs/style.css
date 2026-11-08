@@ -57,7 +57,7 @@ a{color:var(--link);text-underline-offset:3px}
 footer{color:var(--mut);font-size:14px}footer p{margin:4px 0}
 table{width:100%;border-collapse:collapse;font-size:15px;margin:8px 0}th,td{text-align:left;vertical-align:top;border-bottom:1px solid var(--line);padding:10px 10px 10px 0}th{font-weight:700}tr:first-child th{font-family:Manrope,sans-serif;border-bottom:2px solid var(--purple)}
 .tag{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:2px 10px;font-size:13px;color:var(--text);background:var(--acc);border-color:var(--acc-edge);font-weight:600;vertical-align:middle}
-.back{display:inline-flex;margin-bottom:22px;font-weight:600}.card ol,.card ul{color:var(--text)}.card li{margin:6px 0}.card pre{margin:10px 0 0;white-space:pre-wrap}.tbl{overflow-x:auto}
+.back{display:inline-flex;margin-bottom:22px;font-weight:600}.card ol,.card ul{color:var(--text)}.card li{margin:6px 0}.card pre{margin:10px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}.tbl{overflow-x:auto}
 @media (max-width:600px){h1{font-size:38px}.hero{flex-direction:column-reverse;align-items:flex-start;gap:18px}.crew{width:110px}.card{padding:20px}.brand{font-size:20px}.brand img{width:32px;height:32px}}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}.btn:hover,.btn:active{transform:none}}
 

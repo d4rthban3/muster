@@ -42,13 +42,33 @@
 <ol>
 <li>Open your project&rsquo;s folder in Cursor and start a new <b>Agent</b> chat there.</li>
 <li>Paste this one message and press Enter. When Cursor asks to run a command, click Run or Allow.
-<pre id="cp" style="white-space:pre-wrap;overflow-wrap:anywhere">Set up Muster for this project. First ask me for the project&#x27;s name and one sentence on what I am building. Then get Muster (`git clone https://github.com/d4rthban3/muster` into a folder next to this project, unless it is already there), run its `cursor/setup.py` on this project&#x27;s folder with that name and sentence, and show me the folders and starting-note files it prints.</pre>
+<pre id="cp">Set up Muster for this project. First ask me for the project&#x27;s name and one sentence on what I am building. Then get Muster (`git clone https://github.com/d4rthban3/muster` into a folder next to this project, unless it is already there), run its `cursor/setup.py` on this project&#x27;s folder with that name and sentence, and show me the folders and starting-note files it prints.</pre>
 <div class="row"><button class="copy" type="button" data-for="cp">Copy</button></div>
 <span class="see">You should see: Cursor asks for the project&rsquo;s name and what you are building, then lists a folder and a starting-note file for each agent.</span></li>
 <li>For each agent it lists, <b>Manager first</b>: open that agent&rsquo;s folder in Cursor, start a new Agent chat, open the starting-note file it names, and paste its whole contents as your first message.</li>
 <li>Talk only to the Manager. When it says &ldquo;X is waiting for you: type in &lt;chat&gt;&rdquo;, open that chat and type anything.</li>
 <li>To see what is waiting at any time, look at the top line of <code>muster/BOARD.md</code> (&ldquo;Waiting on:&rdquo;).</li>
 </ol>
+</section>
+<section class="card">
+<h2>A second computer (untested)</h2>
+<p>For a second computer that opens the first computer&rsquo;s project files live, for example over a network share. Nothing here has been run; the join mode was written from the same documentation as the rest.</p>
+<ol>
+<li>On the second computer, open the project folder in Cursor exactly as that computer sees it, and start a new <b>Agent</b> chat.</li>
+<li>Paste this and press Enter. Name each computer with any short word; here they are &ldquo;laptop2&rdquo; (this one) and &ldquo;desk1&rdquo; (the first). Click Run or Allow when asked.
+<pre id="jp">Join this project as a second founder computer with Muster. Get Muster (git clone https://github.com/d4rthban3/muster next to this project, unless it is already there), then run its cursor/setup.py on this project's folder with --join --computer laptop2 --other desk1 --copies clone, and show me the folders and the START-HERE file it prints.</pre>
+<div class="row"><button class="copy" type="button" data-for="jp">Copy</button></div>
+<span class="see">You should see: a workspace folder for this computer, with a START-HERE file, a change log, and a local copy for each builder and designer.</span></li>
+<li>In every chat on the second computer, paste the whole START-HERE file as your first message.</li>
+</ol>
+<p>The rules the second computer follows:</p>
+<ul>
+<li>It reads the first computer&rsquo;s change log before each session and adds one entry to its own after.</li>
+<li>It never gives orders to the first computer, and takes none. Something it needs goes to you as a question.</li>
+<li>Only the first computer&rsquo;s Manager writes the shared records: the owner&rsquo;s list, decisions, board and rules pages.</li>
+<li>It works on branches and copies of its own, under its own git name.</li>
+<li>Nothing can stop two computers saving the same file at once on a network share. Each side checks the other&rsquo;s log before editing a file, and one side edits a file at a time.</li>
+</ul>
 </section>
 <section class="card">
 <h2>What is different from Claude Code</h2>

@@ -1,0 +1,23 @@
+{
+  "version": "0.3.29",
+  "changed_files": [
+    "README.md",
+    "cursor/README.md",
+    "cursor/rules/muster-builder.mdc",
+    "cursor/rules/muster-core.mdc",
+    "cursor/rules/muster-designer.mdc",
+    "cursor/rules/muster-inspector.mdc",
+    "cursor/rules/muster-manager.mdc",
+    "cursor/setup.py",
+    "cursor/stop.py",
+    "hooks/board-stop.py",
+    "platforms/cursor.yaml",
+    "scripts/setup-smoke.sh"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "cursor"
+  ],
+  "records_change": false,
+  "note": "Muster for Cursor, full crew (untested in Cursor): cursor/setup.py builds the crew (manager, builder, designer, inspector) as separate Cursor agents in their own copies, with Muster's rules as Cursor rules, the same board and owner's list, and a manager Stop check. The owner: \"computer 2 is on cursor and needs muster catered to it.\""
+}

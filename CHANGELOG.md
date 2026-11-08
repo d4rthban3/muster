@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.29
+Affects: nobody on Claude Code; Cursor users only.
+Muster for Cursor, full crew (untested in Cursor): cursor/setup.py builds the crew (manager, builder, designer, inspector) as separate Cursor agents in their own copies, with Muster's rules as Cursor rules, the same board and owner's list, and a manager Stop check. The owner: "computer 2 is on cursor and needs muster catered to it."
+
 ## 0.3.28
 Affects: Manager, Builder, Designer, Inspector.
 The talking rules are locked in: a short "How to talk to the owner" block at the top of the crew rules, put back by a hook after every summary, and a light check that flags once a crew reply with a bare file path or saved-version code. The owner: "its reverting back to claude style conversation and not locking in muster communication rules."

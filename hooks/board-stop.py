@@ -2,6 +2,7 @@
 """Stop hook for the manager's chat: do not let the manager end a turn while the board holds an open question
 for the owner that the manager's last message does not name.
 
+Fires only in the manager's own chat (its first message names agents/manager.md or Manager_<project>_<digits>).
 Self-contained on purpose: a project that does not use the plugin can copy just this one file.
 Reads the hook's JSON from standard input. Reads only muster/BOARD.md in the session's own folder. Writes nothing,
 sends nothing. Silent (exit 0, no output) when the board is clean, in a worker's copy, or on any error.
@@ -45,6 +46,28 @@ def entries(text):
     return out
 
 
+def is_manager_chat(transcript_path):
+    """True only if the chat's FIRST user message names the manager's definition or a Manager_<project>_<digits> chat.
+    The owner's own chats in the same folder, and any worker, do not. Unreadable means no (stay silent)."""
+    try:
+        with open(transcript_path, encoding="utf-8") as fh:
+            for line in fh:
+                try:
+                    d = json.loads(line)
+                except ValueError:
+                    continue
+                if d.get("type") != "user":
+                    continue
+                c = (d.get("message") or {}).get("content", "")
+                if isinstance(c, list):
+                    c = " ".join(b.get("text", "") for b in c if isinstance(b, dict))
+                c = str(c)[:6000]
+                return bool(re.search(r"agents[/\\]manager\.md|\bManager_[A-Za-z0-9 ]*_\d{3}\b", c))
+    except OSError:
+        pass
+    return False
+
+
 def main():
     try:
         data = json.load(sys.stdin)
@@ -52,6 +75,8 @@ def main():
         return 0
     if data.get("stop_hook_active"):
         return 0
+    if not is_manager_chat(data.get("transcript_path") or ""):
+        return 0  # the owner's own chat, or a worker: never nag it
     cwd = data.get("cwd") or os.getcwd()
     cwd = os.path.abspath(cwd)
     if "worktrees" in cwd.replace("\\", "/").split("/"):

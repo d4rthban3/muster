@@ -97,15 +97,20 @@ OUT3=$(cd "$FOLDER" && $PY "$ROOT/skills/board-digest/scripts/board_digest.py" M
 echo "$OUT3" | grep -q "^OWNER QUESTIONS" || fail "no OWNER QUESTIONS block for a paused NEED: $OUT3"
 head -3 "$FOLDER/muster/BOARD.md" | grep -q "^Waiting on: waiting for you: type in Builder A_X_001" || fail "Waiting on line does not name the paused chat: $(head -4 "$FOLDER/muster/BOARD.md")"
 
-step "the manager's Stop hook blocks on an unmentioned paused chat and lets a clean board through"
-hook() { (cd "$FOLDER" && printf '{"cwd":"%s","stop_hook_active":%s,"last_assistant_message":"%s"}' "$(native "$FOLDER")" "$1" "$2" | sh "$ROOT/hooks/board-stop.sh"); }
-# the board still holds the paused NEED from the step above
-hook false "all done" | grep -q '"decision": "block"' || fail "Stop hook did not block on a paused chat the manager never named"
-hook false "Builder A_X_001 is waiting for you" | grep -q . && fail "Stop hook blocked although the paused chat was named"
-hook true "all done" | grep -q . && fail "Stop hook blocked while already continuing (it could loop)"
+step "the manager's Stop hook blocks on an unmentioned paused chat, and stays silent for everyone else"
+mkdir -p "$SCRATCH/tr"
+printf '{"type":"user","message":{"role":"user","content":"First: read the plugin folder/agents/manager.md and follow it. You are Manager_X_001."}}\n' > "$SCRATCH/tr/manager.jsonl"
+printf '{"type":"queue-operation"}\n{"type":"user","message":{"role":"user","content":"please fix the header art on my page"}}\n' > "$SCRATCH/tr/owner.jsonl"
+hook() { (cd "$FOLDER" && printf '{"cwd":"%s","transcript_path":"%s","stop_hook_active":%s,"last_assistant_message":"%s"}' "$(native "$FOLDER")" "$(native "$SCRATCH")/tr/$1.jsonl" "$2" "$3" | sh "$ROOT/hooks/board-stop.sh"); }
+printf '# Board\n\n## Entries\n### 2026-01-31 | NEED | Builder A_X_001 -> Manager | demo\nStatus: open\nPaused: yes\n' > "$FOLDER/muster/BOARD.md"
+hook manager false "all done" | grep -q '"decision": "block"' || fail "Stop hook did not block the manager on a paused chat it never named"
+hook owner false "all done" | grep -q . && fail "Stop hook spoke in the owner's own chat in the main folder"
+hook manager false "Builder A_X_001 is waiting for you" | grep -q . && fail "Stop hook blocked although the paused chat was named"
+hook manager true "all done" | grep -q . && fail "Stop hook blocked while already continuing (it could loop)"
 printf '# Board\n\n## Entries\n### 2026-01-31 | NEED | Builder A_X_001 -> Manager | demo\nStatus: done\n' > "$FOLDER/muster/BOARD.md"
-hook false "all done" | grep -q . && fail "Stop hook spoke on a clean board"
-(cd "$FOLDER" && printf '{"cwd":"%s/.claude/worktrees/b","last_assistant_message":""}' "$(native "$FOLDER")" | sh "$ROOT/hooks/board-stop.sh" | grep -q .) && fail "Stop hook ran in a worker copy"
+hook manager false "all done" | grep -q . && fail "Stop hook spoke on a clean board"
+printf '### 2026-01-31 | NEED | Builder A_X_001 -> Manager | demo\nStatus: open\n' >> "$FOLDER/muster/BOARD.md"
+(cd "$FOLDER" && printf '{"cwd":"%s/.claude/worktrees/b","transcript_path":"%s","last_assistant_message":""}' "$(native "$FOLDER")" "$(native "$SCRATCH")/tr/manager.jsonl" | sh "$ROOT/hooks/board-stop.sh" | grep -q .) && fail "Stop hook ran in a worker copy"
 $PY -c "import json;json.load(open('$(native "$ROOT")/hooks/hooks.json'))" || fail "hooks/hooks.json is not valid JSON"
 
 step "a pretend order, READY and PASS on this project"

@@ -163,7 +163,10 @@ def turn_blocks(path):
 
 
 def all_sent_text(path):
-    out = []
+    """The text of messages that were really sent: a SendMessage whose result came back without an error. A call still
+    waiting for its result (this one, or a sibling sent in the same turn) and a call a hook refused do not count, so a
+    refused send does not use up its ID."""
+    calls, failed, done = {}, set(), set()
     try:
         with open(path, encoding="utf-8") as fh:
             for line in fh:
@@ -172,13 +175,51 @@ def all_sent_text(path):
                 except ValueError:
                     continue
                 c = (d.get("message") or {}).get("content", "")
-                if d.get("type") == "assistant" and isinstance(c, list):
-                    for b in c:
-                        if isinstance(b, dict) and b.get("type") == "tool_use" and b.get("name") == "SendMessage":
-                            out.append(str((b.get("input") or {}).get("message", "")))
+                if not isinstance(c, list):
+                    continue
+                for b in c:
+                    if not isinstance(b, dict):
+                        continue
+                    if d.get("type") == "assistant" and b.get("type") == "tool_use" and b.get("name") == "SendMessage":
+                        calls[b.get("id")] = str((b.get("input") or {}).get("message", ""))
+                    elif d.get("type") == "user" and b.get("type") == "tool_result":
+                        done.add(b.get("tool_use_id"))
+                        rc = b.get("content", "")
+                        rc = " ".join(x.get("text", "") for x in rc if isinstance(x, dict)) if isinstance(rc, list) else str(rc)
+                        if b.get("is_error") or rc.lstrip().startswith("Muster rule:") or "Muster rule:" in rc[:200]:
+                            failed.add(b.get("tool_use_id"))
     except OSError:
         pass
-    return out
+    return [t for i, t in calls.items() if i in done and i not in failed]
+
+
+MACHINE = re.compile(r"^\s*(<cross-session-message|<system-reminder|<task-notification|<side-sessions-event|<ci-monitor-event|\[SYSTEM NOTIFICATION|Stop hook feedback)", re.I)
+
+
+def owner_asked(path):
+    """True if the owner's last typed message of this conversation holds a question mark. Messages from other chats, system
+    reminders and hook feedback are not his."""
+    last = ""
+    try:
+        with open(path, encoding="utf-8") as fh:
+            for line in fh:
+                try:
+                    d = json.loads(line)
+                except ValueError:
+                    continue
+                if d.get("type") != "user":
+                    continue
+                c = (d.get("message") or {}).get("content", "")
+                if isinstance(c, list):
+                    if any(isinstance(b, dict) and b.get("type") == "tool_result" for b in c):
+                        continue
+                    c = " ".join(b.get("text", "") for b in c if isinstance(b, dict))
+                c = str(c)
+                if c.strip() and not MACHINE.match(c):
+                    last = c
+    except OSError:
+        pass
+    return "?" in last
 
 
 def main_folder(cwd):
@@ -304,7 +345,7 @@ def stop(data, manager):
             if not recorded:
                 return block("a choice card was answered but not recorded: run scripts/%s with his exact answer" % RECORDER + " under its list item before ending the turn")
             return
-        if not manager_reply_ok(text):
+        if not manager_reply_ok(text) and not owner_asked(data.get("transcript_path") or ""):
             return block("to the owner the manager says only a question with its choices as buttons, a yes he must give, '<worker> is waiting for you: type in <chat>', or 'The crew is idle'. Rewrite the reply as one of those, or put the news on the board")
         return
     if asked or re.match(r"\s*Messages paused", text):

@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.46
+Affects: Manager, Builder, Designer, Inspector.
+PINR check gaps: social-only messages refused; the profile carries PINR's manager-only paths
+
 ## 0.3.45
 Affects: Manager, Builder, Designer, Inspector.
 message checks: a refused or pending send keeps its ID; a manager's direct answer to his typed question passes in the turn he started

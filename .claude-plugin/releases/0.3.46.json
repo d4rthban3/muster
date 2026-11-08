@@ -1,0 +1,20 @@
+{
+  "version": "0.3.46",
+  "changed_files": [
+    "hooks/rules-check.py",
+    "profiles/pinr.json",
+    "scripts/profile-selftest.py",
+    "scripts/rules-check-selftest.py"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Builder",
+    "Designer",
+    "Inspector"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "PINR check gaps: social-only messages refused; the profile carries PINR's manager-only paths"
+}

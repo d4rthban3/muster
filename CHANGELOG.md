@@ -4,7 +4,7 @@ Each version names which workers it affects.
 
 ## 0.3.41
 Affects: Manager, Builder.
-Computer 2 in step (D-028, owner: "i need computer 2 to be informed of the protocol and to stay in step with our builders"): the second computer's join, run there, sets itself up from the shared files, takes the project's board, rules, protocol page, builders' log and workspace paths as options, can be dry-run, and writes nothing in the host's files; a protocol page and a builders' change log are kept with the crew files (ship.sh adds a line at each ship, the manager adds ready-but-not-live work), and the second computer reads both before every session.
+Computer 2 in step (owner's list item 31, owner: "i need computer 2 to be informed of the protocol and to stay in step with our builders"): the second computer's join, run there, sets itself up from the shared files, takes the project's board, rules, protocol page, builders' log and workspace paths as options, can be dry-run, and writes nothing in the host's files; a protocol page and a builders' change log are kept with the crew files (ship.sh adds a line at each ship, the manager adds ready-but-not-live work), and the second computer reads both before every session.
 
 ## 0.3.40
 Affects: Manager, Builder, Designer, Inspector.

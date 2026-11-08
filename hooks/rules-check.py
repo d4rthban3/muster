@@ -197,8 +197,9 @@ MACHINE = re.compile(r"^\s*(<cross-session-message|<system-reminder|<task-notifi
 
 
 def owner_asked(path):
-    """True if the owner's last typed message of this conversation holds a question mark. Messages from other chats, system
-    reminders and hook feedback are not his."""
+    """True if this turn was started by the owner's typed message and it holds a question mark. The turn's starting message is
+    the last user message that is not a tool result; if that is a message from another chat, a system note or hook feedback,
+    the turn is not his and the answer is False (an earlier question of his does not carry over)."""
     last = ""
     try:
         with open(path, encoding="utf-8") as fh:
@@ -215,8 +216,8 @@ def owner_asked(path):
                         continue
                     c = " ".join(b.get("text", "") for b in c if isinstance(b, dict))
                 c = str(c)
-                if c.strip() and not MACHINE.match(c):
-                    last = c
+                if c.strip():
+                    last = "" if MACHINE.match(c) else c
     except OSError:
         pass
     return "?" in last

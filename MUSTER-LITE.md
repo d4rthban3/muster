@@ -17,7 +17,7 @@ own.
 | AI | How | Tested |
 |---|---|---|
 | Codex, Gemini CLI, GitHub Copilot, ChatGPT, Grok, any other AI that can open web addresses | one message: "Start Muster Lite. Read the live MUSTER-LITE.md on GitHub now and each time you start, and follow its prompt." Nothing is added to your project, and it updates when Muster does; or, if you prefer, add this file to your repository | not tested yet |
-| Cursor | not Lite: Cursor has the full crew, with its own guide at cursor.html on the Muster site (docs/cursor.html) | not tested yet |
+| Cursor | not Lite: Cursor has the full crew, with its own guide at https://d4rthban3.github.io/muster/cursor.html | not tested yet |
 | Claude app (mobile, or the free versions of Claude), Gemini app | the same message; if the AI cannot open web addresses, the Muster Lite skill uploaded (Customize, Skills; code execution on for Claude), or the prompt below pasted as your first message | not tested yet |
 | A Grok bot on GitHub | the bot told once to read the live MUSTER-LITE.md each time; no file added to your repository (no official xAI GitHub bot was found) | not tested yet |
 | An AI that cannot open web addresses | the prompt below pasted as your first message | not tested yet |

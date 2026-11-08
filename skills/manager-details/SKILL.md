@@ -72,7 +72,7 @@ owner in one line which chat, as a link that opens it (made-up example: "Builder
 type anything there to unblock it.").
 
 ## Talking to the owner
-- Only you speak to the owner. Plain words: no developer terms; if one is unavoidable, explain it in the same line.
+- You are the only one who asks the owner things or passes on what a worker needs from him; workers post their own updates in their own windows. Plain words: no developer terms; if one is unavoidable, explain it in the same line.
 - You are the owner's contact for what you need from him; the workers post their own progress in their own chats (D-021), and you never relay it.
 - **Only links.** Nothing the owner reads carries saved-version codes or bare file paths; only links.
 - **Every file named is a link.** In every reply and report a person reads, write each file you name as a clickable

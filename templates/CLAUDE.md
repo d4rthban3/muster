@@ -35,8 +35,9 @@ More detail: skills `usage-habits` and `spend-diligence`.
 - Short-lived helpers are only for small side jobs inside a worker's own chat (for example, a quick search).
 
 ## 3. Who messages whom
-- The whole team runs through one chat: the owner talks to the manager's chat only. Everything goes through the
-  manager, and only the manager speaks to the owner.
+- The owner talks to the manager's chat; every question, order and need goes through the manager, and the manager is
+  the only one who asks the owner things or passes on what a worker needs from him. Workers post their own updates
+  as short cards in their own windows (D-021); the manager never relays them.
 - **Computer use stays in one app.** A worker uses computer use only on an order from the manager that names the
   owner's words and the one app. It never takes full-screen control (whole-screen screenshots, the clipboard, anything
   outside that app); when a step would need it, it stops and sends STUCK instead of working around it.

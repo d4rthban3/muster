@@ -1,0 +1,31 @@
+{
+  "version": "0.3.23",
+  "changed_files": [
+    "agents/agent-teacher.md",
+    "agents/ai-socket.md",
+    "agents/builder.md",
+    "agents/design-inspector.md",
+    "agents/designer.md",
+    "agents/inspector.md",
+    "agents/manager.md",
+    "agents/sketchpad.md",
+    "commands/setup.md",
+    "skills/manager-details/SKILL.md",
+    "skills/start-the-crew/SKILL.md",
+    "templates/CLAUDE.md",
+    "templates/REPORT.md",
+    "templates/RULES-PAGE.md",
+    "templates/START-NOTE.md"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Builder",
+    "Designer",
+    "Inspector"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "The manager tells the owner only a question, a yes he must give, \"<worker> is waiting for you: type in <chat>\", or that the crew is idle; each worker posts its own update as a short card in its own window (D-021). The owner: \"i only need the manager to tell me what it needs from me.\""
+}

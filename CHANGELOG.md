@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.23
+Affects: Manager, Builder, Designer, Inspector.
+The manager tells the owner only a question, a yes he must give, "<worker> is waiting for you: type in <chat>", or that the crew is idle; each worker posts its own update as a short card in its own window (D-021). The owner: "i only need the manager to tell me what it needs from me."
+
 ## 0.3.22
 Affects: Manager, Builder, Designer, Inspector.
 Paused chats reach the owner (D-020): a paused worker writes its board report with "Paused: yes" and sends the owner a notification; the board digest prints OWNER QUESTIONS and names a paused chat as "waiting for you: type in <chat>"; the manager asks the owner the top one before ending any turn. The owner: "engine paused and i didnt get a queue with click box".

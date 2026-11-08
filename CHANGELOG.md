@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.25
+Affects: Manager.
+A manager never picks for the owner (D-022): decisions are written only by scripts/decide.py, which needs his recorded click or his own words naming the choice, and the Stop hook blocks a manager turn that says it is choosing or recording for him with no choice card answered. The owner: "the ill go ahead with it even though you didnt pick an option in a click box."
+
 ## 0.3.24
 Affects: Manager.
 A Stop hook in the plugin makes the manager's board check enforced, not remembered: it blocks the manager from stopping while a paused chat or an open NEED, STUCK or OWNER CALL sits on the board unnamed. The owner: "engine paused and i didnt get a queue with click box".

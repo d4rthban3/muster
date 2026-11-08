@@ -1,0 +1,18 @@
+{
+  "version": "0.3.25",
+  "changed_files": [
+    "hooks/board-stop.py",
+    "scripts/decide.py",
+    "scripts/setup-smoke.sh",
+    "skills/decision-log/SKILL.md",
+    "skills/manager-details/SKILL.md"
+  ],
+  "affected_roles": [
+    "Manager"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "A manager never picks for the owner (D-022): decisions are written only by scripts/decide.py, which needs his recorded click or his own words naming the choice, and the Stop hook blocks a manager turn that says it is choosing or recording for him with no choice card answered. The owner: \"the ill go ahead with it even though you didnt pick an option in a click box.\""
+}

@@ -105,12 +105,12 @@ def _token_is_manager(tok):
 
 
 def is_manager(first):
-    """Only the chat's OWN name makes it the manager. Its own name is the first crew name that follows 'Job:' or 'You are' in
+    """Only the chat's OWN name makes it the manager. Its own name is the first crew name that follows 'Job:', 'You are' or 'I am' (a summary says "I am **Manager_X_001**") in
     its starting note (every such place is tried: 'You are operating in a git worktree' holds no name). Else the first
     agents/<role>.md it names, else a Job line that says 'go-between' or 'record keeper'. A crew name that is merely
     mentioned ("report to Manager_X_002", "Manager_X_001 gives every order") never makes a chat the manager."""
     best = None
-    for lead in (r"\bJob:\s*", r"\byou are\s+(?:the\s+)?"):
+    for lead in (r"\bJob:\s*[*`]{0,2}", r"\b(?:you are|i am|i'm)\s+(?:the\s+)?[*`]{0,2}"):
         for m in re.finditer(lead, first, re.I):
             c = CREW_RE.match(first, m.end())
             if c and (best is None or m.start() < best[0]):

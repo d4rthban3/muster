@@ -166,6 +166,10 @@ NOJOB = WT + "Job:       build the evidence web page (decision 438)\nOwns:      
 add("8 a Job line with no crew name that mentions Manager_PINR_002 is a worker", run("rules-check.py", "Stop", last_assistant_message=card, transcript_path=tr(NOJOB)), False)
 add("8 ...and such a worker cannot write PINR's manager-only paths", run("rules-check.py", "PreToolUse", tool_name="Write", tool_input={"file_path": "/w/Claude Code/CLAUDE.md"}, transcript_path=tr(NOJOB)), True)
 add("8 ...and cannot shell-write them either", run("rules-check.py", "PreToolUse", tool_name="Bash", tool_input={"command": "echo x >> '/w/Claude Code/CLAUDE.md'"}, transcript_path=tr(NOJOB)), True)
+# a chat after its first summary: the first message is the summary
+SUM = "This session is being continued from a previous conversation that ran out of context.\n\nSummary: ... You are operating in a git worktree ... "
+add("8 a summarized manager ('I am **Manager_PINR_001**') is still the manager", run("rules-check.py", "Stop", last_assistant_message=card, transcript_path=tr(SUM + "I am **Manager_PINR_001**, the founder's go-between. Workers report to me.")), True)
+add("8 a summarized worker ('I am Site_PINR_003', manager named after) is still a worker", run("rules-check.py", "Stop", last_assistant_message=card, transcript_path=tr(SUM + "I am Site_PINR_003 and report to **Manager_PINR_002**.")), False)
 # install-checks and check-report
 IC = os.path.join(T, "ic")
 os.makedirs(IC)

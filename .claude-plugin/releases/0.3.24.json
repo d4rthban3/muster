@@ -1,0 +1,19 @@
+{
+  "version": "0.3.24",
+  "changed_files": [
+    "README.md",
+    "hooks/board-stop.py",
+    "hooks/board-stop.sh",
+    "hooks/hooks.json",
+    "scripts/setup-smoke.sh",
+    "skills/manager-details/SKILL.md"
+  ],
+  "affected_roles": [
+    "Manager"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "A Stop hook in the plugin makes the manager's board check enforced, not remembered: it blocks the manager from stopping while a paused chat or an open NEED, STUCK or OWNER CALL sits on the board unnamed. The owner: \"engine paused and i didnt get a queue with click box\"."
+}

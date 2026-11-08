@@ -1,0 +1,18 @@
+{
+  "version": "0.3.45",
+  "changed_files": [
+    "hooks/rules-check.py",
+    "scripts/rules-check-selftest.py"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Builder",
+    "Designer",
+    "Inspector"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "message checks: a refused or pending send keeps its ID; a manager's direct answer to his typed question passes in the turn he started"
+}

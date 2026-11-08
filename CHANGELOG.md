@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.45
+Affects: Manager, Builder, Designer, Inspector.
+message checks: a refused or pending send keeps its ID; a manager's direct answer to his typed question passes in the turn he started
+
 ## 0.3.44
 Affects: Manager, Builder, Designer, Inspector.
 PINR install fixes: board path from the folder holding .muster-checks; the plugin's hooks stand down where a project has its own copy

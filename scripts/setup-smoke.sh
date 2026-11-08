@@ -119,17 +119,23 @@ printf '# List\n\n## Open\n1. "which colour"\n   Kind: question\n   Choice (2026
 printf '# Decisions log\n\n### D-001 · 2026-01-01 · first\nDecision: x\n' > "$FOLDER/muster/DECISIONS-LOG.md"
 $PY "$ROOT/scripts/decide.py" "$FN" --item 1 --title "Colour" --decision "blue" --why "he picked" --picked "B. blue" >/dev/null || fail "decide.py refused a decision that rests on a recorded click"
 grep -q "^### D-002 · [0-9-]* · Colour" "$FOLDER/muster/DECISIONS-LOG.md" || fail "decide.py did not number D-002: $(cat "$FOLDER/muster/DECISIONS-LOG.md")"
-$PY "$ROOT/scripts/decide.py" "$FN" --item 1 --title "Said" --decision "blue" --why "w" --said "go with blue please" >/dev/null || fail "decide.py refused his own recorded words"
+$PY "$ROOT/scripts/decide.py" "$FN" --item 1 --title "Said" --decision "blue" --why "w" --said "go with blue please" --chose "blue" >/dev/null || fail "decide.py refused his own recorded words"
 if $PY "$ROOT/scripts/decide.py" "$FN" --item 2 --title "Guess" --decision "red" --why "w" --picked "A. red" >/dev/null 2>&1; then fail "decide.py took a pick that was never clicked"; fi
 if $PY "$ROOT/scripts/decide.py" "$FN" --item 2 --title "Guess" --decision "red" --why "w" --said "it seems he wants red" >/dev/null 2>&1; then fail "decide.py took words that are not under the item"; fi
+printf '# List\n\n## Open\n3. "make the header blue or maybe green, whatever looks better"\n   Kind: question\n   Did: manager thinks blue fits what he wants\n\n## Closed\n' > "$FOLDER/muster/OWNERS-LIST.md"
+if $PY "$ROOT/scripts/decide.py" "$FN" --item 3 --title "Mgr" --decision "blue" --why "w" --said "manager thinks blue fits" --chose "blue" >/dev/null 2>&1; then fail "decide.py took the manager's own line as his words"; fi
+if $PY "$ROOT/scripts/decide.py" "$FN" --item 3 --title "Vague" --decision "blue" --why "w" --said "whatever looks better" >/dev/null 2>&1; then fail "decide.py took words that do not name the choice"; fi
+if $PY "$ROOT/scripts/decide.py" "$FN" --item 3 --title "Vague" --decision "blue" --why "w" --said "whatever looks better" --chose "blue" >/dev/null 2>&1; then fail "decide.py took words that do not contain the option name"; fi
+$PY "$ROOT/scripts/decide.py" "$FN" --item 3 --title "Ok" --decision "blue" --why "w" --said "make the header blue or maybe green" --chose "blue" >/dev/null || fail "decide.py refused his quoted words that contain the option"
 if $PY "$ROOT/scripts/decide.py" "$FN" --item 1 --title "Nothing" --decision "red" --why "w" >/dev/null 2>&1; then fail "decide.py took a decision with no proof"; fi
-[ "$(grep -c '^### D-' "$FOLDER/muster/DECISIONS-LOG.md")" = 3 ] || fail "decisions log changed by a refused call"
+[ "$(grep -c '^### D-' "$FOLDER/muster/DECISIONS-LOG.md")" = 4 ] || fail "decisions log changed by a refused call"
 printf '# Board\n\n## Entries\n' > "$FOLDER/muster/BOARD.md"
 cp "$SCRATCH/tr/manager.jsonl" "$SCRATCH/tr/mgr-card.jsonl"
 printf '{"type":"assistant","message":{"role":"assistant","content":[{"type":"tool_use","name":"AskUserQuestion","input":{}}]}}\n' >> "$SCRATCH/tr/mgr-card.jsonl"
 hook manager false "So C fits what you want, and I am recording it." | grep -q '"decision": "block"' || fail "Stop hook did not catch a manager choosing for the owner"
 hook mgr-card false "So C fits what you want, and I am recording it." | grep -q . && fail "Stop hook blocked although a choice card was answered this turn"
 hook manager false "You picked B, so I am recording it." | grep -q . && fail "Stop hook blocked although the message says he picked"
+hook manager false "You said you want it calm, so C fits what you want, I am recording it." | grep -q '"decision": "block"' || fail "Stop hook let through 'you said ... I am recording it'"
 hook manager true "I am recording it." | grep -q . && fail "Stop hook blocked while already continuing"
 
 step "a pretend order, READY and PASS on this project"

@@ -71,7 +71,7 @@ def is_manager_chat(transcript_path):
 PICKS = re.compile(r"fits what you want|fits what you said|i'?m recording|i am recording|i'?ll record|i will record|"
                    r"i went with|i'?ll go with|i will go with|i'?m going with|i am going with|i picked|i chose|i'?ve chosen|"
                    r"i have chosen|so [a-d] (fits|it is)|recording (it|that|this) as", re.I)
-TOLD = re.compile(r"you (picked|chose|clicked|selected|said)", re.I)
+TOLD = re.compile(r"you (picked|chose|clicked|selected)", re.I)
 
 
 def card_answered_this_turn(transcript_path):

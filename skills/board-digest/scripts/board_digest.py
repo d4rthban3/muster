@@ -175,6 +175,14 @@ def main():
     line = "Waiting on: " + (", ".join(bits) or "nobody")
     print(line)
     if write_waiting:
+        try:  # the manager's run also keeps the board small: finished entries a day old or more move to the archive
+            sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+            import board_archive
+            n_moved = board_archive.archive(root)
+            if n_moved:
+                print("Moved %d finished entries to BOARD-ARCHIVE.md" % n_moved)
+        except Exception as err:
+            print("ARCHIVE SKIPPED: %s" % err)
         write_waiting_line(os.path.join(root, "muster", "BOARD.md"), line)
     if owner_q:
         print("\nOWNER QUESTIONS (ask the owner the top one as a choice card before ending your turn, unless his own words answer it):")

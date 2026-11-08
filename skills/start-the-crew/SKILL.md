@@ -36,8 +36,8 @@ Use the app's tool for starting a session. Chat names there take only small lett
   versions), then start the worker in that copy's full path as a plain folder, with the app's own copy option off. If
   that copy's folder already exists, use it as it is; if only its branch exists, run
   `git worktree add '.claude/worktrees/<short-name>' 'muster/<short-name>'` (no `-b`). If git says the copy is "missing but already
-  registered", run `git worktree prune`, then add it again. A renewal starts in the same copy
-  as the chat it replaces.
+  registered", run `git worktree prune`, then add it again. A renewal gets **its own new copy**, named for its role
+  and its new number (see "Renewal"); never the old chat's copy and never another role's.
 - the starting note as the first message.
 **Order:** start the manager first, in the main folder, and wait until it is running; only then start the other
 workers (their copies inherit the folder's trust).
@@ -80,7 +80,7 @@ because a project name may hold characters such as `$` or an apostrophe. Never u
   owner plainly to run `claude` in the project folder once and say yes; then start the chats again yourself.
 
 ## Renewal
-On `DONE: renewal <Role>_<project>_<N>`: start `<Role>_<project>_<N+1>` (three digits, counting up) the same way,
+On `DONE: renewal <Role>_<project>_<N>`: start `<Role>_<project>_<N+1>` (three digits, counting up) the same way, in **its own new copy** (D-025): get the folder's short name from `python3 scripts/crew-plan.py copy-name "<Role>_<project>_<N+1>"` (made-up example: `builder-a-002`), make it from the old copy's branch so no work is lost (`git worktree add '.claude/worktrees/<short-name>' -b 'muster/<short-name>' 'muster/<old short-name>'`), and **before starting the chat** run `python3 scripts/crew-plan.py check-copy "<Role>_<project>_<N+1>" '.claude/worktrees/<short-name>'`: if it says REFUSED, the folder belongs to another role, so make the right one first. A renewed chat never runs in another role's old copy. The manager and the inspectors that work in the main folder keep it.
 its note's First line pointing at `muster/handovers/<Role>_<project>_<N>.md` (only if the old chat wrote one; a chat with no job in progress writes none). In the desktop app, move the new chat to the
 top level and file it in the project's sidebar group (one button if the app needs the owner's OK; never left nested
 under the manager). Then archive the old chat automatically, without asking the owner (once its handover is written and the new chat is running; never deleted), and update `muster/CREW.md`.
@@ -96,6 +96,12 @@ piece touches them and shipping (`scripts/ship.sh`) rebases them. Not sure? Trea
 it only an order of the second kind. **Stop** it when its last piece has passed and been pushed and no open order fits
 the test: write its handover only if a job is in progress, then archive it automatically, without asking the owner
 (D-005; never delete), and update `muster/CREW.md`. Builder B counts as a building worker for the "three workers" rule below.
+
+## Inspectors scale with the builders (D-025)
+One inspector for every three builders, at least one: `python3 scripts/crew-plan.py inspectors <number of builders> --project <project>` prints how many and which builder's READYs go to which. Builders A to C go to `Inspector_<project>_001`, D to F to `Inspector B_<project>_001`, and so on (each READY names its inspector). When a builder is added that makes the count pass a multiple of three, start the next inspector the same way as any chat (own copy not needed: inspectors work in the main folder and write no project files; same model and effort, top level, in the project's sidebar group) before the new builder's first order, and tell the builders their inspector in their next order. When the builders shrink, archive the extra inspector automatically once its READYs are answered (D-005; never deleted). Inspectors do not check each other's work; the Design Inspector below is a separate rule.
+
+## Small checks run inside the manager's chat (D-025)
+A small piece is checked by a fresh, separate checker started inside the manager's chat, not by a message to an inspector chat; a big piece goes to an inspector chat. Ask `python3 scripts/crew-plan.py size <base> <branch>`: SMALL means at most 3 files and 60 changed lines, nothing in engine, data, database or deploy folders, nothing a visitor sees, and no rules or protocol file; BIG, or not sure, goes to an inspector. For a small piece, start a fresh subagent from the inspector definition (a different hand from the builder, and never the manager judging for itself), give it the READY and ask for a PASS or FAIL in the six-line shape; post its answer on the board, word for word, addressed to the builder (`Status: open`), with the line `Checked by: fresh checker`. The checker never writes project files. One checker per piece; a FAIL is fixed by the builder and checked by a new checker.
 
 ## Second inspector
 When the workers that build (builders, the designer, Agent Teacher) reach three, start `Design Inspector_<project>_001`. It checks

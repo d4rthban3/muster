@@ -89,7 +89,7 @@ def main():
         open(os.path.join(M, d, ".gitkeep"), "a").close()
     open(os.path.join(M, "BOARD-ARCHIVE.md"), "a").close()
     # the tools an agent runs as plain commands (the plugin's own scripts, unchanged)
-    for src, dst in (("skills/board-digest/scripts/board_digest.py", "board_digest.py"), ("scripts/record-choice.py", "record-choice.py"),
+    for src, dst in (("skills/board-digest/scripts/board_digest.py", "board_digest.py"), ("skills/board-digest/scripts/board_archive.py", "board_archive.py"), ("scripts/crew-plan.py", "crew-plan.py"), ("scripts/record-choice.py", "record-choice.py"),
                      ("scripts/decide.py", "decide.py"), ("scripts/check-report.py", "check-report.py"),
                      ("hooks/board-stop.py", "board-stop.py"), ("cursor/stop.py", "cursor-stop.py")):
         s = os.path.join(PLUGIN, src)

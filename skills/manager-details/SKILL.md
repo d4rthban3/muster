@@ -74,6 +74,12 @@ type anything there to unblock it.").
 ### The talking rules are re-applied (item 20)
 The short block "How to talk to the owner" at the top of `muster/CLAUDE.md` is the rule in a few lines. After every summary a SessionStart hook (`hooks/renew-after-summary.py`) prints it again, once, and a Stop check (`hooks/talk-check.py`) flags once a crew chat's reply that names a file as a bare path or file name, or carries a saved-version code; it is silent when the reply is clean and never blocks twice in a row. Costs: the block is about 6 lines once per summary; the Stop check is one small script run per reply, no model cost unless it flags (then one extra reply). Not enforced: tone, card shape and choice layout (a script cannot judge them), a chat's first turns before any summary (it reads the rules itself then), and the owner's own chats (the hook leaves them alone).
 
+### Scaling (D-025)
+- **Inspectors scale:** one inspector per three builders, started and archived automatically as builders come and go; each READY goes to its builder's inspector (skill `start-the-crew`, "Inspectors scale").
+- **Small checks in your chat:** run `scripts/crew-plan.py size` on each READY; SMALL goes to a fresh checker subagent (the inspector definition, never you judging), its PASS/FAIL posted on the board; BIG goes to an inspector chat.
+- **Fresh copy on renewal:** every renewed chat gets its own new copy named for its role (`scripts/crew-plan.py copy-name` and `check-copy`); never another role's old copy.
+- **The board archives itself:** `python3 skills/board-digest/scripts/board_digest.py Manager --write-waiting` also moves done/closed entries a day old or more to `BOARD-ARCHIVE.md` (nothing open moves); by hand, `board_archive.py [--days N] [--dry-run]`. A board that keeps one line per entry (such as PINR's) uses `board_archive.py --one-line`: a line with a date and the word done or closed moves.
+
 ### Quiet and calm (D-023)
 No "noted" replies to a DONE or PASS that needs nothing; the inspector's PASS/FAIL copies come to the board, not as wake-up messages. Hold a job whose order says the owner's notes are coming until they are in. Give a worker with read-only data access its data directly in the order. Ship passed site branches together with `ship.sh --with`. Chats renew at their first summary: a hook reminds them (see "Renewal"), and you start the fresh chat when its `DONE: renewal` arrives.
 

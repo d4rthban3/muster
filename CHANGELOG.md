@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.35
+Affects: Cursor users reading Muster Lite.
+Cursor is no longer listed under Muster Lite: Lite's table now points Cursor users to the full-crew Cursor guide (the owner chose the full crew for Cursor).
+
 ## 0.3.34
 Affects: Designer.
 Install page: Cursor gets its own full-crew card and leaves the Muster Lite picker (untested)

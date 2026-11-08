@@ -1,0 +1,12 @@
+{
+  "version": "0.3.35",
+  "changed_files": [
+    "MUSTER-LITE.md"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "cursor"
+  ],
+  "records_change": false,
+  "note": "Cursor is no longer listed under Muster Lite: Lite's table now points Cursor users to the full-crew Cursor guide (the owner chose the full crew for Cursor)."
+}

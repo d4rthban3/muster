@@ -96,26 +96,26 @@ def order_problem(text):
     return None
 
 
+def _token_is_manager(tok):
+    """tok is a crew name or an agents/<role>.md path, as CREW_RE matched it."""
+    if re.match(r"agents[/\\]", tok):
+        return re.search(r"agents[/\\]manager\.md$", tok) is not None
+    return re.fullmatch(r"Manager_[A-Za-z0-9 ]*_\d{3}", tok) is not None or any(
+        re.fullmatch(x, tok) for x in PROFILE.get("manager_names", []))
+
+
 def is_manager(first):
-    """The chat's own role: its 'Job:' line in the starting note, else the first agents/<role>.md it names, else the first
-    crew name it uses. A worker's note that merely mentions the manager is not the manager."""
-    m = re.search(r"\bJob:\s*(%s)_" % ROLE, first)
-    if m:
-        return m.group(1) == "Manager"
-    if PROFILE.get("manager_names"):
-        m = re.search(r"\bJob:\s*(\S[^:\n]*?)\s*[:,\n]", first)
-        if m and CREW_RE.search(m.group(1)):
-            return bool(MANAGER_RE.search(m.group(1)))
-    m = re.search(r"agents[/\\](manager|builder|designer|inspector|design-inspector|sketchpad|ai-socket|agent-teacher)\.md", first)
-    if m:
-        return m.group(1) == "manager"
-    m = re.search(r"\b(%s)_[^\s_][^_\n]*_\d{3}\b" % ROLE, first)
-    if m:
-        return m.group(1) == "Manager"
-    if PROFILE.get("manager_names"):
-        m = CREW_RE.search(first)
-        return bool(m) and bool(MANAGER_RE.fullmatch(m.group(0)))
-    return False
+    """Only the chat's OWN name makes it the manager: the name after 'Job:' in its starting note, else after 'You are', else
+    the first crew name or agents/<role>.md the note uses. A worker's note that merely mentions the manager later
+    ("report to Manager_X_002") is not the manager, in Muster and in any profile."""
+    for lead in (r"\bJob:\s*", r"\byou are\s+(?:the\s+)?"):
+        m = re.search(lead, first, re.I)
+        if m:
+            c = CREW_RE.match(first, m.end())
+            if c:
+                return _token_is_manager(c.group(0))
+    m = CREW_RE.search(first)
+    return bool(m) and _token_is_manager(m.group(0))
 
 
 # ---- reading the event ----------------------------------------------------------------------------------------

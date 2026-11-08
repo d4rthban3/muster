@@ -1,0 +1,13 @@
+{
+  "version": "0.3.42",
+  "changed_files": [],
+  "affected_roles": [
+    "Manager",
+    "Builder"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Version number only (owner's list item 31, owner: \"Bump to 0.3.42\"): no other change from 0.3.41."
+}

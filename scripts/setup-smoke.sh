@@ -221,8 +221,14 @@ printf '{}' > "$AU/settings.json"
 if CLAUDE_CONFIG_DIR=$(native "$AU") $PY "$ROOT/scripts/enable-autoupdate.py" >/dev/null; then fail "wrote a switch for an undeclared marketplace"; fi
 
 step "scripts/live-check.sh proves served content (version, and a page line) and refuses what is not served"
-LV=$(curl -fsS https://raw.githubusercontent.com/d4rthban3/muster/main/.claude-plugin/plugin.json | grep -o '"version": *"[^"]*"' | head -1 | sed 's/.*"\([^"]*\)"$/\1/')
-LIVE_CHECK_TRIES=2 bash "$ROOT/scripts/live-check.sh" "$LV" | grep -q "LIVE PROVEN" || fail "live check did not prove the published version $LV"
+# the published version can change between reading it and checking it (right after a push): read it again and retry
+proved=""
+for _try in 1 2 3 4; do
+  LV=$(curl -fsS https://raw.githubusercontent.com/d4rthban3/muster/main/.claude-plugin/plugin.json | grep -o '"version": *"[^"]*"' | head -1 | sed 's/.*"\([^"]*\)"$/\1/')
+  if LIVE_CHECK_TRIES=2 bash "$ROOT/scripts/live-check.sh" "$LV" | grep -q "LIVE PROVEN"; then proved=1; break; fi
+  sleep 10
+done
+[ -n "$proved" ] || fail "live check did not prove the published version $LV"
 if LIVE_CHECK_TRIES=1 bash "$ROOT/scripts/live-check.sh" 0.0.1 >/dev/null; then fail "live check accepted a wrong version"; fi
 if LIVE_CHECK_TRIES=1 bash "$ROOT/scripts/live-check.sh" "$LV" docs/index.html "a line that is certainly not on the page 9f3k" >/dev/null; then fail "live check accepted a missing page line"; fi
 

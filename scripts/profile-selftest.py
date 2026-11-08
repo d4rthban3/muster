@@ -121,6 +121,13 @@ os.makedirs(os.path.dirname(rb))
 open(rb, "w").write("2026-11-08 | LIVE | Look Header_PINR_002 -> Manager | Paused: yes | x\n")
 real = lambda said: subprocess.run([PY, os.path.join(REAL, ".muster-checks", "board-stop.py")], input=json.dumps({"hook_event_name": "Stop", "cwd": REAL, "last_assistant_message": said, "transcript_path": mgr}), capture_output=True, text=True).stdout.strip()
 add("6 the shipped profile's board path is found from the folder holding .muster-checks", real("Fine."), True)
+# the manager test: only a chat's own name makes it the manager
+card = "**READY \u00b7 x**\n- a\n- b"
+ins = tr("Your starting note: report to Manager_PINR_002. Job: Look Inspector_PINR_001, reads the look work.")
+add("8 a PINR worker whose note says to report to Manager_PINR_002 is not the manager", run("rules-check.py", "Stop", last_assistant_message=card, transcript_path=ins), False)
+add("8 ...even when the manager is named first and its own name comes after 'You are'", run("rules-check.py", "Stop", last_assistant_message=card, transcript_path=tr("Manager_PINR_002 started this chat. You are Look Inspector_PINR_001.")), False)
+add("8 the PINR manager by 'Job:' is the manager", run("rules-check.py", "Stop", last_assistant_message=card, transcript_path=tr("Job: Manager_PINR_002, the founder's go-between. Workers: Site_PINR_002")), True)
+add("8 the PINR manager by 'You are' is the manager", run("rules-check.py", "Stop", last_assistant_message=card, transcript_path=tr("You are Manager_PINR_002. Look Inspector_PINR_001 reports to you.")), True)
 # install-checks and check-report
 IC = os.path.join(T, "ic")
 os.makedirs(IC)

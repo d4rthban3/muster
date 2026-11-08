@@ -296,6 +296,13 @@ git -C "$SH/remote.git" show main:.claude-plugin/plugin.json | grep -q '"1.2.4"'
 git -C "$SH/remote.git" show main:.claude-plugin/releases/1.2.4.json | grep -q "demo change" || fail "no release file on the remote"
 git -C "$SH/remote.git" show main:CHANGELOG.md | grep -q "^## 1.2.4" || fail "no changelog entry on the remote"
 git -C "$SH/remote.git" for-each-ref --format='%(refname)' | grep -q "ship/" && fail "the temporary ship branch was left behind"
+# with a crew board in the main folder, shipping needs an inspector PASS naming the exact saved version
+mkdir -p muster; printf '# Board\n' > muster/BOARD.md
+if bash scripts/ship.sh "no pass yet" --dry-run >"$SH/nopass.out" 2>&1; then fail "ship went ahead with no PASS on the board"; fi
+grep -q "no inspector PASS on the board" "$SH/nopass.out" || fail "ship did not say the PASS was missing: $(cat "$SH/nopass.out")"
+printf '### 2026-11-08 | PASS | Inspector -> Manager | demo\nWhat: PASS for %s\n' "$(git rev-parse --short=7 HEAD)" >> muster/BOARD.md
+bash scripts/ship.sh "pass is there" --dry-run >"$SH/pass.out" 2>&1 || { cat "$SH/pass.out"; fail "ship refused a branch whose PASS is on the board"; }
+rm -rf muster
 git checkout -q -b builder/demo2 origin/main; echo two > two.txt
 printf '{\n  "name": "muster",\n  "version": "1.2.5"\n}\n' > .claude-plugin/plugin.json
 printf '{\n  "name": "muster-kit",\n  "plugins": [\n    {\n      "name": "muster",\n      "version": "1.2.5"\n    }\n  ]\n}\n' > .claude-plugin/marketplace.json
@@ -354,6 +361,15 @@ tr '\n' '~' < "$FOLDER/muster/OWNERS-LIST.md" | grep -q 'made-up example~   Kind
 if $PY "$ROOT/scripts/record-choice.py" "$FN" 9 --question q --option "A. x" --picked "A. x" >/dev/null 2>&1; then fail "a missing item was accepted"; fi
 if $PY "$ROOT/scripts/record-choice.py" "$FN" 2 --question q --option "A. x" --picked "C. nope" >/dev/null 2>&1; then fail "a picked text outside the options was accepted"; fi
 
+step "rules as code: hooks/rules-check.py blocks what the rules forbid and stays silent on the rest"
+$PY scripts/rules-check-selftest.py | tail -3 | tee "$SCRATCH/rules.out"
+grep -qE "^([0-9]+) of \1 passed" "$SCRATCH/rules.out" || fail "rules-check self-test missed a case: $(grep MISS "$SCRATCH/rules.out")"
+step "scripts/install-checks.py installs the coded rules in a project without the plugin, twice safely, and removes them"
+IC="$SCRATCH/ic"; mkdir -p "$IC/.claude"; echo '{"permissions":{"allow":["Bash(ls)"]}}' > "$IC/.claude/settings.json"
+$PY scripts/install-checks.py "$IC" >/dev/null && $PY scripts/install-checks.py "$IC" >/dev/null || fail "install-checks failed"
+$PY -c "import json,sys;d=json.load(open(sys.argv[1]+'/.claude/settings.json'));assert len(d['hooks']['Stop'])==1 and len(d['hooks']['PreToolUse'])==1 and d['permissions']['allow']==['Bash(ls)']" "$IC" || fail "install-checks doubled or lost settings"
+[ -f "$IC/.muster-checks/rules-check.py" ] || fail "install-checks copied no rules-check.py"
+$PY scripts/install-checks.py "$IC" --remove >/dev/null; [ ! -d "$IC/.muster-checks" ] || fail "--remove left the copies"
 step "usage meter: status line saves usage, usage.py reads it, pauses near the limit, settings kept"
 UM="$SCRATCH/um"; mkdir -p "$UM"; export_cfg=$(native "$UM")
 printf '{"theme":"dark"}' > "$UM/settings.json"

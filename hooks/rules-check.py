@@ -1,0 +1,283 @@
+#!/usr/bin/env python3
+"""Muster's rules as code (D-027): one self-contained file, so a project that does not load the plugin can copy just this.
+
+It reads one hook event from standard input and acts only in a crew chat (the chat's FIRST message names agents/<role>.md
+or <Role>_<project>_<digits>); it is silent in the owner's own chats and on any error. It writes nothing and sends nothing.
+
+PreToolUse (a chat is about to act):
+  SendMessage    a message between chats must be a six-line report (FIRST WORD, What, Where with touches:, Why, How, Need,
+                 and a Usage line on DONE and READY; a READY shows a test count) or an order (To, Job, Owner's words with
+                 his words in quotes, Owns, Out, Done); no "noted/thanks" replies; no ID sent twice; no PASS or FAIL
+                 copy to the manager as a message (it goes on the board); no new order while the week is at 90% (usage.py).
+  Write/Edit/Bash  only the manager changes the owner's list, the decisions log, the crew list, the rules pages and
+                 muster/CLAUDE.md; nobody saves or pushes anything under muster/.
+Stop (a chat is about to end its turn; blocks at most once, never loops):
+  manager        the reply to the owner is a question with its choices, a yes he must give, "<worker> is waiting for you:
+                 type in <chat>", or "The crew is idle"; and an answer to a choice card is recorded (record-choice.py).
+  other workers  the reply is a card: a bold "WORD . job" title, then two or three bullets.
+Exit 0 always; a refusal is printed as the hook's JSON.
+"""
+import json
+import os
+import re
+import subprocess
+import sys
+
+ROLE = (r"(?:Manager|Builder [A-Za-z]|Designer|Design Inspector|Inspector|Sketchpad|AI Socket|Agent Teacher)")
+CREW_RE = re.compile(r"agents[/\\](?:manager|builder|designer|inspector|design-inspector|sketchpad|ai-socket|agent-teacher)\.md|\b%s_[^\s_][^_\n]*_\d{3}\b" % ROLE)
+MANAGER_RE = re.compile(r"agents[/\\]manager\.md|\bManager_[A-Za-z0-9 ]*_\d{3}\b")
+FIRST = r"(DONE|READY|PASS|FAIL|OWNER CALL|STUCK|NEED)"
+LINK = re.compile(r"\[[^\]]*\]\([^)]*\)")
+
+
+# ---- the report shape (same rules as scripts/check-report.py) -------------------------------------------------
+def report_problem(text):
+    lines = [l for l in text.strip().splitlines() if l.strip()]
+    usage = None
+    if len(lines) == 7 and lines[6].startswith("Usage:"):
+        usage = lines.pop()
+    if len(lines) != 6:
+        return "expected 6 lines (and a Usage line on DONE and READY), found %d" % len(lines)
+    m = re.match(r"^%s: .+ \[ID [^\]]+-\d+\]$" % FIRST, lines[0])
+    if not m:
+        return "first line must be 'FIRST WORD: job name [ID role-job-number]'"
+    for line, label in zip(lines[1:], ["What:", "Where:", "Why:", "How:", "Need:"]):
+        if not line.startswith(label):
+            return "expected a line starting %s" % label
+    if "touches:" not in lines[2]:
+        return "Where line lacks 'touches:'"
+    if m.group(1) in ("DONE", "READY") and usage is None:
+        return "a DONE or READY needs a Usage line (scripts/usage.py prints it)"
+    if m.group(1) == "READY" and not re.search(r"\d+\s*(/|of)\s*\d+|\d+ passed", lines[4]):
+        return "READY's How line shows no test count"
+    return None
+
+
+def order_problem(text):
+    """An order: lines To, Job, Owner's words (his words in quotes), Owns, Out, Done, each starting its label."""
+    labels = {}
+    for l in text.splitlines():
+        m = re.match(r"^\s*(To|Job|Owner'?s words|Owns|Out|Done)\s*:\s*(.*)$", l, re.I)
+        if m:
+            labels.setdefault(m.group(1).lower().replace("owners", "owner's"), m.group(2))
+    for need in ("to", "job", "owner's words", "owns", "out", "done"):
+        if need not in labels or not labels[need].strip():
+            return "an order needs a filled '%s:' line" % need.capitalize()
+    if not re.search(r"[\"“][^\"”]{3,}[\"”]", labels["owner's words"]):
+        return "the Owner's words line must quote his words in quotation marks"
+    return None
+
+
+# ---- reading the event ----------------------------------------------------------------------------------------
+def first_message(path):
+    try:
+        with open(path, encoding="utf-8") as fh:
+            for line in fh:
+                try:
+                    d = json.loads(line)
+                except ValueError:
+                    continue
+                if d.get("type") != "user":
+                    continue
+                c = (d.get("message") or {}).get("content", "")
+                if isinstance(c, list):
+                    c = " ".join(b.get("text", "") for b in c if isinstance(b, dict))
+                return str(c)[:6000]
+    except OSError:
+        pass
+    return ""
+
+
+def turn_blocks(path):
+    """(tool_use blocks, results text) of the current turn: everything after the last real user message."""
+    uses, texts = [], []
+    try:
+        with open(path, encoding="utf-8") as fh:
+            for line in fh:
+                try:
+                    d = json.loads(line)
+                except ValueError:
+                    continue
+                c = (d.get("message") or {}).get("content", "")
+                if d.get("type") == "user":
+                    if isinstance(c, str) or any(isinstance(b, dict) and b.get("type") == "text" for b in c):
+                        uses, texts = [], []
+                    continue
+                if d.get("type") == "assistant" and isinstance(c, list):
+                    for b in c:
+                        if isinstance(b, dict) and b.get("type") == "tool_use":
+                            uses.append(b)
+    except OSError:
+        pass
+    return uses
+
+
+def all_sent_text(path):
+    out = []
+    try:
+        with open(path, encoding="utf-8") as fh:
+            for line in fh:
+                try:
+                    d = json.loads(line)
+                except ValueError:
+                    continue
+                c = (d.get("message") or {}).get("content", "")
+                if d.get("type") == "assistant" and isinstance(c, list):
+                    for b in c:
+                        if isinstance(b, dict) and b.get("type") == "tool_use" and b.get("name") == "SendMessage":
+                            out.append(str((b.get("input") or {}).get("message", "")))
+    except OSError:
+        pass
+    return out
+
+
+def main_folder(cwd):
+    """The project's main folder: the parent of git's common dir (a worktree copy points at it), else cwd."""
+    try:
+        r = subprocess.run(["git", "rev-parse", "--git-common-dir"], cwd=cwd or None, capture_output=True, text=True, timeout=10)
+        p = r.stdout.strip()
+        if p:
+            p = os.path.abspath(os.path.join(cwd or ".", p))
+            return os.path.dirname(p) if os.path.basename(p) == ".git" else cwd
+    except Exception:
+        pass
+    return cwd
+
+
+def deny(reason):
+    print(json.dumps({"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "deny",
+                                             "permissionDecisionReason": "Muster rule: " + reason}}))
+
+
+def block(reason):
+    print(json.dumps({"decision": "block", "reason": "Muster rule: " + reason}))
+
+
+# ---- PreToolUse -----------------------------------------------------------------------------------------------
+SOCIAL = re.compile(r"^\s*(noted|received|thanks|thank you|got it|ok(ay)?|ack(nowledged)?|will do)\b[\s.!]*$", re.I)
+PROTECTED = re.compile(r"/muster/(OWNERS-LIST\.md|DECISIONS-LOG\.md|CREW\.md|CLAUDE\.md|rules/|RULES-PAGE\.md|REPORT\.md)")
+
+
+def recipient_is_manager(to, root):
+    to = str(to)
+    if re.search(r"\bManager", to):
+        return True
+    try:
+        for l in open(os.path.join(root, "muster", "CREW.md"), encoding="utf-8"):
+            if to and to in l and l.lstrip("| ").startswith("Manager"):
+                return True
+    except OSError:
+        pass
+    return False
+
+
+def usage_at_limit(root):
+    for cand in (os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "scripts", "usage.py"),
+                 os.path.join(root or ".", ".muster-checks", "usage.py")):
+        if os.path.isfile(cand):
+            try:
+                return subprocess.run([sys.executable, cand], capture_output=True, text=True, timeout=20).returncode == 3
+            except Exception:
+                return False
+    return False
+
+
+def pretool(data, manager):
+    tool = data.get("tool_name", "")
+    inp = data.get("tool_input") or {}
+    root = main_folder(data.get("cwd"))
+    if tool == "SendMessage":
+        msg = str(inp.get("message", ""))
+        if SOCIAL.match(msg):
+            return deny("no 'noted' or 'thanks' replies; send a message only when someone must act")
+        bad_report = report_problem(msg)
+        bad_order = order_problem(msg)
+        if bad_report and bad_order:
+            first = msg.strip().splitlines()[0] if msg.strip() else ""
+            if re.match(r"^\s*(To|Job)\s*:", first, re.I) or re.search(r"^\s*Job\s*:", msg, re.M | re.I):
+                return deny("a message between chats is a six-line report or an order, and this order is wrong: " + bad_order)
+            return deny("a message between chats is a six-line report or an order, and this report is wrong: " + bad_report)
+        m = re.match(r"^\s*%s: .+ \[ID ([^\]]+)\]" % FIRST, msg)
+        if m:
+            sent = all_sent_text(data.get("transcript_path") or "")
+            if any(("[ID %s]" % m.group(2)) in s for s in sent):
+                return deny("this report's ID [%s] was already sent; a repeat is dropped" % m.group(2))
+            if re.match(r"^\s*(PASS|FAIL)\b", msg) and recipient_is_manager(inp.get("to", ""), root):
+                return deny("a PASS or FAIL copy for the manager goes on the board only, not as a message")
+        if not bad_order and usage_at_limit(root):
+            return deny("the week is at 90% or more (scripts/usage.py exits 3): start no new order; finish and park what is running")
+        return
+    if tool in ("Write", "Edit", "NotebookEdit") and not manager:
+        p = str(inp.get("file_path", "")).replace("\\", "/")
+        if PROTECTED.search(p):
+            return deny("only the manager changes the owner's list, decisions, crew list, rules pages and muster/CLAUDE.md (%s)" % os.path.basename(p))
+    if tool == "Bash":
+        cmd = str(inp.get("command", ""))
+        if re.search(r"\bgit\s+(-C\s+\S+\s+)?(add|commit|push)\b[^|;&]*\bmuster/", cmd):
+            return deny("nothing under muster/ is ever saved, committed or pushed")
+        if not manager and re.search(r"(>|>>|tee\s+|sed\s+-i\S*\s+(''\s+)?\S*\s*)\s*\S*muster/(OWNERS-LIST|DECISIONS-LOG|CREW|CLAUDE|RULES-PAGE|REPORT)\.md", cmd):
+            return deny("only the manager changes the owner's list, decisions, crew list and muster/CLAUDE.md")
+
+
+# ---- Stop -----------------------------------------------------------------------------------------------------
+def manager_reply_ok(text):
+    t = LINK.sub(lambda m: m.group(0), text)
+    if re.search(r"\bThe crew is idle\b", t, re.I):
+        return True
+    if re.search(r"\bis waiting for you\b.*\btype in\b", t, re.I | re.S):
+        return True
+    if re.search(r"\b(I need your yes|needs? your yes|your yes (is needed|to))\b", t, re.I):
+        return True
+    has_q = "?" in t
+    has_choices = bool(re.search(r"^\*\*[A-D]\.\*\*", t, re.M)) or bool(re.search(r"\bbuttons?\b", t, re.I))
+    return has_q and has_choices
+
+
+def stop(data, manager):
+    text = data.get("last_assistant_message") or ""
+    if not text or data.get("stop_hook_active"):
+        return
+    uses = turn_blocks(data.get("transcript_path") or "")
+    asked = any(u.get("name") == "AskUserQuestion" for u in uses)
+    if manager:
+        if asked:
+            idx = max(i for i, u in enumerate(uses) if u.get("name") == "AskUserQuestion")
+            recorded = any(u.get("name") == "Bash" and "record-choice.py" in str((u.get("input") or {}).get("command", "")) for u in uses[idx + 1:])
+            if not recorded:
+                return block("a choice card was answered but not recorded: run scripts/record-choice.py with his exact answer under its list item before ending the turn")
+            return
+        if not manager_reply_ok(text):
+            return block("to the owner the manager says only a question with its choices as buttons, a yes he must give, '<worker> is waiting for you: type in <chat>', or 'The crew is idle'. Rewrite the reply as one of those, or put the news on the board")
+        return
+    if asked or re.match(r"\s*Messages paused", text):
+        return
+    body = text.strip()
+    bullets = [l for l in body.splitlines() if re.match(r"^\s*[-*•] \S", l)]
+    title_ok = bool(re.match(r"^\s*\*\*[^*\n]+\s[·.]\s[^*\n]+\*\*\s*$", body.splitlines()[0])) if body else False
+    if not title_ok or not 2 <= len(bullets) <= 3:
+        return block("your end-of-turn reply is a card: a bold title line 'WORD · job', then two or three '- ' bullets (what, the result with real numbers, what is left or what you need)")
+
+
+def main():
+    try:
+        data = json.load(sys.stdin)
+    except Exception:
+        return 0
+    path = data.get("transcript_path") or ""
+    first = first_message(path)
+    if not CREW_RE.search(first) and os.environ.get("MUSTER_ASSUME_CREW") != "1":
+        return 0
+    manager = bool(MANAGER_RE.search(first)) or os.environ.get("MUSTER_ASSUME_MANAGER") == "1"
+    ev = data.get("hook_event_name", "")
+    if ev == "PreToolUse":
+        pretool(data, manager)
+    elif ev == "Stop":
+        stop(data, manager)
+    return 0
+
+
+if __name__ == "__main__":
+    try:
+        sys.exit(main())
+    except Exception:
+        sys.exit(0)

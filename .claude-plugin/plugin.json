@@ -1,7 +1,7 @@
 {
   "name": "muster",
   "displayName": "Muster",
-  "version": "0.3.42",
+  "version": "0.3.43",
   "description": "A crew of Claude Code chats: a manager you talk to, builders, a designer and inspectors, set up from one page.",
   "icon": "./assets/muster-logo.png",
   "author": {

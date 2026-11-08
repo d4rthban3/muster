@@ -193,13 +193,14 @@ def all_sent_text(path):
     return [t for i, t in calls.items() if i in done and i not in failed]
 
 
-MACHINE = re.compile(r"^\s*(<cross-session-message|<system-reminder|<task-notification|<side-sessions-event|<ci-monitor-event|\[SYSTEM NOTIFICATION|Stop hook feedback)", re.I)
+ENDS_TURN = re.compile(r"<cross-session-message|<task-notification|<side-sessions-event|<ci-monitor-event|\[SYSTEM NOTIFICATION", re.I)
+NEUTRAL = re.compile(r"^\s*(<system-reminder|Stop hook feedback)", re.I)
 
 
 def owner_asked(path):
     """True if this turn was started by the owner's typed message and it holds a question mark. The turn's starting message is
-    the last user message that is not a tool result; if that is a message from another chat, a system note or hook feedback,
-    the turn is not his and the answer is False (an earlier question of his does not carry over)."""
+    the owner's last typed message; a message from another chat or an app event (cross-session, task, side-sessions, CI)
+    ends it (an earlier question of his does not carry over), while hook feedback and system reminders change nothing."""
     last = ""
     try:
         with open(path, encoding="utf-8") as fh:
@@ -216,8 +217,12 @@ def owner_asked(path):
                         continue
                     c = " ".join(b.get("text", "") for b in c if isinstance(b, dict))
                 c = str(c)
-                if c.strip():
-                    last = "" if MACHINE.match(c) else c
+                if not c.strip():
+                    continue
+                if ENDS_TURN.search(c):
+                    last = ""
+                elif not NEUTRAL.match(c):
+                    last = c
     except OSError:
         pass
     return "?" in last

@@ -86,12 +86,14 @@ add("3 Muster itself still wants record-choice.py", run("rules-check.py", "Stop"
 add("3 the PINR manager is the manager: a non-question is blocked", run("rules-check.py", "Stop", last_assistant_message="All done, nice.", transcript_path=mgr), True)
 add("3 a PINR worker whose note names the manager is not the manager", run("rules-check.py", "Stop", last_assistant_message="**READY · x**\n- a\n- b", transcript_path=mgr_note), False)
 # 4 board path (lines style)
-write_board("2026-11-08 | NEED | Site_PINR_002 -> Manager | token wording", "2026-11-08 | LIVE | Look Header_PINR_002 -> Manager | Paused: yes | fix live")
+write_board("2026-11-08 | NEED | Site_PINR_002 -> Manager | token wording", "2026-11-08 | LIVE | Look Header_PINR_002 -> Manager | Paused: yes | fix live")  # file order: oldest first
 bs = lambda said, t=mgr, **k: run("board-stop.py", "Stop", last_assistant_message=said, transcript_path=t, **k)
 add("4 a chat whose last line says Paused: yes reaches the manager", bs("Fine."), True)
 add("4 naming that chat clears it", bs("Look Header_PINR_002 is waiting for you: type in Look Header_PINR_002."), False)
 add("4 an old NEED line is not nagged (no closing mark exists)", (write_board("2026-11-08 | NEED | Site_PINR_002 -> Manager | x") or bs("Fine.")), False)
-add("4 a later line from the same chat clears a pause", (write_board("2026-11-08 | DONE | Look Header_PINR_002 -> Manager | next thing", "2026-11-08 | LIVE | Look Header_PINR_002 -> Manager | Paused: yes | fix") or bs("Fine.")), False)
+add("4 a later line from the same chat clears a pause", (write_board("2026-11-08 | LIVE | Look Header_PINR_002 -> Manager | Paused: yes | fix", "2026-11-08 | DONE | Look Header_PINR_002 -> Manager | next thing") or bs("Fine.")), False)
+add("4 a pause followed by a later line (no Paused word) from the same chat is cleared, a later 'Paused: no' too", (write_board("2026-11-07 | LIVE | Manager_PINR_002 -> Site | Paused: yes | x", "2026-11-08 | NEED | Look Header_PINR_002 -> Manager | Paused: yes | y", "2026-11-08 | RESUMED | Look Header_PINR_002 -> Manager | Paused: no | y", "2026-11-09 | DONE | Manager_PINR_002 -> Site | ok") or bs("Fine.")), False)
+add("4 a pause that is a chat's latest line still counts when others wrote after it", (write_board("2026-11-08 | LIVE | Look Header_PINR_002 -> Manager | Paused: yes | x", "2026-11-09 | DONE | Site_PINR_002 -> Manager | later") or bs("Fine.")), True)
 add("4 a worker chat is never nagged", (write_board("2026-11-08 | LIVE | Site_PINR_002 -> Manager | Paused: yes | x") or bs("Fine.", t=site)), False)
 add("4 no board at the path is silent", (os.remove(board) or bs("Fine.")), False)
 # 5 no second talk check

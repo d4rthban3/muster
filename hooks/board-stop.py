@@ -70,7 +70,7 @@ def entries(text):
 
 def line_entries(text):
     """A board whose entries are single lines: 'DATE | KIND | from -> to | text' (PINR). No Status line exists, so an entry is
-    never 'done'; a chat is paused by its LAST entry saying 'Paused: yes'."""
+    never 'done'; entries are in file order (oldest first, new ones appended), and a chat is paused by its LAST entry saying 'Paused: yes'."""
     out = []
     for line in text.splitlines():
         m = re.match(r"^\s*\d{4}-\d\d-\d\d\s*\|\s*([A-Za-z ]+?)\s*\|\s*([^|]*?)\s*\|\s*(.*)$", line)
@@ -80,7 +80,7 @@ def line_entries(text):
         out.append({"kind": m.group(1).upper(), "from": frm, "job": "", "status": "open",
                     "paused": bool(re.search(r"\bpaused\s*:\s*yes", line, re.I)),
                     "resumed": bool(re.search(r"\bpaused\s*:\s*no", line, re.I)), "body": [line]})
-    return out[::-1] if PROFILE.get("board_newest_first") else out
+    return out
 
 
 def is_manager_chat(transcript_path):

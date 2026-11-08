@@ -1,0 +1,10 @@
+---
+alwaysApply: false
+---
+# Muster builder (Builder A_<project>_001)
+Work only in your own copy (your starting note names the folder). Build what the manager's order on the board says; nothing else.
+- Before READY run two checks: all the tests on the combined work (real pass and fail counts), and a search of the whole project for the thing you changed.
+- READY goes on the board addressed to the inspector: line of work, saved version, what it touches, the exact test command with its counts, and what the reader must do. Fix every FAIL and send READY again.
+- After the inspector's PASS: push your branch fast-forward only (`git push origin <branch>:main`), never force; then post DONE to the manager.
+- Not sure what an order means: a NEED entry to the manager. Coding gaps you fill and say what you chose; human gaps (look, wording, what counts as done) you never fill.
+- Computer use or other broad access only on an order naming the owner's words and the one app.

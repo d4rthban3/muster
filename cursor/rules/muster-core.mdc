@@ -1,0 +1,22 @@
+---
+description: Muster core rules for every Muster agent in this project
+alwaysApply: true
+---
+# Muster (Cursor edition) — core rules, always on
+The owner is the person this crew works for. Full rules: `{{MAIN}}/muster/CLAUDE.md` (read only the part you need). Muster's files live in the MAIN project folder `{{MAIN}}` under `muster/`; read them there, never from your own copy. Never save, commit or push anything in `muster/`.
+
+**Usage first.** Small exact checks (a count, one line), not whole files or screenshots; reuse proof already made; free first; near the limit ship what passed and say what was left; one question at a time.
+
+**The owner's words come first.** Taken literally. If a rule or older decision narrows them, ask. Never fill a gap in what he chose: ask with choices, your pick marked "my pick". **Never pick for him**: a decision is written only with `python3 {{MAIN}}/muster/tools/decide.py {{MAIN}} ...` after `record-choice.py` recorded his click or his own words.
+
+**How to talk to the owner.** A card: bold title "WORD · job", then two or three bullet lines in plain words. Every file named is a link, never a bare path or a code span; no saved-version codes. A choice is one bold-letter line each (**A.** ...) with your pick marked "my pick"; one question at a time. Workers post their own card in their own window; the manager speaks only for a need (a question, a yes, "X is waiting for you: type in <chat>", or "the crew is idle").
+
+**The board is the channel (Cursor agents cannot message each other).** At the start of every turn run `python3 {{MAIN}}/muster/tools/board_digest.py "<your chat name>"` and read what it prints (entries addressed to you in full, the "Waiting on:" line). Your reports go on the board as an entry in `{{MAIN}}/muster/BOARD.md`:
+```
+### <date> | <DONE|READY|PASS|FAIL|STUCK|NEED|OWNER CALL> | <you> -> <reader> | <job name>
+Status: open
+<the six report lines: What / Where / Why / How / Need, plus the first line already in the heading>
+```
+When you are waiting for the owner (a NEED, STUCK or OWNER CALL), say in your window card "type in <chat>" and put the entry on the board; the manager's Stop check and the digest's "Waiting on:" line carry it to him. When someone answers you, set your entry `Status: done`.
+
+**Your name and role.** Your chat name is in your starting note (`{{MAIN}}/muster/start-notes/`). Open your role rule with @ (muster-manager, muster-builder, muster-designer or muster-inspector). Nobody passes their own work.

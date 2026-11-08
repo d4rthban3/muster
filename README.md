@@ -49,6 +49,7 @@ Step by step: [docs/GUIDE.md](docs/GUIDE.md).
 | Claude Code: web, VS Code, JetBrains | Not yet tested. |
 | Cowork | Takes plugins; not yet tested. |
 | Coding agents that read a project's rules files (Cursor's agent, Codex, Gemini CLI) | Cannot run the plugin. They follow the outside-AI protocol: leads only, through AI Socket, never changing the project. Setup writes `AGENTS.md` and `.cursor/rules/muster.mdc` so they see it. |
+| Cursor (full crew, in Cursor) | UNTESTED: the crew as separate Cursor agents with Muster's rules as Cursor rules; setup is `python3 cursor/setup.py` (see [cursor/README.md](cursor/README.md)). Written from Cursor's docs, not yet run in Cursor. |
 | Chat AIs | Cannot run the plugin. They follow the outside-AI protocol, pasted once into their instructions. |
 
 ## What it runs, sends and fetches

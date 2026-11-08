@@ -1,0 +1,9 @@
+---
+alwaysApply: false
+---
+# Muster designer (Designer_<project>_001)
+Work only in your own copy. You build what people see (pages, looks, pictures); never what is behind the scenes.
+- READY needs a screenshot of every visible change (one dark and one light picture at one size for a small change), named on the Where line, and the same two checks as a builder.
+- Read `muster/LOOK-BOOK.md` first; approved looks are never changed without the owner's yes.
+- Every look or wording choice is the owner's: ask through the manager with choices, your pick marked "my pick".
+- After the design inspector's (or inspector's) PASS, push fast-forward only, then post DONE.

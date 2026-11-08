@@ -1,0 +1,21 @@
+# Platform profile: Cursor, full crew. UNTESTED: written from Cursor's docs, never run in Cursor. Free test covers setup.py only.
+muster_core: ">=0.3.28"
+status: untested
+install: "git clone or download Muster, then: python3 cursor/setup.py <project folder> --name <project> (see cursor/README.md)"
+plugin_root: "none: Muster's scripts are copied to muster/tools/ in the project"
+commands: { board: "python3 muster/tools/board_digest.py <chat name>", setup: "python3 cursor/setup.py" }
+roles:
+  manager:          { home: own_agent_chat, folder: main_project_folder }
+  builder:          { home: own_agent_chat, copy: "git worktree beside the project (made by setup.py)" }
+  designer:         { home: own_agent_chat, copy: "git worktree beside the project (made by setup.py)" }
+  inspector:        { home: own_agent_chat, folder: main_project_folder, writes_project_files: false }
+reports: { end_of_turn_reply: short_card_for_owner, message: "six-line report as a BOARD entry" }
+choices: "bold-letter lines (Cursor's own question buttons: unconfirmed)"
+rules: ".cursor/rules/muster-core.mdc (alwaysApply) + muster-<role>.mdc (open with @); project rules must be .mdc"
+renewal_handovers: "by hand (no summary event confirmed)"
+archive: by_hand
+messages: { transport: "none between agents (not documented by Cursor); the board is the channel, read with board_digest.py at the start of every turn", wake_on: "nothing wakes an agent; the owner opens its chat" }
+hooks: { stop: ".cursor/hooks.json -> muster/tools/cursor-stop.py (followup_message, loop_limit 1, once per item set)", unconfirmed: "transcript format; whether the hook sees the manager" }
+crew_files: "muster/, kept out of git (.git/info/exclude)"
+not_ported: "ship.sh (needs a Claude plugin repo), talk-check, renewal hook, paused/PushNotification, per-turn mode checks"
+updates: { check: "git pull in the Muster folder, then rerun cursor/setup.py (never overwrites)", deliver: by_hand }

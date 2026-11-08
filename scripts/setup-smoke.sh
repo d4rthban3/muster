@@ -163,6 +163,26 @@ hook manager false "all done" | grep -q '"decision": "block"' || fail "the .must
 rm -f "$FOLDER/.claude/worktrees/builder-b-001/.muster-paused"
 hook manager false "all done" | grep -q . && fail "hook spoke after the marker file was deleted"
 
+step "Muster for Cursor: cursor/setup.py builds the crew, the rules and the Stop check, with no Claude Code"
+CU="$SCRATCH/cursor"; mkdir -p "$CU"
+$PY "$ROOT/cursor/setup.py" "$(native "$CU")/Bob Shop" --name "Bob Shop" --vision "a small shop site" > "$CU/setup.out" 2>&1 || { cat "$CU/setup.out"; fail "cursor/setup.py failed"; }
+CM="$CU/Bob Shop"
+for f in muster-core muster-manager muster-builder muster-designer muster-inspector; do [ -f "$CM/.cursor/rules/$f.mdc" ] || fail "missing Cursor rule $f.mdc"; done
+grep -q "^alwaysApply: true" "$CM/.cursor/rules/muster-core.mdc" || fail "the core rule is not always on"
+grep -q "{{MAIN}}" "$CM/.cursor/rules/muster-core.mdc" && fail "the core rule kept its {{MAIN}} placeholder"
+[ -f "$CU/Bob Shop_copies/builder-a-001/.cursor/rules/muster-builder.mdc" ] || fail "a worker copy has no Muster rules"
+[ -f "$CM/muster/start-notes/Builder A_Bob Shop_001.md" ] || fail "no starting note for the builder"
+[ -z "$(git -C "$CM" status --porcelain)" ] || fail "setup left files that are not kept out of the history: $(git -C "$CM" status --porcelain)"
+$PY -c "import json,sys;json.load(open(sys.argv[1]))" "$(native "$CM")/.cursor/hooks.json" || fail ".cursor/hooks.json is not valid JSON"
+(cd "$CM" && $PY muster/tools/board_digest.py Manager >/dev/null) || fail "the board digest does not run from muster/tools"
+printf '# Board\n\n## Entries\n### 2026-01-31 | NEED | Builder A_Bob Shop_001 -> Manager | demo\nStatus: open\n' > "$CM/muster/BOARD.md"
+printf 'You are Manager_Bob Shop_001' > "$CU/mgr.txt"; printf 'please fix my header' > "$CU/owner.txt"
+cstop() { (cd "$CM" && printf '{"workspace_roots":["%s"],"transcript_path":"%s","loop_count":%s}' "$(native "$CM")" "$(native "$CU")/$1" "$2" | $PY muster/tools/cursor-stop.py); }
+cstop owner.txt 0 | grep -q followup_message && fail "the Cursor stop check spoke in a chat that is not the manager's"
+cstop mgr.txt 1 | grep -q followup_message && fail "the Cursor stop check ran as a follow-up (it could loop)"
+cstop mgr.txt 0 | grep -q followup_message || fail "the Cursor stop check did not tell the manager about an open NEED"
+cstop mgr.txt 0 | grep -q followup_message && fail "the Cursor stop check flagged the same item twice"
+
 step "a pretend order, READY and PASS on this project"
 mkdir -p "$SCRATCH/msgs"
 printf 'Job:     pretend job\n' > "$SCRATCH/msgs/order.txt"

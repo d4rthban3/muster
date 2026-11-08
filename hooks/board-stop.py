@@ -112,7 +112,7 @@ def main():
         return 0
     if data.get("stop_hook_active"):
         return 0
-    if not is_manager_chat(data.get("transcript_path") or ""):
+    if os.environ.get("MUSTER_ASSUME_MANAGER") != "1" and not is_manager_chat(data.get("transcript_path") or ""):
         return 0  # the owner's own chat, or a worker: never nag it
     cwd = data.get("cwd") or os.getcwd()
     cwd = os.path.abspath(cwd)

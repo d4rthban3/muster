@@ -15,12 +15,15 @@ a thing to try on the first real run.
 | Notifications / waking an agent | **not documented** | not used: the owner opens the chat |
 | Claude Code skills/plugins | Cursor loads `.claude/skills` (skills only); plugins: not confirmed | not used: Muster's scripts are called as plain commands |
 
-## Steps for the owner
-1. Get Muster: `git clone https://github.com/d4rthban3/muster` (anywhere on the computer).
-2. In a terminal: `python3 muster/cursor/setup.py "/path/to/your project" --name "Your Project" --vision "what you are building"` (path to the clone's `cursor/setup.py`). Add `--builders 2` for a second builder, `--no-designer` to skip the designer.
-3. It prints, per agent, a folder and a starting-note file. For each one (**Manager first**): open that folder in Cursor, start a new Agent chat, paste the whole starting note as your first message.
+## Steps for the owner (no terminal needed; UNTESTED in Cursor, like everything here)
+1. Open your project's folder in Cursor and start a new **Agent** chat there.
+2. Paste this one message and press Enter. When Cursor asks to run a command, click Run/Allow.
+   > Set up Muster for this project. First ask me for the project's name and one sentence on what I am building. Then get Muster (`git clone https://github.com/d4rthban3/muster` into a folder next to this project, unless it is already there), run its `cursor/setup.py` on this project's folder with that name and sentence, and show me the folders and starting-note files it prints.
+3. For each agent it lists (**Manager first**): open that agent's folder in Cursor, start a new Agent chat, open the starting-note file it names, and paste its whole contents as your first message.
 4. Talk only to the Manager. When it says "X is waiting for you: type in <chat>", open that chat and type anything.
 5. To see what is waiting at any time: the top line of `muster/BOARD.md` ("Waiting on:").
+
+*Already use a terminal?* Same result by hand: `git clone https://github.com/d4rthban3/muster`, then `python3 muster/cursor/setup.py "/path/to/your project" --name "Your Project" --vision "what you are building"` (`--builders 2` for a second builder, `--no-designer` to skip the designer).
 
 ## How the agents work together without messaging
 - Every agent runs `python3 <main>/muster/tools/board_digest.py "<its chat name>"` at the start of each turn (the always-on rule says so) and reads what is addressed to it.

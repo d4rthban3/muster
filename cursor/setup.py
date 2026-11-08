@@ -156,7 +156,7 @@ def main():
         steps.append((chat, folder, note))
     print("Muster for Cursor is set up in %s" % main_dir)
     print("Hook file written: %s" % ("yes (.cursor/hooks.json)" if wrote_hook else "no, one already exists; add the stop hook from cursor/README.md by hand"))
-    print("\nFor each agent below: open that folder in Cursor, start a new Agent chat, paste the starting note's contents as your first message.")
+    print("\nFor each agent below: open that folder in Cursor, start a new Agent chat, open the note file and paste its whole contents as your first message.")
     for chat, folder, note in steps:
         print("  %-34s folder: %s\n  %-34s note:   %s" % (chat, folder, "", note))
     print("\nStart with the Manager. It tells you what it needs from you; the others work from the board.")

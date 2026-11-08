@@ -1,7 +1,7 @@
 # Platform profile: Cursor, full crew. UNTESTED: written from Cursor's docs, never run in Cursor. Free test covers setup.py only.
 muster_core: ">=0.3.28"
 status: untested
-install: "git clone or download Muster, then: python3 cursor/setup.py <project folder> --name <project> (see cursor/README.md)"
+install: "no terminal: paste one message into a Cursor Agent chat; the agent clones Muster and runs cursor/setup.py (see cursor/README.md); terminal line kept as a small alternative"
 plugin_root: "none: Muster's scripts are copied to muster/tools/ in the project"
 commands: { board: "python3 muster/tools/board_digest.py <chat name>", setup: "python3 cursor/setup.py" }
 roles:

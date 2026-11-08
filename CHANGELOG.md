@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.38
+Affects: Manager, Builder, Inspector.
+Four scaling changes (D-025): one inspector for every three builders, started and archived automatically; small checks run as a fresh checker inside the manager's chat while big pieces go to an inspector chat; a renewed chat gets its own new copy named for its role; finished board entries move to the archive by themselves. The owner picked all four after asking what to improve in Muster itself.
+
 ## 0.3.37
 Affects: Designer.
 Pointer glow: a deep purple spotlight follows the mouse or finger behind the cards, shown only after the first move (site and setup page)

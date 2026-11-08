@@ -1,0 +1,26 @@
+{
+  "version": "0.3.38",
+  "changed_files": [
+    "agents/inspector.md",
+    "agents/manager.md",
+    "commands/setup.md",
+    "cursor/setup.py",
+    "scripts/crew-plan.py",
+    "scripts/setup-smoke.sh",
+    "skills/board-digest/scripts/board_archive.py",
+    "skills/board-digest/scripts/board_digest.py",
+    "skills/manager-details/SKILL.md",
+    "skills/start-the-crew/SKILL.md"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Builder",
+    "Inspector"
+  ],
+  "affected_platforms": [
+    "claude-code",
+    "cursor"
+  ],
+  "records_change": false,
+  "note": "Four scaling changes (D-025): one inspector for every three builders, started and archived automatically; small checks run as a fresh checker inside the manager's chat while big pieces go to an inspector chat; a renewed chat gets its own new copy named for its role; finished board entries move to the archive by themselves. The owner picked all four after asking what to improve in Muster itself."
+}

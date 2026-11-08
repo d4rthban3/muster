@@ -52,8 +52,8 @@ Step by step: [docs/GUIDE.md](docs/GUIDE.md).
 | Chat AIs | Cannot run the plugin. They follow the outside-AI protocol, pasted once into their instructions. |
 
 ## What it runs, sends and fetches
-The plugin has one hook, no MCP servers and no package installs. The hook (`hooks/board-stop.py`) runs when a chat tries to stop, does nothing unless that folder holds `muster/BOARD.md` (the manager's folder), only reads that one file on your computer, and sends nothing. The plugin and it contains no code that sends your data to any
-outside service. Everything below runs only when a command or skill tells Claude to, and Claude Code asks your
+The plugin has one hook, no MCP servers and no package installs. The hook (`hooks/board-stop.py`) runs when a chat tries to stop, does nothing unless that folder holds `muster/BOARD.md` (the manager's folder), only reads that one file on your computer, and sends nothing. The plugin contains no code that sends your data to any
+outside service. Apart from that hook, everything below runs only when a command or skill tells Claude to, and Claude Code asks your
 permission as usual. The crew is told never to take over your whole computer.
 
 | Part | What it does |

@@ -1,0 +1,16 @@
+{
+  "version": "0.3.31",
+  "changed_files": [
+    "docs/compatibility.html",
+    "docs/cursor.html",
+    "docs/index.html"
+  ],
+  "affected_roles": [
+    "Designer"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Cursor guide: plain-words page, Cursor column in the compatibility table, link on the install page (untested)"
+}

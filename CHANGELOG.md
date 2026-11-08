@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.31
+Affects: Designer.
+Cursor guide: plain-words page, Cursor column in the compatibility table, link on the install page (untested)
+
 ## 0.3.30
 Affects: nobody; only Muster's own free test.
 The free test no longer fails when it reads the published version just as a new one goes live: it reads it again and retries.

@@ -1,0 +1,16 @@
+{
+  "version": "0.3.33",
+  "changed_files": [
+    "docs/compatibility.html",
+    "docs/cursor.html",
+    "docs/style.css"
+  ],
+  "affected_roles": [
+    "Designer"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Cursor guide: second computer join steps; copy-block wrap in style.css (untested)"
+}

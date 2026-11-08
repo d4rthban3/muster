@@ -7,7 +7,7 @@
 # main and the site's rebuild; proves the new content is served (published version, and a changed line of the site). It stops at the first failure and says why. It never
 # force-pushes, never touches another branch, and never pushes anything in muster/.
 # --with <branch> (repeatable): ship several passed branches as one release. Batch only branches that do not touch the same files.
-# It refuses unless the crew board (muster/BOARD.md in the main folder, if the project has one) holds an inspector PASS naming this exact saved version.
+# It refuses unless the crew board (muster/BOARD.md in the main folder, if the project has one) holds an entry headed "| PASS |" naming this exact saved version.
 # --dry-run: do everything on this computer, push nothing. --no-wait: push, but do not wait on GitHub (used by the test).
 set -u
 export MSYS2_ARG_CONV_EXCL='*'   # Git Bash on Windows must not rewrite 'origin/main:file' as a path list
@@ -30,7 +30,7 @@ mainroot=$(dirname "$(cd "$(git rev-parse --git-common-dir)" && pwd)")
 if [ -f "$mainroot/muster/BOARD.md" ]; then
   for b in HEAD $with; do
     sha=$(git rev-parse --short=7 "$b" 2>/dev/null) || continue
-    cat "$mainroot"/muster/BOARD*.md 2>/dev/null | grep -i "PASS" | grep -q "$sha" \
+    cat "$mainroot"/muster/BOARD*.md 2>/dev/null | awk -v s="$sha" '/^###/ {ok = ($0 ~ /\| PASS \|/)} ok && index($0, s) {found=1} END {exit !found}' \
       || stop "no inspector PASS on the board for $b ($sha); a branch ships only the exact saved version the inspector passed"
   done
 fi

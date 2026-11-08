@@ -68,6 +68,19 @@ def order_problem(text):
     return None
 
 
+def is_manager(first):
+    """The chat's own role: its 'Job:' line in the starting note, else the first agents/<role>.md it names, else the first
+    crew name it uses. A worker's note that merely mentions the manager is not the manager."""
+    m = re.search(r"\bJob:\s*(%s)_" % ROLE, first)
+    if m:
+        return m.group(1) == "Manager"
+    m = re.search(r"agents[/\\](manager|builder|designer|inspector|design-inspector|sketchpad|ai-socket|agent-teacher)\.md", first)
+    if m:
+        return m.group(1) == "manager"
+    m = re.search(r"\b(%s)_[^\s_][^_\n]*_\d{3}\b" % ROLE, first)
+    return bool(m) and m.group(1) == "Manager"
+
+
 # ---- reading the event ----------------------------------------------------------------------------------------
 def first_message(path):
     try:
@@ -213,8 +226,14 @@ def pretool(data, manager):
             return deny("only the manager changes the owner's list, decisions, crew list, rules pages and muster/CLAUDE.md (%s)" % os.path.basename(p))
     if tool == "Bash":
         cmd = str(inp.get("command", ""))
-        if re.search(r"\bgit\s+(-C\s+\S+\s+)?(add|commit|push)\b[^|;&]*\bmuster/", cmd):
-            return deny("nothing under muster/ is ever saved, committed or pushed")
+        # only paths being added or committed count; a branch such as muster/builder-a-002 is not a path
+        for seg in re.split(r"[;&|\n]+", cmd):
+            mg = re.match(r"\s*git\s+(?:-C\s+\S+\s+)?(add|commit)\b(.*)", seg)
+            if not mg:
+                continue
+            args = re.sub(r"(\"[^\"]*\"|'[^']*')", " ", mg.group(2))
+            if re.search(r"(?<![\w/.-])(muster/?|muster/[^\s]*\.\w+|muster/(rules|handovers|superseded|x-post)/\S*)(?=\s|$)", args):
+                return deny("nothing under muster/ is ever saved or committed")
         if not manager and re.search(r"(>|>>|tee\s+|sed\s+-i\S*\s+(''\s+)?\S*\s*)\s*\S*muster/(OWNERS-LIST|DECISIONS-LOG|CREW|CLAUDE|RULES-PAGE|REPORT)\.md", cmd):
             return deny("only the manager changes the owner's list, decisions, crew list and muster/CLAUDE.md")
 
@@ -267,7 +286,7 @@ def main():
     first = first_message(path)
     if not CREW_RE.search(first) and os.environ.get("MUSTER_ASSUME_CREW") != "1":
         return 0
-    manager = bool(MANAGER_RE.search(first)) or os.environ.get("MUSTER_ASSUME_MANAGER") == "1"
+    manager = is_manager(first) or os.environ.get("MUSTER_ASSUME_MANAGER") == "1"
     ev = data.get("hook_event_name", "")
     if ev == "PreToolUse":
         pretool(data, manager)

@@ -301,6 +301,8 @@ mkdir -p muster; printf '# Board\n' > muster/BOARD.md
 if bash scripts/ship.sh "no pass yet" --dry-run >"$SH/nopass.out" 2>&1; then fail "ship went ahead with no PASS on the board"; fi
 grep -q "no inspector PASS on the board" "$SH/nopass.out" || fail "ship did not say the PASS was missing: $(cat "$SH/nopass.out")"
 echo pass > pass.txt; git add pass.txt; git commit -q -m "a piece to pass"
+printf '### 2026-11-08 | FAIL | Inspector -> Builder | demo\nWhat: stacked on the passed %s\n' "$(git rev-parse --short=7 HEAD)" >> muster/BOARD.md
+if bash scripts/ship.sh "fail is not pass" --dry-run >"$SH/failpass.out" 2>&1; then fail "ship took the word 'passed' in a FAIL entry for a PASS"; fi
 printf '### 2026-11-08 | PASS | Inspector -> Manager | demo\nWhat: PASS for %s\n' "$(git rev-parse --short=7 HEAD)" >> muster/BOARD.md
 bash scripts/ship.sh "pass is there" --dry-run >"$SH/pass.out" 2>&1 || { cat "$SH/pass.out"; fail "ship refused a branch whose PASS is on the board"; }
 rm -rf muster

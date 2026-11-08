@@ -25,8 +25,9 @@
     "Inspector"
   ],
   "affected_platforms": [
-    "claude-code"
+    "claude-code",
+    "cursor"
   ],
   "records_change": false,
-  "note": "Crew chats open detached and filed in the project group as a required, checked step (D-026); every rule a script can check is enforced by code (D-027): chat messages, replies, recorded choices, who may write the shared files, the usage block, and shipping only with the inspector's PASS; a check script and plain page wording for the Cursor, Grok Bot and ChatGPT editions; projects without the plugin install the checks with scripts/install-checks.py."
+  "note": "Crew chats open detached and filed in the project group as a required, checked step (D-026); every rule a script can check is enforced by code (D-027, owner: \"code every rule\"): chat messages, replies, recorded choices, who may write the shared files, the usage block, and shipping only with the inspector's PASS; a check script and plain page wording for the Cursor, Grok Bot and ChatGPT editions; projects without the plugin install the checks with scripts/install-checks.py."
 }

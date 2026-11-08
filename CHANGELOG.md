@@ -7,8 +7,8 @@ Affects: Manager, Builder.
 Computer 2 in step (owner's list item 31, owner: "i need computer 2 to be informed of the protocol and to stay in step with our builders"): the second computer's join, run there, sets itself up from the shared files, takes the project's board, rules, protocol page, builders' log and workspace paths as options, can be dry-run, and writes nothing in the host's files; a protocol page and a builders' change log are kept with the crew files (ship.sh adds a line at each ship, the manager adds ready-but-not-live work), and the second computer reads both before every session.
 
 ## 0.3.40
-Affects: Manager, Builder, Designer, Inspector.
-Crew chats open detached and filed in the project group as a required, checked step (D-026); every rule a script can check is enforced by code (D-027): chat messages, replies, recorded choices, who may write the shared files, the usage block, and shipping only with the inspector's PASS; a check script and plain page wording for the Cursor, Grok Bot and ChatGPT editions; projects without the plugin install the checks with scripts/install-checks.py.
+Affects: Manager, Builder, Designer, Inspector (Claude Code and Cursor).
+Crew chats open detached and filed in the project group as a required, checked step (D-026); every rule a script can check is enforced by code (D-027, owner: "code every rule"): chat messages, replies, recorded choices, who may write the shared files, the usage block, and shipping only with the inspector's PASS; a check script and plain page wording for the Cursor, Grok Bot and ChatGPT editions; projects without the plugin install the checks with scripts/install-checks.py.
 
 ## 0.3.39
 Affects: Manager.

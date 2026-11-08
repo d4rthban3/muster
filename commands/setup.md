@@ -206,7 +206,7 @@ Tell the person in one line that the crew's files stay on this computer only. Sa
 ## 4. Start the chats
 Use skill `start-the-crew` for every role in `crew`. Each chat's name is `<role>_<project name>_001`, the
 project name exactly as typed on the page (made-up example: `Builder A_MyProject_001`). The manager works in the main project folder (no copy); every
-other worker (except the inspectors, who work in the main folder) gets its own copy. If the crew has more than three builders, run `scripts/crew-plan.py inspectors <number of builders> --project <project name>` and start that many inspectors, each told which builders it checks (skill `start-the-crew`, "Inspectors scale"). Each gets the model and effort from its definition in `${CLAUDE_PLUGIN_ROOT}/agents/`,
+other worker (except the manager, and the inspectors, who may work in the main folder or in their own copy) gets its own copy. If the crew has more than three builders, run `scripts/crew-plan.py inspectors <number of builders> --project <project name>` and start that many inspectors, each told which builders it checks (skill `start-the-crew`, "Inspectors scale"). Each gets the model and effort from its definition in `${CLAUDE_PLUGIN_ROOT}/agents/`,
 the same permission mode as this chat (never a looser one), and its starting note, which begins with the line "Your
 five-line starting note, from the manager (or from the setup, for the first crew):". Write the real paths, not the
 `${...}` names. The manager's note:
@@ -230,8 +230,8 @@ points at `muster/CLAUDE.md` and its rules page by the main project folder's ful
      say what to press, wait, start it again yourself.
 - **Desktop app:** the app starts every chat nested under the chat that started it, so for each crew chat, in the same
   turn as its start: detach its session id to the top level, then (after one question for the owner's OK where the
-  app needs it) file it in the project's sidebar group, named with the project name; then check with the linked
-  session list that none sits under this chat or the manager and all are in the group (skill `start-the-crew`).
+  app needs it) file it in the project's sidebar group, named with the project name; then check with the group's
+  session list that all are in it and none sits under this chat or the manager (skill `start-the-crew`).
   This setup chat stays out of the group.
 - **Terminal:** the manager is the one chat the person opens themselves in the project folder; give them its one line.
 - The manager owns `muster/CREW.md` in the main folder: write each started chat into its "Running now" table there.

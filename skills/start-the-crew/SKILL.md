@@ -47,9 +47,9 @@ folder is still waiting, answer that one first, then the box for this folder app
 it, **start the chats again yourself**; never leave the owner to start them by hand.
 **Top level, each on its own (required, checked):** the app has no setting to start a chat top-level or in a group: a chat started from another chat always begins nested under the one that started it. So for every crew chat (the first crew, renewals, new workers, inspectors and add-ons alike) these three steps are one unit, done in the same turn as the start and never postponed:
 1. Start the chat; the result gives its session id.
-2. At once detach that id to the top level (`detach_session`; it needs no approval and is refused only for a chat you did not start).
+2. At once detach that id to the top level (`detach_session`; it needs no approval; it is refused for a chat you did not start, one the owner already moved, a fork, or one that shares another session's worktree, and is unavailable in unattended sessions: then say so and name what to drag).
 3. File that id in the project's sidebar group (see below).
-Then **check**: list the linked chats (`list_sessions` with linked true) and confirm each one you just started is no longer listed under you and sits in the group; a chat still nested or ungrouped is fixed before you start the next one or tell anyone the crew is running. If a step is refused, say so in one line with what to drag where. No crew chat sits under the manager or under the chat that ran the setup.
+Then **check**: list the sessions of the project's group (`list_sessions` with group set to the project name) and confirm each chat you just started sits in it, and (`get_session`) that none still shows you as its parent; a chat still nested or ungrouped is fixed before you start the next one or tell anyone the crew is running. If a step is refused, say so in one line with what to drag where. No crew chat sits under the manager or under the chat that ran the setup.
 **Sidebar group:** every project's crew sits in its own sidebar group named with the project name the owner gave on
 the setup page. Make the group (or use one with that exact name) before the first crew chat starts, and file each crew
 chat into it right after it is detached, one by one. Never skip this step or leave it silently undone: if any chat is not in the group at the end,

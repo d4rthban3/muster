@@ -203,8 +203,13 @@ grep -q "protocol page" "$WS/.cursor/rules/muster-laptop2-core.mdc" && grep -q "
 PL="$CU/pinrlike"; mkdir -p "$PL/Proj/handoff" "$PL/ws2" ; echo "# board" > "$PL/Proj/handoff/BOARD.md"; echo r1 > "$PL/Proj/CLAUDE.md"; echo r2 > "$PL/Proj/READ-FIRST.md"
 PBEFORE=$(find "$PL" -type f | sort | xargs cksum | cksum)
 $PY "$ROOT/cursor/setup.py" "$(native "$PL/Proj")" --name Pinr --join --computer laptop2 --other desk1 --board "$PL/Proj/handoff/BOARD.md" --rules "$PL/Proj/CLAUDE.md" --rules "$PL/Proj/READ-FIRST.md" --workspace "$PL/ws2" --other-workspace "$PL/otherws" --dry-run > "$CU/pdry.out" 2>&1 || { cat "$CU/pdry.out"; fail "--join --dry-run on another layout failed"; }
-grep -q "READ-FIRST.md" "$CU/pdry.out" && grep -q "handoff/BOARD.md" "$CU/pdry.out" || fail "the other layout's board and rules were not used"
+grep -q "READ-FIRST.md" "$CU/pdry.out" && grep -q "handoff.BOARD.md" "$CU/pdry.out" || fail "the other layout's board and rules were not used"
 [ "$(find "$PL" -type f | sort | xargs cksum | cksum)" = "$PBEFORE" ] && [ ! -e "$PL/otherws" ] || fail "the dry run on another layout wrote something"
+# the board step in the starting note reads the board the join was given, and writes nothing
+grep -q -- '--board' "$WS/START-HERE.md" || fail "START-HERE does not pass --board to the board reader"
+$PY "$WS/tools/board_digest.py" Builder --board "$PL/Proj/handoff/BOARD.md" > "$CU/bd.out" 2>&1 || true
+grep -q "Read .*BOARD.md" "$CU/bd.out" && ! grep -q "NOT FOUND" "$CU/bd.out" || fail "the board reader did not read the given board: $(cat "$CU/bd.out")"
+[ "$(find "$PL" -type f | sort | xargs cksum | cksum)" = "$PBEFORE" ] || fail "reading the given board wrote something"
 [ -z "$(git -C "$CM" status --porcelain)" ] || fail "--join left files the shared project would commit: $(git -C "$CM" status --porcelain)"
 sh "$WS/git-as.sh" -C "$CU/clones/builder-a-laptop2" commit -q --allow-empty -m t && [ "$(git -C "$CU/clones/builder-a-laptop2" log -1 --format=%an)" = laptop2 ] || fail "git-as.sh did not commit as laptop2"
 git -C "$CU/clones/builder-a-laptop2" rev-parse --abbrev-ref HEAD | grep -q '^laptop2/' || fail "the clone is not on a laptop2/ branch"

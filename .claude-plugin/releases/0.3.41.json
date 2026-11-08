@@ -8,6 +8,7 @@
     "scripts/muster-update.py",
     "scripts/setup-smoke.sh",
     "scripts/ship.sh",
+    "skills/board-digest/scripts/board_digest.py",
     "skills/manager-details/SKILL.md",
     "templates/BUILDERS-LOG.md",
     "templates/COMPUTER2-START.md",

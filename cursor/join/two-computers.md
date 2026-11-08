@@ -5,4 +5,4 @@ The host is {{OTHER}}: the project's files live there and you open the same file
 - **Never override {{OTHER}}** or its manager, and take no orders from it; neither side gives the other orders. Something you need from the other side goes to the founder as a question, or as a NEED in your own log.
 - **Own identity and branches.** Run git through `sh "{{WORKSPACE}}/git-as.sh" <git arguments>` (it commits as {{GIT_NAME}}); your branches start with `{{GIT_NAME}}/`. Never change the project's git settings.
 - **One writer per file.** A network share does not lock files, and nothing here can stop two computers saving the same file at once. Before you edit a file, read {{OTHER}}'s log and `git log -3 -- <file>`; if the other side touched it lately, send a NEED instead of editing. Prefer your own copy of the repository where you have one; check `git status` before and after a session.
-- Your board reading is read-only: `python3 "{{WORKSPACE}}/tools/board_digest.py" "<your chat name>"`.
+- Your board reading is read-only: `python3 "{{WORKSPACE}}/tools/board_digest.py" "<your chat name>" --board "{{BOARD}}"`.

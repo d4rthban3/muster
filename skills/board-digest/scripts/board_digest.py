@@ -95,9 +95,19 @@ def main():
     # --write-waiting (manager only): also rewrite the one "Waiting on:" line at the top of muster/BOARD.md.
     write_waiting = "--write-waiting" in sys.argv
     args = [a for a in sys.argv[1:] if a != "--write-waiting"]
+    # --board <file>: read exactly that board (and BOARD-ARCHIVE.md beside it); strictly read-only, for a second computer
+    board_file = None
+    if "--board" in args:
+        k = args.index("--board")
+        board_file = os.path.abspath(args[k + 1]) if k + 1 < len(args) else None
+        args = args[:k] + args[k + 2:]
+        write_waiting = False
     who = args[0].strip() if args and args[0].strip() else "Manager"
     role = who.lower()
-    root = find_root(args[1] if len(args) > 1 else os.getcwd())
+    root = os.path.dirname(board_file) if board_file else find_root(args[1] if len(args) > 1 else os.getcwd())
+    if board_file and not os.path.isfile(board_file):
+        print("NOT FOUND: no board at %s. Read the board by hand." % board_file)
+        return 1
     if root is None:
         print("NOT FOUND: no muster/BOARD.md in this folder or any parent. Read the board by hand.")
         return 1
@@ -106,7 +116,9 @@ def main():
     board_entries = []
     word = re.compile(r"(?<![\w-])(?<!\w )(%s|all)(?![\w-])" % re.escape(role), re.I)
     for name in ("BOARD.md", "BOARD-ARCHIVE.md"):
-        path = os.path.join(root, "muster", name)
+        path = (os.path.join(root, name) if board_file else os.path.join(root, "muster", name))
+        if board_file and name == "BOARD.md":
+            path = board_file
         text, err = read(path)
         if text is None:
             if name == "BOARD.md" or os.path.exists(path):

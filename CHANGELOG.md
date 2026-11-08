@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.48
+Affects: Manager, Builder, Designer, Inspector.
+manager test: a chat is the manager only by its own name (Job, You are, I am), so workers that mention the manager are no longer held to the manager's reply rule
+
 ## 0.3.47
 Affects: Manager, Builder, Designer, Inspector.
 PINR guard: a worker's shell write into PINR's manager-only files is denied, as for Muster's files

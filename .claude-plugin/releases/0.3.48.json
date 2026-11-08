@@ -1,0 +1,19 @@
+{
+  "version": "0.3.48",
+  "changed_files": [
+    "hooks/rules-check.py",
+    "scripts/profile-selftest.py",
+    "scripts/rules-check-selftest.py"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Builder",
+    "Designer",
+    "Inspector"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "manager test: a chat is the manager only by its own name (Job, You are, I am), so workers that mention the manager are no longer held to the manager's reply rule"
+}

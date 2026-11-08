@@ -42,9 +42,13 @@ def use(name, **inp):
     return {"type": "assistant", "message": {"content": [{"type": "tool_use", "name": name, "input": inp}]}}
 
 
-def run(script, ev, plain=False, **kw):
+PLAINPROJ = os.path.join(T, "plainproj")
+os.makedirs(PLAINPROJ)
+
+
+def run(script, ev, plain=False, cwd=None, **kw):
     d = NOPROF if plain else CK
-    r = subprocess.run([PY, os.path.join(d, script)], input=json.dumps(dict(hook_event_name=ev, cwd=PROJ, **kw)),
+    r = subprocess.run([PY, os.path.join(d, script)], input=json.dumps(dict(hook_event_name=ev, cwd=cwd or (PLAINPROJ if plain else PROJ), **kw)),
                        capture_output=True, text=True, env={k: v for k, v in os.environ.items() if k != "MUSTER_PROFILE"})
     return r.stdout.strip()
 
@@ -100,6 +104,23 @@ add("4 no board at the path is silent", (os.remove(board) or bs("Fine.")), False
 bare = "See hooks/rules-check.py for it."
 add("5 talk-check is off under the PINR profile", run("talk-check.py", "Stop", last_assistant_message=bare, transcript_path=site), False)
 add("5 talk-check still works without the profile", run("talk-check.py", "Stop", plain=True, last_assistant_message=bare, transcript_path=tr("You are Builder A_Muster_003")), True)
+# the plugin's own copy stands down where .muster-checks is installed; the board path is joined to the folder holding it
+add("6 the plugin's talk-check stands down in a project with its own copy", run("talk-check.py", "Stop", plain=True, cwd=PROJ, last_assistant_message=bare, transcript_path=tr("You are Builder A_Muster_003")), False)
+add("6 the plugin's rules-check stands down too", run("rules-check.py", "PreToolUse", plain=True, cwd=PROJ, tool_name="SendMessage", tool_input={"to": "x", "message": "noted"}, transcript_path=tr("You are Builder A_Muster_003")), False)
+add("6 ...and from a sub-folder of that project", run("rules-check.py", "PreToolUse", plain=True, cwd=os.path.join(PROJ, "sub"), tool_name="SendMessage", tool_input={"to": "x", "message": "noted"}, transcript_path=tr("You are Builder A_Muster_003")), False)
+add("6 the installed copy itself still works", run("rules-check.py", "PreToolUse", tool_name="SendMessage", tool_input={"to": "x", "message": "noted"}, transcript_path=tr("You are Builder A_Muster_003")), True)
+add("6 without .muster-checks the plugin's own copy still works", run("rules-check.py", "PreToolUse", plain=True, tool_name="SendMessage", tool_input={"to": "x", "message": "noted"}, transcript_path=tr("You are Builder A_Muster_003")), True)
+# the shipped profile's real board path: a folder holding .muster-checks, the board beside it under PINR-claudecode-handoff/
+REAL = os.path.join(T, "pinrlike", "Claude Code")
+os.makedirs(os.path.join(REAL, ".muster-checks"))
+for f in ("rules-check.py", "board-stop.py", "talk-check.py"):
+    shutil.copyfile(os.path.join(CK, f), os.path.join(REAL, ".muster-checks", f))
+shutil.copyfile(os.path.join(ROOT, "profiles", "pinr.json"), os.path.join(REAL, ".muster-checks", "profile.json"))
+rb = os.path.join(REAL, json.load(open(os.path.join(ROOT, "profiles", "pinr.json")))["board"])
+os.makedirs(os.path.dirname(rb))
+open(rb, "w").write("2026-11-08 | LIVE | Look Header_PINR_002 -> Manager | Paused: yes | x\n")
+real = lambda said: subprocess.run([PY, os.path.join(REAL, ".muster-checks", "board-stop.py")], input=json.dumps({"hook_event_name": "Stop", "cwd": REAL, "last_assistant_message": said, "transcript_path": mgr}), capture_output=True, text=True).stdout.strip()
+add("6 the shipped profile's board path is found from the folder holding .muster-checks", real("Fine."), True)
 # install-checks and check-report
 IC = os.path.join(T, "ic")
 os.makedirs(IC)

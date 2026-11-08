@@ -2,6 +2,7 @@
 # Stop hook: runs talk-check.py only inside a Muster project (muster/CLAUDE.md in this folder or above), so it costs nothing elsewhere.
 d=$(pwd); found=""
 while [ -n "$d" ] && [ "$d" != "/" ]; do
+  [ -d "$d/.muster-checks" ] && exit 0   # the project runs its own installed copy: stand down
   [ -f "$d/muster/CLAUDE.md" ] && { found=1; break; }
   d=$(dirname "$d")
 done

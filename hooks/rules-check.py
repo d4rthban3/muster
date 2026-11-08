@@ -316,10 +316,28 @@ def stop(data, manager):
         return block("your end-of-turn reply is a card: a bold title line 'WORD · job', then two or three '- ' bullets (what, the result with real numbers, what is left or what you need)")
 
 
+def stood_down(data):
+    """The plugin's copy stands down where the project has its own installed copy (.muster-checks/<this file>), so a check never runs twice."""
+    me = os.path.abspath(__file__)
+    if os.path.basename(os.path.dirname(me)) == ".muster-checks":
+        return False
+    start = os.environ.get("CLAUDE_PROJECT_DIR") or data.get("cwd") or os.getcwd()
+    d = os.path.abspath(start)
+    while True:
+        if os.path.isfile(os.path.join(d, ".muster-checks", os.path.basename(me))):
+            return True
+        parent = os.path.dirname(d)
+        if parent == d:
+            return False
+        d = parent
+
+
 def main():
     try:
         data = json.load(sys.stdin)
     except Exception:
+        return 0
+    if stood_down(data):
         return 0
     path = data.get("transcript_path") or ""
     first = first_message(path)

@@ -140,10 +140,28 @@ def card_answered_this_turn(transcript_path):
     return True if last_human is None else card_after
 
 
+def stood_down(data):
+    """The plugin's copy stands down where the project has its own installed copy (.muster-checks/<this file>), so a check never runs twice."""
+    me = os.path.abspath(__file__)
+    if os.path.basename(os.path.dirname(me)) == ".muster-checks":
+        return False
+    start = os.environ.get("CLAUDE_PROJECT_DIR") or data.get("cwd") or os.getcwd()
+    d = os.path.abspath(start)
+    while True:
+        if os.path.isfile(os.path.join(d, ".muster-checks", os.path.basename(me))):
+            return True
+        parent = os.path.dirname(d)
+        if parent == d:
+            return False
+        d = parent
+
+
 def main():
     try:
         data = json.load(sys.stdin)
     except Exception:
+        return 0
+    if stood_down(data):
         return 0
     if data.get("stop_hook_active"):
         return 0

@@ -45,12 +45,14 @@ workers (their copies inherit the folder's trust).
 owner in plain words: look for a trust box in the app and press Trust (or Yes); if an older trust box from another
 folder is still waiting, answer that one first, then the box for this folder appears. When they say they have pressed
 it, **start the chats again yourself**; never leave the owner to start them by hand.
-**Top level, each on its own:** a chat started from another chat sits under it in the sidebar. Every crew chat must be
-its own top-level chat: right after starting each one (the first crew, renewals and new workers alike), detach it to
-the top level with the app's session tools. No crew chat sits under the manager or under the chat that ran the setup.
+**Top level, each on its own (required, checked):** the app has no setting to start a chat top-level or in a group: a chat started from another chat always begins nested under the one that started it. So for every crew chat (the first crew, renewals, new workers, inspectors and add-ons alike) these three steps are one unit, done in the same turn as the start and never postponed:
+1. Start the chat; the result gives its session id.
+2. At once detach that id to the top level (`detach_session`; it needs no approval and is refused only for a chat you did not start).
+3. File that id in the project's sidebar group (see below).
+Then **check**: list the linked chats (`list_sessions` with linked true) and confirm each one you just started is no longer listed under you and sits in the group; a chat still nested or ungrouped is fixed before you start the next one or tell anyone the crew is running. If a step is refused, say so in one line with what to drag where. No crew chat sits under the manager or under the chat that ran the setup.
 **Sidebar group:** every project's crew sits in its own sidebar group named with the project name the owner gave on
-the setup page. Once every crew chat is running, make the group (or use one with that exact name) and move each crew
-chat into it one by one. Never skip this step or leave it silently undone: if any chat is not in the group at the end,
+the setup page. Make the group (or use one with that exact name) before the first crew chat starts, and file each crew
+chat into it right after it is detached, one by one. Never skip this step or leave it silently undone: if any chat is not in the group at the end,
 say so in one line with what to do. The chat that ran the setup is not a crew chat: it stays out of the
 group. Moving chats into a group needs the owner's OK in some permission modes: ask first, in one question with two buttons
 ("I move them now" or "you drag them yourself"). On the first, use the app's sidebar tools; if the move is refused, tell the owner plainly
@@ -82,7 +84,7 @@ because a project name may hold characters such as `$` or an apostrophe. Never u
 ## Renewal
 On `DONE: renewal <Role>_<project>_<N>`: start `<Role>_<project>_<N+1>` (three digits, counting up) the same way, in **its own new copy** (D-025): get the folder's short name from `python3 scripts/crew-plan.py copy-name "<Role>_<project>_<N+1>"` (made-up example: `builder-a-002`), make it from the old copy's branch so no work is lost (`git worktree add '.claude/worktrees/<short-name>' -b 'muster/<short-name>' 'muster/<old short-name>'`), and **before starting the chat** run `python3 scripts/crew-plan.py check-copy "<Role>_<project>_<N+1>" '.claude/worktrees/<short-name>'`: if it says REFUSED, the folder belongs to another role, so make the right one first. A renewed chat never runs in another role's old copy. The manager keeps the main folder, and so does any inspector that works there.
 its note's First line pointing at `muster/handovers/<Role>_<project>_<N>.md` (only if the old chat wrote one; a chat with no job in progress writes none). In the desktop app, move the new chat to the
-top level and file it in the project's sidebar group (one button if the app needs the owner's OK; never left nested
+top level and file it in the project's sidebar group (the three steps and the check under "Top level, each on its own"; one button if the app needs the owner's OK; never left nested
 under the manager). Then archive the old chat automatically, without asking the owner (once its handover is written and the new chat is running; never deleted), and update `muster/CREW.md`.
 
 ## Two builders, only when the work allows
@@ -106,7 +108,7 @@ A small piece is checked by a fresh, separate checker started inside the manager
 ## Second inspector
 When the workers that build (builders, the designer, Agent Teacher) reach three, start `Design Inspector_<project>_001`. It checks
 what people see; Inspector_<project>_001 keeps what is behind the scenes and the manager's paperwork. Like every chat the
-manager starts later (renewals, new workers, add-ons), it goes to the top level and into the project's sidebar group.
+manager starts later (renewals, new workers, add-ons), it is detached to the top level and filed in the project's sidebar group at once, by the same three steps and check.
 
 ## Models
 | Worker | Model |

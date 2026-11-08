@@ -228,9 +228,11 @@ points at `muster/CLAUDE.md` and its rules page by the main project folder's ful
      the same, tell the person what to press, wait for them to say they pressed it, and start it again yourself.
   3. Only when the manager is running, start every other worker. If one is still refused for trust, do the same:
      say what to press, wait, start it again yourself.
-- **Desktop app:** detach every crew chat to the top level as soon as it starts, so none sits under this chat or
-  under the manager; then ask before moving them, each one on its own, into the project's sidebar group, named
-  with the project name (skill `start-the-crew`). This setup chat stays out of the group.
+- **Desktop app:** the app starts every chat nested under the chat that started it, so for each crew chat, in the same
+  turn as its start: detach its session id to the top level, then (after one question for the owner's OK where the
+  app needs it) file it in the project's sidebar group, named with the project name; then check with the linked
+  session list that none sits under this chat or the manager and all are in the group (skill `start-the-crew`).
+  This setup chat stays out of the group.
 - **Terminal:** the manager is the one chat the person opens themselves in the project folder; give them its one line.
 - The manager owns `muster/CREW.md` in the main folder: write each started chat into its "Running now" table there.
 

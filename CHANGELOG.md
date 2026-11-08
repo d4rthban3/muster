@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.40
+Affects: Manager.
+Crew chats open detached (D-026): the app always starts a chat under the one that started it, so detaching and filing each chat in the project's sidebar group is now a required step done right at the start and checked, for the first crew, renewals, new workers, inspectors and add-ons.
+
 ## 0.3.39
 Affects: Manager.
 The start-the-crew text now says an inspector may work in the main folder or in its own copy; either works.

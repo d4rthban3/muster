@@ -1,0 +1,30 @@
+{
+  "version": "0.3.22",
+  "changed_files": [
+    "agents/agent-teacher.md",
+    "agents/ai-socket.md",
+    "agents/builder.md",
+    "agents/design-inspector.md",
+    "agents/designer.md",
+    "agents/inspector.md",
+    "agents/manager.md",
+    "agents/sketchpad.md",
+    "scripts/setup-smoke.sh",
+    "skills/board-digest/scripts/board_digest.py",
+    "skills/manager-details/SKILL.md",
+    "templates/BOARD.md",
+    "templates/CLAUDE.md",
+    "templates/RULES-PAGE.md"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Builder",
+    "Designer",
+    "Inspector"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Paused chats reach the owner (D-020): a paused worker writes its board report with \"Paused: yes\" and sends the owner a notification; the board digest prints OWNER QUESTIONS and names a paused chat as \"waiting for you: type in <chat>\"; the manager asks the owner the top one before ending any turn. The owner: \"engine paused and i didnt get a queue with click box\"."
+}

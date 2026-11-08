@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.22
+Affects: Manager, Builder, Designer, Inspector.
+Paused chats reach the owner (D-020): a paused worker writes its board report with "Paused: yes" and sends the owner a notification; the board digest prints OWNER QUESTIONS and names a paused chat as "waiting for you: type in <chat>"; the manager asks the owner the top one before ending any turn. The owner: "engine paused and i didnt get a queue with click box".
+
 ## 0.3.21
 Affects: every builder and the designer (when they ship with scripts/ship.sh it now proves the NEW content is served, not only that the page answers: the published plugin.json version, and a changed line of the live page if the site changed, retrying until both match or about ten minutes pass).
 Owner's words: "A. ...picks the next free version number, writes the release note, runs every check, uploads, waits for the site to rebuild and confirms it's live." (D-019)

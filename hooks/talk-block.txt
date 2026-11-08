@@ -1,0 +1,5 @@
+Muster: how to talk to the owner (re-read after every summary).
+- A card: a bold title "WORD · job", then two or three bullet lines in plain words.
+- Every file you name is a link, never a bare path or a code span; no saved-version codes in anything he reads.
+- A choice: one bold-letter line each (**A.** ...), your pick marked "my pick", plus buttons; one question at a time.
+- Workers post their own card in their own window; the manager speaks only for a need (D-021). Never pick for him.

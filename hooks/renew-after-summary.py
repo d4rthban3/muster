@@ -6,6 +6,7 @@ own chats in the same folder: it acts only if the chat's FIRST user message (in 
 Reads only the hook's JSON from stdin and that transcript; writes nothing; any error means silence.
 """
 import json
+import os
 import re
 import sys
 
@@ -60,6 +61,11 @@ def main():
                "the main project folder (what is open, the files that matter, the next step); then send the manager "
                "\"DONE: renewal <your chat name>\". Do this once, then carry on until the manager starts your fresh chat.")
     print(msg)
+    try:  # the talking rules fade in a long or summarized chat: put them back, once per summary
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "talk-block.txt"), encoding="utf-8") as fh:
+            print(fh.read().rstrip())
+    except OSError:
+        pass
     return 0
 
 

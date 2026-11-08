@@ -52,7 +52,7 @@ Step by step: [docs/GUIDE.md](docs/GUIDE.md).
 | Chat AIs | Cannot run the plugin. They follow the outside-AI protocol, pasted once into their instructions. |
 
 ## What it runs, sends and fetches
-The plugin has two hooks, no MCP servers and no package installs. The hook (`hooks/board-stop.py`) runs when a chat tries to stop, does nothing unless that folder holds `muster/BOARD.md` (the manager's folder), only reads that one file on your computer, and sends nothing. The second (`hooks/renew-after-summary.sh`) runs once after a chat's conversation is summarized and prints a reminder to hand over; it only looks for `muster/CLAUDE.md` in the chat's folder or above it. The plugin contains no code that sends your data to any
+The plugin has three hooks, no MCP servers and no package installs. The hook (`hooks/board-stop.py`) runs when a chat tries to stop, does nothing unless that folder holds `muster/BOARD.md` (the manager's folder), only reads that one file on your computer, and sends nothing. The second (`hooks/renew-after-summary.sh`) runs once after a chat's conversation is summarized and prints a reminder to hand over; it only looks for `muster/CLAUDE.md` in the chat's folder or above it. The third (`hooks/talk-check.py`) looks at a crew chat's last reply for a bare file path or version code, and also only reads. The plugin contains no code that sends your data to any
 outside service. Apart from that hook, everything below runs only when a command or skill tells Claude to, and Claude Code asks your
 permission as usual. The crew is told never to take over your whole computer.
 

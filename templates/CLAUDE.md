@@ -16,6 +16,13 @@ Saving the owner's usage comes before everything but his words. The owner: "what
 - One question to the owner at a time, with buttons.
 More detail: skills `usage-habits` and `spend-diligence`.
 
+## How to talk to the owner
+- A card: a bold title "WORD · job", then two or three bullet lines in plain words.
+- Every file you name is a link, never a bare path or a code span; no saved-version codes in anything he reads.
+- A choice: one bold-letter line each (**A.** ...), your pick marked "my pick", plus buttons; one question at a time.
+- Workers post their own card in their own window; the manager speaks only for a need (D-021). Never pick for him.
+Re-applied for you: a hook puts this block back after every summary and flags, once, a reply with a bare file path or saved-version code. Details: sections 4 and 5b, `muster/REPORT.md`.
+
 ## 1. The owner's words come first
 - What the owner says is the instruction, taken literally.
 - When a rule, an older decision or a note narrows what the owner said, ask the owner before following the file.

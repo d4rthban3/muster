@@ -1,0 +1,66 @@
+#!/usr/bin/env python3
+"""Stop hook for crew chats: flag, once, a reply that names a file as a bare path or file name (not a link) or carries a
+saved-version code (a long hex word), because the owner reads these replies (muster/CLAUDE.md section 4).
+Acts only in a crew chat (the first user message in the transcript names agents/<role>.md or <Role>_<project>_<digits>);
+silent for the owner's own chats and any other project. Blocks at most once: with stop_hook_active it lets the stop through.
+Reads only the hook JSON and the transcript's first message; writes nothing; any error means silence.
+"""
+import json
+import re
+import sys
+
+CREW = r"(?:Manager|Builder [A-Za-z]|Designer|Design Inspector|Inspector|Sketchpad|AI Socket|Agent Teacher)"
+CREW_RE = re.compile(r"agents[/\\](?:manager|builder|designer|inspector|design-inspector|sketchpad|ai-socket|agent-teacher)\.md|\b%s_[^\s_][^_\n]*_\d{3}\b" % CREW)
+LINK = re.compile(r"\[[^\]]*\]\([^)]*\)")
+FENCE = re.compile(r"```.*?```", re.S)
+PATH = re.compile(r"(?<![\w./-])(?:/Users/|/home/|[A-Za-z]:\\|(?:[\w.-]+/)+[\w.-]+\.\w{1,5}\b|[\w-]+\.(?:md|py|sh|json|html|yml|yaml|jsx?|tsx?|css|toml)\b)")
+HEX = re.compile(r"\b(?=[0-9a-f]*\d)(?=[0-9a-f]*[a-f])[0-9a-f]{7,40}\b")
+
+
+def first_message(path):
+    try:
+        with open(path, encoding="utf-8") as fh:
+            for line in fh:
+                try:
+                    d = json.loads(line)
+                except ValueError:
+                    continue
+                if d.get("type") != "user":
+                    continue
+                c = (d.get("message") or {}).get("content", "")
+                if isinstance(c, list):
+                    c = " ".join(b.get("text", "") for b in c if isinstance(b, dict))
+                return str(c)[:6000]
+    except OSError:
+        pass
+    return ""
+
+
+def main():
+    try:
+        data = json.load(sys.stdin)
+    except Exception:
+        return 0
+    if data.get("stop_hook_active"):
+        return 0
+    text = data.get("last_assistant_message") or ""
+    if not text:
+        return 0
+    body = FENCE.sub(" ", LINK.sub(" ", text))
+    body = re.sub(r"https?://\S+", " ", body)
+    bad_path = PATH.search(body)
+    bad_hex = HEX.search(body)
+    if not bad_path and not bad_hex:
+        return 0
+    if not CREW_RE.search(first_message(data.get("transcript_path") or "")):
+        return 0  # the owner's own chat or another project
+    what = ("a bare file path or file name (\"%s\")" % bad_path.group(0)) if bad_path else ("a saved-version code (\"%s\")" % bad_hex.group(0))
+    print(json.dumps({"decision": "block", "reason": "Your reply to the owner has %s. Say it again in plain words with each file as a clickable link and no saved-version codes." % what}))
+    return 0
+
+
+if __name__ == "__main__":
+    try:
+        sys.exit(main())
+    except Exception:
+        sys.exit(0)

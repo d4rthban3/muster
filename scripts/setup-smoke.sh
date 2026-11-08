@@ -266,9 +266,18 @@ renew owner "$FOLDER" | grep -q . && fail "renewal hook spoke in the owner's own
 renew builder "$FOLDER" | grep -q "DONE: renewal" || fail "renewal hook was silent for a worker"
 mkdir -p "$FOLDER/.claude/worktrees/w1"
 renew builder "$FOLDER/.claude/worktrees/w1" | grep -q "DONE: renewal" || fail "renewal hook was silent in a worker copy"
+renew builder "$FOLDER" | grep -q "how to talk to the owner" || fail "the talking block did not come back after a summary"
+renew owner "$FOLDER" | grep -q "how to talk to the owner" && fail "the talking block was added to the owner's own chat"
 renew manager "$FOLDER" | grep -q "fresh manager chat" || fail "renewal hook did not give the manager its own wording"
 renew manager "$FOLDER" | grep -q "DONE: renewal" && fail "the manager was told to send DONE: renewal to itself"
 
+step "the talking check flags a bare path or version code once, and only in a crew chat"
+talk() { (cd "$FOLDER" && printf '{"stop_hook_active":%s,"transcript_path":"%s","last_assistant_message":"%s"}' "$2" "$(native "$SCRATCH")/tr/$1.jsonl" "$3" | sh "$ROOT/hooks/talk-check.sh"); }
+talk builder false "Fixed scripts/ship.sh now." | grep -q '"decision": "block"' || fail "a bare path was not flagged"
+talk builder false "Saved version 8f6f1d9 is ready." | grep -q '"decision": "block"' || fail "a saved-version code was not flagged"
+talk builder true "Fixed scripts/ship.sh now." | grep -q . && fail "the talking check blocked twice in a row"
+talk builder false "Fixed [the script](scripts/ship.sh); 22 of 22 passed." | grep -q . && fail "a linked file was flagged"
+talk owner false "Fixed scripts/ship.sh now." | grep -q . && fail "the talking check spoke in the owner's own chat"
 step "scripts/record-choice.py writes a choice under its list item"
 printf '# List\n\n## Open\n1. "first"\n   Kind: order\n\n2. "second"\n   Kind: question\n\n## Closed\n' > "$FOLDER/muster/OWNERS-LIST.md"
 $PY "$ROOT/scripts/record-choice.py" "$FN" 1 --question "Which one?" --option "A. red" --option "B. blue" --picked "B. blue" --said "blue please" >/dev/null || fail "record-choice failed"

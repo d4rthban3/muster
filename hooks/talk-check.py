@@ -6,11 +6,28 @@ silent for the owner's own chats and any other project. Blocks at most once: wit
 Reads only the hook JSON and the transcript's first message; writes nothing; any error means silence.
 """
 import json
+import os
 import re
 import sys
 
 CREW = r"(?:Manager|Builder [A-Za-z]|Designer|Design Inspector|Inspector|Sketchpad|AI Socket|Agent Teacher)"
 CREW_RE = re.compile(r"agents[/\\](?:manager|builder|designer|inspector|design-inspector|sketchpad|ai-socket|agent-teacher)\.md|\b%s_[^\s_][^_\n]*_\d{3}\b" % CREW)
+def load_profile():
+    """Optional project profile: profile.json beside this file (or the file named in MUSTER_PROFILE). None means Muster's own rules."""
+    for cand in (os.environ.get("MUSTER_PROFILE"), os.path.join(os.path.dirname(os.path.abspath(__file__)), "profile.json")):
+        if cand and os.path.isfile(cand):
+            try:
+                with open(cand, encoding="utf-8") as fh:
+                    d = json.load(fh)
+                return d if isinstance(d, dict) else {}
+            except (OSError, ValueError):
+                return {}
+    return {}
+
+
+PROFILE = load_profile()
+if PROFILE.get("crew_names"):
+    CREW_RE = re.compile(CREW_RE.pattern + "|" + "|".join("(?:%s)" % x for x in PROFILE["crew_names"]))
 LINK = re.compile(r"\[[^\]]*\]\([^)]*\)")
 FENCE = re.compile(r"```.*?```", re.S)
 PATH = re.compile(r"(?<![\w./-])(?:/Users/|/home/|[A-Za-z]:\\|(?:[\w.-]+/)+[\w.-]+\.\w{1,5}\b|[\w-]+\.(?:md|py|sh|json|html|yml|yaml|jsx?|tsx?|css|toml)\b)")
@@ -41,8 +58,8 @@ def main():
         data = json.load(sys.stdin)
     except Exception:
         return 0
-    if data.get("stop_hook_active"):
-        return 0
+    if data.get("stop_hook_active") or PROFILE.get("talk_check") is False:
+        return 0  # a profile can switch this off where the project runs its own talk check
     text = data.get("last_assistant_message") or ""
     if not text:
         return 0

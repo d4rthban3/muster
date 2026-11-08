@@ -1,0 +1,13 @@
+{
+  "name": "PINR",
+  "crew_names": ["\\b[A-Z][A-Za-z]*(?: [A-Za-z]+)*_PINR_\\d{3}\\b", "\\bPINRai_teacher_\\d{3}\\b"],
+  "manager_names": ["\\bManager_PINR_\\d{3}\\b"],
+  "report": {"require_id": false, "require_usage": false},
+  "orders": "free",
+  "record_choice": "decide.py",
+  "talk_check": false,
+  "board": "Claude Code/PINR-claudecode-handoff/pinr-claude-code-starter-v2/handoff/BOARD.md",
+  "board_style": "lines",
+  "board_newest_first": true,
+  "board_kinds_open": false
+}

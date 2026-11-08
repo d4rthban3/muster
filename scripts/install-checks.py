@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """Install Muster's coded rules into a project that does not load the Muster plugin (for example PINR).
 
-Usage: install-checks.py <project-folder> [--remove]
+Usage: install-checks.py <project-folder> [--profile <name or file>] [--dry-run] [--remove]
+A profile (profiles/<name>.json, for example pinr) lets another project's own chat names, report shape, board path and
+choice recorder be checked instead of only Muster's; without one, only Muster's own rules apply. --dry-run only says what
+would be written and writes nothing.
 Copies hooks/rules-check.py, hooks/board-stop.py, hooks/talk-check.py and scripts/usage.py into <project>/.muster-checks/,
 and adds the hooks to <project>/.claude/settings.json (existing settings and other hooks are kept). Run it again after a
 Muster update to refresh the copies; --remove takes everything it added away. The checks act only in a chat whose first
@@ -25,8 +28,26 @@ def cmd(name):
 
 
 def main():
-    args = [a for a in sys.argv[1:] if not a.startswith("--")]
-    remove = "--remove" in sys.argv
+    argv = sys.argv[1:]
+    profile = None
+    if "--profile" in argv:
+        i = argv.index("--profile")
+        profile = argv[i + 1] if i + 1 < len(argv) else ""
+        argv = argv[:i] + argv[i + 2:]
+    args = [a for a in argv if not a.startswith("--")]
+    remove = "--remove" in argv
+    dry = "--dry-run" in argv
+    pfile = None
+    if profile is not None:
+        pfile = profile if os.path.isfile(profile) else os.path.join(ROOT, "profiles", profile + ".json")
+        if not os.path.isfile(pfile):
+            print("STOP: no profile %r (looked for %s)" % (profile, pfile))
+            return 1
+        try:
+            json.load(open(pfile, encoding="utf-8"))
+        except ValueError:
+            print("STOP: %s is not valid JSON" % pfile)
+            return 1
     if len(args) != 1 or not os.path.isdir(args[0]):
         print(__doc__.split("\n\n")[0])
         return 2
@@ -39,6 +60,14 @@ def main():
         except ValueError:
             print("STOP: %s is not valid JSON; fix it by hand first" % sfile)
             return 1
+    if dry:
+        dest = os.path.join(os.path.abspath(args[0]), ".muster-checks")
+        if remove:
+            print("DRY RUN: would remove %s and the hooks pointing at it from %s. Nothing was written." % (dest, sfile))
+        else:
+            print("DRY RUN: would copy %s into %s%s and add the Stop and PreToolUse hooks to %s. Nothing was written."
+                  % (", ".join(n for _, n in FILES), dest, (" with the profile " + os.path.basename(pfile)) if pfile else "", sfile))
+        return 0
     hooks = settings.setdefault("hooks", {})
     for ev in list(hooks):
         hooks[ev] = [g for g in hooks[ev] if not any(MARK in h.get("command", "") for h in g.get("hooks", []))]
@@ -53,6 +82,10 @@ def main():
         os.makedirs(dest, exist_ok=True)
         for src, name in FILES:
             shutil.copyfile(os.path.join(ROOT, src), os.path.join(dest, name))
+        if pfile:
+            shutil.copyfile(pfile, os.path.join(dest, "profile.json"))
+        elif os.path.exists(os.path.join(dest, "profile.json")):
+            os.remove(os.path.join(dest, "profile.json"))
         hooks.setdefault("Stop", []).append({"hooks": [{"type": "command", "command": cmd(n)} for n in ("board-stop.py", "talk-check.py", "rules-check.py")]})
         hooks.setdefault("PreToolUse", []).append({"matcher": "SendMessage|Write|Edit|NotebookEdit|Bash",
                                                    "hooks": [{"type": "command", "command": cmd("rules-check.py")}]})

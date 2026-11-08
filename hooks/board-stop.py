@@ -15,6 +15,26 @@ import re
 import sys
 
 
+def load_profile():
+    """Optional project profile: profile.json beside this file (or the file named in MUSTER_PROFILE). None means Muster's own rules."""
+    for cand in (os.environ.get("MUSTER_PROFILE"), os.path.join(os.path.dirname(os.path.abspath(__file__)), "profile.json")):
+        if cand and os.path.isfile(cand):
+            try:
+                with open(cand, encoding="utf-8") as fh:
+                    d = json.load(fh)
+                return d if isinstance(d, dict) else {}
+            except (OSError, ValueError):
+                return {}
+    return {}
+
+
+PROFILE = load_profile()
+
+MANAGER_RE = re.compile(r"agents[/\\]manager\.md|\bManager_[A-Za-z0-9 ]*_\d{3}\b")
+if PROFILE.get("manager_names"):
+    MANAGER_RE = re.compile(MANAGER_RE.pattern + "|" + "|".join("(?:%s)" % x for x in PROFILE["manager_names"]))
+
+
 def entries(text):
     out, cur, fenced = [], None, False
     for line in text.splitlines():
@@ -48,6 +68,21 @@ def entries(text):
     return out
 
 
+def line_entries(text):
+    """A board whose entries are single lines: 'DATE | KIND | from -> to | text' (PINR). No Status line exists, so an entry is
+    never 'done'; a chat is paused by its LAST entry saying 'Paused: yes'."""
+    out = []
+    for line in text.splitlines():
+        m = re.match(r"^\s*\d{4}-\d\d-\d\d\s*\|\s*([A-Za-z ]+?)\s*\|\s*([^|]*?)\s*\|\s*(.*)$", line)
+        if not m:
+            continue
+        frm = re.sub(r"\s*->.*", "", m.group(2))
+        out.append({"kind": m.group(1).upper(), "from": frm, "job": "", "status": "open",
+                    "paused": bool(re.search(r"\bpaused\s*:\s*yes", line, re.I)),
+                    "resumed": bool(re.search(r"\bpaused\s*:\s*no", line, re.I)), "body": [line]})
+    return out[::-1] if PROFILE.get("board_newest_first") else out
+
+
 def is_manager_chat(transcript_path):
     """True only if the chat's FIRST user message names the manager's definition or a Manager_<project>_<digits> chat.
     The owner's own chats in the same folder, and any worker, do not. Unreadable means no (stay silent)."""
@@ -64,7 +99,7 @@ def is_manager_chat(transcript_path):
                 if isinstance(c, list):
                     c = " ".join(b.get("text", "") for b in c if isinstance(b, dict))
                 c = str(c)[:6000]
-                return bool(re.search(r"agents[/\\]manager\.md|\bManager_[A-Za-z0-9 ]*_\d{3}\b", c))
+                return bool(MANAGER_RE.search(c))
     except OSError:
         pass
     return False
@@ -119,11 +154,13 @@ def main():
     if "worktrees" in cwd.replace("\\", "/").split("/"):
         return 0  # a worker's own copy, not the manager's folder
     path = os.path.join(cwd, "muster", "BOARD.md")
+    if PROFILE.get("board"):  # relative to the project folder that holds .muster-checks
+        path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), PROFILE["board"])
     if not os.path.isfile(path):
         return 0
     try:
         with open(path, encoding="utf-8") as fh:
-            items = entries(fh.read())
+            items = line_entries(fh.read()) if PROFILE.get("board_style") == "lines" else entries(fh.read())
     except OSError:
         return 0
     said = (data.get("last_assistant_message") or "").lower()
@@ -138,6 +175,7 @@ def main():
             pass
         items.append({"kind": "", "from": who, "job": "", "status": "open", "paused": True, "resumed": False, "body": []})
     missed = []
+    kinds_open = PROFILE.get("board_kinds_open", True)
     # a chat is paused NOW only if its LAST entry on the board says "Paused: yes" and is open: a later entry from the
     # same chat, "Paused: no", or Status done clears it (the owner typed in the chat and it carried on)
     last = {}
@@ -150,7 +188,7 @@ def main():
                 continue
         if e["status"] in ("done", "closed"):
             continue
-        if not (e["paused"] or e["kind"] in ("NEED", "STUCK", "OWNER CALL")):
+        if not (e["paused"] or (kinds_open and e["kind"] in ("NEED", "STUCK", "OWNER CALL"))):
             continue
         if (e["from"] and e["from"].lower() in said) or (e["job"] and e["job"].lower() in said):
             continue

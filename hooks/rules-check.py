@@ -26,6 +26,31 @@ import sys
 ROLE = (r"(?:Manager|Builder [A-Za-z]|Designer|Design Inspector|Inspector|Sketchpad|AI Socket|Agent Teacher)")
 CREW_RE = re.compile(r"agents[/\\](?:manager|builder|designer|inspector|design-inspector|sketchpad|ai-socket|agent-teacher)\.md|\b%s_[^\s_][^_\n]*_\d{3}\b" % ROLE)
 MANAGER_RE = re.compile(r"agents[/\\]manager\.md|\bManager_[A-Za-z0-9 ]*_\d{3}\b")
+
+
+def load_profile():
+    """A project profile (profile.json beside this file, or the file named in MUSTER_PROFILE) lets another project's chat
+    names, report shape, board path and choice recorder be checked. No profile means exactly Muster's own rules."""
+    for cand in (os.environ.get("MUSTER_PROFILE"), os.path.join(os.path.dirname(os.path.abspath(__file__)), "profile.json")):
+        if cand and os.path.isfile(cand):
+            try:
+                with open(cand, encoding="utf-8") as fh:
+                    d = json.load(fh)
+                return d if isinstance(d, dict) else {}
+            except (OSError, ValueError):
+                return {}
+    return {}
+
+
+PROFILE = load_profile()
+if PROFILE.get("crew_names"):
+    CREW_RE = re.compile(CREW_RE.pattern + "|" + "|".join("(?:%s)" % x for x in PROFILE["crew_names"]))
+if PROFILE.get("manager_names"):
+    MANAGER_RE = re.compile(MANAGER_RE.pattern + "|" + "|".join("(?:%s)" % x for x in PROFILE["manager_names"]))
+REPORT_ID = PROFILE.get("report", {}).get("require_id", True)
+REPORT_USAGE = PROFILE.get("report", {}).get("require_usage", True)
+ORDERS_FREE = PROFILE.get("orders") == "free"
+RECORDER = PROFILE.get("record_choice", "record-choice.py")
 FIRST = r"(DONE|READY|PASS|FAIL|OWNER CALL|STUCK|NEED)"
 LINK = re.compile(r"\[[^\]]*\]\([^)]*\)")
 
@@ -37,16 +62,19 @@ def report_problem(text):
     if len(lines) == 7 and lines[6].startswith("Usage:"):
         usage = lines.pop()
     if len(lines) != 6:
-        return "expected 6 lines (and a Usage line on DONE and READY), found %d" % len(lines)
-    m = re.match(r"^%s: .+ \[ID [^\]]+-\d+\]$" % FIRST, lines[0])
+        return "expected 6 lines%s, found %d" % (" (and a Usage line on DONE and READY)" if REPORT_USAGE else "", len(lines))
+    if REPORT_ID:
+        m = re.match(r"^%s: .+ \[ID [^\]]+-\d+\]$" % FIRST, lines[0])
+    else:
+        m = re.match(r"^%s: .+$" % FIRST, lines[0])
     if not m:
-        return "first line must be 'FIRST WORD: job name [ID role-job-number]'"
+        return "first line must be 'FIRST WORD: job name%s'" % (" [ID role-job-number]" if REPORT_ID else "")
     for line, label in zip(lines[1:], ["What:", "Where:", "Why:", "How:", "Need:"]):
         if not line.startswith(label):
             return "expected a line starting %s" % label
     if "touches:" not in lines[2]:
         return "Where line lacks 'touches:'"
-    if m.group(1) in ("DONE", "READY") and usage is None:
+    if REPORT_USAGE and m.group(1) in ("DONE", "READY") and usage is None:
         return "a DONE or READY needs a Usage line (scripts/usage.py prints it)"
     if m.group(1) == "READY" and not re.search(r"\d+\s*(/|of)\s*\d+|\d+ passed", lines[4]):
         return "READY's How line shows no test count"
@@ -74,11 +102,20 @@ def is_manager(first):
     m = re.search(r"\bJob:\s*(%s)_" % ROLE, first)
     if m:
         return m.group(1) == "Manager"
+    if PROFILE.get("manager_names"):
+        m = re.search(r"\bJob:\s*(\S[^:\n]*?)\s*[:,\n]", first)
+        if m and CREW_RE.search(m.group(1)):
+            return bool(MANAGER_RE.search(m.group(1)))
     m = re.search(r"agents[/\\](manager|builder|designer|inspector|design-inspector|sketchpad|ai-socket|agent-teacher)\.md", first)
     if m:
         return m.group(1) == "manager"
     m = re.search(r"\b(%s)_[^\s_][^_\n]*_\d{3}\b" % ROLE, first)
-    return bool(m) and m.group(1) == "Manager"
+    if m:
+        return m.group(1) == "Manager"
+    if PROFILE.get("manager_names"):
+        m = CREW_RE.search(first)
+        return bool(m) and bool(MANAGER_RE.fullmatch(m.group(0)))
+    return False
 
 
 # ---- reading the event ----------------------------------------------------------------------------------------
@@ -203,6 +240,8 @@ def pretool(data, manager):
         msg = str(inp.get("message", ""))
         if SOCIAL.match(msg):
             return deny("no 'noted' or 'thanks' replies; send a message only when someone must act")
+        if ORDERS_FREE and not re.match(r"^\s*%s\s*:" % FIRST, msg):
+            return  # this project has no order shape: only a message that claims to be a report is checked
         bad_report = report_problem(msg)
         bad_order = order_problem(msg)
         if bad_report and bad_order:
@@ -261,9 +300,9 @@ def stop(data, manager):
     if manager:
         if asked:
             idx = max(i for i, u in enumerate(uses) if u.get("name") == "AskUserQuestion")
-            recorded = any(u.get("name") == "Bash" and "record-choice.py" in str((u.get("input") or {}).get("command", "")) for u in uses[idx + 1:])
+            recorded = any(u.get("name") == "Bash" and RECORDER in str((u.get("input") or {}).get("command", "")) for u in uses[idx + 1:])
             if not recorded:
-                return block("a choice card was answered but not recorded: run scripts/record-choice.py with his exact answer under its list item before ending the turn")
+                return block("a choice card was answered but not recorded: run scripts/%s with his exact answer" % RECORDER + " under its list item before ending the turn")
             return
         if not manager_reply_ok(text):
             return block("to the owner the manager says only a question with its choices as buttons, a yes he must give, '<worker> is waiting for you: type in <chat>', or 'The crew is idle'. Rewrite the reply as one of those, or put the news on the board")

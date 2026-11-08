@@ -394,6 +394,10 @@ $PY "$ROOT/scripts/check-edition.py" "$CE" >/dev/null || fail "check-edition fla
 printf '### 2026-11-08 | READY | Builder -> Inspector | bad\nWhat: a\nWhere: b\n' >> "$CE/muster/BOARD.md"
 if $PY "$ROOT/scripts/check-edition.py" "$CE" >"$CE/out" 2>&1; then fail "check-edition passed a broken entry"; fi
 grep -q "bad: no 'Why:' line" "$CE/out" || fail "check-edition did not name the missing line: $(cat "$CE/out")"
+step "a project profile (PINR): its chat names, report shape, recorder, board path, no second talk check; Muster unchanged without it"
+PS=$($PY "$ROOT/scripts/profile-selftest.py") || { echo "$PS"; fail "the profile self-test has a miss"; }
+echo "$PS" | tail -1
+
 step "scripts/install-checks.py installs the coded rules in a project without the plugin, twice safely, and removes them"
 IC="$SCRATCH/ic"; mkdir -p "$IC/.claude"; echo '{"permissions":{"allow":["Bash(ls)"]}}' > "$IC/.claude/settings.json"
 $PY "$ROOT/scripts/install-checks.py" "$IC" >/dev/null && $PY "$ROOT/scripts/install-checks.py" "$IC" >/dev/null || fail "install-checks failed"

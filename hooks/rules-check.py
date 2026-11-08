@@ -260,8 +260,42 @@ def block(reason):
 _SOC = r"(?:noted|received|thanks|thank you|got it|ok(?:ay)?|ack(?:nowledged)?|will do|and)"
 SOCIAL = re.compile(r"^\s*%s\b(?:[\s.,!;&-]+%s\b)*[\s.,!;&-]*$" % (_SOC, _SOC), re.I)  # only social words, however many ("noted, thanks")
 PROTECTED = re.compile(r"/muster/(OWNERS-LIST\.md|DECISIONS-LOG\.md|CREW\.md|CLAUDE\.md|rules/|RULES-PAGE\.md|REPORT\.md)")
+PROFILE_PROTECTED = None
 if PROFILE.get("protected"):  # a project's own manager-only paths (regexes on the path with forward slashes)
-    PROTECTED = re.compile(PROTECTED.pattern + "|" + "|".join("(?:%s)" % x for x in PROFILE["protected"]))
+    PROFILE_PROTECTED = re.compile("|".join("(?:%s)" % x for x in PROFILE["protected"]))
+    PROTECTED = re.compile(PROTECTED.pattern + "|" + PROFILE_PROTECTED.pattern)
+
+
+def shell_write_targets(cmd):
+    """Paths a shell command writes to: a redirect (> or >>), tee, sed -i, and the destination of cp, mv or install."""
+    import shlex
+    out = []
+    for seg in re.split(r"[;&|\n]+", cmd):
+        for m in re.finditer(r"(?<![<>&0-9])\d?>>?\s*(\"[^\"]+\"|'[^']+'|[^\s;&|<>]+)", seg):
+            out.append(m.group(1).strip("\"'"))
+        seg2 = re.sub(r"\d?>>?\s*(\"[^\"]+\"|'[^']+'|[^\s;&|<>]+)", " ", seg)
+        try:
+            words = shlex.split(seg2)
+        except ValueError:
+            words = seg2.split()
+        if not words:
+            continue
+        i = 0
+        while i < len(words) and (words[i] in ("sudo", "command", "env") or "=" in words[i].split("/")[0]):
+            i += 1
+        if i >= len(words):
+            continue
+        prog, args = os.path.basename(words[i]), [w for w in words[i + 1:]]
+        files = [w for w in args if not w.startswith("-")]
+        if prog == "tee":
+            out += files
+        elif prog == "sed" and any(re.match(r"-[A-Za-z]*i", w) or w.startswith("--in-place") for w in args):
+            out += files[1:] if len(files) > 1 else []
+        elif prog in ("cp", "mv", "install", "rsync", "ln") and files:
+            out.append(files[-1])
+        elif prog == "dd":
+            out += [w[3:] for w in args if w.startswith("of=")]
+    return out
 
 
 def recipient_is_manager(to, root):
@@ -329,6 +363,12 @@ def pretool(data, manager):
             args = re.sub(r"(\"[^\"]*\"|'[^']*')", " ", mg.group(2))
             if re.search(r"(?<![\w/.-])(muster/?|muster/[^\s]*\.\w+|muster/(rules|handovers|superseded|x-post)/\S*)(?=\s|$)", args):
                 return deny("nothing under muster/ is ever saved or committed")
+        if not manager and PROFILE_PROTECTED is not None:
+            base = data.get("cwd") or os.getcwd()
+            for tgt in shell_write_targets(cmd):
+                full = os.path.normpath(os.path.join(base, os.path.expanduser(tgt))).replace("\\", "/")
+                if PROFILE_PROTECTED.search(full):
+                    return deny("only the manager changes this project's manager-only files (%s)" % os.path.basename(full))
         if not manager and re.search(r"(>|>>|tee\s+|sed\s+-i\S*\s+(''\s+)?\S*\s*)\s*\S*muster/(OWNERS-LIST|DECISIONS-LOG|CREW|CLAUDE|RULES-PAGE|REPORT)\.md", cmd):
             return deny("only the manager changes the owner's list, decisions, crew list and muster/CLAUDE.md")
 

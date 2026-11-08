@@ -148,6 +148,24 @@ add("8 the renewed PINR manager behind the same worktree lines is the manager", 
 add("8 a Muster note 'You are one of the Muster crew ... Manager_Muster_001 gives every order' is a worker", run("rules-check.py", "Stop", plain=True, last_assistant_message=card, transcript_path=tr("Background: You are one of the Muster crew. Manager_Muster_001 gives every order. Builder A_Muster_001 builds. Task: read your rules page.")), False)
 add("8 setup's manager note (Job: go-between, agents/manager.md) is the manager", run("rules-check.py", "Stop", plain=True, last_assistant_message=card, transcript_path=tr("Task:\nJob:       the owner's go-between and record keeper for this project\nOwns: muster/\nFirst: read agents/manager.md")), True)
 add("8 a note naming only agents/builder.md is a worker even if it mentions the manager", run("rules-check.py", "Stop", plain=True, last_assistant_message=card, transcript_path=tr("Read agents/builder.md. Send reports to Manager_Muster_002.")), False)
+# shell writes into PINR's manager-only files
+B = lambda cmd, t, **k: run("rules-check.py", "PreToolUse", tool_name="Bash", tool_input={"command": cmd}, transcript_path=t, **k)
+P1 = '"%s/Founder/FOUNDER-LIST.md"' % C
+P2 = '"%s/manager/rules/Site_001.md"' % C
+for what, cmd in (("a redirect", "echo x > " + P1), ("an append", "echo x >> " + P1), ("tee", "echo x | tee -a " + P1),
+                  ("sed -i", "sed -i '' s/a/b/ " + P1), ("cp", "cp /tmp/a.md " + P2), ("mv", "mv /tmp/a.md " + P2),
+                  ("a redirect after other commands", "ls && echo x 2>&1 > " + P2), ("a relative path", "cd '%s' && echo x >> CLAUDE.md" % C)):
+    add("9 a worker's %s into a PINR manager-only file is denied" % what, B(cmd, site, cwd=C if "relative" in what else None), True)
+add("9 the PINR manager may write them by shell", B("echo x >> " + P1, mgr), False)
+add("9 a worker's ordinary shell write is allowed", B("echo x > /tmp/notes.txt && cp a.js b.js", site), False)
+add("9 reading a protected file is allowed", B("cat " + P1 + " | head", site), False)
+add("9 copying a protected file out is allowed", B("cp " + P1 + " /tmp/copy.md", site), False)
+add("9 without the profile a shell write to the same path is not guarded", B("echo x >> " + P1, tr("You are Builder A_Muster_003"), plain=True), False)
+# a PINR start note whose Job line names no crew name and only mentions the manager: never the manager
+NOJOB = WT + "Job:       build the evidence web page (decision 438)\nOwns:      pinr-live/src/web/\nNot yours: the engine; report to Manager_PINR_002\nOpen:      the web page\n"
+add("8 a Job line with no crew name that mentions Manager_PINR_002 is a worker", run("rules-check.py", "Stop", last_assistant_message=card, transcript_path=tr(NOJOB)), False)
+add("8 ...and such a worker cannot write PINR's manager-only paths", run("rules-check.py", "PreToolUse", tool_name="Write", tool_input={"file_path": "/w/Claude Code/CLAUDE.md"}, transcript_path=tr(NOJOB)), True)
+add("8 ...and cannot shell-write them either", run("rules-check.py", "PreToolUse", tool_name="Bash", tool_input={"command": "echo x >> '/w/Claude Code/CLAUDE.md'"}, transcript_path=tr(NOJOB)), True)
 # install-checks and check-report
 IC = os.path.join(T, "ic")
 os.makedirs(IC)

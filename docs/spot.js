@@ -2,5 +2,7 @@
 if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
 function step(){cx+=(tx-cx)*.18;cy+=(ty-cy)*.18;d.style.setProperty('--mx',cx.toFixed(1)+'px');d.style.setProperty('--my',cy.toFixed(1)+'px');
 if(Math.abs(tx-cx)>.5||Math.abs(ty-cy)>.5){requestAnimationFrame(step)}else{run=false}}
-addEventListener('pointermove',function(e){if(e.pointerType!=='mouse')return;tx=e.clientX;ty=e.clientY;if(!on){cx=tx;cy=ty;on=true;d.classList.add('spot-on')}
-if(!run){run=true;requestAnimationFrame(step)}},{passive:true});})();
+function go(x,y){tx=x;ty=y;if(!on){cx=tx;cy=ty;on=true;d.classList.add('spot-on')}
+if(!run){run=true;requestAnimationFrame(step)}}
+addEventListener('pointermove',function(e){go(e.clientX,e.clientY)},{passive:true});
+['touchstart','touchmove'].forEach(function(n){addEventListener(n,function(e){var t=e.touches[0];if(t)go(t.clientX,t.clientY)},{passive:true})});})();

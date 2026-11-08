@@ -2,7 +2,7 @@
 
 Each version names which workers it affects.
 
-## 0.3.41
+## 0.3.42
 Affects: Manager.
 Crew chats open detached (D-026): the app always starts a chat under the one that started it, so detaching and filing each chat in the project's sidebar group is now a required step done right at the start and checked, for the first crew, renewals, new workers, inspectors and add-ons.
 

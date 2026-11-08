@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Muster in Cursor</title>
+<meta name="description" content="How to run the full Muster crew in Cursor. Untested.">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="assets/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="assets/favicon-16.png" sizes="16x16" type="image/png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<meta name="theme-color" content="#f4eeff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#191C24" media="(prefers-color-scheme: dark)">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Muster in Cursor">
+<meta property="og:description" content="How to run the full Muster crew in Cursor. Untested.">
+<meta property="og:url" content="https://d4rthban3.github.io/muster/cursor.html">
+<meta property="og:image" content="https://d4rthban3.github.io/muster/assets/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Muster logo: a mustard tile with a leader dot above a row of four crew dots on a purple line">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-head"><div class="in">
+<a class="brand" href="./"><img src="assets/logo.svg" alt="" width="36" height="36">Muster</a>
+<a class="gh" href="https://github.com/d4rthban3/muster">GitHub</a>
+</div></header>
+<main id="main">
+<a class="back" href="./">&larr; Install Muster</a>
+<h1>Muster in Cursor</h1>
+<p class="lead">How to run the full crew &mdash; manager, builder, designer, inspector &mdash; in Cursor. <span class="tag">untested</span></p>
+<section class="card">
+<h2>Read this first</h2>
+<p><b>Untested.</b> Nobody has run Muster inside Cursor yet. These steps come from Cursor&rsquo;s documentation, not a real run, so a step may not look exactly as described. If it doesn&rsquo;t, tell the crew which step. For what works where, see the <a href="compatibility.html">compatibility table</a>.</p>
+<p>Cursor agents cannot message each other. The crew passes work on a shared board, and <b>you open a chat and type anything</b> when the Manager says that chat has something waiting.</p>
+</section>
+<section class="card">
+<h2>Set up (no terminal needed)</h2>
+<ol>
+<li>Open your project&rsquo;s folder in Cursor and start a new <b>Agent</b> chat there.</li>
+<li>Paste this one message and press Enter. When Cursor asks to run a command, click Run or Allow.
+<pre id="cp">Set up Muster for this project. First ask me for the project&#x27;s name and one sentence on what I am building. Then get Muster (`git clone https://github.com/d4rthban3/muster` into a folder next to this project, unless it is already there), run its `cursor/setup.py` on this project&#x27;s folder with that name and sentence, and show me the folders and starting-note files it prints.</pre>
+<div class="row"><button class="copy" type="button" data-for="cp">Copy</button></div>
+<span class="see">You should see: Cursor asks for the project&rsquo;s name and what you are building, then lists a folder and a starting-note file for each agent.</span></li>
+<li>For each agent it lists, <b>Manager first</b>: open that agent&rsquo;s folder in Cursor, start a new Agent chat, open the starting-note file it names, and paste its whole contents as your first message.</li>
+<li>Talk only to the Manager. When it says &ldquo;X is waiting for you: type in &lt;chat&gt;&rdquo;, open that chat and type anything.</li>
+<li>To see what is waiting at any time, look at the top line of <code>muster/BOARD.md</code> (&ldquo;Waiting on:&rdquo;).</li>
+</ol>
+</section>
+<section class="card">
+<h2>What is different from Claude Code</h2>
+<ul>
+<li>No chat-to-chat messages and no notifications: the board carries every handoff, and you wake a chat by typing in it.</li>
+<li>The rules are Cursor rules. They are advice the agent reads; only one check, the Manager&rsquo;s stop check, is enforced.</li>
+<li>Not included: one-command shipping, the usage meter, and the renewal-after-summary step.</li>
+<li>Cursor may tidy away the project copies it did not make. If a builder&rsquo;s folder vanishes, tell the Manager.</li>
+</ul>
+</section>
+<section class="card">
+<h2>Something went wrong?</h2>
+<p>Use <a href="https://github.com/d4rthban3/muster/issues/new?template=snag.yml">Report a snag</a> and say which step. The full technical notes are in the <a href="https://github.com/d4rthban3/muster/tree/main/cursor">Cursor folder</a>.</p>
+</section>
+<div class="rule" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+<footer>
+<p>Muster is a community plugin. It is not made or supported by Anthropic.</p>
+<p><a href="https://github.com/d4rthban3/muster">github.com/d4rthban3/muster</a></p>
+</footer>
+</main>
+<script>
+document.querySelectorAll('.copy').forEach(function(b){b.addEventListener('click',function(){var t=document.getElementById(b.dataset.for).textContent;
+if(navigator.clipboard){navigator.clipboard.writeText(t).then(function(){b.textContent='Copied';setTimeout(function(){b.textContent='Copy'},1500)},function(){})}})});
+</script>
+</body>
+</html>

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>What works where</title>
-<meta name="description" content="Which Muster features work on Claude Code, ChatGPT and Grok Bot.">
+<meta name="description" content="Which Muster features work on Claude Code, ChatGPT, Grok Bot and Cursor.">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="assets/favicon-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="assets/favicon-16.png" sizes="16x16" type="image/png">
@@ -13,7 +13,7 @@
 <meta name="theme-color" content="#191C24" media="(prefers-color-scheme: dark)">
 <meta property="og:type" content="website">
 <meta property="og:title" content="What works where">
-<meta property="og:description" content="Which Muster features work on Claude Code, ChatGPT and Grok Bot.">
+<meta property="og:description" content="Which Muster features work on Claude Code, ChatGPT, Grok Bot and Cursor.">
 <meta property="og:url" content="https://d4rthban3.github.io/muster/compatibility.html">
 <meta property="og:image" content="https://d4rthban3.github.io/muster/assets/og-image.png">
 <meta property="og:image:width" content="1200">
@@ -31,23 +31,23 @@
 <main id="main" class="wide">
 <a class="back" href="./">&larr; Install Muster</a>
 <h1>What works where</h1>
-<p class="lead">Which Muster features work on Claude Code, ChatGPT and Grok Bot.</p>
+<p class="lead">Which Muster features work on Claude Code, ChatGPT, Grok Bot and Cursor.</p>
 <section class="card">
-<p><b>Only Claude Code has been tested.</b> Every ChatGPT and Grok Bot cell comes from a written plan, not a real run, and says so. See the <a href="chatgpt.html">ChatGPT guide</a> and the <a href="grokbot.html">Grok Bot guide</a>.</p>
+<p><b>Only Claude Code has been tested.</b> Every ChatGPT, Grok Bot and Cursor cell comes from a written plan, not a real run, and says so. See the <a href="chatgpt.html">ChatGPT guide</a> and the <a href="grokbot.html">Grok Bot guide</a> and the <a href="cursor.html">Cursor guide</a>.</p>
 <div class="tbl"><table>
-<tr><th></th><th>Claude Code</th><th>ChatGPT</th><th>Grok Bot</th></tr>
-<tr><th scope="row">Setup in one click</th><td>Yes: the install button and setup page (the setup steps are tested on Mac, Windows and Linux by a GitHub test; the install button itself is untested)</td><td>No: set up by hand. <i>untested</i></td><td>Setup prompt with question buttons. <i>untested</i></td></tr>
-<tr><th scope="row">A separate chat for each role</th><td>Yes</td><td>Yes, one chat per role in one Project. <i>untested</i></td><td>Yes: helper bots for Builders and the Designer; background jobs for checks. <i>untested</i></td></tr>
-<tr><th scope="row">Chat-to-chat messages</th><td>Yes</td><td>No: the board carries every handoff. <i>untested</i></td><td>Replies are the reports; messages held by default. <i>untested</i></td></tr>
-<tr><th scope="row">Shared crew records</th><td>Yes: the muster/ folder</td><td>Yes: Project Sources. <i>untested</i></td><td>Yes: a Muster folder outside project history. <i>untested</i></td></tr>
-<tr><th scope="row">Rules and skills</th><td>Plugin skills and slash commands</td><td>Project instructions only. <i>untested</i></td><td>Skills library, installed once. <i>untested</i></td></tr>
-<tr><th scope="row">Own copy of the code for each builder</th><td>Yes: a worktree each</td><td>Only with a local project or Codex. <i>untested</i></td><td>Yes, on its shared computer. <i>untested</i></td></tr>
-<tr><th scope="row">Independent Inspector</th><td>Yes: its own chat</td><td>Yes: a fresh chat for every READY. <i>untested</i></td><td>Yes: a background job. <i>untested</i></td></tr>
-<tr><th scope="row">Renewal handovers</th><td>Yes</td><td>Replaced by a handoff card on the board. <i>untested</i></td><td>Off: the app summarizes. <i>untested</i></td></tr>
-<tr><th scope="row">Archiving finished chats</th><td>Yes (automatic once work is handed off)</td><td>Yes, by hand. <i>untested</i></td><td>Hide from the sidebar. <i>untested</i></td></tr>
-<tr><th scope="row">Scheduled checks</th><td>Not used by Muster</td><td>Not in the plan</td><td>Routines. <i>untested</i></td></tr>
-<tr><th scope="row">Updates</th><td>Plugin update</td><td>Replace the instructions by hand. <i>untested</i></td><td>Update the skills library; a version-check routine. <i>untested</i></td></tr>
-<tr><th scope="row">Muster Lite</th><td>Not needed</td><td>A pasted prompt. <i>untested</i></td><td>A pasted prompt. <i>untested</i></td></tr>
+<tr><th></th><th>Claude Code</th><th>ChatGPT</th><th>Grok Bot</th><th>Cursor</th></tr>
+<tr><th scope="row">Setup in one click</th><td>Yes: the install button and setup page (the setup steps are tested on Mac, Windows and Linux by a GitHub test; the install button itself is untested)</td><td>No: set up by hand. <i>untested</i></td><td>Setup prompt with question buttons. <i>untested</i></td><td>Yes: paste one message into an Agent chat. <i>untested</i></td></tr>
+<tr><th scope="row">A separate chat for each role</th><td>Yes</td><td>Yes, one chat per role in one Project. <i>untested</i></td><td>Yes: helper bots for Builders and the Designer; background jobs for checks. <i>untested</i></td><td>Yes, one Agent chat per role. <i>untested</i></td></tr>
+<tr><th scope="row">Chat-to-chat messages</th><td>Yes</td><td>No: the board carries every handoff. <i>untested</i></td><td>Replies are the reports; messages held by default. <i>untested</i></td><td>No: the board carries every handoff. <i>untested</i></td></tr>
+<tr><th scope="row">Shared crew records</th><td>Yes: the muster/ folder</td><td>Yes: Project Sources. <i>untested</i></td><td>Yes: a Muster folder outside project history. <i>untested</i></td><td>Yes: the muster/ folder. <i>untested</i></td></tr>
+<tr><th scope="row">Rules and skills</th><td>Plugin skills and slash commands</td><td>Project instructions only. <i>untested</i></td><td>Skills library, installed once. <i>untested</i></td><td>Cursor rules. <i>untested</i></td></tr>
+<tr><th scope="row">Own copy of the code for each builder</th><td>Yes: a worktree each</td><td>Only with a local project or Codex. <i>untested</i></td><td>Yes, on its shared computer. <i>untested</i></td><td>Yes: a project copy each (Cursor may tidy them away). <i>untested</i></td></tr>
+<tr><th scope="row">Independent Inspector</th><td>Yes: its own chat</td><td>Yes: a fresh chat for every READY. <i>untested</i></td><td>Yes: a background job. <i>untested</i></td><td>Yes: its own chat. <i>untested</i></td></tr>
+<tr><th scope="row">Renewal handovers</th><td>Yes</td><td>Replaced by a handoff card on the board. <i>untested</i></td><td>Off: the app summarizes. <i>untested</i></td><td>Not ported</td></tr>
+<tr><th scope="row">Archiving finished chats</th><td>Yes (automatic once work is handed off)</td><td>Yes, by hand. <i>untested</i></td><td>Hide from the sidebar. <i>untested</i></td><td>By hand. <i>untested</i></td></tr>
+<tr><th scope="row">Scheduled checks</th><td>Not used by Muster</td><td>Not in the plan</td><td>Routines. <i>untested</i></td><td>Not in the plan</td></tr>
+<tr><th scope="row">Updates</th><td>Plugin update</td><td>Replace the instructions by hand. <i>untested</i></td><td>Update the skills library; a version-check routine. <i>untested</i></td><td><code>git pull</code>, then run setup again. <i>untested</i></td></tr>
+<tr><th scope="row">Muster Lite</th><td>Not needed</td><td>A pasted prompt. <i>untested</i></td><td>A pasted prompt. <i>untested</i></td><td>Not needed</td></tr>
 </table></div>
 </section>
 

@@ -1,0 +1,28 @@
+{
+  "version": "0.3.49",
+  "changed_files": [
+    "cursor/setup.py",
+    "cursor/stop.py",
+    "hooks/board-stop.py",
+    "hooks/renew-after-summary.py",
+    "hooks/rules-check.py",
+    "hooks/talk-check.py",
+    "scripts/crew-plan.py",
+    "scripts/install-checks.py",
+    "scripts/rules-check-selftest.py",
+    "scripts/setup-smoke.sh",
+    "scripts/usage-statusline.py",
+    "skills/board-digest/scripts/board_digest.py"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Builder",
+    "Designer",
+    "Inspector"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "accented project names (D-011): manager names with accents are read, hooks read UTF-8 input, printing never fails on a console encoding, and the free test covers P\u00e2tisserie"
+}

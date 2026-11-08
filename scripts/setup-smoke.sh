@@ -365,6 +365,13 @@ if $PY "$ROOT/scripts/record-choice.py" "$FN" 2 --question q --option "A. x" --p
 step "rules as code: hooks/rules-check.py blocks what the rules forbid and stays silent on the rest"
 $PY "$ROOT/scripts/rules-check-selftest.py" > "$SCRATCH/rules.out" || fail "rules-check self-test missed a case: $(grep MISS "$SCRATCH/rules.out")"
 tail -1 "$SCRATCH/rules.out"
+step "scripts/check-edition.py flags a board entry a hook would have stopped"
+CE="$SCRATCH/ce"; mkdir -p "$CE/muster"
+printf '### 2026-11-08 | READY | Builder -> Inspector | demo\nStatus: open\nWhat: a\nWhere: b; touches: none\nWhy: c\nHow: 3/3 passed\nNeed: nothing\n' > "$CE/muster/BOARD.md"
+$PY "$ROOT/scripts/check-edition.py" "$CE" >/dev/null || fail "check-edition flagged a good entry"
+printf '### 2026-11-08 | READY | Builder -> Inspector | bad\nWhat: a\nWhere: b\n' >> "$CE/muster/BOARD.md"
+if $PY "$ROOT/scripts/check-edition.py" "$CE" >"$CE/out" 2>&1; then fail "check-edition passed a broken entry"; fi
+grep -q "bad: no 'Why:' line" "$CE/out" || fail "check-edition did not name the missing line: $(cat "$CE/out")"
 step "scripts/install-checks.py installs the coded rules in a project without the plugin, twice safely, and removes them"
 IC="$SCRATCH/ic"; mkdir -p "$IC/.claude"; echo '{"permissions":{"allow":["Bash(ls)"]}}' > "$IC/.claude/settings.json"
 $PY "$ROOT/scripts/install-checks.py" "$IC" >/dev/null && $PY "$ROOT/scripts/install-checks.py" "$IC" >/dev/null || fail "install-checks failed"

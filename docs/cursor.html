@@ -74,7 +74,7 @@
 <h2>What is different from Claude Code</h2>
 <ul>
 <li>No chat-to-chat messages and no notifications: the board carries every handoff, and you wake a chat by typing in it.</li>
-<li>The rules are Cursor rules. They are advice the agent reads; only one check, the Manager&rsquo;s stop check, is enforced.</li>
+<li>The rules are Cursor rules. They are advice the agent reads and are not enforced by code; only one check, the Manager&rsquo;s stop check, is. Instead the Manager runs <code>scripts/check-edition.py</code> over the board and tells you what it finds.</li>
 <li>Not included: one-command shipping, the usage meter, and the renewal-after-summary step.</li>
 <li>Cursor may tidy away the project copies it did not make. If a builder&rsquo;s folder vanishes, tell the Manager.</li>
 </ul>

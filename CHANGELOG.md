@@ -2,9 +2,9 @@
 
 Each version names which workers it affects.
 
-## 0.3.43
+## 0.3.44
 Affects: Manager, Builder, Designer, Inspector.
-Every rule a script can check is now enforced by code (D-027, owner: "code every rule"): messages between chats must be a six-line report or an order that quotes his words; the manager's reply to him must be a question with buttons, a yes, a waiting line or an idle line; answered choice cards must be recorded; other chats end with a card; only the manager changes the owner's list, decisions, crew list and rules pages; nothing under muster/ is saved; no new order near the weekly limit; shipping needs the inspector's PASS on the board for the exact saved version. Projects without the plugin install the checks with scripts/install-checks.py (steps in docs/install-checks.md).
+Every rule a script can check is now enforced by code (D-027, owner: "code every rule"): messages between chats must be a six-line report or an order that quotes his words; the manager's reply to him must be a question with buttons, a yes, a waiting line or an idle line; answered choice cards must be recorded; other chats end with a card; only the manager changes the owner's list, decisions, crew list and rules pages; nothing under muster/ is saved; no new order near the weekly limit; shipping needs the inspector's PASS on the board for the exact saved version. Projects without the plugin install the checks with scripts/install-checks.py (steps in docs/install-checks.md). For the Cursor, Grok Bot and ChatGPT editions, where hooks cannot run, the manager runs scripts/check-edition.py over the board, and their pages say plainly that rules there are not enforced by code.
 
 ## 0.3.42
 Affects: Manager.

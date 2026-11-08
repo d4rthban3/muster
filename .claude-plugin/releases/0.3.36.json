@@ -1,0 +1,15 @@
+{
+  "version": "0.3.36",
+  "changed_files": [
+    "docs/style.css",
+    "setup/index.html"
+  ],
+  "affected_roles": [
+    "Designer"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Remove the haze: no glow layer, solid header, no blur, full-colour divider dots (site and setup page)"
+}

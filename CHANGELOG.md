@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.36
+Affects: Designer.
+Remove the haze: no glow layer, solid header, no blur, full-colour divider dots (site and setup page)
+
 ## 0.3.35
 Affects: Cursor users reading Muster Lite.
 Cursor is no longer listed under Muster Lite: Lite's table now points Cursor users to the full-crew Cursor guide (the owner chose the full crew for Cursor).

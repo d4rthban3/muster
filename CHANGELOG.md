@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.27
+Affects: Manager, Builder, Designer, Inspector.
+Four usage savers (D-023): no "noted" replies and the inspector's copies go to the board only; the inspector re-runs only changed tests plus one full run, one dark and one light picture; a hook reminds a chat to hand over and renew right after its conversation is summarized; passed site branches ship in one batch (ship.sh --with), jobs wait for the owner's notes, and read-only data is read directly. The owner picked all four.
+
 ## 0.3.26
 Affects: Manager, Builder, Designer, Inspector.
 A paused chat clears when it resumes (D-020): a worker closes its own "Paused: yes" entries as its first act after the owner types in it, and the board digest and Stop hook count a chat paused only while its last board entry says so; a worker that cannot write the main board leaves a .muster-paused file the hook reads. The owner (via PINR): "im tired of this happening. i dont know why its happening but get with muster manager an fix the hole".

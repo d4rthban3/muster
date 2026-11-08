@@ -1,0 +1,27 @@
+{
+  "version": "0.3.27",
+  "changed_files": [
+    "README.md",
+    "agents/inspector.md",
+    "agents/manager.md",
+    "hooks/hooks.json",
+    "hooks/renew-after-summary.sh",
+    "scripts/setup-smoke.sh",
+    "scripts/ship.sh",
+    "skills/deploy-rules/SKILL.md",
+    "skills/manager-details/SKILL.md",
+    "skills/ready-checks/SKILL.md",
+    "templates/CLAUDE.md"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Builder",
+    "Designer",
+    "Inspector"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Four usage savers (D-023): no \"noted\" replies and the inspector's copies go to the board only; the inspector re-runs only changed tests plus one full run, one dark and one light picture; a hook reminds a chat to hand over and renew right after its conversation is summarized; passed site branches ship in one batch (ship.sh --with), jobs wait for the owner's notes, and read-only data is read directly. The owner picked all four."
+}

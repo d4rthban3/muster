@@ -243,7 +243,16 @@ git add -A; git commit -q -m "change two"
 bash scripts/ship.sh "a different note" --no-wait > "$SH/keep.out" 2>&1; grep -q "SHIPPED 1.2.5" "$SH/keep.out" || { cat "$SH/keep.out"; fail "ship refused a branch that already has its version"; }
 [ "$(grep -c '^## 1.2.5' CHANGELOG.md)" = 1 ] || fail "the changelog entry was doubled"
 grep -q "my own note" .claude-plugin/releases/1.2.5.json || fail "the branch's own release file was overwritten"
+git checkout -q origin/main 2>/dev/null; git checkout -q -b builder/other origin/main; echo o > other.txt; git add -A; git commit -q -m "other piece"
+git checkout -q -b builder/batch origin/main; echo b > batch.txt; git add -A; git commit -q -m "batch piece"
+bash scripts/ship.sh "batch" --with builder/other --dry-run > "$SH/batch.out" 2>&1 || { cat "$SH/batch.out"; fail "batch dry run failed"; }
+grep -q "batch: merged builder/other" "$SH/batch.out" && grep -q "other.txt" "$SH/batch.out" && grep -q "batch.txt" "$SH/batch.out" || fail "batch did not carry both pieces: $(cat "$SH/batch.out")"
+if bash scripts/ship.sh "batch" --with builder/nope --dry-run >/dev/null 2>&1; then fail "ship accepted a --with branch that does not exist"; fi
 cd "$FOLDER"
+step "the renewal hook speaks only in a crew folder"
+mkdir -p "$SCRATCH/plain" && (cd "$SCRATCH/plain" && sh "$ROOT/hooks/renew-after-summary.sh" | grep -q .) && fail "renewal hook spoke outside a crew project"
+(cd "$FOLDER" && sh "$ROOT/hooks/renew-after-summary.sh" | grep -q "DONE: renewal") || fail "renewal hook was silent in a crew project"
+(mkdir -p "$FOLDER/.claude/worktrees/w1" && cd "$FOLDER/.claude/worktrees/w1" && sh "$ROOT/hooks/renew-after-summary.sh" | grep -q "DONE: renewal") || fail "renewal hook was silent in a worker copy"
 step "scripts/record-choice.py writes a choice under its list item"
 printf '# List\n\n## Open\n1. "first"\n   Kind: order\n\n2. "second"\n   Kind: question\n\n## Closed\n' > "$FOLDER/muster/OWNERS-LIST.md"
 $PY "$ROOT/scripts/record-choice.py" "$FN" 1 --question "Which one?" --option "A. red" --option "B. blue" --picked "B. blue" --said "blue please" >/dev/null || fail "record-choice failed"

@@ -1,18 +1,19 @@
 #!/usr/bin/env bash
 # One-command shipping, from a branch whose work the inspector passed.
-# Usage: scripts/ship.sh "one-line note" [--roles Manager,Builder] [--platforms claude-code] [--dry-run] [--no-wait]
+# Usage: scripts/ship.sh "one-line note" [--roles Manager,Builder] [--platforms claude-code] [--with branch] [--dry-run] [--no-wait]
 # It: fetches; rebases THIS branch only on origin/main; takes main's version plus one; writes the release file and the
 # CHANGELOG entry from your note; runs version-check, the leak scan and a push look; pushes this branch under a new name
 # (never forced), waits for the free test to go green, pushes to main fast-forward only; waits for the free test on
 # main and the site's rebuild; proves the new content is served (published version, and a changed line of the site). It stops at the first failure and says why. It never
 # force-pushes, never touches another branch, and never pushes anything in muster/.
+# --with <branch> (repeatable): ship several passed branches as one release. Batch only branches that do not touch the same files.
 # --dry-run: do everything on this computer, push nothing. --no-wait: push, but do not wait on GitHub (used by the test).
 set -u
 export MSYS2_ARG_CONV_EXCL='*'   # Git Bash on Windows must not rewrite 'origin/main:file' as a path list
-note=""; roles=""; platforms="claude-code"; dry=0; wait=1
+note=""; roles=""; platforms="claude-code"; dry=0; wait=1; with=""
 while [ $# -gt 0 ]; do case "$1" in
   --roles) roles=$2; shift 2;; --platforms) platforms=$2; shift 2;;
-  --dry-run) dry=1; shift;; --no-wait) wait=0; shift;;
+  --with) with="$with $2"; shift 2;; --dry-run) dry=1; shift;; --no-wait) wait=0; shift;;
   *) note=$1; shift;; esac; done
 stop() { echo "SHIP STOPPED: $*"; exit 1; }
 [ -n "$note" ] || stop "give a one-line note: scripts/ship.sh \"what changed\""
@@ -25,6 +26,12 @@ orig=$(git rev-parse HEAD)
 # a dry run leaves the branch exactly as it was, even if it stops early
 [ $dry = 1 ] && trap 'git reset -q --hard "$orig" 2>/dev/null' EXIT
 git rebase origin/main >/dev/null 2>&1 || { git rebase --abort >/dev/null 2>&1; stop "rebasing $branch on origin/main hit a conflict; fix it by hand and run again"; }
+# a batch: merge each other passed branch into this one, so one version, one free test and one live proof cover them all
+for w in $with; do
+  git rev-parse -q --verify "$w" >/dev/null || stop "--with $w: no such branch"
+  git merge -q --no-edit "$w" >/dev/null 2>&1 || { git merge --abort >/dev/null 2>&1; stop "merging $w into $branch hit a conflict; ship them one after the other"; }
+  echo "== batch: merged $w"
+done
 py=$(sh "$(dirname "$0")/find-python.sh") || stop "no working Python 3"
 ver=$(git show origin/main:.claude-plugin/plugin.json | $py -c 'import json,sys;print(json.load(sys.stdin)["version"])')
 new=$($py -c 'import sys;a=sys.argv[1].split(".");a[-1]=str(int(a[-1])+1);print(".".join(a))' "$ver")

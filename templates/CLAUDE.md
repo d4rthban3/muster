@@ -45,7 +45,7 @@ More detail: skills `usage-habits` and `spend-diligence`.
   that fits its job, without asking. When nothing open is ready to start, the manager tells the owner
   "The crew is idle. Here's what's next toward your goal," with the top choices as buttons.
 - One exception: a builder (or the designer) and the inspector talk directly about the one job between them (READY,
-  PASS, FAIL). The manager gets a copy of every PASS and FAIL.
+  PASS, FAIL). The inspector's PASS or FAIL goes to the builder by message (it must act); its copy for the manager goes on the board only, not as a message that wakes it. The manager never replies "noted" to a DONE or PASS that needs nothing.
 - Builders do not message each other; a question between two builders goes through the manager.
 - The other exception: the inspector's findings about the manager's own paperwork (see the manager's definition).
 - **Fewer messages.** News goes in the files every chat reads anyway (the board, the owner's list). Send a message
@@ -133,12 +133,17 @@ A new chat reads its own rules page (`muster/rules/<its role>.md`) and the five-
 it. It does not read the whole decisions log; that stays for looking things up.
 
 ## 9. Renewal
-After the app first summarizes a chat's conversation, the chat renews at its next natural break. If a job is in progress it writes a short handover
+After the app first summarizes a chat's conversation (a plugin hook then reminds the chat), the chat renews at its next natural break. If a job is in progress it writes a short handover
 (`muster/handovers/<its name>.md`: what is open, the files that matter, the next step); with no job in progress it
 writes none. Then it sends the manager `DONE: renewal <its name>`.
 The manager starts the fresh chat with the next number and the same model and effort, and archives the old one
 (never deleted). Archiving is automatic, without asking the owner, for any chat whose work passes to another chat (a renewal,
 a replacement, a role ending), once its handover is written (if it needed one) and the chat taking over is running. The owner: "that archive should be automatic so long as the old workers are handed off and ready to be archived." (D-005)
+
+## 9b. Pacing
+- Passed site work goes live in one batch, not one deploy per piece (skill `deploy-rules`).
+- An order that says the owner's notes are coming is not DONE until they are in: the worker sends STUCK or NEED, not DONE, while it waits.
+- A worker with read-only data access reads it directly under its order; it never asks another worker to fetch it each time.
 
 ## 10. Models and effort
 Every chat runs on medium effort. When the owner asks to speed things up, the manager and the inspectors go to high.

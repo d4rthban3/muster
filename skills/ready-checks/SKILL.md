@@ -27,7 +27,7 @@ Usage: <the line scripts/usage.py prints>
 ```
 If you add a test file, name it on the Where line: the manager adds it to `muster/CHECKS.md`, and `scripts/check-tests.py`
 (run in the free test) fails when a test file on disk is missing from that list.
-Send it to the inspector. The designer also names its screenshots on the Where line.
+Send it to the inspector. The designer also names its screenshots on the Where line: for a small visible change one dark and one light picture at one size. The inspector re-runs only the changed tests plus one full run on the merged work, so say which tests changed.
 
 ## Inspector side
 FAIL a READY that lacks the line of work, the saved version, the "touches" part, or the two checks. A FAIL is a

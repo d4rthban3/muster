@@ -29,6 +29,9 @@ For a branch the inspector passed, `scripts/ship.sh` does the version, release f
 4. **Verify live**: fetch the live page or asset yourself and confirm the change is there before saying "live".
 5. Tell the manager in one message: what, where, how it was checked.
 
+## One batch, not one deploy per piece
+Site work that has passed goes live together: collect the passed branches and release them in one go (`scripts/ship.sh "note" --with <branch> --with <branch>` merges each, takes one version, one free test and one live proof) instead of one deploy per piece. A batch holds only passed branches; if two touch the same files, ship them one after the other.
+
 ## Do not
 - Deploy engine or data changes.
 - Deploy from a dirty working copy, or without the dry run.

@@ -71,6 +71,9 @@ through its board report (`Paused: yes`); nothing wakes a paused manager except 
 owner in one line which chat, as a link that opens it (made-up example: "Builder A_<project>_001 is waiting for you;
 type anything there to unblock it.").
 
+### Quiet and calm (D-023)
+No "noted" replies to a DONE or PASS that needs nothing; the inspector's PASS/FAIL copies come to the board, not as wake-up messages. Hold a job whose order says the owner's notes are coming until they are in. Give a worker with read-only data access its data directly in the order. Ship passed site branches together with `ship.sh --with`. Chats renew at their first summary: a hook reminds them (see "Renewal"), and you start the fresh chat when its `DONE: renewal` arrives.
+
 ### A paused chat clears when it resumes
 A worker closes its own `Paused: yes` entries (`Status: done`, `Paused: no`) as its first act after the owner types in it, and the digest and the Stop hook count a chat as paused only while its last board entry says `Paused: yes` (a later entry from the same chat clears it). A worker that cannot write the main board leaves `.muster-paused` in its own folder; the digest and hook read `.claude/worktrees/*/.muster-paused`. The app's own chat state cannot be read by a script, so before you tell the owner a chat is paused, check it yourself: its row in `list_sessions` (state and last activity after the paused line) or a test send; if the chat has moved on, close its stale entry on the board (`Status: done`, `Paused: no`) and say nothing to the owner.
 

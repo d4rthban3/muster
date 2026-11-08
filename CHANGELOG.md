@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.47
+Affects: Manager, Builder, Designer, Inspector.
+PINR guard: a worker's shell write into PINR's manager-only files is denied, as for Muster's files
+
 ## 0.3.46
 Affects: Manager, Builder, Designer, Inspector.
 PINR check gaps: social-only messages refused; the profile carries PINR's manager-only paths

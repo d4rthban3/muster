@@ -1,0 +1,18 @@
+{
+  "version": "0.3.47",
+  "changed_files": [
+    "hooks/rules-check.py",
+    "scripts/profile-selftest.py"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Builder",
+    "Designer",
+    "Inspector"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "PINR guard: a worker's shell write into PINR's manager-only files is denied, as for Muster's files"
+}

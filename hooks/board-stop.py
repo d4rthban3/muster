@@ -68,6 +68,41 @@ def is_manager_chat(transcript_path):
     return False
 
 
+PICKS = re.compile(r"fits what you want|fits what you said|i'?m recording|i am recording|i'?ll record|i will record|"
+                   r"i went with|i'?ll go with|i will go with|i'?m going with|i am going with|i picked|i chose|i'?ve chosen|"
+                   r"i have chosen|so [a-d] (fits|it is)|recording (it|that|this) as", re.I)
+TOLD = re.compile(r"you (picked|chose|clicked|selected|said)", re.I)
+
+
+def card_answered_this_turn(transcript_path):
+    """True if an AskUserQuestion card was asked after the owner's last typed message (so its answer came this turn).
+    Unknown (not found in the last 3 MB) counts as True: never block on a guess."""
+    try:
+        size = os.path.getsize(transcript_path)
+        with open(transcript_path, "rb") as fh:
+            fh.seek(max(0, size - 3000000))
+            raw = fh.read().decode("utf-8", "replace").split("\n")
+    except OSError:
+        return True
+    last_human, card_after = None, False
+    for line in raw:
+        try:
+            d = json.loads(line)
+        except ValueError:
+            continue
+        msg = d.get("message") or {}
+        c = msg.get("content", "")
+        if d.get("type") == "user":
+            human = isinstance(c, str) or (isinstance(c, list) and any(
+                isinstance(b, dict) and b.get("type") == "text" for b in c))
+            if human:
+                last_human, card_after = True, False
+        elif d.get("type") == "assistant" and isinstance(c, list):
+            if any(isinstance(b, dict) and b.get("type") == "tool_use" and b.get("name") == "AskUserQuestion" for b in c):
+                card_after = True
+    return True if last_human is None else card_after
+
+
 def main():
     try:
         data = json.load(sys.stdin)
@@ -99,12 +134,21 @@ def main():
         if (e["from"] and e["from"].lower() in said) or (e["job"] and e["job"].lower() in said):
             continue
         missed.append(e)
-    if not missed:
+    picks = bool(PICKS.search(said)) and not TOLD.search(said) and not card_answered_this_turn(data.get("transcript_path") or "")
+    if not missed and not picks:
+        return 0
+    if picks and not missed:
+        print(json.dumps({"decision": "block", "reason": "You wrote that you are choosing or recording for the owner, but he "
+                          "has not picked this turn. Do not decide for him: ask him now with a choice card, the option you "
+                          "favour marked \"my pick\", and record nothing until he clicks."}))
         return 0
     names = "; ".join("%s (%s)" % (e["from"] or "a worker", "paused" if e["paused"] else e["kind"]) for e in missed)
     reason = ("The board holds open items for the owner that you have not told him about: %s. "
               "Before you stop, ask him the top one as a choice card, or say \"<worker> is waiting for you: "
               "type in <chat link>\" for a paused chat; then stop." % names)
+    if picks:
+        reason += (" Also: you wrote that you are choosing or recording for the owner, but he has not picked this turn; "
+                   "ask him with a choice card, the option you favour marked \"my pick\", and record nothing until he clicks.")
     print(json.dumps({"decision": "block", "reason": reason}))
     return 0
 

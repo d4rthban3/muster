@@ -9,9 +9,10 @@ description: Record or look up a numbered owner decision, and keep each worker's
 information, not a decision. Only the manager writes here.
 
 ## Recording
-1. Find the last number at the end of the log.
-2. Append `### D-<next> · <date> · <title>` with `Decision` (the owner's exact words), `Why`, `Supersedes`, `Affects`.
-3. If it changes an earlier decision, say which in `Supersedes`; never edit the old entry.
+**Never append to the log by hand, and never record a choice for the owner (D-022).** A decision rests only on his click on a choice card or button, or on his own words that name the choice. When his words only seem to point to an option, ask him anyway, with that option marked "my pick". The script refuses anything else.
+1. Record his answer under its list item with `scripts/record-choice.py` (his click, or `--said` his words).
+2. Run `python3 scripts/decide.py <project> --item <n> --title "..." --decision "his exact words" --why "..." --affects "..." [--supersedes D-0nn] (--picked "<the option he clicked>" | --said "<his words naming the choice>")`: it checks the proof under list item n, takes the next number and writes the entry (`Decision`, `Why`, `Chosen by`, `Supersedes`, `Affects`).
+3. (The script writes the entry; do not edit the log yourself.) If it changes an earlier decision, say which in `Supersedes`; never edit the old entry.
 4. Then update every rules page in `muster/rules/` that the decision touches: the rule in force, the owner's exact
    words, the decision number, with the old line folded in or removed. The inspector checks each rules-page change.
 5. Send every running worker the change in one bundled note (one message per worker, all of its changes together).

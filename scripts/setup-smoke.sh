@@ -113,6 +113,25 @@ printf '### 2026-01-31 | NEED | Builder A_X_001 -> Manager | demo\nStatus: open\
 (cd "$FOLDER" && printf '{"cwd":"%s/.claude/worktrees/b","transcript_path":"%s","last_assistant_message":""}' "$(native "$FOLDER")" "$(native "$SCRATCH")/tr/manager.jsonl" | sh "$ROOT/hooks/board-stop.sh" | grep -q .) && fail "Stop hook ran in a worker copy"
 $PY -c "import json;json.load(open('$(native "$ROOT")/hooks/hooks.json'))" || fail "hooks/hooks.json is not valid JSON"
 
+step "a manager never picks for the owner: decide.py needs his click or words, and the Stop hook catches 'I am recording it'"
+FN=$(native "$FOLDER")
+printf '# List\n\n## Open\n1. "which colour"\n   Kind: question\n   Choice (2026-01-01): Which?\n     Options: A. red | B. blue\n     Picked: B. blue\n     He said: go with blue please\n\n2. "no click yet"\n   Kind: question\n\n## Closed\n' > "$FOLDER/muster/OWNERS-LIST.md"
+printf '# Decisions log\n\n### D-001 · 2026-01-01 · first\nDecision: x\n' > "$FOLDER/muster/DECISIONS-LOG.md"
+$PY "$ROOT/scripts/decide.py" "$FN" --item 1 --title "Colour" --decision "blue" --why "he picked" --picked "B. blue" >/dev/null || fail "decide.py refused a decision that rests on a recorded click"
+grep -q "^### D-002 · [0-9-]* · Colour" "$FOLDER/muster/DECISIONS-LOG.md" || fail "decide.py did not number D-002: $(cat "$FOLDER/muster/DECISIONS-LOG.md")"
+$PY "$ROOT/scripts/decide.py" "$FN" --item 1 --title "Said" --decision "blue" --why "w" --said "go with blue please" >/dev/null || fail "decide.py refused his own recorded words"
+if $PY "$ROOT/scripts/decide.py" "$FN" --item 2 --title "Guess" --decision "red" --why "w" --picked "A. red" >/dev/null 2>&1; then fail "decide.py took a pick that was never clicked"; fi
+if $PY "$ROOT/scripts/decide.py" "$FN" --item 2 --title "Guess" --decision "red" --why "w" --said "it seems he wants red" >/dev/null 2>&1; then fail "decide.py took words that are not under the item"; fi
+if $PY "$ROOT/scripts/decide.py" "$FN" --item 1 --title "Nothing" --decision "red" --why "w" >/dev/null 2>&1; then fail "decide.py took a decision with no proof"; fi
+[ "$(grep -c '^### D-' "$FOLDER/muster/DECISIONS-LOG.md")" = 3 ] || fail "decisions log changed by a refused call"
+printf '# Board\n\n## Entries\n' > "$FOLDER/muster/BOARD.md"
+cp "$SCRATCH/tr/manager.jsonl" "$SCRATCH/tr/mgr-card.jsonl"
+printf '{"type":"assistant","message":{"role":"assistant","content":[{"type":"tool_use","name":"AskUserQuestion","input":{}}]}}\n' >> "$SCRATCH/tr/mgr-card.jsonl"
+hook manager false "So C fits what you want, and I am recording it." | grep -q '"decision": "block"' || fail "Stop hook did not catch a manager choosing for the owner"
+hook mgr-card false "So C fits what you want, and I am recording it." | grep -q . && fail "Stop hook blocked although a choice card was answered this turn"
+hook manager false "You picked B, so I am recording it." | grep -q . && fail "Stop hook blocked although the message says he picked"
+hook manager true "I am recording it." | grep -q . && fail "Stop hook blocked while already continuing"
+
 step "a pretend order, READY and PASS on this project"
 mkdir -p "$SCRATCH/msgs"
 printf 'Job:     pretend job\n' > "$SCRATCH/msgs/order.txt"

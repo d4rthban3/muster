@@ -1,0 +1,33 @@
+{
+  "version": "0.3.28",
+  "changed_files": [
+    "README.md",
+    "agents/agent-teacher.md",
+    "agents/ai-socket.md",
+    "agents/builder.md",
+    "agents/design-inspector.md",
+    "agents/designer.md",
+    "agents/inspector.md",
+    "agents/manager.md",
+    "agents/sketchpad.md",
+    "hooks/hooks.json",
+    "hooks/renew-after-summary.py",
+    "hooks/talk-block.txt",
+    "hooks/talk-check.py",
+    "hooks/talk-check.sh",
+    "scripts/setup-smoke.sh",
+    "skills/manager-details/SKILL.md",
+    "templates/CLAUDE.md"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Builder",
+    "Designer",
+    "Inspector"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "The talking rules are locked in: a short \"How to talk to the owner\" block at the top of the crew rules, put back by a hook after every summary, and a light check that flags once a crew reply with a bare file path or saved-version code. The owner: \"its reverting back to claude style conversation and not locking in muster communication rules.\""
+}

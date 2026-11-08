@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.28
+Affects: Manager, Builder, Designer, Inspector.
+The talking rules are locked in: a short "How to talk to the owner" block at the top of the crew rules, put back by a hook after every summary, and a light check that flags once a crew reply with a bare file path or saved-version code. The owner: "its reverting back to claude style conversation and not locking in muster communication rules."
+
 ## 0.3.27
 Affects: Manager, Builder, Designer, Inspector.
 Four usage savers (D-023): no "noted" replies and the inspector's copies go to the board only; the inspector re-runs only changed tests plus one full run, one dark and one light picture; a hook reminds a chat to hand over and renew right after its conversation is summarized; passed site branches ship in one batch (ship.sh --with), jobs wait for the owner's notes, and read-only data is read directly. The owner picked all four.

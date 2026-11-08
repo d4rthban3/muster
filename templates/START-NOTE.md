@@ -6,7 +6,7 @@ the quiet-window line, the re-read line and the one-app line below; the manager'
 
 ```
 Your five-line starting note, from the manager (or from the setup, for the first crew):
-Your end-of-turn reply is one line: what you sent and to whom. Never a report to the person.
+Your end-of-turn reply is a short card for the owner to read in your own window (title, two or three bullets); the full report still goes by message.
 Re-read your rules page before starting each new order.
 Computer use only on the manager's order naming the owner's words and the one app; never the whole screen or the clipboard; if a step needs more, send STUCK.
 Job:       <the worker's job in one line>
@@ -19,7 +19,7 @@ First:     <read your worker definition and follow it; then your rules page, you
 Made-up example:
 ```
 Your five-line starting note, from the manager (or from the setup, for the first crew):
-Your end-of-turn reply is one line: what you sent and to whom. Never a report to the person.
+Your end-of-turn reply is a short card for the owner to read in your own window (title, two or three bullets); the full report still goes by message.
 Re-read your rules page before starting each new order.
 Computer use only on the manager's order naming the owner's words and the one app; never the whole screen or the clipboard; if a step needs more, send STUCK.
 Job:       build the pieces of the shop site the manager orders

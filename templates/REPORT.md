@@ -31,8 +31,10 @@ Who and when are not typed: the message carries them. Each line is one short sen
 No "received", no "thanks", no rules repeated, no keys or passwords.
 
 ## In a worker's own window
-The full report goes only by message. In its own window a worker writes one short line saying what it sent and to
-whom. Made-up example: "Sent READY to the inspector: crew switch".
+The full report goes by message. In its own window a worker posts a short card for the owner to read there: a bold
+title line "FIRST WORD · job name", then two or three bullet lines (what, the result with real numbers, what is left
+or what it needs from him), plain words, files as links. Made-up example: title "READY · crew switch", "- moved the
+switch to the top bar", "- 12 of 12 checks pass; the inspector has it".
 
 ## Choices written out
 **The letters are the markers.** When choices are written out, each is its own line starting with the bold letter,
@@ -57,8 +59,10 @@ link, for example [muster/OWNERS-LIST.md](muster/OWNERS-LIST.md), never as bare 
 your own folders may not open from the link in the app; still link it and say where it is.
 
 ## What the manager shows the owner
-The whole team runs through one chat: the owner talks to the manager's chat only. There the manager shows a report
-as a card: a bold title line "FIRST WORD · job name", then each part as its own bullet line, in the same order
+The manager shows the owner only a question, a yes he must give (money, keys, deleting), "<worker> is waiting for you:
+type in <chat>" (one linked line), and "the crew is idle, here's what's next" with buttons. It relays no LIVE, PASS,
+DONE or Closed cards and no progress (D-021); each worker posts its own update in its own window. When the manager does
+show a report that needs the owner's answer, it is a card: a bold title line "FIRST WORD · job name", then each part as its own bullet line, in the same order
 (what, where, why, how), with the label words ("What:", "Where:" and the rest) left out. Never a paragraph.
 Details (saved-version codes, file paths) go behind a link, never crammed in. No lists inside a line. A Need becomes
 the question at the bottom, with its buttons. Nothing repeated from an earlier report.

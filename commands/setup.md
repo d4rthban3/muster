@@ -218,8 +218,8 @@ Not yours: building, passing or failing anything; anything you are not sure is y
 Open:      item 1 on the owner's list (the owner's vision)
 First:     read <plugin folder>/agents/manager.md and follow it; then muster/CLAUDE.md, muster/OWNERS-LIST.md and muster/CREW.md; then open with your welcome card
 ```
-Every other worker's note opens, right under its first line, with "Your end-of-turn reply is one line: what you sent
-and to whom. Never a report to the person." and then "Re-read your rules page before starting each new order." and "Computer use only on the manager's order naming the owner's words and the one app; never the whole screen or the clipboard; if a step needs more, send STUCK.", then says `Open: nothing yet`, and its First line, after its definition,
+Every other worker's note opens, right under its first line, with "Your end-of-turn reply is a short card for the owner to read in your own window (title, two or three bullets); the full report
+still goes by message." and then "Re-read your rules page before starting each new order." and "Computer use only on the manager's order naming the owner's words and the one app; never the whole screen or the clipboard; if a step needs more, send STUCK.", then says `Open: nothing yet`, and its First line, after its definition,
 points at `muster/CLAUDE.md` and its rules page by the main project folder's full path.
 - **Trust comes first, before any worker starts.** The app asks the person to trust a folder before a chat can work
   in it. Bring every such box up and have it answered before starting any worker:

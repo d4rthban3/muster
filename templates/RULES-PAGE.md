@@ -9,5 +9,5 @@ Made-up example lines:
 - "Never change the price list without asking me." (D-009, replaces D-006)
 
 ## Rules in force
-- "Your end-of-turn reply is one line: what you sent and to whom. Never a report to the person." When messages are
+- "Your end-of-turn reply is a short card for the owner to read in your own window; the full report still goes by message." When messages are
   paused, the report goes on the board (with `Paused: yes`), the owner gets a notification if you can send one, and the window says only: "Messages paused; my report is on the board. Type anything here to unblock me."

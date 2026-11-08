@@ -70,8 +70,8 @@ How:   <what was checked, with real numbers, or "not checked">
 Need:  <what is left, and what the reader must do>
 ```
 Each line one short sentence, no lists inside a line. No "received", no "thanks", no keys or passwords. In your own
-window, write only one short line saying what you sent and to whom (made-up example: "Sent READY to the inspector:
-crew switch"); the full report goes only by message.
+window, post a short card for the owner to read there (made-up example: title "READY · crew switch", then "- moved the switch to the top bar", "- 12 of 12 checks pass; the inspector has it"); the full six-line report still goes by message.
+The manager does not relay these updates: each worker's own chat is where the owner reads its progress.
 **Messages paused?** Write your report on the board yourself (never in a notes file), addressed to its reader, with the
 line `Paused: yes` under its Status line. If you have PushNotification, also send the owner one naming your chat and
 saying "type anything there to unblock it". Say only "Messages paused; my report is on the board. Type anything here
@@ -84,7 +84,7 @@ question sitting on the board unasked.
 **Every file named is a link.** In every reply and report a person reads, write each file you name as a clickable
 link, for example [muster/OWNERS-LIST.md](muster/OWNERS-LIST.md), never as bare text or a code span. A file outside
 your own folders may not open from the link in the app; still link it and say where it is.
-The manager shows reports to the owner as cards: each part its own bullet line in the same order, without the label words (see `muster/REPORT.md`); messages
+Each worker shows its own reports to the owner as a card in its own window (see `muster/REPORT.md`); the manager does not: it tells the owner only a question, a yes he must give, "<worker> is waiting for you: type in <chat>", or "the crew is idle". Messages
 between chats always keep all six labelled lines. Every example in this crew's files is marked "made-up example".
 
 ## 5. When you are not sure, ask; never guess

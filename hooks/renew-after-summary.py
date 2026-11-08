@@ -43,7 +43,12 @@ def main():
     name = CHAT_NAME.search(first)
     if not role and not name:
         return 0  # not a crew chat (the owner's own chat, or another project)
-    is_manager = (role and role.group(1) == "manager") or (name and name.group(0).startswith("Manager_"))
+    # a role file in the note decides alone; without one, only "You are Manager_..." makes it the manager (a worker's note
+    # also names the manager, so a name alone proves nothing)
+    if role:
+        is_manager = role.group(1) == "manager"
+    else:
+        is_manager = bool(re.search(r"You are (?:the )?Manager_", first))
     if is_manager:
         msg = ("Muster: your conversation was just summarized, so you need a fresh chat (muster/CLAUDE.md section 9). At your "
                "next natural break write a short handover to muster/handovers/<your chat name>.md (what is open, the files "

@@ -255,6 +255,12 @@ printf '{"type":"user","message":{"role":"user","content":"First: read the plugi
 printf '{"type":"user","message":{"role":"user","content":"First: read the plugin folder/agents/manager.md. You are Manager_X_001."}}\n' > "$SCRATCH/tr/manager.jsonl"
 printf '{"type":"user","message":{"role":"user","content":"please fix the header art on my page"}}\n' > "$SCRATCH/tr/owner.jsonl"
 renew() { (cd "$2" && printf '{"transcript_path":"%s"}' "$(native "$SCRATCH")/tr/$1.jsonl" | sh "$ROOT/hooks/renew-after-summary.sh"); }
+printf '{"type":"user","message":{"role":"user","content":"Your five-line starting note. Job: build. Not yours: ask Manager_Shop_001 when unsure. First: read /p/agents/builder.md. Manager_Shop_001 gives every order."}}\n' > "$SCRATCH/tr/worker2.jsonl"
+printf '{"type":"user","message":{"role":"user","content":"You are Inspector_Shop_001. Manager_Shop_001 gives every order. First: read /p/agents/inspector.md"}}\n' > "$SCRATCH/tr/inspector.jsonl"
+printf '{"type":"user","message":{"role":"user","content":"You are Builder A_Shop_001. Ask Manager_Shop_001 when unsure."}}\n' > "$SCRATCH/tr/worker3.jsonl"
+renew worker2 "$FOLDER" | grep -q "DONE: renewal" || fail "a worker whose note names the manager and a builder role file got the manager wording"
+renew inspector "$FOLDER" | grep -q "DONE: renewal" || fail "an inspector whose note names the manager got the manager wording"
+renew worker3 "$FOLDER" | grep -q "DONE: renewal" || fail "a worker with no role file whose note names the manager got the manager wording"
 renew builder "$SCRATCH/plain" | grep -q . && fail "renewal hook spoke outside a crew project"
 renew owner "$FOLDER" | grep -q . && fail "renewal hook spoke in the owner's own chat in the main folder"
 renew builder "$FOLDER" | grep -q "DONE: renewal" || fail "renewal hook was silent for a worker"

@@ -1,16 +1,12 @@
 {
   "version": "0.3.33",
   "changed_files": [
-    "docs/compatibility.html",
-    "docs/cursor.html",
-    "docs/style.css"
+    "MUSTER-LITE.md"
   ],
-  "affected_roles": [
-    "Designer"
-  ],
+  "affected_roles": [],
   "affected_platforms": [
-    "claude-code"
+    "cursor"
   ],
   "records_change": false,
-  "note": "Cursor guide: second computer join steps; copy-block wrap in style.css (untested)"
+  "note": "Cursor is no longer listed under Muster Lite: Lite's table now points Cursor users to the full-crew Cursor guide (the owner chose the full crew for Cursor)."
 }

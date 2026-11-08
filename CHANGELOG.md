@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.34
+Affects: Designer.
+Install page: Cursor gets its own full-crew card and leaves the Muster Lite picker (untested)
+
 ## 0.3.33
 Affects: Designer.
 Cursor guide: second computer join steps; copy-block wrap in style.css (untested)

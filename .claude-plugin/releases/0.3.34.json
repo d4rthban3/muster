@@ -1,0 +1,14 @@
+{
+  "version": "0.3.34",
+  "changed_files": [
+    "docs/index.html"
+  ],
+  "affected_roles": [
+    "Designer"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Install page: Cursor gets its own full-crew card and leaves the Muster Lite picker (untested)"
+}

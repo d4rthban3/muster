@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.30
+Affects: nobody; only Muster's own free test.
+The free test no longer fails when it reads the published version just as a new one goes live: it reads it again and retries.
+
 ## 0.3.29
 Affects: nobody on Claude Code; Cursor users only.
 Muster for Cursor, full crew (untested in Cursor): cursor/setup.py builds the crew (manager, builder, designer, inspector) as separate Cursor agents in their own copies, with Muster's rules as Cursor rules, the same board and owner's list, and a manager Stop check. The owner: "computer 2 is on cursor and needs muster catered to it."

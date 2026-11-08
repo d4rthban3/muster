@@ -1,0 +1,12 @@
+{
+  "version": "0.3.30",
+  "changed_files": [
+    "scripts/setup-smoke.sh"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "The free test no longer fails when it reads the published version just as a new one goes live: it reads it again and retries."
+}

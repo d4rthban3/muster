@@ -1,0 +1,30 @@
+{
+  "version": "0.3.26",
+  "changed_files": [
+    "agents/agent-teacher.md",
+    "agents/ai-socket.md",
+    "agents/builder.md",
+    "agents/design-inspector.md",
+    "agents/designer.md",
+    "agents/inspector.md",
+    "agents/sketchpad.md",
+    "commands/setup.md",
+    "hooks/board-stop.py",
+    "scripts/setup-smoke.sh",
+    "skills/board-digest/scripts/board_digest.py",
+    "skills/manager-details/SKILL.md",
+    "templates/CLAUDE.md",
+    "templates/REPORT.md"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Builder",
+    "Designer",
+    "Inspector"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "A paused chat clears when it resumes (D-020): a worker closes its own \"Paused: yes\" entries as its first act after the owner types in it, and the board digest and Stop hook count a chat paused only while its last board entry says so; a worker that cannot write the main board leaves a .muster-paused file the hook reads. The owner (via PINR): \"im tired of this happening. i dont know why its happening but get with muster manager an fix the hole\"."
+}

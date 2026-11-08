@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.26
+Affects: Manager, Builder, Designer, Inspector.
+A paused chat clears when it resumes (D-020): a worker closes its own "Paused: yes" entries as its first act after the owner types in it, and the board digest and Stop hook count a chat paused only while its last board entry says so; a worker that cannot write the main board leaves a .muster-paused file the hook reads. The owner (via PINR): "im tired of this happening. i dont know why its happening but get with muster manager an fix the hole".
+
 ## 0.3.25
 Affects: Manager.
 A manager never picks for the owner (D-022): decisions are written only by scripts/decide.py, which needs his recorded click or his own words naming the choice, and the Stop hook blocks a manager turn that says it is choosing or recording for him with no choice card answered. The owner: "the ill go ahead with it even though you didnt pick an option in a click box."

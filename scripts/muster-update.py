@@ -19,8 +19,8 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PLUGIN = os.path.normpath(os.path.join(HERE, ".."))
-RULE_FILES = ["CLAUDE.md", "REPORT.md", "START-NOTE.md", "RULES-PAGE.md"]
-NEW_IF_MISSING = ["LOOK-BOOK.md"]
+RULE_FILES = ["CLAUDE.md", "REPORT.md", "START-NOTE.md", "RULES-PAGE.md", "PROTOCOL.md"]
+NEW_IF_MISSING = ["LOOK-BOOK.md", "BUILDERS-LOG.md"]
 
 
 def vkey(v):

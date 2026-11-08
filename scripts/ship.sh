@@ -97,6 +97,11 @@ if [ $wait = 1 ]; then
 fi
 git push -q origin "HEAD:refs/heads/main" || stop "main refused the push (not a fast-forward, or not allowed); nothing was forced"
 echo "== pushed $new to main"
+# the builders' change log a second computer reads (D-028): one line per ship, only where the project keeps one
+if [ -f "$mainroot/muster/BUILDERS-LOG.md" ]; then
+  printf '%s | %s | %s | %s\n' "$(date +%Y-%m-%d)" "$new" "${roles:-see the release file}" "$note" >> "$mainroot/muster/BUILDERS-LOG.md" \
+    && echo "== added a line to the builders' log"
+fi
 git push -q origin ":refs/heads/$tmp" 2>/dev/null
 if [ $wait = 1 ]; then
   echo "== waiting for the free test on main and the site rebuild"

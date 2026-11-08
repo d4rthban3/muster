@@ -55,7 +55,7 @@ git -c user.name="Muster" -c user.email="muster@localhost" commit -q -m "First v
 
 step "crew files copied from templates"
 cd muster
-for f in CREW DECISIONS-LOG BOARD OWNERS-LIST REPORT START-NOTE RULES-PAGE LOOK-BOOK CLAUDE; do
+for f in CREW DECISIONS-LOG BOARD OWNERS-LIST REPORT START-NOTE RULES-PAGE LOOK-BOOK CLAUDE PROTOCOL BUILDERS-LOG; do
   [ -f "$CLAUDE_PLUGIN_ROOT/templates/$f.md" ] || fail "template $f.md missing"
   cp -n "$CLAUDE_PLUGIN_ROOT/templates/$f.md" . || fail "copy $f"
 done
@@ -184,15 +184,27 @@ cstop mgr.txt 0 | grep -q followup_message || fail "the Cursor stop check did no
 cstop mgr.txt 0 | grep -q followup_message && fail "the Cursor stop check flagged the same item twice"
 
 step "second founder computer: --join on a project that already has muster/ changes nothing in it"
-snap() { (cd "$CM" && find muster .git/config -type f -print0 | sort -z | xargs -0 cat | cksum); }
+snap() { (cd "$CM" && find . -path ./.git/objects -prune -o -type f -print0 | sort -z | xargs -0 cksum | cksum); }
 BEFORE_SNAP=$(snap)
+# a dry run writes nothing at all, and says what it would read
+$PY "$ROOT/cursor/setup.py" "$(native "$CM")" --name "Bob Shop" --join --computer laptop2 --other desk1 --dry-run > "$CU/dry.out" 2>&1 || { cat "$CU/dry.out"; fail "--join --dry-run failed"; }
+grep -q "^DRY RUN" "$CU/dry.out" && grep -q "Would read (never write): board" "$CU/dry.out" || fail "the dry run did not say what it would read: $(cat "$CU/dry.out")"
+[ ! -e "$CU/laptop2 Workspace" ] || fail "the dry run wrote the workspace"
+[ "$(snap)" = "$BEFORE_SNAP" ] || fail "the dry run changed the project"
 $PY "$ROOT/cursor/setup.py" "$(native "$CM")" --name "Bob Shop" --join --computer laptop2 --other desk1 --copies clone --copies-dir "$(native "$CU")/clones" > "$CU/join.out" 2>&1 || { cat "$CU/join.out"; fail "cursor/setup.py --join failed"; }
-[ "$(snap)" = "$BEFORE_SNAP" ] || fail "--join changed something inside muster/ or .git/config"
+[ "$(snap)" = "$BEFORE_SNAP" ] || fail "--join changed something in the shared project (muster/, .cursor or .git)"
 WS="$CU/laptop2 Workspace"
 for f in CHANGES.md START-HERE.md git-as.sh tools/board_digest.py; do [ -f "$WS/$f" ] || fail "--join did not make $f in the workspace"; done
 [ -e "$CU/desk1 Workspace" ] && fail "--join wrote the other computer's workspace folder"
-[ -f "$CM/.cursor/rules/muster-laptop2-core.mdc" ] || fail "--join did not write this computer's Cursor rules"
-grep -q "Never override desk1" "$CM/.cursor/rules/muster-laptop2-core.mdc" || fail "the two-computer lines are missing from the rules"
+[ -f "$WS/.cursor/rules/muster-laptop2-core.mdc" ] || fail "--join did not write this computer's Cursor rules in its workspace"
+grep -q "Never override desk1" "$WS/.cursor/rules/muster-laptop2-core.mdc" || fail "the two-computer lines are missing from the rules"
+grep -q "protocol page" "$WS/.cursor/rules/muster-laptop2-core.mdc" && grep -q "BUILDERS-LOG.md" "$WS/START-HERE.md" || fail "the protocol page and builders' log are not named for the second computer"
+# a project with its own layout (board, rules and workspaces elsewhere), read-only
+PL="$CU/pinrlike"; mkdir -p "$PL/Proj/handoff" "$PL/ws2" ; echo "# board" > "$PL/Proj/handoff/BOARD.md"; echo r1 > "$PL/Proj/CLAUDE.md"; echo r2 > "$PL/Proj/READ-FIRST.md"
+PBEFORE=$(find "$PL" -type f | sort | xargs cksum | cksum)
+$PY "$ROOT/cursor/setup.py" "$(native "$PL/Proj")" --name Pinr --join --computer laptop2 --other desk1 --board "$PL/Proj/handoff/BOARD.md" --rules "$PL/Proj/CLAUDE.md" --rules "$PL/Proj/READ-FIRST.md" --workspace "$PL/ws2" --other-workspace "$PL/otherws" --dry-run > "$CU/pdry.out" 2>&1 || { cat "$CU/pdry.out"; fail "--join --dry-run on another layout failed"; }
+grep -q "READ-FIRST.md" "$CU/pdry.out" && grep -q "handoff/BOARD.md" "$CU/pdry.out" || fail "the other layout's board and rules were not used"
+[ "$(find "$PL" -type f | sort | xargs cksum | cksum)" = "$PBEFORE" ] && [ ! -e "$PL/otherws" ] || fail "the dry run on another layout wrote something"
 [ -z "$(git -C "$CM" status --porcelain)" ] || fail "--join left files the shared project would commit: $(git -C "$CM" status --porcelain)"
 sh "$WS/git-as.sh" -C "$CU/clones/builder-a-laptop2" commit -q --allow-empty -m t && [ "$(git -C "$CU/clones/builder-a-laptop2" log -1 --format=%an)" = laptop2 ] || fail "git-as.sh did not commit as laptop2"
 git -C "$CU/clones/builder-a-laptop2" rev-parse --abbrev-ref HEAD | grep -q '^laptop2/' || fail "the clone is not on a laptop2/ branch"
@@ -315,7 +327,10 @@ c = open("CHANGELOG.md").read(); i = c.index("\n## ") + 1
 open("CHANGELOG.md", "w").write(c[:i] + "## 1.2.5\nAffects: Builder.\nmy own note\n\n" + c[i:])
 PY
 git add -A; git commit -q -m "change two"
+mkdir -p muster; printf '# Builders log\n' > muster/BUILDERS-LOG.md
 bash scripts/ship.sh "a different note" --no-wait > "$SH/keep.out" 2>&1; grep -q "SHIPPED 1.2.5" "$SH/keep.out" || { cat "$SH/keep.out"; fail "ship refused a branch that already has its version"; }
+grep -q "| 1.2.5 | .*| a different note" muster/BUILDERS-LOG.md || fail "ship did not add its line to the builders' log: $(cat muster/BUILDERS-LOG.md)"
+rm -rf muster
 [ "$(grep -c '^## 1.2.5' CHANGELOG.md)" = 1 ] || fail "the changelog entry was doubled"
 grep -q "my own note" .claude-plugin/releases/1.2.5.json || fail "the branch's own release file was overwritten"
 git checkout -q origin/main 2>/dev/null; git checkout -q -b builder/other origin/main; echo o > other.txt; git add -A; git commit -q -m "other piece"

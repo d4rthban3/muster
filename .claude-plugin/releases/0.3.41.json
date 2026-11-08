@@ -1,0 +1,26 @@
+{
+  "version": "0.3.41",
+  "changed_files": [
+    "commands/setup.md",
+    "cursor/README.md",
+    "cursor/join/two-computers.md",
+    "cursor/setup.py",
+    "scripts/muster-update.py",
+    "scripts/setup-smoke.sh",
+    "scripts/ship.sh",
+    "skills/manager-details/SKILL.md",
+    "templates/BUILDERS-LOG.md",
+    "templates/COMPUTER2-START.md",
+    "templates/PROTOCOL.md"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Builder"
+  ],
+  "affected_platforms": [
+    "claude-code",
+    "cursor"
+  ],
+  "records_change": false,
+  "note": "Computer 2 in step (D-028, owner: \"i need computer 2 to be informed of the protocol and to stay in step with our builders\"): the second computer's join, run there, sets itself up from the shared files, takes the project's board, rules, protocol page, builders' log and workspace paths as options, can be dry-run, and writes nothing in the host's files; a protocol page and a builders' change log are kept with the crew files (ship.sh adds a line at each ship, the manager adds ready-but-not-live work), and the second computer reads both before every session."
+}

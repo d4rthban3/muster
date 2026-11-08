@@ -139,6 +139,15 @@ add("8 a PINR worker whose note says to report to Manager_PINR_002 is not the ma
 add("8 ...even when the manager is named first and its own name comes after 'You are'", run("rules-check.py", "Stop", last_assistant_message=card, transcript_path=tr("Manager_PINR_002 started this chat. You are Look Inspector_PINR_001.")), False)
 add("8 the PINR manager by 'Job:' is the manager", run("rules-check.py", "Stop", last_assistant_message=card, transcript_path=tr("Job: Manager_PINR_002, the founder's go-between. Workers: Site_PINR_002")), True)
 add("8 the PINR manager by 'You are' is the manager", run("rules-check.py", "Stop", last_assistant_message=card, transcript_path=tr("You are Manager_PINR_002. Look Inspector_PINR_001 reports to you.")), True)
+# real starting-note shapes (made-up names and ids)
+WT = "<system-reminder>\nYou are operating in a git worktree.\nWorktree path: /w/x\n</system-reminder>\n\nBackground (from the session that started this one):\nPINR is a project; its manager is Manager_PINR_002 and all reports go to Manager_PINR_002.\n\nTask:\n"
+add("8 a renewed PINR worker: 'You are operating in a git worktree', then 'You are Site_PINR_004' is a worker", run("rules-check.py", "Stop", last_assistant_message=card, transcript_path=tr(WT + "You are Site_PINR_004. Report to Manager_PINR_002.")), False)
+add("8 ...and by a Job line with a two-word name", run("rules-check.py", "Stop", last_assistant_message=card, transcript_path=tr(WT + "Job:   Look Inspector_PINR_002, reads the look work. Reports go to Manager_PINR_002.")), False)
+add("8 ...and PINRai_teacher_003", run("rules-check.py", "Stop", last_assistant_message=card, transcript_path=tr(WT + "You are PINRai_teacher_003.")), False)
+add("8 the renewed PINR manager behind the same worktree lines is the manager", run("rules-check.py", "Stop", last_assistant_message=card, transcript_path=tr(WT + "You are Manager_PINR_003.")), True)
+add("8 a Muster note 'You are one of the Muster crew ... Manager_Muster_001 gives every order' is a worker", run("rules-check.py", "Stop", plain=True, last_assistant_message=card, transcript_path=tr("Background: You are one of the Muster crew. Manager_Muster_001 gives every order. Builder A_Muster_001 builds. Task: read your rules page.")), False)
+add("8 setup's manager note (Job: go-between, agents/manager.md) is the manager", run("rules-check.py", "Stop", plain=True, last_assistant_message=card, transcript_path=tr("Task:\nJob:       the owner's go-between and record keeper for this project\nOwns: muster/\nFirst: read agents/manager.md")), True)
+add("8 a note naming only agents/builder.md is a worker even if it mentions the manager", run("rules-check.py", "Stop", plain=True, last_assistant_message=card, transcript_path=tr("Read agents/builder.md. Send reports to Manager_Muster_002.")), False)
 # install-checks and check-report
 IC = os.path.join(T, "ic")
 os.makedirs(IC)

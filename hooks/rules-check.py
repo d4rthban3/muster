@@ -105,17 +105,23 @@ def _token_is_manager(tok):
 
 
 def is_manager(first):
-    """Only the chat's OWN name makes it the manager: the name after 'Job:' in its starting note, else after 'You are', else
-    the first crew name or agents/<role>.md the note uses. A worker's note that merely mentions the manager later
-    ("report to Manager_X_002") is not the manager, in Muster and in any profile."""
+    """Only the chat's OWN name makes it the manager. Its own name is the first crew name that follows 'Job:' or 'You are' in
+    its starting note (every such place is tried: 'You are operating in a git worktree' holds no name). Else the first
+    agents/<role>.md it names, else a Job line that says 'go-between' or 'record keeper'. A crew name that is merely
+    mentioned ("report to Manager_X_002", "Manager_X_001 gives every order") never makes a chat the manager."""
+    best = None
     for lead in (r"\bJob:\s*", r"\byou are\s+(?:the\s+)?"):
-        m = re.search(lead, first, re.I)
-        if m:
+        for m in re.finditer(lead, first, re.I):
             c = CREW_RE.match(first, m.end())
-            if c:
-                return _token_is_manager(c.group(0))
-    m = CREW_RE.search(first)
-    return bool(m) and _token_is_manager(m.group(0))
+            if c and (best is None or m.start() < best[0]):
+                best = (m.start(), c.group(0))
+                break
+    if best:
+        return _token_is_manager(best[1])
+    m = re.search(r"agents[/\\](?:manager|builder|designer|inspector|design-inspector|sketchpad|ai-socket|agent-teacher)\.md", first)
+    if m:
+        return _token_is_manager(m.group(0))
+    return re.search(r"\bJob:[^\n]*(go-between|record keeper)", first, re.I) is not None
 
 
 # ---- reading the event ----------------------------------------------------------------------------------------

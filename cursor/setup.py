@@ -49,7 +49,17 @@ def main():
     ap.add_argument("--vision", default="")
     ap.add_argument("--builders", type=int, default=1)
     ap.add_argument("--no-designer", action="store_true")
+    ap.add_argument("--join", action="store_true", help="second computer: join a project that already has muster/ (writes nothing in it)")
+    ap.add_argument("--computer", default="", help="with --join: this computer's name, e.g. laptop2")
+    ap.add_argument("--other", default="", help="with --join: the host computer's name, e.g. desk1")
+    ap.add_argument("--workspace", default="", help="with --join: this computer's workspace folder (default: <project's parent>/<computer> Workspace)")
+    ap.add_argument("--other-workspace", default="", help="with --join: the host's workspace folder (default: <project's parent>/<other> Workspace)")
+    ap.add_argument("--git-name", default="", help="with --join: git name for this computer's commits (default: the computer's name)")
+    ap.add_argument("--copies", choices=["none", "clone"], default="none", help="with --join: clone = a local clone per builder/designer instead of working in the shared folder")
+    ap.add_argument("--copies-dir", default="", help="with --join --copies clone: where the clones go (default: ~/MusterCopies/<project>)")
     a = ap.parse_args()
+    if a.join:
+        return join(a)
     if not re.fullmatch(r"[^/\\:*?\"<>|.][^/\\:*?\"<>|]{0,39}", a.name):
         sys.exit("setup: the project name may not hold / \\ : * ? \" < > | , start with a dot, or pass 40 characters")
     main_dir = os.path.abspath(a.folder)
@@ -160,6 +170,106 @@ def main():
     for chat, folder, note in steps:
         print("  %-34s folder: %s\n  %-34s note:   %s" % (chat, folder, "", note))
     print("\nStart with the Manager. It tells you what it needs from you; the others work from the board.")
+    return 0
+
+
+def join(a):
+    """Second computer: join a project that already has muster/. Writes NOTHING inside muster/ and no file of the host's."""
+    if not (a.computer and a.other):
+        sys.exit("setup: --join needs --computer <this computer's name> and --other <the host computer's name>")
+    main_dir = os.path.abspath(a.folder)
+    if not os.path.isfile(os.path.join(main_dir, "muster", "BOARD.md")):
+        sys.exit("setup: %s has no muster/BOARD.md. Join works on a project the host already set up; run setup without --join there first." % main_dir)
+    parent = os.path.dirname(main_dir)
+    ws = os.path.abspath(a.workspace or os.path.join(parent, a.computer + " Workspace"))
+    ows = os.path.abspath(a.other_workspace or os.path.join(parent, a.other + " Workspace"))
+    gname = a.git_name or a.computer
+    sub = {"{{COMPUTER}}": a.computer, "{{OTHER}}": a.other, "{{MAIN}}": main_dir.replace("\\", "/"), "{{WORKSPACE}}": ws.replace("\\", "/"),
+           "{{OTHER_WORKSPACE}}": ows.replace("\\", "/"), "{{GIT_NAME}}": gname, "{{PROJECT}}": a.name}
+
+    def fill(s):
+        for k, v in sub.items():
+            s = s.replace(k, v)
+        return s
+
+    made = []
+    os.makedirs(os.path.join(ws, "tools"), exist_ok=True)
+    T = os.path.join(PLUGIN, "templates")
+    if not os.path.exists(os.path.join(ws, "CHANGES.md")):
+        open(os.path.join(ws, "CHANGES.md"), "w", encoding="utf-8").write(
+            open(os.path.join(T, "CHANGES.md"), encoding="utf-8").read().replace("<Computer name>", a.computer))
+        made.append("CHANGES.md")
+    start = os.path.join(ws, "START-HERE.md")
+    if not os.path.exists(start):
+        open(start, "w", encoding="utf-8").write(fill(open(os.path.join(T, "COMPUTER2-START.md"), encoding="utf-8").read()))
+        made.append("START-HERE.md")
+    gas = os.path.join(ws, "git-as.sh")
+    if not os.path.exists(gas):
+        open(gas, "w", encoding="utf-8", newline="\n").write(
+            '#!/bin/sh\n# Runs git as %s, for this computer\'s own commits; the project\'s own git settings are never changed.\n'
+            'exec git -c "user.name=%s" -c "user.email=%s@localhost" "$@"\n' % (gname, gname, gname))
+        os.chmod(gas, 0o755)
+        made.append("git-as.sh")
+    bd = os.path.join(PLUGIN, "skills", "board-digest", "scripts", "board_digest.py")
+    if os.path.exists(bd) and not os.path.exists(os.path.join(ws, "tools", "board_digest.py")):
+        shutil.copyfile(bd, os.path.join(ws, "tools", "board_digest.py"))
+        made.append("tools/board_digest.py")
+    # the Cursor rules: new files only, named for this computer, never over the host's
+    core = open(os.path.join(HERE, "rules", "muster-core.mdc"), encoding="utf-8").read()
+    two = open(os.path.join(HERE, "join", "two-computers.md"), encoding="utf-8").read()
+    # the core rule says "the board is the channel / only the manager writes"; here the second computer reads the board only
+    folders = [main_dir]
+    clones = []
+    if a.copies == "clone":
+        cdir = os.path.abspath(a.copies_dir or os.path.join(os.path.expanduser("~"), "MusterCopies", a.name))
+        for role_name in ["Builder A"] + ([] if a.no_designer else ["Designer"]):
+            slug = re.sub(r"[^a-z0-9]+", "-", ("%s-%s" % (role_name, a.computer)).lower()).strip("-")
+            dest = os.path.join(cdir, slug)
+            if not os.path.isdir(dest):
+                os.makedirs(cdir, exist_ok=True)
+                git(cdir, "clone", "-q", main_dir, dest)
+                git(dest, "config", "user.name", gname)
+                git(dest, "config", "user.email", gname + "@localhost")
+                git(dest, "checkout", "-q", "-b", "%s/%s" % (gname, slug))
+            clones.append((role_name, dest))
+            folders.append(dest)
+    for folder in folders:
+        rd = os.path.join(folder, ".cursor", "rules")
+        os.makedirs(rd, exist_ok=True)
+        name = os.path.join(rd, "muster-%s-core.mdc" % a.computer)
+        if not os.path.exists(name):
+            open(name, "w", encoding="utf-8", newline="\n").write(fill(core) + fill(two))
+            made.append(os.path.relpath(name, main_dir) if folder == main_dir else name)
+        for role in ("builder", "designer", "inspector"):
+            if role == "designer" and a.no_designer:
+                continue
+            rn = os.path.join(rd, "muster-%s-%s.mdc" % (role, a.computer))
+            if not os.path.exists(rn):
+                open(rn, "w", encoding="utf-8", newline="\n").write(fill(open(os.path.join(HERE, "rules", "muster-%s.mdc" % role), encoding="utf-8").read()))
+    # keep this computer's rules out of the shared repository's history: one added line, only if missing
+    gc = git(main_dir, "rev-parse", "--git-common-dir", check=False)
+    note = "no git repository found, nothing excluded"
+    if gc.returncode == 0:
+        gdir = gc.stdout.strip()
+        gdir = gdir if os.path.isabs(gdir) else os.path.join(main_dir, gdir)
+        exc = os.path.join(gdir, "info", "exclude")
+        have = open(exc, encoding="utf-8").read() if os.path.exists(exc) else ""
+        line = "/.cursor/rules/muster-*-%s*.mdc" % a.computer
+        if line not in have.split("\n"):
+            os.makedirs(os.path.dirname(exc), exist_ok=True)
+            with open(exc, "a", encoding="utf-8") as fh:
+                fh.write(("" if have.endswith("\n") or not have else "\n") + line + "\n")
+            note = "added one line to the project's .git/info/exclude (%s)" % line
+        else:
+            note = "the project's .git/info/exclude already had it"
+    print("%s joined %s as the second computer." % (a.computer, a.name))
+    print("Written in your workspace %s: %s" % (ws, ", ".join(made) or "nothing new (all existed)"))
+    print("Nothing was written inside %s/muster/ or in %s ." % (main_dir, ows))
+    print("Git: %s." % note)
+    print("\nFor each AI chat or agent you open on this computer: open its folder in Cursor, start a new Agent chat, open %s and paste its whole contents as your first message." % start)
+    print("  Shared folder (works live on the host's files): %s" % main_dir)
+    for role_name, dest in clones:
+        print("  %-10s own local clone (branch %s/...): %s" % (role_name, gname, dest))
     return 0
 
 

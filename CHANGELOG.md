@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.32
+Affects: Manager, Builder, Designer, Inspector (a new section 9c in the core rules; applies only to projects with a second computer).
+Two founder computers: the Cursor edition can join a project that already has muster/ as a second computer (setup.py --join) without writing in the host's files, with its own workspace, change log, git name and branches, and the two-computer rules in the core rules. The owner: "computer 2 is connected to the files themselves... i want it integrated."
+
 ## 0.3.31
 Affects: Designer.
 Cursor guide: plain-words page, Cursor column in the compatibility table, link on the install page (untested)

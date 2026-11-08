@@ -1,0 +1,26 @@
+{
+  "version": "0.3.32",
+  "changed_files": [
+    "README.md",
+    "cursor/README.md",
+    "cursor/join/two-computers.md",
+    "cursor/setup.py",
+    "platforms/cursor.yaml",
+    "scripts/setup-smoke.sh",
+    "templates/CHANGES.md",
+    "templates/CLAUDE.md",
+    "templates/COMPUTER2-START.md"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Builder",
+    "Designer",
+    "Inspector"
+  ],
+  "affected_platforms": [
+    "cursor",
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Two founder computers: the Cursor edition can join a project that already has muster/ as a second computer (setup.py --join) without writing in the host's files, with its own workspace, change log, git name and branches, and the two-computer rules in the core rules. The owner: \"computer 2 is connected to the files themselves... i want it integrated.\""
+}

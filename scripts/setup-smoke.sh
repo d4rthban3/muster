@@ -183,6 +183,22 @@ cstop mgr.txt 1 | grep -q followup_message && fail "the Cursor stop check ran as
 cstop mgr.txt 0 | grep -q followup_message || fail "the Cursor stop check did not tell the manager about an open NEED"
 cstop mgr.txt 0 | grep -q followup_message && fail "the Cursor stop check flagged the same item twice"
 
+step "second founder computer: --join on a project that already has muster/ changes nothing in it"
+snap() { (cd "$CM" && find muster .git/config -type f -print0 | sort -z | xargs -0 cat | cksum); }
+BEFORE_SNAP=$(snap)
+$PY "$ROOT/cursor/setup.py" "$(native "$CM")" --name "Bob Shop" --join --computer laptop2 --other desk1 --copies clone --copies-dir "$(native "$CU")/clones" > "$CU/join.out" 2>&1 || { cat "$CU/join.out"; fail "cursor/setup.py --join failed"; }
+[ "$(snap)" = "$BEFORE_SNAP" ] || fail "--join changed something inside muster/ or .git/config"
+WS="$CU/laptop2 Workspace"
+for f in CHANGES.md START-HERE.md git-as.sh tools/board_digest.py; do [ -f "$WS/$f" ] || fail "--join did not make $f in the workspace"; done
+[ -e "$CU/desk1 Workspace" ] && fail "--join wrote the other computer's workspace folder"
+[ -f "$CM/.cursor/rules/muster-laptop2-core.mdc" ] || fail "--join did not write this computer's Cursor rules"
+grep -q "Never override desk1" "$CM/.cursor/rules/muster-laptop2-core.mdc" || fail "the two-computer lines are missing from the rules"
+[ -z "$(git -C "$CM" status --porcelain)" ] || fail "--join left files the shared project would commit: $(git -C "$CM" status --porcelain)"
+sh "$WS/git-as.sh" -C "$CU/clones/builder-a-laptop2" commit -q --allow-empty -m t && [ "$(git -C "$CU/clones/builder-a-laptop2" log -1 --format=%an)" = laptop2 ] || fail "git-as.sh did not commit as laptop2"
+git -C "$CU/clones/builder-a-laptop2" rev-parse --abbrev-ref HEAD | grep -q '^laptop2/' || fail "the clone is not on a laptop2/ branch"
+$PY "$ROOT/cursor/setup.py" "$(native "$CU")/nothing here" --name X --join --computer laptop2 --other desk1 >/dev/null 2>&1 && fail "--join accepted a folder with no muster/"
+grep -q "^## 9c. Two founder computers" "$ROOT/templates/CLAUDE.md" || fail "the two-computer rules are missing from the core rules"
+
 step "a pretend order, READY and PASS on this project"
 mkdir -p "$SCRATCH/msgs"
 printf 'Job:     pretend job\n' > "$SCRATCH/msgs/order.txt"
@@ -213,9 +229,9 @@ $PY "$ROOT/scripts/muster-update.py" "$FN" | grep -q "Already up to date" || fai
 
 step "auto-update switch (scripts/enable-autoupdate.py) in a scratch settings folder"
 AU="$SCRATCH/claude-config"; mkdir -p "$AU"
-printf '{"theme":"dark","extraKnownMarketplaces":{"muster-kit":{"source":{"source":"github","repo":"d4rthban3/muster"}}}}' > "$AU/settings.json"
+printf '{"theme":"dark","extraKnownMarketplaces":{"muster-kit":{"source":{"source":"github","repo":"desk1/muster"}}}}' > "$AU/settings.json"
 CLAUDE_CONFIG_DIR=$(native "$AU") $PY "$ROOT/scripts/enable-autoupdate.py" | grep -q "now on\|is on" || fail "auto-update switch not set"
-$PY -c 'import json,sys;d=json.load(open(sys.argv[1]));e=d["extraKnownMarketplaces"]["muster-kit"];assert e["autoUpdate"] is True and d["theme"]=="dark" and e["source"]["repo"]=="d4rthban3/muster"' "$(native "$AU/settings.json")" || fail "settings not kept or switch missing"
+$PY -c 'import json,sys;d=json.load(open(sys.argv[1]));e=d["extraKnownMarketplaces"]["muster-kit"];assert e["autoUpdate"] is True and d["theme"]=="dark" and e["source"]["repo"]=="desk1/muster"' "$(native "$AU/settings.json")" || fail "settings not kept or switch missing"
 [ -f "$AU/settings.json.muster-backup" ] || fail "no backup kept"
 printf '{}' > "$AU/settings.json"
 if CLAUDE_CONFIG_DIR=$(native "$AU") $PY "$ROOT/scripts/enable-autoupdate.py" >/dev/null; then fail "wrote a switch for an undeclared marketplace"; fi

@@ -31,8 +31,15 @@ a thing to try on the first real run.
 - A waiting agent says "type in <chat>" in its own window card and puts a NEED/STUCK/OWNER CALL entry on the board; the Manager's Stop check (`.cursor/hooks.json`) tells the owner once.
 - `record-choice.py` and `decide.py` (in `muster/tools/`) are the only way choices and decisions are written. The same files the Claude Code edition uses.
 
+## A second computer on the same project (two founder computers) — UNTESTED
+For a second computer that opens the host's project files live (for example over a network share), Muster has a join mode. It writes **nothing** inside the project's `muster/` folder or the host's workspace; it makes this computer's own workspace folder (its change log, a starting note, a `git-as.sh` that commits under its own name), writes Cursor rules named for the computer (core plus the two-computer lines), and with `--copies clone` makes a local clone per builder and designer on its own `<name>/` branches (the safe way to get a copy: nothing is added to the shared repository's worktree list).
+- By hand: `python3 cursor/setup.py "<project folder as this computer sees it>" --name "Project" --join --computer laptop2 --other desk1 [--copies clone]`. Or paste the same request into a Cursor Agent chat, as in the steps above.
+- Then, in every chat on the second computer, paste the whole `START-HERE.md` from its workspace as the first message.
+- The rules (also section 9c of `muster/CLAUDE.md`): read the other computer's change log first, write only your own, never override the other, no orders either way, `muster/` is written by the host's manager only, own branches and own git name.
+- **Cannot be enforced across a network share:** file locks and two writers on one file. Each side avoids collisions by working on its own branches and in its own copies, reading the other's log and `git log` for a file before editing it, and one writer per shared file.
+
 ## Not ported (and why)
 `ship.sh` (it releases a Claude plugin repo; in a project a builder pushes its passed branch fast-forward only), the talking check, the renewal-after-summary hook, PushNotification, paused-chat markers (`muster/CLAUDE.md` still describes them; ignore for Cursor), the usage meter. Cursor's own "Rules" are advisory text: nothing enforces them except the one Stop hook.
 
 ## Keeping it current
-`git pull` in the Muster clone, then run `setup.py` again: it never overwrites an existing file, so refresh rules by deleting `.cursor/rules/muster-*.mdc` first.
+Paste this into your Cursor Agent chat (click Run/Allow when it asks): *"Update Muster to the newest version: update the Muster folder next to this project, then run its `cursor/setup.py` on this project again, and tell me what changed."* Setup never overwrites an existing file, so it also deletes nothing of yours; to refresh the rules themselves, ask the agent to delete the `.cursor/rules/muster-*.mdc` files first. *Already use a terminal?* `git pull` in the Muster folder, then run `setup.py` again.

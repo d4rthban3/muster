@@ -17,5 +17,6 @@ archive: by_hand
 messages: { transport: "none between agents (not documented by Cursor); the board is the channel, read with board_digest.py at the start of every turn", wake_on: "nothing wakes an agent; the owner opens its chat" }
 hooks: { stop: ".cursor/hooks.json -> muster/tools/cursor-stop.py (followup_message, loop_limit 1, once per item set)", unconfirmed: "transcript format; whether the hook sees the manager" }
 crew_files: "muster/, kept out of git (.git/info/exclude)"
+second_computer: "setup.py --join --computer <name> --other <host>: own workspace (CHANGES.md, START-HERE.md, git-as.sh), own rules named for the computer, optional local clones (--copies clone); writes nothing in muster/ or the other workspace; not enforced across a network share: file locks, two writers on one file"
 not_ported: "ship.sh (needs a Claude plugin repo), talk-check, renewal hook, paused/PushNotification, per-turn mode checks"
-updates: { check: "git pull in the Muster folder, then rerun cursor/setup.py (never overwrites)", deliver: by_hand }
+updates: { check: "paste one sentence into the Cursor agent: update Muster, then rerun cursor/setup.py (never overwrites)", deliver: by_hand }

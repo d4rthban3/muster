@@ -152,6 +152,14 @@ a replacement, a role ending), once its handover is written (if it needed one) a
 - An order that says the owner's notes are coming is not DONE until they are in: the worker sends STUCK or NEED, not DONE, while it waits.
 - A worker with read-only data access reads it directly under its order; it never asks another worker to fetch it each time.
 
+## 9c. Two founder computers (only when the project has a second computer)
+One computer is the host: the project's files live on it, and its crew (manager, workers) runs there. The second computer opens the same files (for example over a network share, with no local copy) and builds on its own under the same rules. The founder's words and the two decisions logs rule both.
+- **Each computer has its own workspace folder** with its own `CHANGES.md` (template `muster/CHANGES.md` or `templates/CHANGES.md`: six lines, full file paths). **Read the other computer's log first, before every session; write only your own; never write in the other's workspace folder.**
+- **Never override the other computer.** Neither computer, and neither computer's manager, gives the other orders. The host's manager gives the second computer none. What one side needs from the other goes to the founder as a question, or as a NEED in your own log.
+- **Shared files, one writer each.** `muster/` (the owner's list, decisions, board, rules pages, crew) is written by the host's manager only; the second computer reads it. The second computer's own reports, board-style entries and needs go in its own log.
+- **Own branches, own identity.** Each computer commits under its own git name, on its own branches (the second computer's start with its name and a slash). The second computer commits through its workspace's `git-as.sh`, so the project's own git settings are never changed.
+- **What cannot be enforced across a network share:** file locks (a mount does not lock files reliably), and two writers on one file. Nothing in Muster can stop two computers saving the same file at once. What each side does to avoid it: work on its own branches and in its own copies (a local clone, not the shared folder, where it can), read the other's log and `git log` for a file before editing it, never edit a file the other touched lately without asking, one writer per shared file, and check `git status` before and after a session.
+
 ## 10. Models and effort
 Every chat runs on medium effort. When the owner asks to speed things up, the manager and the inspectors go to high.
 Models are set in each worker's definition; nobody changes their own.

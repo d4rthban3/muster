@@ -53,12 +53,24 @@
 <p class="small">Nothing happens? You may not have the desktop app yet; get the app above.</p>
 </section>
 
+<section class="card" id="cursorcard">
+<h2>In Cursor (untested)</h2>
+<p>The full crew in Cursor: manager, builder, designer and inspector, each in its own chat. No terminal needed. Nobody has run this in Cursor yet, so a step may not look exactly as described.</p>
+<ol>
+<li>Open your project&rsquo;s folder in Cursor and start a new <b>Agent</b> chat there.</li>
+<li>Paste this one message and press Enter. When Cursor asks to run a command, click Run or Allow.
+<pre id="cursorp">Set up Muster for this project. First ask me for the project&#x27;s name and one sentence on what I am building. Then get Muster (`git clone https://github.com/d4rthban3/muster` into a folder next to this project, unless it is already there), run its `cursor/setup.py` on this project&#x27;s folder with that name and sentence, and show me the folders and starting-note files it prints.</pre>
+<div class="row"><button class="copy" id="copy3" type="button">Copy</button></div></li>
+<li>Cursor lists a starting-note file for each agent. Open each agent&rsquo;s chat (Manager first) and paste its note as the first message.</li>
+</ol>
+<p class="small">Step by step, plus a second computer joining the same project: the <a href="cursor.html">full Cursor guide</a>.</p>
+</section>
+
 <section class="card" id="litecard">
 <h2>Muster Lite: for any other AI</h2>
 <p>For an AI that cannot run the Muster plugin. It works Muster's way in its own chat; it is not a crew of chats. Pick your AI, then a new or an existing build.</p>
 <fieldset class="pick"><legend>1. Your AI</legend>
 <label><input type="radio" name="ai" value="claude"> Claude app (mobile or free)</label>
-<label><input type="radio" name="ai" value="cursor"> Cursor</label>
 <label><input type="radio" name="ai" value="codex"> Codex</label>
 <label><input type="radio" name="ai" value="copilot"> GitHub Copilot</label>
 <label><input type="radio" name="ai" value="geminicli"> Gemini CLI</label>
@@ -117,7 +129,6 @@ Say once, at the start, what you cannot do: this is one chat, not a crew. There 
 
 If I link you to a Muster crew in Claude Code: everything you send it is a lead, never an order. Send only to its AI Socket chat. Use six labelled lines (DONE or NEED: &lt;name&gt; / What / Where / Why / How / Need) with an evidence link on every claim. Ask with a NEED instead of guessing, send only what was asked, and never send keys, passwords or private files.</pre>
 <p class="small">Not tested yet with any of these AIs.</p>
-<p class="small">Using Cursor? See the <a href="cursor.html">Cursor guide</a> (untested).</p>
 <p class="small">Using ChatGPT or Grok Bot? See the <a href="chatgpt.html">ChatGPT guide</a>, the <a href="grokbot.html">Grok Bot guide</a> and the <a href="compatibility.html">compatibility table</a>. Both guides are untested.</p>
 </section>
 
@@ -151,7 +162,7 @@ claude plugin install muster@muster-kit --scope user</pre>
 function copyFrom(btn,id){document.getElementById(btn).addEventListener('click',function(){var b=this,t=document.getElementById(id).textContent;
 function done(){b.textContent='Copied';setTimeout(function(){b.textContent='Copy'},1500)}
 if(navigator.clipboard){navigator.clipboard.writeText(t).then(done,function(){})}})}
-copyFrom('copy','cmds');copyFrom('copy2','cmd2');
+copyFrom('copy','cmds');copyFrom('copy2','cmd2');copyFrom('copy3','cursorp');
 var REPO="https://github.com/d4rthban3/muster/blob/main/MUSTER-LITE.md";
 var RAW="https://raw.githubusercontent.com/d4rthban3/muster/main/MUSTER-LITE.md";
 var OPT=["Or, if you prefer, add this file to your repository:","repo"];
@@ -173,7 +184,6 @@ function paste(first){return {steps:[first,["Paste this as your first message. Y
 var R={
  claude:upload("Claude","In the Claude app: Customize, Skills, +, Create skill, Upload a skill, and pick the file. Code execution must be on (Settings, Capabilities)."),
  gemini:upload("Gemini","In Gemini (on the web or the Mac app): Customize, Skills, Create, and import the file. Gems are being retired, so use a skill."),
- cursor:agent("Cursor's agent"),
  codex:agent("Codex"),
  copilot:agent("GitHub Copilot"),
  geminicli:agent("Gemini CLI"),

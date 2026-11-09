@@ -7,8 +7,10 @@ use std::collections::HashSet;
 const KINDS: [&str; 8] = ["READY", "DONE", "PASS", "FAIL", "STUCK", "NEED", "OWNER_CALL", "ORDER"];
 const NEEDS: [&str; 6] = ["none", "pass_or_fail", "order", "owner_answer", "fix", "unblock"];
 const DONE_WHEN: [&str; 4] = ["ready", "pass", "live", "report"];
-const KEYS: [&str; 15] = [
-    "v", "kind", "id", "job", "from", "to", "sha", "version", "tests", "touches", "need", "usage", "owner_words", "owns", "out",
+/// An ORDER says what happens after the work: start (do it and send READY), hold (after PASS wait for the owner's go), ship (after PASS ship).
+const ACTIONS: [&str; 3] = ["ship", "hold", "start"];
+const KEYS: [&str; 16] = [
+    "v", "kind", "id", "job", "from", "to", "sha", "version", "tests", "touches", "need", "usage", "owner_words", "owns", "out", "action",
 ];
 
 fn code(v: &Value, what: &str, lo: usize, hi: usize) -> Result<String, String> {
@@ -138,11 +140,14 @@ pub fn validate(text: &str, things: &HashSet<String>) -> Result<(), String> {
             }
             list_of_codes(m.get("owns").ok_or("an ORDER needs owns")?, "owns", things)?;
             list_of_codes(m.get("out").ok_or("an ORDER needs out")?, "out", things)?;
+            let act = code(m.get("action").ok_or("an ORDER needs action (ship, hold or start)")?, "action", 1, 8)?;
+            if !ACTIONS.contains(&act.as_str()) { return Err(format!("action '{act}' is not one of {}", ACTIONS.join(", "))); }
             let dw = m.get("need").and_then(Value::as_str).unwrap_or("");
             let _ = (dw, DONE_WHEN);
         }
         _ => {}
     }
+    if kind != "ORDER" && m.contains_key("action") { return Err("action belongs to an ORDER only".into()); }
     Ok(())
 }
 
@@ -228,11 +233,22 @@ mod tests {
 
     #[test]
     fn an_order_refers_to_his_words_by_number() {
-        let o = r#"{"v":1,"kind":"ORDER","id":"manager-lean-rebuild-1","job":"lean-rebuild","from":"manager","to":"builder-a","owner_words":{"item":34},"owns":["hooks","agents"],"out":["pinr-files"],"need":"none"}"#;
+        let o = r#"{"v":1,"kind":"ORDER","id":"manager-lean-rebuild-1","job":"lean-rebuild","from":"manager","to":"builder-a","owner_words":{"item":34},"owns":["hooks","agents"],"out":["pinr-files"],"action":"hold","need":"none"}"#;
         assert_eq!(validate(o), Ok(()));
         assert!(validate(&o.replace("{\"item\":34}", "\"Lean rebuild\"")).is_err());
         assert!(validate(&o.replace("\"item\":34", "\"decision\":\"D-027\"")).is_ok());
         assert!(validate(&o.replace("\"item\":34", "\"decision\":\"27\"")).is_err());
+    }
+
+    #[test]
+    fn an_order_carries_an_action_from_the_set() {
+        let o = r#"{"v":1,"kind":"ORDER","id":"manager-x-1","job":"x","from":"manager","to":"builder-a","owner_words":{"item":39},"owns":[],"out":[],"action":"ship","need":"order"}"#;
+        for a in ["ship", "hold", "start"] { assert_eq!(validate(&o.replace("ship", a)), Ok(())); }
+        assert!(validate(&o.replace(",\"action\":\"ship\"", "")).is_err());
+        assert!(validate(&o.replace("\"ship\"", "\"go\"")).is_err());
+        assert!(validate(&o.replace("\"ship\"", "\"ship now\"")).is_err());
+        let p = r#"{"v":1,"kind":"PASS","id":"inspector-x-1","job":"x","from":"inspector","to":"builder-a","sha":"d082303","action":"ship","need":"none"}"#;
+        assert!(validate(p).is_err());
     }
 
     #[test]

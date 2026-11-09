@@ -15,6 +15,7 @@ description: How the manager writes orders. Use whenever the manager hands work 
    worker lists unrelated problems instead of fixing them.
 5. **Two builders at once only when their files do not overlap.** Say which files each owns.
 6. **No keys or passwords in an order.**
+7. **Every order record carries `action`:** `start` (do the work, send READY), `hold` (after PASS wait for his go) or `ship` (after PASS ship it). Take it from his words; if he has not said, ask him.
 
 ## Order shape
 Made-up example:

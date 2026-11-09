@@ -149,6 +149,20 @@ cases.append(("GOAL: a set list entry that is not a code is refused", "" if r.re
 goal("set", "--words", "finish muster", "--done", "live", "--list", "a-job")
 cases.append(("GOAL: show prints his words", "" if "finish muster" in goal("show").stdout else "BAD", False))
 cases.append(("GOAL: check says why a job waits", "" if goal("check", "other").returncode == 1 and "set list" in goal("check", "other").stdout else "BAD", False))
+# helpers (item 36): a subagent is a side job; it never stands in for a worker, ships, pushes or messages
+def helper(t, **inp):
+    return run("PreToolUse", tool_name="Agent", tool_input=inp, transcript_path=t)
+cases += [
+    ("HELPERS: a plain side job goes through", helper(b, prompt="Find where usage.py is read and report the file names."), False),
+    ("HELPERS: a builder starting a builder helper is refused", helper(b, subagent_type="muster:builder", prompt="Build it."), True),
+    ("HELPERS: a builder starting an inspector helper is refused", helper(b, subagent_type="inspector", prompt="Check it."), True),
+    ("HELPERS: the manager's fresh checker (inspector definition) goes through", helper(m, subagent_type="muster:inspector", prompt="Check this READY."), False),
+    ("HELPERS: the manager starting a builder helper is refused", helper(m, subagent_type="builder", prompt="Build it."), True),
+    ("HELPERS: a brief that asks it to ship is refused", helper(b, prompt="Then run bash scripts/ship.sh \"note\" to ship it."), True),
+    ("HELPERS: a brief that asks it to push is refused", helper(b, prompt="Commit and git push the branch."), True),
+    ("HELPERS: a brief that forbids shipping goes through", helper(b, prompt="Search the hooks folder. Never run git push or ship.sh."), False),
+    ("HELPERS: the owner's own chat is silent", helper(owner, subagent_type="builder", prompt="x"), False),
+]
 bad = 0
 for name, out, should_block in cases:
     ok = bool(out) == should_block

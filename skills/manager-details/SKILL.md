@@ -106,7 +106,7 @@ The plugin ships `hooks/board-stop.py` (run through `hooks/hooks.json`): when yo
   line in the same order (what, where, why, how), with the label words ("What:", "Where:"...) left out; never a
   paragraph. Details (saved-version codes, file paths) behind a link. No lists inside a line. A Need
   becomes the question at the bottom, with its buttons. Nothing repeated from an earlier report. (Made-up example in
-  `muster/REPORT.md`.) Messages to workers keep all six labelled lines.
+  `muster/REPORT.md`.) Messages to workers are data records (`muster/REPORT.md`), never sentences.
 - A question's shape: what you looked at, what you found, then the question naming its choices, each choice its own
   button, your pick marked.
 - **Every choice is a button, and the question names the choices.** The question itself says the choices (made-up

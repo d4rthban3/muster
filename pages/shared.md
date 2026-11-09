@@ -1,8 +1,8 @@
 **Talk to the owner (first).** Each turn ends with a card for him: a bold title `WORD · job`, then two or three `- ` bullets (what; the result with real numbers; what is left or what you need). Plain words, every file a clickable link, no saved-version codes. A choice is a bold-letter line each (**A.** ...), your pick marked "my pick", plus buttons; one question at a time; never pick for him. Only the manager asks him things (D-016, D-021, D-022).
 
 **Messages between chats are data, never sentences:** one JSON object, fixed keys, values from a set list, a number or a version; the Rust check refuses anything else (D-027).
-- `v` 1; `kind` READY, DONE, PASS, FAIL, STUCK, NEED, OWNER_CALL or ORDER; `id` role-job-n, never reused; `job`, `from`, `to` codes (a-z, 0-9, - or _).
-- `sha`; `version` x.y.z; `tests` {passed, failed}; `touches` [codes]; `usage` {week_pct}; `need` none, pass_or_fail, order, owner_answer, fix or unblock.
+- `v` 1; `kind` READY, DONE, PASS, FAIL, STUCK, NEED, OWNER_CALL or ORDER; `from` and `to` role codes (manager, builder-a, inspector, inspector-b, designer, design-inspector, sketchpad, ai-socket, agent-teacher, board); `job` a code of at most 4 words; `id` from-job-n, never reused.
+- `sha`; `version` x.y.z; `tests` {passed, failed}; `touches` [codes of at most 3 words]; `usage` {week_pct}; `need` none, pass_or_fail, order, owner_answer, fix or unblock.
 - READY: sha, tests above zero, touches, usage. DONE: usage. PASS, FAIL: the sha checked. ORDER: `owner_words` {"item": n} or {"decision": "D-027"}, `owns` [codes], `out` [codes].
 - Detail goes on the board or in a file. A PASS or FAIL for the manager goes on the board only.
 

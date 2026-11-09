@@ -236,7 +236,7 @@ jl "You are Manager_${AC}_001" > "$ACD/mgr.txt"; jl "You are Builder A_${AC}_001
 ac_stop() { printf '{"hook_event_name":"Stop","cwd":"%s","last_assistant_message":"All done, nice.","transcript_path":"%s"}' "$(native "$ACD")" "$(native "$ACD")/$1" | $PY "$ROOT/hooks/rules-check.py"; }
 ac_stop mgr.txt | grep -q '"decision": "block"' || fail "the accented manager was not held to the manager's reply rule"
 ac_stop bld.txt | grep -q '"decision": "block"' || fail "the accented builder's non-card reply was not caught"
-REP='{\"v\":1,\"kind\":\"PASS\",\"id\":\"inspector-creme-1\",\"job\":\"creme-brulee\",\"from\":\"inspector\",\"to\":\"builder-a\",\"sha\":\"abcdef1\",\"need\":\"none\"}'
+REP='{\"v\":1,\"kind\":\"PASS\",\"id\":\"inspector-creme-brulee-1\",\"job\":\"creme-brulee\",\"from\":\"inspector\",\"to\":\"builder-a\",\"sha\":\"abcdef1\",\"need\":\"none\"}'
 printf '{"hook_event_name":"PreToolUse","cwd":"%s","tool_name":"SendMessage","tool_input":{"to":"x","message":"%s"},"transcript_path":"%s"}' "$(native "$ACD")" "$REP" "$(native "$ACD")/bld.txt" | $PY "$ROOT/hooks/rules-check.py" | grep -q deny && fail "an accented project's correct record was refused"
 cp "$ACD/mgr.txt" "$ACD/mgr2.txt"
 (cd "$AM" && printf '{"cwd":"%s","last_assistant_message":"Fine.","transcript_path":"%s"}' "$(native "$AM")" "$(native "$ACD")/mgr2.txt" | $PY "$ROOT/hooks/board-stop.py") | grep -q "Builder A_P.*tisserie_001 (NEED)" || fail "board-stop did not recognise the accented manager"

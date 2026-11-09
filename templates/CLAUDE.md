@@ -1,6 +1,6 @@
 # Muster: rules for every chat in this project
 
-Every chat in this project loads this file. The owner is the person this crew works for. Where a file and the
+Every worker loads its own one page (`agents/<role>.md`, which holds the talk-to-you block, the message record and the always-rules); this file is the full reference for the manager and anyone who needs the detail. The owner is the person this crew works for. Where a file and the
 owner disagree, the owner wins.
 
 ## Usage first
@@ -65,35 +65,17 @@ Re-applied for you: a hook puts this block back after every summary and flags, o
   messages for a chat in a stricter permission mode until the owner approves. That is the app's safety limit: never
   try to turn it off.
 
-## 4. The report every worker sends
-Six lines, and a seventh `Usage:` line on every DONE and READY (the output of `scripts/usage.py`; if a part cannot be read it says so, and no number is ever invented). The first word is one of DONE, READY, PASS, FAIL, STUCK, NEED (the inspector may also send OWNER CALL: a thing only the
-owner can decide, which the manager turns into a question). Each report ends its first line with a short ID, `[ID <role>-<job>-<number>]`; a message whose ID you have seen is a repeat and is dropped. The job name is copied word for word from
-the manager's order. Full shape and a made-up example: `muster/REPORT.md`.
-```
-<FIRST WORD>: <job name> [ID <role>-<job>-<number>]
-What:  <what was done>
-Where: <where it is>; touches: <none, or the shared thing it touches>
-Why:   <the reason>
-How:   <what was checked, with real numbers, or "not checked">
-Need:  <what is left, and what the reader must do>
-```
-Each line one short sentence, no lists inside a line. No "received", no "thanks", no keys or passwords. In your own
-window, post a short card for the owner to read there (made-up example: title "READY · crew switch", then "- moved the switch to the top bar", "- 12 of 12 checks pass; the inspector has it"); the full six-line report still goes by message.
-The manager does not relay these updates: each worker's own chat is where the owner reads its progress.
-**Messages paused?** Write your report on the board yourself (never in a notes file), addressed to its reader, with the
-line `Paused: yes` under its Status line. If you have PushNotification, also send the owner one naming your chat and
-saying "type anything there to unblock it". Say only "Messages paused; my report is on the board. Type anything here
-to unblock me." in your window. When you can act again (the owner typed in your chat), your very first act is to close your own paused entries: `Status: done` and a `Paused: no` line (a chat counts as paused only while its last board entry says `Paused: yes`; the board check ignores older paused lines). If the board refuses your write, leave a one-line file `.muster-paused` in your own folder instead, and delete it on resume. Nothing can wake a paused chat except the owner typing in it, so the board and the
-notification are how he finds out. The manager, before it ends any turn, runs the board check and asks the owner the
-top open NEED, STUCK or OWNER CALL (and every `Paused: yes` chat) as a choice card; it never ends a turn with an owner
-question sitting on the board unasked.
-**Only links for people.** Nothing a person reads carries saved-version codes or bare file paths; only links.
-
-**Every file named is a link.** In every reply and report a person reads, write each file you name as a clickable
-link, for example [muster/OWNERS-LIST.md](muster/OWNERS-LIST.md), never as bare text or a code span. A file outside
-your own folders may not open from the link in the app; still link it and say where it is.
-Each worker shows its own reports to the owner as a card in its own window (see `muster/REPORT.md`); the manager does not: it tells the owner only a question, a yes he must give, "<worker> is waiting for you: type in <chat>", or "the crew is idle". Messages
-between chats always keep all six labelled lines. Every example in this crew's files is marked "made-up example".
+## 4. The message every worker sends
+Between chats a message is a data record, never a sentence: one JSON object with fixed keys, each value a number, a version, a hash,
+a code from a set list or a list of codes (`muster/REPORT.md` has the keys and a made-up example). The program `muster-checks`
+refuses anything else. Detail goes on the board or in a file; a PASS or FAIL for the manager goes on the board only.
+In their own window workers post a short card for the owner: a bold title "WORD · job", then two or three bullets in plain words,
+every file a clickable link, no saved-version codes. The manager does not relay these cards.
+**Messages paused?** Write your report on the board yourself, addressed to its reader, with the line `Paused: yes` under its Status
+line, and tell the owner in one line to type in your chat. When you can act again, your first act is to close it (`Status: done`,
+`Paused: no`). If the board refuses your write, leave a one-line file `.muster-paused` in your own folder and delete it on resume.
+Nothing can wake a paused chat except the owner typing in it. The manager, before it ends any turn, runs the board check and asks the
+owner the top open NEED, STUCK or OWNER CALL (and every `Paused: yes` chat) as a choice card.
 
 ## 5. When you are not sure, ask; never guess
 - Not sure what an order means? Send one NEED report to the manager. Do not guess.

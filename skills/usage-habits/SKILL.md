@@ -26,7 +26,7 @@ for again each turn. These habits cut that cost; they never change what must be 
    isn't needed.
 4. **Batch independent calls** in one turn. Never batch a save, push or message with the check that decides whether
    it should happen.
-5. **Message only when someone must act**, one bundled note per worker, in the six-line report; no "received"/"thanks"; never cut a finding.
+5. **Message only when someone must act**, one bundled note per worker, as a data record; no "received"/"thanks"; never cut a finding.
 6. **Don't spawn helpers, change your own model/effort, or open extra sessions** to save effort; that's the manager's
    and owner's call.
 7. **Renew after the app's first summary**: at the next natural break if a job is in progress write `muster/handovers/<your name>.md` (what is

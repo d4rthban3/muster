@@ -27,6 +27,8 @@ jobs:
             echo "CHECK RAN: the JSON and field check (claude could not be installed here)"
             python3 scripts/check-json.py
           fi
+      - name: Each worker's one page is current and short (build-pages.py)
+        run: python3 scripts/build-pages.py --check
       - name: Test files are listed (check-tests.py)
         run: python3 scripts/check-tests.py .
   setup:
@@ -69,6 +71,7 @@ jobs:
           - {os: macos-latest, name: macos-arm64, target: aarch64-apple-darwin, exe: muster-checks}
           - {os: macos-latest, name: macos-x86_64, target: x86_64-apple-darwin, exe: muster-checks}
           - {os: ubuntu-latest, name: linux-x86_64, target: x86_64-unknown-linux-gnu, exe: muster-checks}
+          - {os: ubuntu-24.04-arm, name: linux-arm64, target: aarch64-unknown-linux-gnu, exe: muster-checks}
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -93,6 +96,7 @@ jobs:
           - {os: windows-latest, dir: windows-x86_64, exe: muster-checks.exe}
           - {os: macos-latest, dir: macos-arm64, exe: muster-checks}
           - {os: ubuntu-latest, dir: linux-x86_64, exe: muster-checks}
+          - {os: ubuntu-24.04-arm, dir: linux-arm64, exe: muster-checks}
     runs-on: ${{ matrix.os }}
     defaults:
       run:

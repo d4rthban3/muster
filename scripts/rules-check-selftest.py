@@ -10,7 +10,7 @@ import tempfile
 HERE = os.path.dirname(os.path.abspath(__file__))
 HOOK = os.path.join(HERE, "..", "hooks", "rules-check.py")
 BIN = os.environ.get("MUSTER_CHECKS_BIN")  # run the same cases against the ready-built Rust copy
-RUN_ENV = dict(os.environ, MUSTER_MESSAGE_FORM="text") if BIN else dict(os.environ)  # these cases are the older text shapes
+RUN_ENV = dict(os.environ, MUSTER_MESSAGE_FORM="text")  # these cases are the older text shapes
 T = tempfile.mkdtemp()
 
 
@@ -96,6 +96,24 @@ cases = [
     ("a stop already continued is let through", run("Stop", last_assistant_message="Done.", stop_hook_active=True, transcript_path=b), False),
     ("the owner's own chat is silent at stop", run("Stop", last_assistant_message="Done.", transcript_path=owner), False),
 ]
+# the message form of the lean rebuild (records): the same cases for the Python copy and the Rust copy, key checks in Rust only
+REC = '{"v":1,"kind":"PASS","id":"inspector-x-1","job":"x","from":"inspector","to":"builder-a","sha":"abcdef1","need":"none"}'
+def send_rec(msg, to="x"):
+    env = dict(os.environ); env.pop("MUSTER_MESSAGE_FORM", None)
+    r = subprocess.run([BIN, "rules"] if BIN else [sys.executable, HOOK], input=json.dumps(dict(hook_event_name="PreToolUse", cwd=T, tool_name="SendMessage", tool_input={"to": to, "message": msg}, transcript_path=b)), capture_output=True, text=True, env=env)
+    return r.stdout.strip()
+cases += [
+    ("RECORDS: a data record goes through", send_rec(REC), False),
+    ("RECORDS: a sentence is refused", send_rec("Please check my branch when you can."), True),
+    ("RECORDS: the older six-line report is refused", send_rec(good), True),
+    ("RECORDS: 'noted' is refused", send_rec("noted"), True),
+]
+if BIN:
+    cases += [
+        ("RECORDS: a sentence inside a field is refused", send_rec(REC.replace('"x"', '"please look"', 1)), True),
+        ("RECORDS: an unknown key is refused", send_rec(REC.replace('"v":1,', '"v":1,"note":"hi",')), True),
+        ("RECORDS: a PASS copy for the manager as a message is refused", send_rec(REC, "Manager_Muster_003"), True),
+    ]
 bad = 0
 for name, out, should_block in cases:
     ok = bool(out) == should_block

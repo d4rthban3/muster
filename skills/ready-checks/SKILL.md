@@ -15,19 +15,16 @@ builder could have found.
 2. **Search the whole project for the thing you just changed.** If you fixed a mistake in one place, search for every
    other place with the same shape (the same name, setting, query or wording) and fix or list each one.
 
-## The READY report (six lines, see `muster/REPORT.md`)
+## The READY record (see `muster/REPORT.md`)
 ```
-READY: <job name, word for word from the order>
-What:  <what was done>
-Where: <line of work and saved version>; touches: <none, or the shared database, file store or outside connection, by name>
-Why:   <the order or decision it comes from>
-How:   test command `<the exact command>`: <passed>/<total> passed, <failed> failed on the combined work; searched for <thing>: <n> other places, <fixed / listed>
-Need:  <what is left out, or "nothing; ready for the inspector">
-Usage: <the line scripts/usage.py prints>
+{"v":1,"kind":"READY","id":"builder-a-card-fix-1","job":"card-fix","from":"builder-a","to":"inspector","sha":"<saved version>","version":null,"tests":{"passed":12,"failed":0},"touches":["<shared thing, or empty>"],"need":"pass_or_fail","usage":{"week_pct":41}}
 ```
-If you add a test file, name it on the Where line: the manager adds it to `muster/CHECKS.md`, and `scripts/check-tests.py`
+`tests` is the combined work's count from the exact test command; the search for what you changed and what it found go on the board
+entry for the job (data in the record, detail on the board). A READY with no sha, no test count above zero, no `touches` or no `usage`
+is refused by the check.
+If you add a test file, name it on the board entry: the manager adds it to `muster/CHECKS.md`, and `scripts/check-tests.py`
 (run in the free test) fails when a test file on disk is missing from that list.
-Send it to the inspector. The designer also names its screenshots on the Where line: for a small visible change one dark and one light picture at one size. The inspector re-runs only the changed tests plus one full run on the merged work, so say which tests changed.
+Send it to the inspector. The designer also names its screenshots on the board entry: for a small visible change one dark and one light picture at one size. The inspector re-runs only the changed tests plus one full run on the merged work, so say which tests changed.
 
 ## Inspector side
 FAIL a READY that lacks the line of work, the saved version, the "touches" part, or the two checks. A FAIL is a

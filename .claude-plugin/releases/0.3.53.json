@@ -1,0 +1,37 @@
+{
+  "version": "0.3.53",
+  "changed_files": [
+    "agents/agent-teacher.md",
+    "agents/ai-socket.md",
+    "agents/builder.md",
+    "agents/design-inspector.md",
+    "agents/designer.md",
+    "agents/inspector.md",
+    "agents/manager.md",
+    "agents/sketchpad.md",
+    "bin/SOURCE-STAMP",
+    "bin/linux-arm64/muster-checks",
+    "bin/linux-x86_64/muster-checks",
+    "bin/macos-arm64/muster-checks",
+    "bin/macos-x86_64/muster-checks",
+    "bin/windows-x86_64/muster-checks.exe",
+    "checks/src/record.rs",
+    "hooks/rules-check.py",
+    "pages/manager.md",
+    "pages/shared.md",
+    "scripts/rules-check-selftest.py",
+    "skills/one-order-per-piece/SKILL.md",
+    "templates/REPORT.md"
+  ],
+  "affected_roles": [
+    "manager",
+    "builder",
+    "designer",
+    "inspector"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Order action field"
+}

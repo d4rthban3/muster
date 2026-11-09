@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.53
+Affects: manager, builder, designer, inspector.
+Order action field
+
 ## 0.3.52
 Affects: manager, builder, designer, inspector.
 Helpers in each chat

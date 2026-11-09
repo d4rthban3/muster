@@ -2,6 +2,7 @@
 //! It is one JSON object with fixed keys; every value is a number, a version, a short code from a set list, or a list of codes.
 //! A value that holds a space, or any key that is not listed, is refused: there is no room for English in a record.
 use serde_json::{Map, Value};
+use std::collections::HashSet;
 
 const KINDS: [&str; 8] = ["READY", "DONE", "PASS", "FAIL", "STUCK", "NEED", "OWNER_CALL", "ORDER"];
 const NEEDS: [&str; 6] = ["none", "pass_or_fail", "order", "owner_answer", "fix", "unblock"];
@@ -27,10 +28,27 @@ fn short_code(v: &Value, what: &str, max: usize, words: usize) -> Result<String,
     Ok(c)
 }
 
-fn list_of_codes(v: &Value, what: &str) -> Result<(), String> {
+/// Things a record may name besides the project's own top-level folders and files.
+pub const FIXED_THINGS: [&str; 7] = ["database", "file-store", "outside-connection", "board", "owners-list", "crew-files", "site"];
+
+/// A top-level folder or file name as a code: lowercase, every run of other characters becomes one dash ("CHANGELOG.md" -> "changelog-md").
+pub fn thing_code(name: &str) -> String {
+    let mut o = String::new();
+    for c in name.chars() {
+        if c.is_alphanumeric() && c.is_ascii() { o.push(c.to_ascii_lowercase()); } else if !o.ends_with('-') { o.push('-'); }
+    }
+    o.trim_matches('-').to_string()
+}
+
+fn list_of_codes(v: &Value, what: &str, things: &HashSet<String>) -> Result<(), String> {
     let a = v.as_array().ok_or_else(|| format!("{what} must be a list of codes"))?;
-    if a.len() > 12 { return Err(format!("{what} holds more than 12 codes")); }
-    for x in a { short_code(x, what, 24, 3)?; }
+    if a.len() > 12 { return Err(format!("{what} holds more than 12 entries")); }
+    for x in a {
+        let c = short_code(x, what, 24, 3)?;
+        if !things.contains(&c) && !FIXED_THINGS.contains(&c.as_str()) {
+            return Err(format!("{what} entry '{c}' is not a top-level folder or file of the project, or one of {}", FIXED_THINGS.join(", ")));
+        }
+    }
     Ok(())
 }
 
@@ -63,7 +81,8 @@ fn opt<'a>(m: &'a Map<String, Value>, k: &str) -> Option<&'a Value> {
 }
 
 /// Ok(()) when the text is one valid record; Err(why) otherwise.
-pub fn validate(text: &str) -> Result<(), String> {
+/// `things`: the project's top-level folder and file names as codes (see thing_code); touches, owns and out may name only these or FIXED_THINGS.
+pub fn validate(text: &str, things: &HashSet<String>) -> Result<(), String> {
     let v: Value = serde_json::from_str(text.trim()).map_err(|_| "not a record: it must be one JSON object (data, not a sentence)".to_string())?;
     let m = v.as_object().ok_or("not a record: it must be one JSON object")?;
     for k in m.keys() {
@@ -89,7 +108,7 @@ pub fn validate(text: &str) -> Result<(), String> {
         num(o.get("passed").ok_or("tests.passed is missing")?, "tests.passed", 1_000_000)?;
         num(o.get("failed").ok_or("tests.failed is missing")?, "tests.failed", 1_000_000)?;
     }
-    if let Some(x) = m.get("touches") { list_of_codes(x, "touches")?; }
+    if let Some(x) = m.get("touches") { list_of_codes(x, "touches", things)?; }
     if let Some(u) = opt(m, "usage") {
         let o = u.as_object().ok_or("usage must be {\"week_pct\":n}")?;
         if o.len() != 1 { return Err("usage must hold exactly week_pct".into()); }
@@ -117,8 +136,8 @@ pub fn validate(text: &str) -> Result<(), String> {
                 }
                 _ => return Err("owner_words must be item or decision".into()),
             }
-            list_of_codes(m.get("owns").ok_or("an ORDER needs owns")?, "owns")?;
-            list_of_codes(m.get("out").ok_or("an ORDER needs out")?, "out")?;
+            list_of_codes(m.get("owns").ok_or("an ORDER needs owns")?, "owns", things)?;
+            list_of_codes(m.get("out").ok_or("an ORDER needs out")?, "out", things)?;
             let dw = m.get("need").and_then(Value::as_str).unwrap_or("");
             let _ = (dw, DONE_WHEN);
         }
@@ -129,7 +148,11 @@ pub fn validate(text: &str) -> Result<(), String> {
 
 #[cfg(test)]
 mod tests {
-    use super::validate;
+    use super::{thing_code, validate as v};
+    use std::collections::HashSet;
+
+    fn things() -> HashSet<String> { ["hooks", "scripts", "agents", "pinr-files", "changelog-md"].iter().map(|x| x.to_string()).collect() }
+    fn validate(t: &str) -> Result<(), String> { v(t, &things()) }
 
     const READY: &str = r#"{"v":1,"kind":"READY","id":"builder-a-lean-rebuild-1","job":"lean-rebuild","from":"builder-a","to":"inspector","sha":"d082303","version":"0.3.49","tests":{"passed":48,"failed":0},"touches":["hooks"],"need":"pass_or_fail","usage":{"week_pct":null}}"#;
 
@@ -159,6 +182,21 @@ mod tests {
         }
         assert!(validate(&READY.replace("\"from\":\"builder-a\"", "\"from\":\"the-builder-who-is-tired\"")).is_err());
         assert!(validate(&READY.replace("\"to\":\"inspector\"", "\"to\":\"somebody\"")).unwrap_err().contains("role code"));
+    }
+
+    #[test]
+    fn a_sentence_one_word_per_entry_is_refused() {
+        let bad = READY.replace("[\"hooks\"]", "[\"path\",\"uses\",\"backslashes\",\"on\",\"windows\"]");
+        assert!(validate(&bad).unwrap_err().contains("not a top-level folder"));
+        assert!(validate(&READY.replace("[\"hooks\"]", "[\"hooks\",\"scripts\",\"database\"]")).is_ok());
+        assert!(validate(&READY.replace("[\"hooks\"]", "[]")).is_ok());
+    }
+
+    #[test]
+    fn a_folder_or_file_name_becomes_a_code() {
+        assert_eq!(thing_code("CHANGELOG.md"), "changelog-md");
+        assert_eq!(thing_code("Claude Code"), "claude-code");
+        assert_eq!(thing_code(".github"), "github");
     }
 
     #[test]

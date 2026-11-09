@@ -15,7 +15,7 @@ fn main() {
         Some("record") => {
             let mut text = String::new();
             if std::io::stdin().read_to_string(&mut text).is_err() { eprintln!("could not read the record"); std::process::exit(2); }
-            match record::validate(&text) {
+            match record::validate(&text, &common::project_things("", "")) {
                 Ok(()) => println!("OK"),
                 Err(why) => { println!("BAD: {why}"); std::process::exit(1); }
             }

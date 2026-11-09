@@ -98,9 +98,9 @@ cases = [
 ]
 # the message form of the lean rebuild (records): the same cases for the Python copy and the Rust copy, key checks in Rust only
 REC = '{"v":1,"kind":"PASS","id":"inspector-x-1","job":"x","from":"inspector","to":"builder-a","sha":"abcdef1","need":"none"}'
-def send_rec(msg, to="x"):
+def send_rec(msg, to="x", cwd=T):
     env = dict(os.environ); env.pop("MUSTER_MESSAGE_FORM", None)
-    r = subprocess.run([BIN, "rules"] if BIN else [sys.executable, HOOK], input=json.dumps(dict(hook_event_name="PreToolUse", cwd=T, tool_name="SendMessage", tool_input={"to": to, "message": msg}, transcript_path=b)), capture_output=True, text=True, env=env)
+    r = subprocess.run([BIN, "rules"] if BIN else [sys.executable, HOOK], input=json.dumps(dict(hook_event_name="PreToolUse", cwd=cwd, tool_name="SendMessage", tool_input={"to": to, "message": msg}, transcript_path=b)), capture_output=True, text=True, env=env)
     return r.stdout.strip()
 cases += [
     ("RECORDS: a data record goes through", send_rec(REC), False),
@@ -108,10 +108,14 @@ cases += [
     ("RECORDS: the older six-line report is refused", send_rec(good), True),
     ("RECORDS: 'noted' is refused", send_rec("noted"), True),
 ]
+RDY = '{"v":1,"kind":"READY","id":"builder-a-x-1","job":"x","from":"builder-a","to":"inspector","sha":"abcdef1","tests":{"passed":3,"failed":0},"touches":["hooks"],"need":"pass_or_fail","usage":{"week_pct":null}}'
 if BIN:
     cases += [
         ("RECORDS: a sentence inside a field is refused", send_rec(REC.replace('"x"', '"please look"', 1)), True),
         ("RECORDS: an unknown key is refused", send_rec(REC.replace('"v":1,', '"v":1,"note":"hi",')), True),
+        ("RECORDS: touches naming a real top-level folder goes through", send_rec(RDY, cwd=os.path.join(HERE, "..")), False),
+        ("RECORDS: touches that spell a sentence one word per entry are refused", send_rec(RDY.replace('["hooks"]', '["path","uses","backslashes","on","windows"]'), cwd=os.path.join(HERE, "..")), True),
+        ("RECORDS: touches naming nothing in the project are refused", send_rec(RDY.replace('["hooks"]', '["nothing-here"]'), cwd=os.path.join(HERE, "..")), True),
         ("RECORDS: a PASS copy for the manager as a message is refused", send_rec(REC, "Manager_Muster_003"), True),
     ]
 bad = 0

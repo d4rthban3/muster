@@ -15,11 +15,11 @@ misread one.
 | `sha` | the saved version, 7 to 40 lowercase hex characters, or null |
 | `version` | `x.y.z`, or null |
 | `tests` | `{"passed": n, "failed": n}`, or null |
-| `touches` | list of codes (at most 3 words, 24 characters each): the shared things the change touches (empty if none) |
+| `touches` | list of the shared things the change touches (empty if none): each a top-level folder or file of the project at that sha (lowercase, dots and spaces as `-`, e.g. `hooks`, `changelog-md`) or one of database, file-store, outside-connection, board, owners-list, crew-files, site |
 | `usage` | `{"week_pct": n}` from `scripts/usage.py`, `null` inside it when it cannot be read; never an invented number |
 | `need` | none, pass_or_fail, order, owner_answer, fix or unblock |
 | `owner_words` | ORDER only: `{"item": n}` (his list) or `{"decision": "D-027"}`; his words are read there, not retyped |
-| `owns`, `out` | ORDER only: lists of codes |
+| `owns`, `out` | ORDER only: lists of the same kind of things as `touches` |
 
 Required by kind: **READY** has sha, tests above zero, touches and usage. **DONE** has usage. **PASS** and **FAIL** name the sha they
 checked. **ORDER** has owner_words, owns and out. Any other key, or any value with a space in it, is refused.

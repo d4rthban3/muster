@@ -158,3 +158,15 @@ pub fn owner_asked(path: &str) -> bool {
 
 pub fn exists(p: &Path) -> bool { p.exists() }
 pub fn read_all<R: Read>(mut r: R) -> String { let mut t = String::new(); let _ = r.read_to_string(&mut t); t }
+
+/// The project's top-level folder and file names as codes, from git at `rev` (or HEAD) in `dir`; empty when git cannot say.
+pub fn project_things(dir: &str, rev: &str) -> HashSet<String> {
+    let run = |r: &str| {
+        let mut c = std::process::Command::new("git");
+        c.args(["ls-tree", "--name-only", "--full-tree", r]);
+        if !dir.is_empty() { c.current_dir(dir); }
+        c.output().ok().filter(|o| o.status.success()).map(|o| String::from_utf8_lossy(&o.stdout).to_string())
+    };
+    let out = (if rev.is_empty() { None } else { run(rev) }).or_else(|| run("HEAD")).unwrap_or_default();
+    out.lines().map(|l| crate::record::thing_code(l.trim_matches('"'))).filter(|c| !c.is_empty()).collect()
+}

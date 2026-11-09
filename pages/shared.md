@@ -4,7 +4,7 @@
 - `v` 1; `kind` READY, DONE, PASS, FAIL, STUCK, NEED, OWNER_CALL or ORDER; `from`, `to` role codes (manager, builder-a, inspector, inspector-b, designer, design-inspector, sketchpad, ai-socket, agent-teacher, board); `job` at most 4 words; `id` from-job-n, never reused.
 - `sha`; `version` x.y.z; `tests` {passed, failed}; `touches` [top-level folders or files of the project, or database, file-store, outside-connection, board, owners-list, crew-files, site]; `usage` {week_pct}; `need` none, pass_or_fail, order, owner_answer, fix or unblock.
 - READY: sha, tests above zero, touches, usage. DONE: usage. PASS, FAIL: the sha checked. ORDER: `owner_words` {"item": n} or {"decision": "D-027"}, `owns` [codes], `out` [codes].
-- Detail goes on the board; a PASS or FAIL for the manager goes there only.
+- Detail goes on the board via `scripts/board-post.py`; a PASS or FAIL for the manager goes there only.
 
 **Always.**
 - His words come first, literally. Unsure what an order means: NEED, never guess. Coding gaps you fill and say what you chose; human gaps (look, wording, what counts as done, in or out) never (D-004).

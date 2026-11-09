@@ -158,6 +158,24 @@ cases += [
     ("HELPERS: a brief that forbids shipping goes through", helper(b, prompt="Search the hooks folder. Never run git push or ship.sh."), False),
     ("HELPERS: the owner's own chat is silent", helper(owner, subagent_type="builder", prompt="x"), False),
 ]
+# the board-post script: one six-line entry appended, nothing else; a wrong shape or a key-like value is refused
+BP = os.path.join(HERE, "board-post.py")
+BD = os.path.join(T, "boardproj"); os.makedirs(os.path.join(BD, "muster"))
+open(os.path.join(BD, "muster", "BOARD.md"), "w").write("# Board\n")
+def post(**kw):
+    a = dict(**{"from": "Builder A_X_001", "to": "Manager_X_001", "word": "READY", "job": "a job", "what": "w", "where": "p; touches: none", "why": "y", "how": "3 of 3", "need": "n"}); a.update(kw)
+    cmd = [sys.executable, BP, "--folder", BD] + [x for k, v in a.items() for x in ("--" + k, v)]
+    return subprocess.run(cmd, capture_output=True, text=True)
+r = post()
+board = open(os.path.join(BD, "muster", "BOARD.md")).read()
+cases += [
+    ("BOARDPOST: a good entry is appended in the six-line shape", "" if r.returncode == 0 and "READY: a job" in board and "Status: open" in board and "Need:  n" in board else "BAD", False),
+    ("BOARDPOST: a first word outside the six is refused", "" if post(word="HELLO").returncode == 2 else "BAD", False),
+    ("BOARDPOST: a Where line without touches is refused", "" if post(where="p").returncode == 2 else "BAD", False),
+    ("BOARDPOST: a line break inside a field is refused", "" if post(why="a\nb").returncode == 2 else "BAD", False),
+    ("BOARDPOST: a key-like value is refused", "" if post(how="ghp_" + "a" * 20).returncode == 2 else "BAD", False),
+    ("BOARDPOST: a refused entry leaves the board as it was", "" if open(os.path.join(BD, "muster", "BOARD.md")).read().count("###") == 1 else "BAD", False),
+]
 bad = 0
 for name, out, should_block in cases:
     ok = bool(out) == should_block

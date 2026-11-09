@@ -30,7 +30,7 @@ Made-up example (a READY):
 {"v":1,"kind":"READY","id":"builder-a-card-fix-1","job":"card-fix","from":"builder-a","to":"inspector","sha":"d082303","version":"0.3.49","tests":{"passed":12,"failed":0},"touches":["site-header"],"need":"pass_or_fail","usage":{"week_pct":41}}
 ```
 
-Detail never goes in a record: it goes on the board (a PASS or FAIL for the manager goes there only) or in a file. What the owner
+Detail never goes in a record: it goes on the board (a PASS or FAIL for the manager goes there only) or in a file. Post to the board with `python3 scripts/board-post.py --from ... --to ... --word READY --job ... --id ... --what ... --where ... --why ... --how ... --need ...` (add `--paused` when messages are paused): it appends one six-line entry, refuses a wrong shape or a key-like value, and edits nothing else. What the owner
 reads is the card each worker posts in its own window (see the page for your role); that stays in plain words.
 
 Projects whose profile says `"message_form": "text"` (PINR) and the Cursor, Grok Bot and ChatGPT editions, where the program cannot

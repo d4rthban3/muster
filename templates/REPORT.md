@@ -20,9 +20,10 @@ misread one.
 | `need` | none, pass_or_fail, order, owner_answer, fix or unblock |
 | `owner_words` | ORDER only: `{"item": n}` (his list) or `{"decision": "D-027"}`; his words are read there, not retyped |
 | `owns`, `out` | ORDER only: lists of the same kind of things as `touches` |
+| `action` | ORDER only, always: `start` (do the work, send READY), `hold` (after PASS wait for the owner's go) or `ship` (after PASS ship it) |
 
 Required by kind: **READY** has sha, tests above zero, touches and usage. **DONE** has usage. **PASS** and **FAIL** name the sha they
-checked. **ORDER** has owner_words, owns and out. Any other key, or any value with a space in it, is refused.
+checked. **ORDER** has owner_words, owns, out and action. Any other key, or any value with a space in it, is refused.
 
 Made-up example (a READY):
 

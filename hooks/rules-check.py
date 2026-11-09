@@ -379,6 +379,8 @@ def pretool(data, manager):
             if not ok:
                 return deny("a message between chats is a data record (one JSON object with fixed keys), never sentences; see muster/REPORT.md")
             rec = json.loads(msg)
+            if rec.get("kind") == "ORDER" and rec.get("action") not in ("ship", "hold", "start"):
+                return deny("an ORDER needs action: ship, hold or start (what happens after the work)")
             if rec.get("kind") == "ORDER":
                 why = goal_problem(root, str(rec.get("job", "")))
                 if why:

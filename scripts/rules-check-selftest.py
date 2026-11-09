@@ -121,7 +121,7 @@ if BIN:
 # the weekly goal: an ORDER whose job is not on the owner's set list waits; setting it again changes it; no goal enforces nothing
 GOALPY = os.path.join(HERE, "goal.py")
 GD = os.path.join(T, "goalproj"); os.makedirs(GD)
-ORD = '{"v":1,"kind":"ORDER","id":"manager-%s-1","job":"%s","from":"manager","to":"builder-a","owner_words":{"item":35},"owns":[],"out":[],"need":"none"}'
+ORD = '{"v":1,"kind":"ORDER","id":"manager-%s-1","job":"%s","from":"manager","to":"builder-a","owner_words":{"item":35},"owns":[],"out":[],"action":"start","need":"none"}'
 def goal(*a):
     return subprocess.run([sys.executable, GOALPY, *a, "--folder", GD], capture_output=True, text=True)
 def order(job):
@@ -139,6 +139,11 @@ cases += [
 ]
 goal("clear")
 cases.append(("GOAL: with the goal dropped every order goes through again", order("weekly-goal"), False))
+cases += [
+    ("ACTION: an ORDER without an action is refused", send_rec(ORD.replace(',"action":"start"', '') % ("a-job", "a-job"), "builder-a", cwd=GD), True),
+    ("ACTION: an ORDER with an action outside ship, hold, start is refused", send_rec((ORD % ("a-job", "a-job")).replace("start", "go"), "builder-a", cwd=GD), True),
+    ("ACTION: ship, hold and start go through", "" if all(not send_rec((ORD % ("a-job", "a-job")).replace("start", a).replace("a-job-1", "a-job-%d" % i), "builder-a", cwd=GD) for i, a in enumerate(["ship", "hold", "start"], 5)) else "BAD", False),
+]
 r = goal("set", "--words", "x", "--list", "Not A Code")
 cases.append(("GOAL: a set list entry that is not a code is refused", "" if r.returncode == 2 else "BAD", False))
 goal("set", "--words", "finish muster", "--done", "live", "--list", "a-job")

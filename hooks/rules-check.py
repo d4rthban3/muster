@@ -314,6 +314,23 @@ def recipient_is_manager(to, root):
     return False
 
 
+def goal_problem(root, job):
+    """The weekly goal (muster/GOAL.md, set by the manager from the owner's words): an ORDER whose job is not on its set list waits.
+    No goal, or a goal with no set list, enforces nothing; the owner can change it any time (scripts/goal.py set)."""
+    try:
+        text = open(os.path.join(root or ".", "muster", "GOAL.md"), encoding="utf-8").read()
+    except OSError:
+        return None
+    m = re.search(r"^Set list.*?:\s*\n((?:- .*\n?)*)", text, re.M)
+    jobs = [l[2:].strip() for l in (m.group(1).splitlines() if m else []) if l.startswith("- ") and l[2:].strip()]
+    if not jobs or job in jobs:
+        return None
+    w = re.search(r'^Goal \(his words\):\s*"(.*)"\s*$', text, re.M)
+    d = re.search(r"^Done when:\s*(.*)$", text, re.M)
+    return ('the owner\'s goal for the team is "%s" (done when: %s) and the job %s is not on its set list, so it waits. '
+            "He can change the goal any time: ask him, then run scripts/goal.py set" % (w.group(1) if w else "", d.group(1).strip() if d else "not said", job))
+
+
 def usage_at_limit(root):
     for cand in (os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "scripts", "usage.py"),
                  os.path.join(root or ".", ".muster-checks", "usage.py")):
@@ -340,6 +357,11 @@ def pretool(data, manager):
                 ok = False
             if not ok:
                 return deny("a message between chats is a data record (one JSON object with fixed keys), never sentences; see muster/REPORT.md")
+            rec = json.loads(msg)
+            if rec.get("kind") == "ORDER":
+                why = goal_problem(root, str(rec.get("job", "")))
+                if why:
+                    return deny(why)
             return
         if ORDERS_FREE and not re.match(r"^\s*%s\s*:" % FIRST, msg):
             return  # this project has no order shape: only a message that claims to be a report is checked

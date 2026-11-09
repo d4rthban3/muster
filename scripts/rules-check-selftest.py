@@ -118,6 +118,32 @@ if BIN:
         ("RECORDS: touches naming nothing in the project are refused", send_rec(RDY.replace('["hooks"]', '["nothing-here"]'), cwd=os.path.join(HERE, "..")), True),
         ("RECORDS: a PASS copy for the manager as a message is refused", send_rec(REC, "Manager_Muster_003"), True),
     ]
+# the weekly goal: an ORDER whose job is not on the owner's set list waits; setting it again changes it; no goal enforces nothing
+GOALPY = os.path.join(HERE, "goal.py")
+GD = os.path.join(T, "goalproj"); os.makedirs(GD)
+ORD = '{"v":1,"kind":"ORDER","id":"manager-%s-1","job":"%s","from":"manager","to":"builder-a","owner_words":{"item":35},"owns":[],"out":[],"need":"none"}'
+def goal(*a):
+    return subprocess.run([sys.executable, GOALPY, *a, "--folder", GD], capture_output=True, text=True)
+def order(job):
+    return send_rec(ORD % (job, job), "builder-a", cwd=GD)
+cases.append(("GOAL: with no goal set every order goes through", order("weekly-goal"), False))
+goal("set", "--words", "finish muster", "--done", "the crew is live", "--list", "lean-rebuild,weekly-goal", "--parked", "site looks")
+cases += [
+    ("GOAL: an order on the set list goes through", order("weekly-goal"), False),
+    ("GOAL: an order off the set list waits, and the reminder names his goal", "" if "finish muster" not in order("pinr-profile") else order("pinr-profile"), True),
+]
+goal("set", "--words", "ship the profile", "--done", "pinr is checked", "--list", "pinr-profile")
+cases += [
+    ("GOAL: after he changes the goal the new list rules", order("pinr-profile"), False),
+    ("GOAL: ...and the old job now waits", order("weekly-goal"), True),
+]
+goal("clear")
+cases.append(("GOAL: with the goal dropped every order goes through again", order("weekly-goal"), False))
+r = goal("set", "--words", "x", "--list", "Not A Code")
+cases.append(("GOAL: a set list entry that is not a code is refused", "" if r.returncode == 2 else "BAD", False))
+goal("set", "--words", "finish muster", "--done", "live", "--list", "a-job")
+cases.append(("GOAL: show prints his words", "" if "finish muster" in goal("show").stdout else "BAD", False))
+cases.append(("GOAL: check says why a job waits", "" if goal("check", "other").returncode == 1 and "set list" in goal("check", "other").stdout else "BAD", False))
 bad = 0
 for name, out, should_block in cases:
     ok = bool(out) == should_block

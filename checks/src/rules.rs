@@ -125,6 +125,21 @@ fn recipient_is_manager(to: &str, root: &str) -> bool {
     }
     false
 }
+/// The weekly goal (muster/GOAL.md): an ORDER whose job is not on its set list waits. No goal, or no set list, enforces nothing.
+fn goal_problem(root: &str, job: &str) -> Option<String> {
+    let text = std::fs::read_to_string(Path::new(root).join("muster").join("GOAL.md")).ok()?;
+    let mut jobs: Vec<String> = vec![];
+    let mut in_list = false;
+    for l in text.lines() {
+        if l.starts_with("Set list") { in_list = true; continue; }
+        if in_list { if let Some(j) = l.strip_prefix("- ") { if !j.trim().is_empty() { jobs.push(j.trim().to_string()); } } else if !l.trim().is_empty() || !jobs.is_empty() { in_list = false; } }
+    }
+    if jobs.is_empty() || jobs.iter().any(|j| j == job) { return None; }
+    let words = caps(&re(r#"(?m)^Goal \(his words\):\s*"(.*)"\s*$"#), &text).map(|m| m[1].to_string()).unwrap_or_default();
+    let done = caps(&re(r"(?m)^Done when:\s*(.*)$"), &text).map(|m| m[1].trim().to_string()).unwrap_or_else(|| "not said".into());
+    Some(format!("the owner's goal for the team is \"{words}\" (done when: {done}) and the job {job} is not on its set list, so it waits. He can change the goal any time: ask him, then run scripts/goal.py set"))
+}
+
 fn usage_at_limit(root: &str) -> bool {
     let cands = [exe_dir().join("..").join("scripts").join("usage.py"), Path::new(root).join(".muster-checks").join("usage.py")];
     for cand in cands {
@@ -246,6 +261,7 @@ fn send_message(c: &Ctx, data: &Value, inp: &Value, root: &str) {
         if (kind == "PASS" || kind == "FAIL") && (recipient_is_manager(s(inp, "to"), root) || s(&rec, "to").starts_with("manager")) {
             return deny("a PASS or FAIL copy for the manager goes on the board only, not as a message");
         }
+        if kind == "ORDER" { if let Some(why) = goal_problem(root, s(&rec, "job")) { return deny(&why); } }
         if kind == "ORDER" && usage_at_limit(root) { return deny("the week is at 90% or more (scripts/usage.py exits 3): start no new order; finish and park what is running"); }
         return;
     }

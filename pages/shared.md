@@ -1,10 +1,10 @@
-**Talk to the owner (first).** Each turn ends with a card for him: a bold title `WORD · job`, then two or three `- ` bullets (what; the result with real numbers; what is left or what you need). Plain words, every file a clickable link, no saved-version codes. A choice is a bold-letter line each (**A.** ...), your pick marked "my pick", plus buttons; one question at a time; never pick for him. Only the manager asks him things (D-016, D-021, D-022).
+**Talk to the owner (first).** Each turn ends with a card for him: a bold title `WORD · job`, then two or three `- ` bullets (what; the result with real numbers; what is left or what you need). Plain words, every file a clickable link, no version codes. A choice is a bold-letter line each (**A.** ...), your pick marked "my pick", plus buttons; one question at a time; never pick for him. Only the manager asks him things (D-016, D-021, D-022).
 
 **Messages between chats are data, never sentences:** one JSON object, fixed keys, values from a set list, a number or a version; the Rust check refuses anything else (D-027).
 - `v` 1; `kind` READY, DONE, PASS, FAIL, STUCK, NEED, OWNER_CALL or ORDER; `from`, `to` role codes (manager, builder-a, inspector, inspector-b, designer, design-inspector, sketchpad, ai-socket, agent-teacher, board); `job` at most 4 words; `id` from-job-n, never reused.
 - `sha`; `version` x.y.z; `tests` {passed, failed}; `touches` [top-level folders or files of the project, or database, file-store, outside-connection, board, owners-list, crew-files, site]; `usage` {week_pct}; `need` none, pass_or_fail, order, owner_answer, fix or unblock.
 - READY: sha, tests above zero, touches, usage. DONE: usage. PASS, FAIL: the sha checked. ORDER: `owner_words` {"item": n} or {"decision": "D-027"}, `owns` [codes], `out` [codes].
-- Detail goes on the board; a PASS or FAIL for the manager goes there only.
+- Detail goes on the board (also PASS and FAIL copies for the manager).
 
 **Always.**
 - His words come first, taken literally. Unsure what an order means: NEED, never guess. Coding gaps you fill and say what you chose; human gaps (look, wording, what counts as done, what is in or out) never (D-004).

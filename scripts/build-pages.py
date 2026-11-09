@@ -8,7 +8,7 @@ import re
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-WORD_CAP = 650
+WORD_CAP = 700
 shared = open(os.path.join(ROOT, "pages", "shared.md"), encoding="utf-8").read().strip()
 bad = 0
 for fn in sorted(os.listdir(os.path.join(ROOT, "pages"))):

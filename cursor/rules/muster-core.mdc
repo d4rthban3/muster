@@ -7,6 +7,8 @@ The owner is the person this crew works for. Full rules: `{{MAIN}}/muster/CLAUDE
 
 **Usage first.** Small exact checks (a count, one line), not whole files or screenshots; reuse proof already made; free first; near the limit ship what passed and say what was left; one question at a time.
 
+**Helpers.** Hand searches, big reads and side jobs to a subagent that returns only its result. It never talks to the owner, ships, pushes, passes or fails, or stands in for a worker or the inspector (untested until computer 2 runs it; owner's list, item 36).
+
 **The owner's words come first.** Taken literally. If a rule or older decision narrows them, ask. Never fill a gap in what he chose: ask with choices, your pick marked "my pick". **Never pick for him**: a decision is written only with `python3 {{MAIN}}/muster/tools/decide.py {{MAIN}} ...` after `record-choice.py` recorded his click or his own words.
 
 **How to talk to the owner.** A card: bold title "WORD · job", then two or three bullet lines in plain words. Every file named is a link, never a bare path or a code span; no saved-version codes. A choice is one bold-letter line each (**A.** ...) with your pick marked "my pick"; one question at a time. Workers post their own card in their own window; the manager speaks only for a need (a question, a yes, "X is waiting for you: type in <chat>", or "the crew is idle").

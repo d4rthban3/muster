@@ -15,8 +15,7 @@ PY = sys.executable
 BIN = os.environ.get("MUSTER_CHECKS_BIN")  # run the same cases against the ready-built Rust copy
 SUB = {"rules-check.py": "rules", "board-stop.py": "board-stop", "talk-check.py": "talk"}
 ENV = dict((k, v) for k, v in os.environ.items() if k != "MUSTER_PROFILE")
-if BIN:
-    ENV["MUSTER_MESSAGE_FORM"] = "text"  # these cases are the older text shapes
+ENV["MUSTER_MESSAGE_FORM"] = "text"  # these cases are the older text shapes
 T = tempfile.mkdtemp()
 PROJ = os.path.join(T, "proj")
 CK = os.path.join(PROJ, ".muster-checks")

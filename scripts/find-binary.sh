@@ -9,6 +9,7 @@ esac
 case "$(uname -m 2>/dev/null)" in
   arm64|aarch64) arch=arm64 ;; x86_64|amd64|AMD64) arch=x86_64 ;; *) arch=x86_64 ;;
 esac
+[ "$os" = windows ] && arch=x86_64   # Windows on ARM runs the x86_64 program
 exe=muster-checks; [ "$os" = windows ] && exe=muster-checks.exe
 newest="$root"
 parent=$(dirname "$root")

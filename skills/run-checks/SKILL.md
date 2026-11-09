@@ -33,7 +33,7 @@ Nothing else. If a command asks for a key, a password or a network address, stop
 9. Run `git status --porcelain` again; name any files that changed and say whether a suite could have written them.
 
 ## Report (plain)
-- Use the six-line report (`muster/REPORT.md`); the How line says which sets of tests were run and which were not, e.g. "Suite A and B pass (40 of 40). Suite C: not
+- Use the data record (`muster/REPORT.md`); the How line says which sets of tests were run and which were not, e.g. "Suite A and B pass (40 of 40). Suite C: not
   run." Never write "all tests pass" without naming the sets.
 - Then: state tested, suites found, a small table (suite, expected, printed, PASS lines, FAIL lines, exit code,
   result), the first failing test's name and printed reason for any FAIL, unlisted test files.

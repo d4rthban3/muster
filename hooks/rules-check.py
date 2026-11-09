@@ -51,6 +51,9 @@ REPORT_ID = PROFILE.get("report", {}).get("require_id", True)
 REPORT_USAGE = PROFILE.get("report", {}).get("require_usage", True)
 ORDERS_FREE = PROFILE.get("orders") == "free"
 RECORDER = PROFILE.get("record_choice", "record-choice.py")
+# Between chats a message is a data record (muster-checks, the ready-made program, checks every key). This older Python copy only
+# runs where no ready-made program exists; it still refuses plain sentences. "text" keeps the older six-line report.
+TEXT_FORM = (os.environ.get("MUSTER_MESSAGE_FORM") or PROFILE.get("message_form") or "records") == "text"
 FIRST = r"(DONE|READY|PASS|FAIL|OWNER CALL|STUCK|NEED)"
 LINK = re.compile(r"\[[^\]]*\]\([^)]*\)")
 
@@ -330,6 +333,14 @@ def pretool(data, manager):
         msg = str(inp.get("message", ""))
         if SOCIAL.match(msg):
             return deny("no 'noted' or 'thanks' replies; send a message only when someone must act")
+        if not TEXT_FORM:
+            try:
+                ok = isinstance(json.loads(msg), dict)
+            except ValueError:
+                ok = False
+            if not ok:
+                return deny("a message between chats is a data record (one JSON object with fixed keys), never sentences; see muster/REPORT.md")
+            return
         if ORDERS_FREE and not re.match(r"^\s*%s\s*:" % FIRST, msg):
             return  # this project has no order shape: only a message that claims to be a report is checked
         bad_report = report_problem(msg)

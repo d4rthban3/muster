@@ -236,10 +236,35 @@ jl "You are Manager_${AC}_001" > "$ACD/mgr.txt"; jl "You are Builder A_${AC}_001
 ac_stop() { printf '{"hook_event_name":"Stop","cwd":"%s","last_assistant_message":"All done, nice.","transcript_path":"%s"}' "$(native "$ACD")" "$(native "$ACD")/$1" | $PY "$ROOT/hooks/rules-check.py"; }
 ac_stop mgr.txt | grep -q '"decision": "block"' || fail "the accented manager was not held to the manager's reply rule"
 ac_stop bld.txt | grep -q '"decision": "block"' || fail "the accented builder's non-card reply was not caught"
-REP="READY: Crème brûlée page [ID builder-a-1]\nWhat: a\nWhere: b; touches: none\nWhy: c\nHow: 3/3 passed\nNeed: nothing\nUsage: n"
-printf '{"hook_event_name":"PreToolUse","cwd":"%s","tool_name":"SendMessage","tool_input":{"to":"x","message":"%s"},"transcript_path":"%s"}' "$(native "$ACD")" "$REP" "$(native "$ACD")/bld.txt" | $PY "$ROOT/hooks/rules-check.py" | grep -q deny && fail "an accented, correct report was refused"
+REP='{\"v\":1,\"kind\":\"PASS\",\"id\":\"inspector-creme-1\",\"job\":\"creme-brulee\",\"from\":\"inspector\",\"to\":\"builder-a\",\"sha\":\"abcdef1\",\"need\":\"none\"}'
+printf '{"hook_event_name":"PreToolUse","cwd":"%s","tool_name":"SendMessage","tool_input":{"to":"x","message":"%s"},"transcript_path":"%s"}' "$(native "$ACD")" "$REP" "$(native "$ACD")/bld.txt" | $PY "$ROOT/hooks/rules-check.py" | grep -q deny && fail "an accented project's correct record was refused"
 cp "$ACD/mgr.txt" "$ACD/mgr2.txt"
 (cd "$AM" && printf '{"cwd":"%s","last_assistant_message":"Fine.","transcript_path":"%s"}' "$(native "$AM")" "$(native "$ACD")/mgr2.txt" | $PY "$ROOT/hooks/board-stop.py") | grep -q "Builder A_P.*tisserie_001 (NEED)" || fail "board-stop did not recognise the accented manager"
+
+step "a chat started on an older Muster picks up the newest installed check with no restart (scripts/find-binary.sh)"
+FB="$SCRATCH/cache/muster-kit/muster"; mkdir -p "$FB/0.3.40/scripts" "$FB/0.3.40/.claude-plugin" "$FB/0.3.99/.claude-plugin"
+cp "$ROOT/scripts/find-binary.sh" "$FB/0.3.40/scripts/"; : > "$FB/0.3.40/.claude-plugin/plugin.json"; : > "$FB/0.3.99/.claude-plugin/plugin.json"
+case "$(uname -s)" in Darwin) FOS=macos;; Linux) FOS=linux;; *) FOS=windows;; esac
+case "$(uname -m)" in arm64|aarch64) FARCH=arm64;; *) FARCH=x86_64;; esac; [ "$FOS" = windows ] && FARCH=x86_64
+FEXE=muster-checks; [ "$FOS" = windows ] && FEXE=muster-checks.exe
+[ -z "$(sh "$FB/0.3.40/scripts/find-binary.sh" "$FB/0.3.40" 2>/dev/null)" ] || fail "found a check where none is installed"
+mkdir -p "$FB/0.3.99/bin/$FOS-$FARCH"; : > "$FB/0.3.99/bin/$FOS-$FARCH/$FEXE"
+[ "$(sh "$FB/0.3.40/scripts/find-binary.sh" "$FB/0.3.40")" = "$FB/0.3.99/bin/$FOS-$FARCH/$FEXE" ] || fail "an older version did not pick up the newer check: $(sh "$FB/0.3.40/scripts/find-binary.sh" "$FB/0.3.40")"
+mkdir -p "$FB/0.3.100/.claude-plugin" "$FB/0.3.100/bin/$FOS-$FARCH"; : > "$FB/0.3.100/.claude-plugin/plugin.json"; : > "$FB/0.3.100/bin/$FOS-$FARCH/$FEXE"
+[ "$(sh "$FB/0.3.40/scripts/find-binary.sh" "$FB/0.3.40")" = "$FB/0.3.100/bin/$FOS-$FARCH/$FEXE" ] || fail "0.3.100 was not seen as newer than 0.3.99"
+echo "an older chat now runs the 0.3.100 check"
+
+step "the hook wrapper runs the ready-made program for this system (hooks/rules-check.sh -> bin/)"
+WT="$SCRATCH/wrapper"; mkdir -p "$WT"
+$PY -c 'import json,sys;print(json.dumps({"type":"user","message":{"content":"You are Builder A_Shop_001, agents/builder.md"}}))' > "$WT/t.jsonl"
+WRAP_OUT=$(cd "$FOLDER" && printf '{"hook_event_name":"Stop","cwd":"%s","last_assistant_message":"Done.","transcript_path":"%s"}' "$(native "$FOLDER")" "$(native "$WT")/t.jsonl" | sh "$ROOT/hooks/rules-check.sh")
+echo "$WRAP_OUT" | grep -q '"decision": "block"' || fail "the wrapper did not enforce the card rule: $WRAP_OUT"
+BIN_USED=$(sh "$ROOT/scripts/find-binary.sh" "$ROOT" 2>/dev/null || true)
+echo "program used: ${BIN_USED:-none for this system (the Python copy ran)}"
+if [ -n "$BIN_USED" ]; then
+  REC_OUT=$(cd "$FOLDER" && printf '{"hook_event_name":"PreToolUse","cwd":"%s","tool_name":"SendMessage","tool_input":{"to":"x","message":"hello there, please look"},"transcript_path":"%s"}' "$(native "$FOLDER")" "$(native "$WT")/t.jsonl" | sh "$ROOT/hooks/rules-check.sh")
+  echo "$REC_OUT" | grep -q 'data record' || fail "the ready-made program let a sentence between chats through: $REC_OUT"
+fi
 
 step "scaling: inspector count, copy names, small or big, and the board archiving itself"
 CP="$ROOT/scripts/crew-plan.py"

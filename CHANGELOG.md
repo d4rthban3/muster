@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.50
+Affects: Manager, Builder, Designer, Inspector.
+lean rebuild: checks in Rust with ready-made programs for five systems, one page per worker, messages between chats as data records with set lists only
+
 ## 0.3.49
 Affects: Manager, Builder, Designer, Inspector.
 accented project names (D-011): manager names with accents are read, hooks read UTF-8 input, printing never fails on a console encoding, and the free test covers Pâtisserie

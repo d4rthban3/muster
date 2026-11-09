@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.49
+Affects: Manager, Builder, Designer, Inspector.
+accented project names (D-011): manager names with accents are read, hooks read UTF-8 input, printing never fails on a console encoding, and the free test covers Pâtisserie
+
 ## 0.3.48
 Affects: Manager, Builder, Designer, Inspector.
 manager test: a chat is the manager only by its own name (Job, You are, I am), so workers that mention the manager are no longer held to the manager's reply rule

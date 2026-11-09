@@ -16,10 +16,16 @@ import re
 import subprocess
 import sys
 
+for _s in (sys.stdout, sys.stderr):  # print on any computer, whatever its console encoding
+    try:
+        _s.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 
 def main():
     try:
-        data = json.load(sys.stdin)
+        data = json.loads(sys.stdin.buffer.read().decode("utf-8", "replace"))
     except Exception:
         print("{}")
         return 0

@@ -25,7 +25,7 @@ import sys
 
 ROLE = (r"(?:Manager|Builder [A-Za-z]|Designer|Design Inspector|Inspector|Sketchpad|AI Socket|Agent Teacher)")
 CREW_RE = re.compile(r"agents[/\\](?:manager|builder|designer|inspector|design-inspector|sketchpad|ai-socket|agent-teacher)\.md|\b%s_[^\s_][^_\n]*_\d{3}\b" % ROLE)
-MANAGER_RE = re.compile(r"agents[/\\]manager\.md|\bManager_[A-Za-z0-9 ]*_\d{3}\b")
+MANAGER_RE = re.compile(r"agents[/\\]manager\.md|\bManager_[^_\n]*_\d{3}\b")
 
 
 def load_profile():
@@ -100,7 +100,7 @@ def _token_is_manager(tok):
     """tok is a crew name or an agents/<role>.md path, as CREW_RE matched it."""
     if re.match(r"agents[/\\]", tok):
         return re.search(r"agents[/\\]manager\.md$", tok) is not None
-    return re.fullmatch(r"Manager_[A-Za-z0-9 ]*_\d{3}", tok) is not None or any(
+    return re.fullmatch(r"Manager_[^_\n]*_\d{3}", tok) is not None or any(
         re.fullmatch(x, tok) for x in PROFILE.get("manager_names", []))
 
 
@@ -430,7 +430,7 @@ def stood_down(data):
 
 def main():
     try:
-        data = json.load(sys.stdin)
+        data = json.loads(sys.stdin.buffer.read().decode("utf-8", "replace"))
     except Exception:
         return 0
     if stood_down(data):

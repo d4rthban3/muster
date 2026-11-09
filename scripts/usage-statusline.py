@@ -11,7 +11,7 @@ import sys
 import time
 
 try:
-    d = json.load(sys.stdin)
+    d = json.loads(sys.stdin.buffer.read().decode("utf-8", "replace"))
 except ValueError:
     print("Muster usage: unreadable")
     sys.exit(0)

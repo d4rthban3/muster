@@ -16,6 +16,12 @@ import os
 import shutil
 import sys
 
+for _s in (sys.stdout, sys.stderr):  # a project name with accents must print on any computer, whatever its console encoding
+    try:
+        _s.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 FILES = [("hooks/rules-check.py", "rules-check.py"), ("hooks/board-stop.py", "board-stop.py"),

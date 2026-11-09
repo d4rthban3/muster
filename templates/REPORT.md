@@ -9,12 +9,13 @@ misread one.
 |---|---|
 | `v` | 1 |
 | `kind` | READY, DONE, PASS, FAIL, STUCK, NEED, OWNER_CALL or ORDER |
-| `id` | `role-job-n` (codes); never sent twice, a repeat is dropped |
-| `job`, `from`, `to` | codes: a-z, 0-9, `-`, `_` (no spaces) |
+| `from`, `to` | a role code: manager, builder-a (b, c ...), inspector, inspector-b, designer, design-inspector, sketchpad, ai-socket, agent-teacher or board |
+| `job` | a code of at most 4 words (a-z, 0-9, `-`, `_`; 32 characters at most) |
+| `id` | exactly `from-job-n` (n a number); never sent twice, a repeat is dropped |
 | `sha` | the saved version, 7 to 40 lowercase hex characters, or null |
 | `version` | `x.y.z`, or null |
 | `tests` | `{"passed": n, "failed": n}`, or null |
-| `touches` | list of codes: the shared things the change touches (empty if none) |
+| `touches` | list of codes (at most 3 words, 24 characters each): the shared things the change touches (empty if none) |
 | `usage` | `{"week_pct": n}` from `scripts/usage.py`, `null` inside it when it cannot be read; never an invented number |
 | `need` | none, pass_or_fail, order, owner_answer, fix or unblock |
 | `owner_words` | ORDER only: `{"item": n}` (his list) or `{"decision": "D-027"}`; his words are read there, not retyped |

@@ -18,11 +18,28 @@ fn code(v: &Value, what: &str, lo: usize, hi: usize) -> Result<String, String> {
     if ok { Ok(s.to_string()) } else { Err(format!("{what} must be {lo}-{hi} characters of a-z, 0-9, - or _ (no spaces, no sentences)")) }
 }
 
+/// A short code: at most `words` words (split at - or _) and `max` characters, so a sentence cannot fit.
+fn short_code(v: &Value, what: &str, max: usize, words: usize) -> Result<String, String> {
+    let c = code(v, what, 1, max)?;
+    if c.split(|ch| ch == '-' || ch == '_').filter(|w| !w.is_empty()).count() > words {
+        return Err(format!("{what} may hold at most {words} words (it is a code, not a sentence)"));
+    }
+    Ok(c)
+}
+
 fn list_of_codes(v: &Value, what: &str) -> Result<(), String> {
     let a = v.as_array().ok_or_else(|| format!("{what} must be a list of codes"))?;
-    if a.len() > 32 { return Err(format!("{what} holds more than 32 codes")); }
-    for x in a { code(x, what, 1, 64)?; }
+    if a.len() > 12 { return Err(format!("{what} holds more than 12 codes")); }
+    for x in a { short_code(x, what, 24, 3)?; }
     Ok(())
+}
+
+/// A role code: manager, designer, inspector, design-inspector, sketchpad, ai-socket, agent-teacher, board, builder-a..z, inspector-a..z.
+fn role_code(v: &Value, what: &str) -> Result<String, String> {
+    let c = code(v, what, 1, 24)?;
+    let fixed = ["manager", "designer", "inspector", "design-inspector", "sketchpad", "ai-socket", "agent-teacher", "board"];
+    let lettered = |p: &str| c.strip_prefix(p).map(|r| r.len() == 1 && r.chars().all(|ch| ch.is_ascii_lowercase())).unwrap_or(false);
+    if fixed.contains(&c.as_str()) || lettered("builder-") || lettered("inspector-") { Ok(c) } else { Err(format!("{what} must be a role code ({}, builder-a, inspector-b ...)", fixed.join(", "))) }
 }
 
 fn num(v: &Value, what: &str, max: u64) -> Result<u64, String> {
@@ -55,9 +72,12 @@ pub fn validate(text: &str) -> Result<(), String> {
     if m.get("v").and_then(Value::as_u64) != Some(1) { return Err("v must be 1".into()); }
     let kind = m.get("kind").and_then(Value::as_str).ok_or("kind is missing")?;
     if !KINDS.contains(&kind) { return Err(format!("kind '{kind}' is not one of {}", KINDS.join(", "))); }
-    for k in ["id", "job", "from", "to"] {
-        code(m.get(k).ok_or_else(|| format!("{k} is missing"))?, k, 1, 64)?;
-    }
+    let from = role_code(m.get("from").ok_or("from is missing")?, "from")?;
+    role_code(m.get("to").ok_or("to is missing")?, "to")?;
+    let job = short_code(m.get("job").ok_or("job is missing")?, "job", 32, 4)?;
+    let id = code(m.get("id").ok_or("id is missing")?, "id", 1, 48)?;
+    let n = id.strip_prefix(&format!("{from}-{job}-")).unwrap_or("");
+    if n.is_empty() || n.len() > 4 || !n.chars().all(|c| c.is_ascii_digit()) { return Err(format!("id must be {from}-{job}-<number>")); }
     let need = m.get("need").ok_or("need is missing")?;
     let need = code(need, "need", 1, 20)?;
     if !NEEDS.contains(&need.as_str()) { return Err(format!("need '{need}' is not one of {}", NEEDS.join(", "))); }
@@ -111,7 +131,7 @@ pub fn validate(text: &str) -> Result<(), String> {
 mod tests {
     use super::validate;
 
-    const READY: &str = r#"{"v":1,"kind":"READY","id":"builder-a-lean-1","job":"lean-rebuild","from":"builder-a","to":"inspector","sha":"d082303","version":"0.3.49","tests":{"passed":48,"failed":0},"touches":["hooks"],"need":"pass_or_fail","usage":{"week_pct":null}}"#;
+    const READY: &str = r#"{"v":1,"kind":"READY","id":"builder-a-lean-rebuild-1","job":"lean-rebuild","from":"builder-a","to":"inspector","sha":"d082303","version":"0.3.49","tests":{"passed":48,"failed":0},"touches":["hooks"],"need":"pass_or_fail","usage":{"week_pct":null}}"#;
 
     #[test]
     fn a_record_parses() { assert_eq!(validate(READY), Ok(())); }
@@ -128,6 +148,24 @@ mod tests {
         assert!(validate(&bad).unwrap_err().contains("no spaces"));
         let bad = READY.replace("\"touches\":[\"hooks\"]", "\"touches\":[\"the hooks and the tests\"]");
         assert!(validate(&bad).is_err());
+    }
+
+    #[test]
+    fn a_long_dashed_sentence_cannot_pass_as_a_code() {
+        let long = "the-windows-test-fails-because-the-path-uses-backslashes";
+        for key in ["job", "touches"] {
+            let bad = if key == "job" { READY.replace("lean-rebuild", long).replace("builder-a-lean-rebuild-1", &format!("builder-a-{long}-1")) } else { READY.replace("\"hooks\"", &format!("\"{long}\"")) };
+            assert!(validate(&bad).is_err(), "{key}");
+        }
+        assert!(validate(&READY.replace("\"from\":\"builder-a\"", "\"from\":\"the-builder-who-is-tired\"")).is_err());
+        assert!(validate(&READY.replace("\"to\":\"inspector\"", "\"to\":\"somebody\"")).unwrap_err().contains("role code"));
+    }
+
+    #[test]
+    fn the_id_is_from_job_and_a_number() {
+        assert!(validate(&READY.replace("builder-a-lean-rebuild-1", "builder-a-lean-rebuild-one")).is_err());
+        assert!(validate(&READY.replace("builder-a-lean-rebuild-1", "x-1")).is_err());
+        assert!(validate(&READY.replace("builder-a-lean-rebuild-1", "builder-a-other-job-1")).is_err());
     }
 
     #[test]
@@ -152,7 +190,7 @@ mod tests {
 
     #[test]
     fn an_order_refers_to_his_words_by_number() {
-        let o = r#"{"v":1,"kind":"ORDER","id":"manager-lean-1","job":"lean-rebuild","from":"manager","to":"builder-a","owner_words":{"item":34},"owns":["hooks","agents"],"out":["pinr-files"],"need":"none"}"#;
+        let o = r#"{"v":1,"kind":"ORDER","id":"manager-lean-rebuild-1","job":"lean-rebuild","from":"manager","to":"builder-a","owner_words":{"item":34},"owns":["hooks","agents"],"out":["pinr-files"],"need":"none"}"#;
         assert_eq!(validate(o), Ok(()));
         assert!(validate(&o.replace("{\"item\":34}", "\"Lean rebuild\"")).is_err());
         assert!(validate(&o.replace("\"item\":34", "\"decision\":\"D-027\"")).is_ok());
@@ -161,7 +199,7 @@ mod tests {
 
     #[test]
     fn a_pass_names_what_it_checked() {
-        let p = r#"{"v":1,"kind":"PASS","id":"inspector-lean-1","job":"lean-rebuild","from":"inspector","to":"builder-a","sha":"d082303","need":"none"}"#;
+        let p = r#"{"v":1,"kind":"PASS","id":"inspector-lean-rebuild-1","job":"lean-rebuild","from":"inspector","to":"builder-a","sha":"d082303","need":"none"}"#;
         assert_eq!(validate(p), Ok(()));
         assert!(validate(&p.replace("\"sha\":\"d082303\",", "")).is_err());
     }

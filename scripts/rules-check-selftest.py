@@ -9,6 +9,8 @@ import tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 HOOK = os.path.join(HERE, "..", "hooks", "rules-check.py")
+BIN = os.environ.get("MUSTER_CHECKS_BIN")  # run the same cases against the ready-built Rust copy
+RUN_ENV = dict(os.environ, MUSTER_MESSAGE_FORM="text") if BIN else dict(os.environ)  # these cases are the older text shapes
 T = tempfile.mkdtemp()
 
 
@@ -34,7 +36,7 @@ def said(text):
 
 
 def run(ev, **kw):
-    r = subprocess.run([sys.executable, HOOK], input=json.dumps(dict(hook_event_name=ev, cwd=T, **kw)), capture_output=True, text=True)
+    r = subprocess.run([BIN, "rules"] if BIN else [sys.executable, HOOK], input=json.dumps(dict(hook_event_name=ev, cwd=T, **kw)), capture_output=True, text=True, env=RUN_ENV)
     return r.stdout.strip()
 
 

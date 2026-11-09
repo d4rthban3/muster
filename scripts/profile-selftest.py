@@ -12,21 +12,37 @@ import tempfile
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 PY = sys.executable
+BIN = os.environ.get("MUSTER_CHECKS_BIN")  # run the same cases against the ready-built Rust copy
+SUB = {"rules-check.py": "rules", "board-stop.py": "board-stop", "talk-check.py": "talk"}
+ENV = dict((k, v) for k, v in os.environ.items() if k != "MUSTER_PROFILE")
+if BIN:
+    ENV["MUSTER_MESSAGE_FORM"] = "text"  # these cases are the older text shapes
 T = tempfile.mkdtemp()
 PROJ = os.path.join(T, "proj")
 CK = os.path.join(PROJ, ".muster-checks")
 BOARD_REL = "Claude Code/handoff/BOARD.md"
 os.makedirs(CK)
 os.makedirs(os.path.join(PROJ, os.path.dirname(BOARD_REL)))
-for f in ("hooks/rules-check.py", "hooks/board-stop.py", "hooks/talk-check.py"):
-    shutil.copyfile(os.path.join(ROOT, f), os.path.join(CK, os.path.basename(f)))
+def put_checks(dest):
+    """The hooks the test runs: the Python files, or one copy of the Rust program."""
+    if BIN:
+        shutil.copyfile(BIN, os.path.join(dest, "muster-checks" + (".exe" if BIN.endswith(".exe") else "")))
+        os.chmod(os.path.join(dest, os.path.basename(BIN)), 0o755)
+    for f in ("hooks/rules-check.py", "hooks/board-stop.py", "hooks/talk-check.py"):
+        shutil.copyfile(os.path.join(ROOT, f), os.path.join(dest, os.path.basename(f)))
+
+
+def cmd_for(dest, script):
+    return [os.path.join(dest, os.path.basename(BIN)), SUB[script]] if BIN else [PY, os.path.join(dest, script)]
+
+
+put_checks(CK)
 prof = json.load(open(os.path.join(ROOT, "profiles", "pinr.json")))
 prof["board"] = BOARD_REL
 json.dump(prof, open(os.path.join(CK, "profile.json"), "w"))
 NOPROF = os.path.join(T, "plain")
 os.makedirs(NOPROF)
-for f in ("hooks/rules-check.py", "hooks/board-stop.py", "hooks/talk-check.py"):
-    shutil.copyfile(os.path.join(ROOT, f), os.path.join(NOPROF, os.path.basename(f)))
+put_checks(NOPROF)
 
 
 def tr(first, extra=()):
@@ -48,8 +64,8 @@ os.makedirs(PLAINPROJ)
 
 def run(script, ev, plain=False, cwd=None, **kw):
     d = NOPROF if plain else CK
-    r = subprocess.run([PY, os.path.join(d, script)], input=json.dumps(dict(hook_event_name=ev, cwd=cwd or (PLAINPROJ if plain else PROJ), **kw)),
-                       capture_output=True, text=True, env={k: v for k, v in os.environ.items() if k != "MUSTER_PROFILE"})
+    r = subprocess.run(cmd_for(d, script), input=json.dumps(dict(hook_event_name=ev, cwd=cwd or (PLAINPROJ if plain else PROJ), **kw)),
+                       capture_output=True, text=True, env=ENV)
     return r.stdout.strip()
 
 
@@ -113,13 +129,12 @@ add("6 without .muster-checks the plugin's own copy still works", run("rules-che
 # the shipped profile's real board path: a folder holding .muster-checks, the board beside it under PINR-claudecode-handoff/
 REAL = os.path.join(T, "pinrlike", "Claude Code")
 os.makedirs(os.path.join(REAL, ".muster-checks"))
-for f in ("rules-check.py", "board-stop.py", "talk-check.py"):
-    shutil.copyfile(os.path.join(CK, f), os.path.join(REAL, ".muster-checks", f))
+put_checks(os.path.join(REAL, ".muster-checks"))
 shutil.copyfile(os.path.join(ROOT, "profiles", "pinr.json"), os.path.join(REAL, ".muster-checks", "profile.json"))
 rb = os.path.join(REAL, json.load(open(os.path.join(ROOT, "profiles", "pinr.json")))["board"])
 os.makedirs(os.path.dirname(rb))
 open(rb, "w").write("2026-11-08 | LIVE | Look Header_PINR_002 -> Manager | Paused: yes | x\n")
-real = lambda said: subprocess.run([PY, os.path.join(REAL, ".muster-checks", "board-stop.py")], input=json.dumps({"hook_event_name": "Stop", "cwd": REAL, "last_assistant_message": said, "transcript_path": mgr}), capture_output=True, text=True).stdout.strip()
+real = lambda said: subprocess.run(cmd_for(os.path.join(REAL, ".muster-checks"), "board-stop.py"), input=json.dumps({"hook_event_name": "Stop", "cwd": REAL, "last_assistant_message": said, "transcript_path": mgr}), capture_output=True, text=True, env=ENV).stdout.strip()
 add("6 the shipped profile's board path is found from the folder holding .muster-checks", real("Fine."), True)
 # gaps: social replies of several words, and PINR's own manager-only paths
 add("7 'noted, thanks' is refused in a PINR chat", send("noted, thanks", site), True)

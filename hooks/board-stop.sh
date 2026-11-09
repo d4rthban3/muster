@@ -7,5 +7,6 @@ while [ -n "$d" ] && [ "$d" != "/" ]; do
 done
 [ -f muster/BOARD.md ] || exit 0
 here=$(dirname "$0")
+bin=$(sh "$here/../scripts/find-binary.sh" "$(cd "$here/.." && pwd)" 2>/dev/null) && exec "$bin" board-stop
 py=$(sh "$here/../scripts/find-python.sh" 2>/dev/null) || exit 0
 exec $py "$here/board-stop.py"

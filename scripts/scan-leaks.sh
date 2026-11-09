@@ -28,7 +28,8 @@ fail=0
 report() { echo "LEAK: $1"; fail=1; }
 
 # long hex hashes are legal in git output only; files are scanned, .git is not
-FILES=$(git ls-files -co --exclude-standard)
+# checks/Cargo.lock is a list of public package checksums (long hex by design), not a secret
+FILES=$(git ls-files -co --exclude-standard | grep -v '^checks/Cargo.lock$')
 for p in "${PATTERNS[@]}"; do
   hits=$(echo "$FILES" | grep -v '^scripts/scan-leaks.sh$' | xargs grep -nIE -e "$p" 2>/dev/null | head -5)
   [ -n "$hits" ] && report "pattern /$p/" && echo "$hits"
@@ -51,7 +52,7 @@ if git rev-parse HEAD >/dev/null 2>&1; then
   done
   # whole history of file contents (this branch's own history only, so another branch never trips it)
   for p in "${PATTERNS[@]}"; do
-    git log -p -- . ':!scripts/scan-leaks.sh' 2>/dev/null | grep -E '^[+-]' | grep -qE -e "$p" && report "history diff matches /$p/"
+    git log -p -- . ':!scripts/scan-leaks.sh' ':!checks/Cargo.lock' 2>/dev/null | grep -E '^[+-]' | grep -qE -e "$p" && report "history diff matches /$p/"
   done
 fi
 

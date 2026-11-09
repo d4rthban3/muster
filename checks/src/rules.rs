@@ -215,6 +215,7 @@ fn pretool(c: &Ctx, data: &Value, manager: bool) {
     let inp = data.get("tool_input").unwrap_or(&empty);
     let root = main_folder(s(data, "cwd"));
     if tool == "SendMessage" { return send_message(c, data, inp, &root); }
+    if tool == "Agent" || tool == "Task" { return helper_problem(inp, manager); }
     if matches!(tool, "Write" | "Edit" | "NotebookEdit") && !manager {
         let p = s(inp, "file_path").replace('\\', "/");
         if is(&c.protected, &p) {
@@ -242,6 +243,23 @@ fn pretool(c: &Ctx, data: &Value, manager: bool) {
             }
             let redirect = re(r"(>|>>|tee\s+|sed\s+-i\S*\s+(''\s+)?\S*\s*)\s*\S*muster/(OWNERS-LIST|DECISIONS-LOG|CREW|CLAUDE|RULES-PAGE|REPORT)\.md");
             if is(&redirect, cmd) { return deny("only the manager changes the owner's list, decisions, crew list and muster/CLAUDE.md"); }
+        }
+    }
+}
+
+/// Helpers (item 36): a subagent is a side job. It may not stand in for a worker (only the manager's fresh checker, from the inspector
+/// definition, is allowed), and its brief may not ask it to ship, push, message or ask the owner. Lines that say "never/not" are fine.
+fn helper_problem(inp: &Value, manager: bool) {
+    let kind = s(inp, "subagent_type").trim().trim_start_matches("muster:").to_lowercase();
+    let roles = ["manager", "builder", "designer", "inspector", "design-inspector", "sketchpad", "ai-socket", "agent-teacher"];
+    if roles.contains(&kind.as_str()) && !(manager && kind == "inspector") {
+        return deny(&format!("a helper never stands in for a worker or the Inspector chat ({kind}); use a plain helper for the side job (only the manager's fresh checker for a small piece uses the inspector definition)"));
+    }
+    let ask = re(r"(?i)(scripts[/\\]ship\.sh|\bgit\s+push\b|\bSendMessage\b|\bAskUserQuestion\b)");
+    let neg = rei(r"\b(never|not|no|without|don't|do not)\b|n't\b");
+    for l in s(inp, "prompt").lines() {
+        if is(&ask, l) && !is(&neg, l) {
+            return deny("a helper never ships, pushes, messages other chats or talks to the owner; take that out of its brief and do it yourself");
         }
     }
 }

@@ -342,10 +342,31 @@ def usage_at_limit(root):
     return False
 
 
+HELPER_ROLES = ("manager", "builder", "designer", "inspector", "design-inspector", "sketchpad", "ai-socket", "agent-teacher")
+HELPER_ASK = re.compile(r"scripts[/\\]ship\.sh|\bgit\s+push\b|\bSendMessage\b|\bAskUserQuestion\b", re.I)
+HELPER_NEG = re.compile(r"\b(never|not|no|without|don't|do not)\b|n't\b", re.I)
+
+
+def helper_problem(inp, manager):
+    """Helpers (item 36): a subagent may not stand in for a worker (only the manager's fresh checker uses the inspector
+    definition), and its brief may not ask it to ship, push, message other chats or ask the owner."""
+    kind = str(inp.get("subagent_type", "")).strip().lower()
+    if kind.startswith("muster:"):
+        kind = kind[7:]
+    if kind in HELPER_ROLES and not (manager and kind == "inspector"):
+        return deny("a helper never stands in for a worker or the Inspector chat (%s); use a plain helper for the side job "
+                    "(only the manager's fresh checker for a small piece uses the inspector definition)" % kind)
+    for line in str(inp.get("prompt", "")).splitlines():
+        if HELPER_ASK.search(line) and not HELPER_NEG.search(line):
+            return deny("a helper never ships, pushes, messages other chats or talks to the owner; take that out of its brief and do it yourself")
+
+
 def pretool(data, manager):
     tool = data.get("tool_name", "")
     inp = data.get("tool_input") or {}
     root = main_folder(data.get("cwd"))
+    if tool in ("Agent", "Task"):
+        return helper_problem(inp, manager)
     if tool == "SendMessage":
         msg = str(inp.get("message", ""))
         if SOCIAL.match(msg):

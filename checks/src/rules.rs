@@ -237,7 +237,9 @@ fn send_message(c: &Ctx, data: &Value, inp: &Value, root: &str) {
     let sent = || all_sent_text(s(data, "transcript_path"));
     if !c.text_form {
         // a data record: one JSON object, fixed keys, set values, no sentences
-        if let Err(why) = crate::record::validate(msg) { return deny(&format!("a message between chats is a data record (JSON with fixed keys and set values), never sentences, and this one is wrong: {why}")); }
+        let rec0: Value = serde_json::from_str(msg.trim()).unwrap_or(Value::Null);
+        let things = project_things(s(data, "cwd"), s(&rec0, "sha")); // the worker's own copy at that sha, not the main folder
+        if let Err(why) = crate::record::validate(msg, &things) { return deny(&format!("a message between chats is a data record (JSON with fixed keys and set values), never sentences, and this one is wrong: {why}")); }
         let rec: Value = serde_json::from_str(msg.trim()).unwrap_or(Value::Null);
         let (id, kind) = (s(&rec, "id"), s(&rec, "kind"));
         if sent().iter().any(|t| serde_json::from_str::<Value>(t.trim()).map(|r| s(&r, "id") == id).unwrap_or(false)) { return deny(&format!("this record's id {id} was already sent; a repeat is dropped")); }

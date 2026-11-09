@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.51
+Affects: Manager, Builder, Designer, Inspector.
+weekly goal: the owner names one goal and when it is done; the manager records the set list and the parked work; off-list orders wait with his words, and he can change or drop it any time
+
 ## 0.3.50
 Affects: Manager, Builder, Designer, Inspector.
 lean rebuild: checks in Rust with ready-made programs for five systems, one page per worker, messages between chats as data records with set lists only

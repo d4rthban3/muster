@@ -1,0 +1,31 @@
+{
+  "version": "0.3.51",
+  "changed_files": [
+    "agents/manager.md",
+    "bin/SOURCE-STAMP",
+    "bin/linux-arm64/muster-checks",
+    "bin/linux-x86_64/muster-checks",
+    "bin/macos-arm64/muster-checks",
+    "bin/macos-x86_64/muster-checks",
+    "bin/windows-x86_64/muster-checks.exe",
+    "checks/src/rules.rs",
+    "hooks/rules-check.py",
+    "pages/manager.md",
+    "scripts/build-pages.py",
+    "scripts/goal.py",
+    "scripts/rules-check-selftest.py",
+    "skills/manager-details/SKILL.md",
+    "templates/GOAL.md"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Builder",
+    "Designer",
+    "Inspector"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "weekly goal: the owner names one goal and when it is done; the manager records the set list and the parked work; off-list orders wait with his words, and he can change or drop it any time"
+}

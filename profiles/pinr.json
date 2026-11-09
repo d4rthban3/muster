@@ -3,6 +3,7 @@
   "crew_names": ["\\b[A-Z][A-Za-z]*(?: [A-Za-z]+)*_PINR_\\d{3}\\b", "\\bPINRai_teacher_\\d{3}\\b"],
   "manager_names": ["\\bManager_PINR_\\d{3}\\b"],
   "report": {"require_id": false, "require_usage": false},
+  "message_form": "text",
   "orders": "free",
   "record_choice": "decide.py",
   "protected": ["/Claude Code/Founder/FOUNDER-LIST\\.md$", "/Claude Code/PINR-claudecode-handoff/pinr-claude-code-starter-v2/DECISIONS-LOG\\.md$", "/Claude Code/manager/rules/", "/Claude Code/CLAUDE\\.md$"],

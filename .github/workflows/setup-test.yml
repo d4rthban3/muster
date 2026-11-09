@@ -59,3 +59,52 @@ jobs:
           INSTALLED=$(cat "$RUNNER_TEMP/installpath.txt")
           test -f "$INSTALLED/scripts/setup-smoke.sh"
           bash "$INSTALLED/scripts/setup-smoke.sh"
+  rust:
+    # builds the checks program for every system, runs its own tests, and uploads the ready-built copies
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {os: windows-latest, name: windows-x86_64, target: x86_64-pc-windows-msvc, exe: muster-checks.exe}
+          - {os: macos-latest, name: macos-arm64, target: aarch64-apple-darwin, exe: muster-checks}
+          - {os: macos-latest, name: macos-x86_64, target: x86_64-apple-darwin, exe: muster-checks}
+          - {os: ubuntu-latest, name: linux-x86_64, target: x86_64-unknown-linux-gnu, exe: muster-checks}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Add the build target
+        run: rustup target add ${{ matrix.target }}
+      - name: Rust tests
+        working-directory: checks
+        run: cargo test --locked
+      - name: Build the ready-made copy
+        working-directory: checks
+        run: cargo build --release --locked --target ${{ matrix.target }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: muster-checks-${{ matrix.name }}
+          path: checks/target/${{ matrix.target }}/release/${{ matrix.exe }}
+  shipped-copies:
+    # the committed ready-made copies must be the ones built from this source, and must pass every carried-over self-test
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {os: windows-latest, dir: windows-x86_64, exe: muster-checks.exe}
+          - {os: macos-latest, dir: macos-arm64, exe: muster-checks}
+          - {os: ubuntu-latest, dir: linux-x86_64, exe: muster-checks}
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - name: The copies match the source
+        run: python3 scripts/source-stamp.py --check
+      - name: Every carried-over self-test passes against the shipped copy
+        run: |
+          BIN="$GITHUB_WORKSPACE/bin/${{ matrix.dir }}/${{ matrix.exe }}"
+          test -f "$BIN"
+          chmod +x "$BIN" || true
+          MUSTER_CHECKS_BIN="$BIN" python3 scripts/rules-check-selftest.py
+          MUSTER_CHECKS_BIN="$BIN" python3 scripts/profile-selftest.py

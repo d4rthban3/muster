@@ -8,5 +8,6 @@ while [ -n "$d" ] && [ "$d" != "/" ]; do
 done
 [ -n "$found" ] || exit 0
 here=$(dirname "$0")
+bin=$(sh "$here/../scripts/find-binary.sh" "$(cd "$here/.." && pwd)" 2>/dev/null) && exec "$bin" rules
 py=$(sh "$here/../scripts/find-python.sh" 2>/dev/null) || exit 0
 exec $py "$here/rules-check.py"

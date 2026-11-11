@@ -29,6 +29,10 @@ jobs:
           fi
       - name: Each worker's one page is current and short (build-pages.py)
         run: python3 scripts/build-pages.py --check
+      - name: The directory edition is current and holds only allowed files (build-directory.py)
+        run: |
+          python3 scripts/build-directory.py --check
+          python3 scripts/build-directory.py --verify
       - name: Test files are listed (check-tests.py)
         run: python3 scripts/check-tests.py .
   setup:

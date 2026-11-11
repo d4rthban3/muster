@@ -1,2 +1,3 @@
 .scan-extra
 .DS_Store
+dist/

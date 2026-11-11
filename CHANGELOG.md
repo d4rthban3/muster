@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.55
+Affects: manager, builder, designer, inspector.
+Ready package: ship script wording, leak scan skips diff headers, directory edition checks every review rule, resubmit routine
+
 ## 0.3.54
 Affects: manager, builder, designer, inspector.
 Directory edition: Markdown, JSON and image only copy for the plugin directory review

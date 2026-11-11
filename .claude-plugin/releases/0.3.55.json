@@ -1,0 +1,21 @@
+{
+  "version": "0.3.55",
+  "changed_files": [
+    ".github/workflows/setup-test.yml",
+    "scripts/build-directory.py",
+    "scripts/scan-leaks.sh",
+    "scripts/ship.sh",
+    "templates/DIRECTORY-RESUBMIT.md"
+  ],
+  "affected_roles": [
+    "manager",
+    "builder",
+    "designer",
+    "inspector"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Ready package: ship script wording, leak scan skips diff headers, directory edition checks every review rule, resubmit routine"
+}

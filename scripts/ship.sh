@@ -91,7 +91,7 @@ if [ $wait = 1 ]; then
   command -v gh >/dev/null || stop "gh is not installed, cannot wait for the free test"
   sha=$(git rev-parse HEAD); echo "== waiting for the free test on $tmp"
   for _ in $(seq 1 60); do
-    r=$(gh run list --branch "$tmp" --limit 1 --json headSha,status,conclusion --jq '.[0]|[.headSha,.status,.conclusion]|@tsv' 2>/dev/null)
+    r=$(gh run list --branch="$tmp" --limit=1 --json=headSha,status,conclusion --jq='.[0]|[.headSha,.status,.conclusion]|@tsv' 2>/dev/null)
     case "$r" in "$sha	completed	success") break;; "$sha	completed	"*) stop "the free test on $tmp did not pass: $r";; esac; sleep 15; done
   [ "${r%%	*}" = "$sha" ] && case "$r" in *completed*success) ;; *) stop "the free test on $tmp did not finish in time";; esac
 fi
@@ -106,7 +106,7 @@ git push -q origin ":refs/heads/$tmp" 2>/dev/null
 if [ $wait = 1 ]; then
   echo "== waiting for the free test on main and the site rebuild"
   for _ in $(seq 1 60); do
-    s=$(gh run list --branch main --limit 4 --json headSha,status,conclusion --jq '[.[]|select(.headSha=="'"$(git rev-parse HEAD)"'")]|map(.status+"/"+(.conclusion//""))|join(" ")' 2>/dev/null)
+    s=$(gh run list --branch=main --limit=4 --json=headSha,status,conclusion --jq='[.[]|select(.headSha=="'"$(git rev-parse HEAD)"'")]|map(.status+"/"+(.conclusion//""))|join(" ")' 2>/dev/null)
     case "$s" in *in_progress*|*queued*|"") sleep 15;; *failure*) stop "a run on main failed: $s";; *) break;; esac; done
   echo "== proving the new content is served (the published version, and a changed line of the site if the site changed)"
   bash scripts/live-check.sh "$new" $proof_file "$proof_line" || stop "the new content is not being served yet; run scripts/live-check.sh \"$new\" again in a few minutes"

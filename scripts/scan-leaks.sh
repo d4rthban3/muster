@@ -52,7 +52,7 @@ if git rev-parse HEAD >/dev/null 2>&1; then
   done
   # whole history of file contents (this branch's own history only, so another branch never trips it)
   for p in "${PATTERNS[@]}"; do
-    git log -p -- . ':!scripts/scan-leaks.sh' ':!checks/Cargo.lock' 2>/dev/null | grep -E '^[+-]' | grep -qE -e "$p" && report "history diff matches /$p/"
+    git log -p -- . ':!scripts/scan-leaks.sh' ':!checks/Cargo.lock' 2>/dev/null | grep -E '^[+-]' | grep -vE '^(\+\+\+|---) ' | grep -qE -e "$p" && report "history diff matches /$p/"
   done
 fi
 

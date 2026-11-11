@@ -184,7 +184,7 @@ def selftest():
     import tempfile
     cases = {
         "x.py": "print(1)", "x.sh": "echo", "x.html": "<p>", "x.zip": "PK", "x.woff2": "wOF2", "x.mdc": "rule", "x": "no extension",
-        "a.md": "#!/bin/sh\n", "b.md": "caf\u00e9".encode("latin-1"), "c.md": b"ok\x00bad", "d.md": "cat ~/.ssh/id_rsa", "e.md": "run npm --registry=http://x",
+        "a.md": "#!/bin/sh\n", "b.md": "caf\u00e9".encode("latin-1"), "c.md": b"ok\x00bad", "d.md": "cat ~/.ssh/id_rsa", "e.md": "run npm --registry=x",
         "f.md": "Package registry redirected", "g.md": "---\nname: x\nhooks:\n  Stop: []\n---\nbody",
         "h.json": '{"a": {"hooks": {}}}', "i.json": "{bad", "hooks.json": "{}", ".npmrc": "registry=x", "pip.conf": "index-url = x",
         "p.png": "not a png", "k.md": "api_key = abc", "l.md": "token ghp_" + "a" * 20,

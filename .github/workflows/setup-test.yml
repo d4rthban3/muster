@@ -33,6 +33,7 @@ jobs:
         run: |
           python3 scripts/build-directory.py --check
           python3 scripts/build-directory.py --verify
+          python3 scripts/build-directory.py --selftest
       - name: Test files are listed (check-tests.py)
         run: python3 scripts/check-tests.py .
   setup:

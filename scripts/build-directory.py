@@ -4,6 +4,7 @@ for the plugin directory's review. No hooks, no scripts, no programs, no html/zi
   build-directory.py            write directory/
   build-directory.py --check    exit 1 if directory/ is out of date (the version number is not compared: a ship raises it)
   build-directory.py --verify   check every file of directory/ against the review's rules and print the counts
+  build-directory.py --selftest plant one bad file per rule in a scratch folder: every one must be refused
 What goes in: agents/ (the role pages, each with a one-line notice that coded checks and scripts are not in this edition), skills/,
 commands/ (except setup, which opens the setup page), templates/*.md, the logo, LICENSE, a README that points to the full edition."""
 import json
@@ -19,6 +20,7 @@ ALLOWED = {".md", ".json", ".png"}
 NOTICE = ("> Directory edition: this copy holds the rules only. The coded checks, scripts and ready-made programs named below are "
           "in the full edition (" + FULL + "); here, do by hand what a page says a script does, and say so.\n\n")
 SKIP_COMMANDS = {"setup.md"}
+SKIP_TEMPLATES = {"DIRECTORY-RESUBMIT.md"}  # the full edition's routine, not part of what the directory reviews
 # what the review warned about: reading credentials, or redirecting a package source
 BAD = re.compile(r"(\.ssh|\.aws|\.netrc|id_rsa|api[_-]?key\s*=|password\s*=|BEGIN [A-Z ]*PRIVATE KEY|sk-[A-Za-z0-9]{12,}|ghp_[A-Za-z0-9]{12,})", re.I)
 
@@ -50,7 +52,7 @@ def files():
         if fn.endswith(".md") and fn not in SKIP_COMMANDS:
             out["commands/" + fn] = read("commands/" + fn)
     for fn in sorted(os.listdir(os.path.join(ROOT, "templates"))):
-        if fn.endswith(".md"):
+        if fn.endswith(".md") and fn not in SKIP_TEMPLATES:
             out["templates/" + fn] = read("templates/" + fn)
     out["assets/muster-logo.png"] = open(os.path.join(ROOT, "assets", "muster-logo.png"), "rb").read()
     out["LICENSE.md"] = read("LICENSE")
@@ -98,43 +100,120 @@ def check():
     return 1 if bad else 0
 
 
+PKG_CONFIG_NAMES = {".npmrc", ".yarnrc", ".yarnrc.yml", "pip.conf", "pip.ini", ".pypirc", "nuget.config", "bunfig.toml", ".condarc", "config.toml", ".gemrc", "settings.xml"}
+REGISTRY = re.compile(r"(package registry redirected|--registry\b|--index-url|--extra-index-url|\bnpm\s+config\b|\bpip\s+config\b|registry\s*=|index-url\s*=)", re.I)
+
+
+def has_key(node, key):
+    if isinstance(node, dict):
+        return key in node or any(has_key(v, key) for v in node.values())
+    if isinstance(node, list):
+        return any(has_key(v, key) for v in node)
+    return False
+
+
+def problems(root):
+    """Every refusal and warning of the 0.3.49 directory review, tested on each file under root: [(rule, file)]."""
+    out = []
+    for dp, dirs, fs in os.walk(root):
+        for f in fs + dirs:
+            full = os.path.join(dp, f)
+            rel = os.path.relpath(full, root).replace(os.sep, "/")
+            if os.path.islink(full):
+                out.append(("a link (not a plain file)", rel))
+            if f.startswith(".") and not rel.startswith(".claude-plugin/") and os.path.isfile(full):
+                out.append(("a hidden file", rel))
+        for f in fs:
+            full = os.path.join(dp, f)
+            rel = os.path.relpath(full, root).replace(os.sep, "/")
+            if os.path.islink(full):
+                continue
+            ext = os.path.splitext(f)[1].lower()
+            data = open(full, "rb").read()
+            if ext not in ALLOWED:
+                out.append(("a file type that is not Markdown, JSON or a PNG (%s)" % (ext or "no extension"), rel)); continue
+            if os.access(full, os.X_OK):
+                out.append(("an executable file", rel))
+            if f.lower() in PKG_CONFIG_NAMES or rel.startswith("hooks/") or f == "hooks.json":
+                out.append(("a hook or package-manager config file", rel))
+            if ext == ".png":
+                if not data.startswith(b"\x89PNG\r\n\x1a\n"):
+                    out.append(("not really a PNG", rel))
+                continue
+            if b"\x00" in data:
+                out.append(("a NUL byte", rel))
+            if data.startswith(b"#!"):
+                out.append(("a #! first line", rel))
+            try:
+                text = data.decode("utf-8")
+            except UnicodeDecodeError:
+                out.append(("not UTF-8", rel)); continue
+            if ext == ".json":
+                try:
+                    j = json.loads(text)
+                    if has_key(j, "hooks"):
+                        out.append(("a hooks key (hooks of any type)", rel))
+                except ValueError:
+                    out.append(("invalid JSON", rel))
+            elif re.match(r"^---\n.*?^hooks\s*:", text, re.S | re.M) and text.startswith("---\n"):
+                out.append(("hooks in a page's front matter", rel))
+            if BAD.search(text):
+                out.append(("credential-like text or a credential-file read", rel))
+            if REGISTRY.search(text):
+                out.append(("package-registry wording (the review's LAUNCHER_REGISTRY_REDIRECT)", rel))
+    return out
+
+
 def verify():
-    have, bad, counts = listing(), 0, {}
+    have = listing()
     if not have:
         print("no directory/ yet"); return 1
-    for rel, data in sorted(have.items()):
-        ext = os.path.splitext(rel)[1]
-        counts[ext] = counts.get(ext, 0) + 1
-        if ext not in ALLOWED:
-            print("NOT ALLOWED (%s): %s" % (ext or "no extension", rel)); bad += 1; continue
-        if os.path.basename(rel) == "hooks.json" or rel.startswith("hooks/"):
-            print("HOOK FILE: " + rel); bad += 1
-        if ext == ".png":
-            if not data.startswith(b"\x89PNG\r\n\x1a\n"):
-                print("NOT A PNG: " + rel); bad += 1
-            continue
-        if data.startswith(b"#!"):
-            print("STARTS WITH #!: " + rel); bad += 1
-        try:
-            text = data.decode("utf-8")
-        except UnicodeDecodeError:
-            print("NOT UTF-8: " + rel); bad += 1; continue
-        if ext == ".json":
-            try:
-                j = json.loads(text)
-            except ValueError:
-                print("BAD JSON: " + rel); bad += 1; continue
-            if "hooks" in j:
-                print("HOOKS KEY: " + rel); bad += 1
-        m = BAD.search(text)
-        if m:
-            print("CREDENTIAL-LIKE TEXT (%s) in %s" % (m.group(1)[:20], rel)); bad += 1
-    print("directory edition: %d files (%s); %d problem(s)" % (len(have), ", ".join("%d %s" % (n, e) for e, n in sorted(counts.items())), bad))
+    counts = {}
+    for rel in have:
+        e = os.path.splitext(rel)[1]
+        counts[e] = counts.get(e, 0) + 1
+    bad = problems(OUT)
+    for rule, rel in bad:
+        print("REFUSED (%s): %s" % (rule, rel))
+    print("directory edition: %d files (%s); %d problem(s)" % (len(have), ", ".join("%d %s" % (n, e) for e, n in sorted(counts.items())), len(bad)))
+    return 1 if bad else 0
+
+
+def selftest():
+    """Plant one file for every rule in a scratch copy; each must be refused, and the real edition must be clean."""
+    import tempfile
+    cases = {
+        "x.py": "print(1)", "x.sh": "echo", "x.html": "<p>", "x.zip": "PK", "x.woff2": "wOF2", "x.mdc": "rule", "x": "no extension",
+        "a.md": "#!/bin/sh\n", "b.md": "caf\u00e9".encode("latin-1"), "c.md": b"ok\x00bad", "d.md": "cat ~/.ssh/id_rsa", "e.md": "run npm --registry=http://x",
+        "f.md": "Package registry redirected", "g.md": "---\nname: x\nhooks:\n  Stop: []\n---\nbody",
+        "h.json": '{"a": {"hooks": {}}}', "i.json": "{bad", "hooks.json": "{}", ".npmrc": "registry=x", "pip.conf": "index-url = x",
+        "p.png": "not a png", "k.md": "api_key = abc", "l.md": "token ghp_" + "a" * 20,
+    }
+    d = tempfile.mkdtemp()
+    ok = not problems(OUT)
+    print(("ok   " if ok else "MISS ") + "the real directory edition is clean")
+    bad = 0 if ok else 1
+    for name, body in cases.items():
+        sub = tempfile.mkdtemp(dir=d)
+        with open(os.path.join(sub, name), "wb") as fh:
+            fh.write(body if isinstance(body, bytes) else body.encode("utf-8"))
+        hit = bool(problems(sub))
+        print(("ok   " if hit else "MISS ") + "refuses " + name)
+        bad += 0 if hit else 1
+    link = tempfile.mkdtemp(dir=d)
+    os.symlink(os.path.join(OUT, "README.md"), os.path.join(link, "r.md"))
+    x = tempfile.mkdtemp(dir=d)
+    open(os.path.join(x, "run.md"), "w").write("hi"); os.chmod(os.path.join(x, "run.md"), 0o755)
+    for label, sub in (("a link", link), ("an executable file", x)):
+        hit = bool(problems(sub)); print(("ok   " if hit else "MISS ") + "refuses " + label); bad += 0 if hit else 1
+    print("%d rule(s) missed" % bad)
     return 1 if bad else 0
 
 
 if "--check" in sys.argv:
     sys.exit(check())
+if "--selftest" in sys.argv:
+    sys.exit(selftest())
 if "--verify" in sys.argv:
     sys.exit(verify())
 write()

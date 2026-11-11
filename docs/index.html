@@ -202,7 +202,7 @@ function show(){var ai=document.querySelector('input[name=ai]:checked'),bd=docum
   if(s[1]==='cmd')li.appendChild(box(CMD,true));
   else if(s[1]==='prompt')li.appendChild(box(prompt,false));
   else if(s[1]==='live')li.appendChild(box('Start Muster Lite. Read '+RAW+' now and each time you start, and follow the section "The prompt: '+bd+' build" in it.',true));
-  else if(s[1]==='zip'){var a=el('a','','muster-lite-'+bd+'.zip');a.href='lite/muster-lite-'+bd+'.zip';a.setAttribute('download','');li.appendChild(document.createTextNode(' '));li.appendChild(a)}
+  else if(s[1]==='zip'){var a=el('a','','muster-lite-'+bd+'.zip');a.href='https://github.com/d4rthban3/muster/'+'releases/download/lite/muster-lite-'+bd+'.zip';a.setAttribute('download','');li.appendChild(document.createTextNode(' '));li.appendChild(a)}
   else if(s[1]==='repo'){var a2=el('a','','MUSTER-LITE.md');a2.href=REPO;li.appendChild(document.createTextNode(' '));li.appendChild(a2)}}
   ol.appendChild(li)});r.appendChild(ol)}
 document.querySelectorAll('input[name=ai],input[name=build]').forEach(function(i){i.addEventListener('change',show)});

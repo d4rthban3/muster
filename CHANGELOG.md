@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.54
+Affects: manager, builder, designer, inspector.
+Directory edition: Markdown, JSON and image only copy for the plugin directory review
+
 ## 0.3.53
 Affects: manager, builder, designer, inspector.
 Order action field

@@ -4,6 +4,7 @@ for the plugin directory's review. No hooks, no scripts, no programs, no html/zi
   build-directory.py            write directory/
   build-directory.py --check    exit 1 if directory/ is out of date (the version number is not compared: a ship raises it)
   build-directory.py --verify   check every file of directory/ against the review's rules and print the counts
+  build-directory.py --full     the full edition against the same review: what is still open vs what verification lifts
   build-directory.py --selftest plant one bad file per rule in a scratch folder: every one must be refused
 What goes in: agents/ (the role pages, each with a one-line notice that coded checks and scripts are not in this edition), skills/,
 commands/ (except setup, which opens the setup page), templates/*.md, the logo, LICENSE, a README that points to the full edition."""
@@ -11,6 +12,7 @@ import json
 import os
 import re
 import shutil
+import subprocess
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -22,7 +24,7 @@ NOTICE = ("> Directory edition: this copy holds the rules only. The coded checks
 SKIP_COMMANDS = {"setup.md"}
 SKIP_TEMPLATES = {"DIRECTORY-RESUBMIT.md"}  # the full edition's routine, not part of what the directory reviews
 # what the review warned about: reading credentials, or redirecting a package source
-BAD = re.compile(r"(\.ssh|\.aws|\.netrc|id_rsa|api[_-]?key\s*=|password\s*=|BEGIN [A-Z ]*PRIVATE KEY|sk-[A-Za-z0-9]{12,}|ghp_[A-Za-z0-9]{12,})", re.I)
+BAD = re.compile(r"(\.ssh|\.aws|\.netrc|id_rsa|api[_-]?key\s*=|password\s*=|BEGIN [A-Z ]*PRIVATE KEY|(?<![A-Za-z0-9])sk-[A-Za-z0-9]{12,}|ghp_[A-Za-z0-9]{12,})", re.I)
 
 
 def read(p):
@@ -210,8 +212,63 @@ def selftest():
     return 1 if bad else 0
 
 
+TEXT_EXT = {".md", ".json", ".py", ".sh", ".html", ".yml", ".yaml", ".toml", ".mdc", ".txt", ".js", ".css", ".rs", ".svg"}
+
+
+def full_problems():
+    """The FULL edition (the plugin as installed from GitHub) against the same review. Two lists: what verification lifts
+    (hooks, file types other than Markdown/JSON/images, executables) and what it does NOT lift (an archive the review cannot read,
+    credential reads, registry wording, NUL bytes, bad UTF-8, a link). A ready package has nothing in the second list."""
+    names = subprocess.run(["git", "-C", ROOT, "ls-files", "-z"], capture_output=True, text=True).stdout.split("\0")
+    gated, open_ = [], []
+    for rel in sorted(n for n in names if n):
+        full = os.path.join(ROOT, rel)
+        if os.path.islink(full):
+            open_.append(("a link", rel)); continue
+        if not os.path.isfile(full):
+            continue
+        ext = os.path.splitext(rel)[1].lower()
+        if rel.startswith("hooks/") or rel.endswith("hooks.json"):
+            gated.append(("a command hook", rel))
+        elif ext == ".zip":
+            open_.append(("an archive the review cannot read (BINARIES_NOT_INSPECTED)", rel)); continue
+        elif ext not in ALLOWED and ext not in {".yml", ".gitignore"}:
+            gated.append(("a file type other than Markdown, JSON or an image (%s)" % (ext or "none"), rel))
+        if rel.startswith("bin/") or ext not in TEXT_EXT:
+            continue
+        data = open(full, "rb").read()
+        if b"\x00" in data:
+            open_.append(("a NUL byte", rel)); continue
+        try:
+            text = data.decode("utf-8")
+        except UnicodeDecodeError:
+            open_.append(("not UTF-8", rel)); continue
+        if rel in ("scripts/build-directory.py", "scripts/scan-leaks.sh"):
+            continue  # these two hold the rule patterns themselves
+        if BAD.search(text):
+            open_.append(("credential-like text or a credential-file read", rel))
+        if REGISTRY.search(text):
+            open_.append(("package-registry wording", rel))
+    return gated, open_
+
+
+def full_report():
+    gated, open_ = full_problems()
+    for rule, rel in open_:
+        print("OPEN (verification does not lift it): %s: %s" % (rule, rel))
+    kinds = {}
+    for rule, _ in gated:
+        kinds[rule] = kinds.get(rule, 0) + 1
+    for rule, n in sorted(kinds.items()):
+        print("gated by verification: %d x %s" % (n, rule))
+    print("full edition: %d open finding(s), %d gated by verification" % (len(open_), len(gated)))
+    return 1 if open_ else 0
+
+
 if "--check" in sys.argv:
     sys.exit(check())
+if "--full" in sys.argv:
+    sys.exit(full_report())
 if "--selftest" in sys.argv:
     sys.exit(selftest())
 if "--verify" in sys.argv:

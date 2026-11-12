@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.57
+Affects: manager, builder, designer, inspector.
+Stop check fix: once per turn, plain answers pass, routed items handled, no-pick record
+
 ## 0.3.56
 Affects: manager, builder, designer, inspector.
 Note field: any record may carry one plain-text note, 400 characters, no key or password

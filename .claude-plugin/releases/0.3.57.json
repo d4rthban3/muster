@@ -1,0 +1,37 @@
+{
+  "version": "0.3.57",
+  "changed_files": [
+    "bin/SOURCE-STAMP",
+    "bin/linux-arm64/muster-checks",
+    "bin/linux-x86_64/muster-checks",
+    "bin/macos-arm64/muster-checks",
+    "bin/macos-x86_64/muster-checks",
+    "bin/windows-x86_64/muster-checks.exe",
+    "checks/src/boardstop.rs",
+    "checks/src/common.rs",
+    "checks/src/rules.rs",
+    "checks/src/talk.rs",
+    "directory/.claude-plugin/marketplace.json",
+    "directory/.claude-plugin/plugin.json",
+    "directory/skills/board-digest/SKILL.md",
+    "directory/skills/decision-log/SKILL.md",
+    "hooks/board-stop.py",
+    "hooks/rules-check.py",
+    "hooks/talk-check.py",
+    "scripts/record-choice.py",
+    "scripts/rules-check-selftest.py",
+    "skills/board-digest/SKILL.md",
+    "skills/decision-log/SKILL.md"
+  ],
+  "affected_roles": [
+    "manager",
+    "builder",
+    "designer",
+    "inspector"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Stop check fix: once per turn, plain answers pass, routed items handled, no-pick record"
+}

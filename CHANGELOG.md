@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.59
+Affects: manager, builder, designer, inspector.
+Show first: a question about how something looks needs the pictures shown in the same turn
+
 ## 0.3.58
 Affects: Manager.
 Idle-crew check: a Stop hook refuses a silent manager stop while an idle chat has an open item

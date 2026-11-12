@@ -1,0 +1,48 @@
+{
+  "version": "0.3.56",
+  "changed_files": [
+    "agents/agent-teacher.md",
+    "agents/ai-socket.md",
+    "agents/builder.md",
+    "agents/design-inspector.md",
+    "agents/designer.md",
+    "agents/inspector.md",
+    "agents/manager.md",
+    "agents/sketchpad.md",
+    "bin/SOURCE-STAMP",
+    "bin/linux-arm64/muster-checks",
+    "bin/linux-x86_64/muster-checks",
+    "bin/macos-arm64/muster-checks",
+    "bin/macos-x86_64/muster-checks",
+    "bin/windows-x86_64/muster-checks.exe",
+    "checks/src/record.rs",
+    "directory/.claude-plugin/marketplace.json",
+    "directory/.claude-plugin/plugin.json",
+    "directory/agents/agent-teacher.md",
+    "directory/agents/ai-socket.md",
+    "directory/agents/builder.md",
+    "directory/agents/design-inspector.md",
+    "directory/agents/designer.md",
+    "directory/agents/inspector.md",
+    "directory/agents/manager.md",
+    "directory/agents/sketchpad.md",
+    "directory/templates/REPORT.md",
+    "hooks/rules-check.py",
+    "pages/manager.md",
+    "pages/shared.md",
+    "scripts/build-pages.py",
+    "scripts/rules-check-selftest.py",
+    "templates/REPORT.md"
+  ],
+  "affected_roles": [
+    "manager",
+    "builder",
+    "designer",
+    "inspector"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Note field: any record may carry one plain-text note, 400 characters, no key or password"
+}

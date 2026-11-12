@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.56
+Affects: manager, builder, designer, inspector.
+Note field: any record may carry one plain-text note, 400 characters, no key or password
+
 ## 0.3.55
 Affects: manager, builder, designer, inspector.
 Ready package: ship script wording, leak scan skips diff headers, directory edition checks every review rule, resubmit routine

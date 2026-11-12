@@ -9,8 +9,10 @@ const NEEDS: [&str; 6] = ["none", "pass_or_fail", "order", "owner_answer", "fix"
 const DONE_WHEN: [&str; 4] = ["ready", "pass", "live", "report"];
 /// An ORDER says what happens after the work: start (do it and send READY), hold (after PASS wait for the owner's go), ship (after PASS ship).
 const ACTIONS: [&str; 3] = ["ship", "hold", "start"];
-const KEYS: [&str; 16] = [
-    "v", "kind", "id", "job", "from", "to", "sha", "version", "tests", "touches", "need", "usage", "owner_words", "owns", "out", "action",
+/// One free-text `note` (item 52): the only key that may hold sentences. Code checks its length, that it is one line of plain text, and that it carries no key or password.
+const NOTE_MAX: usize = 400;
+const KEYS: [&str; 17] = [
+    "v", "kind", "id", "job", "from", "to", "sha", "version", "tests", "touches", "need", "usage", "owner_words", "owns", "out", "action", "note",
 ];
 
 fn code(v: &Value, what: &str, lo: usize, hi: usize) -> Result<String, String> {
@@ -78,6 +80,16 @@ fn sha(v: &Value) -> Result<(), String> {
     if (7..=40).contains(&s.len()) && s.chars().all(|c| c.is_ascii_hexdigit() && !c.is_ascii_uppercase()) { Ok(()) } else { Err("sha must be 7-40 lowercase hex characters".into()) }
 }
 
+fn note(v: &Value) -> Result<(), String> {
+    let s = v.as_str().ok_or("note must be text")?;
+    if s.trim().is_empty() { return Err("note is empty (leave the key out)".into()); }
+    if s.chars().count() > NOTE_MAX { return Err(format!("note is {} characters; the cap is {NOTE_MAX} (detail goes on the board)", s.chars().count())); }
+    if s.chars().any(|c| c.is_control()) { return Err("note must be one line of plain text".into()); }
+    let secret = fancy_regex::Regex::new(r"(?i)((?<![A-Za-z0-9])sk-[A-Za-z0-9]{12,}|ghp_[A-Za-z0-9]{12,}|AKIA[A-Z0-9]{12,}|BEGIN [A-Z ]*PRIVATE KEY|password\s*[:=]|api[_-]?key\s*[:=]|token\s*[:=])").unwrap();
+    if secret.is_match(s).unwrap_or(false) { return Err("a note never carries a key, password or token".into()); }
+    Ok(())
+}
+
 fn opt<'a>(m: &'a Map<String, Value>, k: &str) -> Option<&'a Value> {
     m.get(k).filter(|v| !v.is_null())
 }
@@ -90,6 +102,7 @@ pub fn validate(text: &str, things: &HashSet<String>) -> Result<(), String> {
     for k in m.keys() {
         if !KEYS.contains(&k.as_str()) { return Err(format!("unknown key '{k}'")); }
     }
+    if let Some(n) = m.get("note") { note(n)?; }
     if m.get("v").and_then(Value::as_u64) != Some(1) { return Err("v must be 1".into()); }
     let kind = m.get("kind").and_then(Value::as_str).ok_or("kind is missing")?;
     if !KINDS.contains(&kind) { return Err(format!("kind '{kind}' is not one of {}", KINDS.join(", "))); }
@@ -213,7 +226,7 @@ mod tests {
 
     #[test]
     fn an_unknown_key_is_refused() {
-        assert!(validate(&READY.replace("\"v\":1,", "\"v\":1,\"note\":\"hi\",")).unwrap_err().contains("unknown key"));
+        assert!(validate(&READY.replace("\"v\":1,", "\"v\":1,\"memo\":\"hi\",")).unwrap_err().contains("unknown key"));
     }
 
     #[test]
@@ -256,5 +269,17 @@ mod tests {
         let p = r#"{"v":1,"kind":"PASS","id":"inspector-lean-rebuild-1","job":"lean-rebuild","from":"inspector","to":"builder-a","sha":"d082303","need":"none"}"#;
         assert_eq!(validate(p), Ok(()));
         assert!(validate(&p.replace("\"sha\":\"d082303\",", "")).is_err());
+    }
+
+    #[test]
+    fn a_note_is_free_text_with_a_length_cap_and_no_secrets() {
+        let n = |s: &str| READY.replacen("{\"v\":1,", &format!("{{\"v\":1,\"note\":\"{s}\","), 1);
+        assert_eq!(validate(&n("Handover done: archive the old chats and read the new board.")), Ok(()));
+        assert!(validate(&n(&"x".repeat(401))).is_err());
+        assert!(validate(&n(&"x".repeat(400))).is_ok());
+        assert!(validate(&n("token = abc")).is_err());
+        assert!(validate(&n("")).is_err());
+        assert!(validate(&n("line one\\nline two")).is_err());
+        assert!(validate(&READY.replacen("{\"v\":1,", "{\"v\":1,\"memo\":\"hi\",", 1)).is_err());
     }
 }

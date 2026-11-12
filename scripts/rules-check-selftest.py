@@ -112,7 +112,7 @@ RDY = '{"v":1,"kind":"READY","id":"builder-a-x-1","job":"x","from":"builder-a","
 if BIN:
     cases += [
         ("RECORDS: a sentence inside a field is refused", send_rec(REC.replace('"x"', '"please look"', 1)), True),
-        ("RECORDS: an unknown key is refused", send_rec(REC.replace('"v":1,', '"v":1,"note":"hi",')), True),
+        ("RECORDS: an unknown key is refused", send_rec(REC.replace('"v":1,', '"v":1,"memo":"hi",')), True),
         ("RECORDS: touches naming a real top-level folder goes through", send_rec(RDY, cwd=os.path.join(HERE, "..")), False),
         ("RECORDS: touches that spell a sentence one word per entry are refused", send_rec(RDY.replace('["hooks"]', '["path","uses","backslashes","on","windows"]'), cwd=os.path.join(HERE, "..")), True),
         ("RECORDS: touches naming nothing in the project are refused", send_rec(RDY.replace('["hooks"]', '["nothing-here"]'), cwd=os.path.join(HERE, "..")), True),
@@ -162,6 +162,15 @@ cases += [
     ("HELPERS: a brief that asks it to push is refused", helper(b, prompt="Commit and git push the branch."), True),
     ("HELPERS: a brief that forbids shipping goes through", helper(b, prompt="Search the hooks folder. Never run git push or ship.sh."), False),
     ("HELPERS: the owner's own chat is silent", helper(owner, subagent_type="builder", prompt="x"), False),
+]
+# a note (item 52): one plain line, 400 characters at most, no secrets
+def with_note(n):
+    return REC.replace('"v":1,', '"v":1,"note":%s,' % json.dumps(n), 1)
+cases += [
+    ("NOTE: a plain note goes through", send_rec(with_note("Handover done: archive the old chats.")), False),
+    ("NOTE: a note over 400 characters is refused", send_rec(with_note("x" * 401)), True),
+    ("NOTE: a note holding a token is refused", send_rec(with_note("use token = abc123")), True),
+    ("NOTE: a note with a line break is refused", send_rec(with_note("a\nb")), True),
 ]
 bad = 0
 for name, out, should_block in cases:

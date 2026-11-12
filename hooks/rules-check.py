@@ -342,6 +342,7 @@ def usage_at_limit(root):
     return False
 
 
+NOTE_SECRET = re.compile(r"(?<![A-Za-z0-9])sk-[A-Za-z0-9]{12,}|ghp_[A-Za-z0-9]{12,}|AKIA[A-Z0-9]{12,}|BEGIN [A-Z ]*PRIVATE KEY|password\s*[:=]|api[_-]?key\s*[:=]|token\s*[:=]", re.I)
 HELPER_ROLES = ("manager", "builder", "designer", "inspector", "design-inspector", "sketchpad", "ai-socket", "agent-teacher")
 HELPER_ASK = re.compile(r"scripts[/\\]ship\.sh|\bgit\s+push\b|\bSendMessage\b|\bAskUserQuestion\b", re.I)
 HELPER_NEG = re.compile(r"\b(never|not|no|without|don't|do not)\b|n't\b", re.I)
@@ -379,6 +380,10 @@ def pretool(data, manager):
             if not ok:
                 return deny("a message between chats is a data record (one JSON object with fixed keys), never sentences; see muster/REPORT.md")
             rec = json.loads(msg)
+            note = rec.get("note")
+            if note is not None and (not isinstance(note, str) or not note.strip() or len(note) > 400 or any(ord(c) < 32 for c in note)
+                                     or NOTE_SECRET.search(note)):
+                return deny("a note is one plain line of text, 1 to 400 characters, with no key, password or token (detail goes on the board)")
             if rec.get("kind") == "ORDER" and rec.get("action") not in ("ship", "hold", "start"):
                 return deny("an ORDER needs action: ship, hold or start (what happens after the work)")
             if rec.get("kind") == "ORDER":

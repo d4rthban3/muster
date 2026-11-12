@@ -188,6 +188,22 @@ cases += [
     ("STOP: an answered card still needs its record", run("Stop", last_assistant_message="ok", transcript_path=tr(MG, asked("q1", "Your questions have been answered: x"))), True),
     ("STOP: the refusal never names scripts/decide.py", "" if "decide.py" not in run("Stop", last_assistant_message="ok", transcript_path=tr(MG, asked("q1", "Your questions have been answered: x"))) else "BAD", False),
 ]
+# the board stop check (item 59): an item the manager has routed is handled, so the same waiting line is not demanded again
+BSH = os.path.join(HERE, "..", "hooks", "board-stop.py")
+def bstop(board, said="Nothing else."):
+    d = tempfile.mkdtemp(dir=T); os.makedirs(os.path.join(d, "muster"))
+    open(os.path.join(d, "muster", "BOARD.md"), "w", encoding="utf-8").write("# Board\n" + board)
+    env = dict(os.environ, MUSTER_ASSUME_MANAGER="1")
+    r = subprocess.run([BIN, "board-stop"] if BIN else [sys.executable, BSH], input=json.dumps(dict(hook_event_name="Stop", cwd=d, last_assistant_message=said, transcript_path=tr(MG))), capture_output=True, text=True, env=env)
+    return r.stdout.strip()
+NEED = "\n### 2026-11-12 | NEED | Builder A_X_001 -> Manager_X_001 | a job\nStatus: open\nNEED: a job\n"
+cases += [
+    ("BOARD: an open NEED the manager has not routed is demanded", bstop(NEED), True),
+    ("BOARD: ...and passes once the reply names it", bstop(NEED, "Builder A_X_001 is waiting for you: type in Builder A_X_001."), False),
+    ("BOARD: a NEED with a routed Status line is handled", bstop(NEED.replace("Status: open", "Status: routed")), False),
+    ("BOARD: a NEED the manager later answered on the same job is handled", bstop(NEED + "\n### 2026-11-12 | ORDER | Manager_X_001 -> Builder A_X_001 | a job\nStatus: open\nORDER: a job\n"), False),
+    ("BOARD: a later manager entry on another job does not clear it", bstop(NEED + "\n### 2026-11-12 | ORDER | Manager_X_001 -> Builder A_X_001 | other job\nStatus: open\n"), True),
+]
 bad = 0
 for name, out, should_block in cases:
     ok = bool(out) == should_block

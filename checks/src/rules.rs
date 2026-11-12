@@ -327,7 +327,7 @@ fn stop(c: &Ctx, data: &Value, manager: bool) {
     if manager {
         if let Some(idx) = asked_at.filter(|&i| !card_skipped(tpath, s(&uses[i], "id"))) {
             let recorded = uses[idx + 1..].iter().any(|u| s(u, "name") == "Bash" && u.get("input").map(|i| s(i, "command").contains(&c.recorder)).unwrap_or(false));
-            if !recorded { block(&format!("a choice card was answered but not recorded: run {} with his exact answer under its list item before ending the turn", recorder_path(&main_folder(s(data, "cwd")), &c.recorder))); }
+            if !recorded { block(&format!("a choice card was answered but not recorded: run {} with his exact answer (or --no-pick if he skipped the card or typed his own words) under its list item before ending the turn", recorder_path(&main_folder(s(data, "cwd")), &c.recorder))); }
             return;
         }
         if !manager_reply_ok(text) && !owner_asked(tpath) {

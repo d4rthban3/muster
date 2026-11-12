@@ -17,7 +17,7 @@ you or to ALL; this only finds them.
 3. Answer every open entry addressed to you before new work.
 4. Open a headers-only entry in full only if its title touches your work.
 5. If it says it found no board, or the counts look wrong, read `muster/BOARD.md` by hand. Missing stays missing.
-6. Before a session ends, run it again and close what is done (`Status: done`).
+6. Before a session ends, run it again and close what is done (`Status: done`). A worker NEED, STUCK or pause you have passed on counts as handled: write `Status: routed` on it, or post your own entry on the same job; the stop check then stops asking for it.
 
 ## The "Waiting on:" line
 The digest prints it. The manager alone runs it with `--write-waiting` to keep the one line at the top of `muster/BOARD.md`

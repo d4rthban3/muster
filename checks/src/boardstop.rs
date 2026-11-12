@@ -110,7 +110,9 @@ pub fn run() -> i32 {
             e.paused = false;
             if !attn(&e.kind) { continue; }
         }
-        if e.status == "done" || e.status == "closed" { continue; }
+        if ["done", "closed", "routed", "handled", "answered", "forwarded"].contains(&e.status.as_str()) { continue; }
+        // routed: a LATER entry written by the manager on the same job counts as handled (item 59)
+        if !e.job.is_empty() && items[i + 1..].iter().any(|x| x.from.to_lowercase().starts_with("manager") && x.job.to_lowercase() == e.job.to_lowercase()) { continue; }
         if !(e.paused || (kinds_open && attn(&e.kind))) { continue; }
         if (!e.from.is_empty() && said.contains(&e.from.to_lowercase())) || (!e.job.is_empty() && said.contains(&e.job.to_lowercase())) { continue; }
         missed.push(e);

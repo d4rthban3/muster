@@ -523,7 +523,7 @@ def stop(data, manager):
         if asked and not card_skipped(data.get("transcript_path") or "", uses[idx].get("id")):
             recorded = any(u.get("name") == "Bash" and RECORDER in str((u.get("input") or {}).get("command", "")) for u in uses[idx + 1:])
             if not recorded:
-                return block("a choice card was answered but not recorded: run %s with his exact answer" % recorder_path(main_folder(data.get("cwd"))) + " under its list item before ending the turn")
+                return block("a choice card was answered but not recorded: run %s with his exact answer (or --no-pick if he skipped the card or typed his own words)" % recorder_path(main_folder(data.get("cwd"))) + " under its list item before ending the turn")
             return
         if not manager_reply_ok(text) and not owner_asked(data.get("transcript_path") or ""):
             return block("to the owner the manager says only a question with its choices as buttons, a yes he must give, '<worker> is waiting for you: type in <chat>', or 'The crew is idle'. Rewrite the reply as one of those, or put the news on the board")

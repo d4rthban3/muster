@@ -7,6 +7,7 @@ Writes, under item <number> in muster/OWNERS-LIST.md (nothing else is changed), 
      Options: every option's text, in order
      Picked: the one picked
      He said: his own words, if he typed any
+With --no-pick (no --option, no --picked): "Picked: (no pick: he skipped the card)" or, with --said, "(no pick: he answered in his own words)"; nothing is decided.
 Exit 1 and says why if the item is not found or the picked text is not one of the options. Standard library only.
 """
 import argparse
@@ -19,10 +20,15 @@ ap = argparse.ArgumentParser()
 ap.add_argument("project")
 ap.add_argument("item", type=int)
 ap.add_argument("--question", required=True)
-ap.add_argument("--option", action="append", required=True)
-ap.add_argument("--picked", required=True)
+ap.add_argument("--option", action="append", default=[])
+ap.add_argument("--picked", default="")
 ap.add_argument("--said", default="")
+ap.add_argument("--no-pick", action="store_true", help="he skipped the card or answered in his own words (give them with --said): records that nothing was picked")
 a = ap.parse_args()
+if a.no_pick:
+    a.picked = "(no pick: %s)" % ("he answered in his own words" if a.said else "he skipped the card")
+elif not a.option or not a.picked:
+    sys.exit("record-choice: pass --option (each one) and --picked, or --no-pick when he skipped the card or answered in his own words")
 
 path = os.path.join(a.project, "muster", "OWNERS-LIST.md")
 try:
@@ -30,7 +36,7 @@ try:
         lines = fh.read().split("\n")
 except OSError as err:
     sys.exit("record-choice: cannot read %s (%s)" % (path, err))
-if a.picked not in a.option and not a.said:
+if not a.no_pick and a.picked not in a.option and not a.said:
     sys.exit("record-choice: the picked text is not one of the options; pass it exactly, or pass --said for his own words")
 # look only outside fenced ``` blocks (the list's made-up examples live in one) and, if the list has an "## Open"
 # heading, only from there on

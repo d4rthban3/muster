@@ -35,6 +35,9 @@ if PROFILE.get("manager_names"):
     MANAGER_RE = re.compile(MANAGER_RE.pattern + "|" + "|".join("(?:%s)" % x for x in PROFILE["manager_names"]))
 
 
+HANDLED = ("done", "closed", "routed", "handled", "answered", "forwarded")
+
+
 def entries(text):
     out, cur, fenced = [], None, False
     for line in text.splitlines():
@@ -234,7 +237,11 @@ def main():
             e["paused"] = False
             if e["kind"] not in ("NEED", "STUCK", "OWNER CALL"):
                 continue
-        if e["status"] in ("done", "closed"):
+        if e["status"] in HANDLED:
+            continue
+        # routed: a LATER entry written by the manager on the same job counts as handled (it answered or passed the item on),
+        # so the same waiting line is not demanded again (item 59)
+        if e["job"] and any(x["from"].lower().startswith("manager") and x["job"].lower() == e["job"].lower() for x in items[i + 1:]):
             continue
         if not (e["paused"] or (kinds_open and e["kind"] in ("NEED", "STUCK", "OWNER CALL"))):
             continue

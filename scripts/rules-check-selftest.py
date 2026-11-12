@@ -85,7 +85,7 @@ cases = [
     ("a question mark from another chat is not his", run("Stop", last_assistant_message="Yes, it is shipped.", transcript_path=tr("You are Manager_Muster_002", [said("<cross-session-message from=\"x\">is it done?</cross-session-message>")])), True),
     ("his question, then hook feedback inside his turn: the answer still passes", run("Stop", last_assistant_message="Yes, it is shipped.", transcript_path=tr("You are Manager_Muster_002", [said("well?"), said("Stop hook feedback: rewrite it"), said("<system-reminder>note</system-reminder>")])), False),
     ("his question, then an app event (task notification): narration blocked", run("Stop", last_assistant_message="The task finished.", transcript_path=tr("You are Manager_Muster_002", [said("well?"), said("<system-reminder>[SYSTEM NOTIFICATION] <task-notification>x</task-notification></system-reminder>")])), True),
-    ("a question mark in hook feedback or a system note is not his", run("Stop", last_assistant_message="Yes, it is shipped.", transcript_path=tr("You are Manager_Muster_002", [said("[SYSTEM NOTIFICATION - NOT USER INPUT] ready?"), said("Stop hook feedback: really?")])), True),
+    ("a question mark in hook feedback or a system note is not his", run("Stop", last_assistant_message="Yes, it is shipped.", transcript_path=tr("You are Manager_Muster_002", [said("[SYSTEM NOTIFICATION - NOT USER INPUT] ready?"), said("<system-reminder>really?")])), True),
     ("a manager question with buttons passes", run("Stop", last_assistant_message="Which one: A or B? Pick a button.", transcript_path=m), False),
     ("a manager idle line passes", run("Stop", last_assistant_message="The crew is idle. Here's what's next.", transcript_path=m), False),
     ("a manager waiting line passes", run("Stop", last_assistant_message="Builder A is waiting for you: type in Builder A_Muster_002.", transcript_path=m), False),
@@ -171,6 +171,22 @@ cases += [
     ("NOTE: a note over 400 characters is refused", send_rec(with_note("x" * 401)), True),
     ("NOTE: a note holding a token is refused", send_rec(with_note("use token = abc123")), True),
     ("NOTE: a note with a line break is refused", send_rec(with_note("a\nb")), True),
+]
+# the manager's stop check (item 53): wrong blocks fixed, the shape check kept
+MG = "You are Manager_Muster_002"
+asked = lambda tid, ans, err=False: [use("AskUserQuestion", tid, questions=[]), res(tid, ans, err)]
+cases += [
+    ("STOP: a plain pointer to the board, unasked, still blocks", run("Stop", last_assistant_message="The news is on the board.", transcript_path=tr(MG)), True),
+    ("STOP: a plain answer to a question he asked passes", run("Stop", last_assistant_message="Because the test run timed out.", transcript_path=tr(MG, [said("why did the build fail?")])), False),
+    ("STOP: a plain answer to words with no question mark passes", run("Stop", last_assistant_message="It stays in the plugin folder.", transcript_path=tr(MG, [said("tell me where the zip move ended up")])), False),
+    ("STOP: a reply to a plain statement still blocks", run("Stop", last_assistant_message="All done, nice and good.", transcript_path=tr(MG, [said("ok thanks")])), True),
+    ("STOP: a check bounces once per turn: after one bounce the next stop passes", run("Stop", last_assistant_message="All done, nice and good.", transcript_path=tr(MG, [said("ok thanks"), said("Stop hook feedback:\nto the owner the manager says only a question")])), False),
+    ("STOP: ...and a new message starts a new turn that can bounce again", run("Stop", last_assistant_message="All done, nice and good.", transcript_path=tr(MG, [said("Stop hook feedback:\nx"), said("ok thanks")])), True),
+    ("STOP: a long report to him still blocks", run("Stop", last_assistant_message="I fixed all the things and then shipped them to main and the live site now has the new version. " * 5, transcript_path=tr(MG)), True),
+    ("STOP: a card he skipped needs no record", run("Stop", last_assistant_message="The crew is idle.", transcript_path=tr(MG, asked("q1", "The user doesn't want to proceed", True))), False),
+    ("STOP: a skipped card does not excuse a bad reply", run("Stop", last_assistant_message="All done, nice and good.", transcript_path=tr(MG, asked("q1", "The user doesn't want to proceed", True))), True),
+    ("STOP: an answered card still needs its record", run("Stop", last_assistant_message="ok", transcript_path=tr(MG, asked("q1", "Your questions have been answered: x"))), True),
+    ("STOP: the refusal never names scripts/decide.py", "" if "decide.py" not in run("Stop", last_assistant_message="ok", transcript_path=tr(MG, asked("q1", "Your questions have been answered: x"))) else "BAD", False),
 ]
 bad = 0
 for name, out, should_block in cases:

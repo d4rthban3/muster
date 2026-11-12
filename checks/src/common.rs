@@ -117,6 +117,24 @@ pub fn turn_blocks(path: &str) -> Vec<Value> {
     uses
 }
 
+/// True when the choice card (an AskUserQuestion with this id) got no answer from him: its result is an error, says he does not want to
+/// proceed, or never came back. Then there is nothing to record (item 53).
+pub fn card_skipped(path: &str, use_id: &str) -> bool {
+    if use_id.is_empty() || std::fs::metadata(path).is_err() { return false; } // an unreadable transcript is never "skipped"
+    for d in lines_of(path) {
+        if s(&d, "type") != "user" { continue; }
+        if let Value::Array(a) = msg_content(&d) {
+            for b in &a {
+                if s(b, "type") == "tool_result" && s(b, "tool_use_id") == use_id {
+                    let body = content_text(b.get("content").unwrap_or(&Value::Null));
+                    return b.get("is_error").and_then(Value::as_bool).unwrap_or(false) || body.contains("doesn't want to proceed") || body.contains("has not answered");
+                }
+            }
+        }
+    }
+    true
+}
+
 /// Messages really sent: a SendMessage whose result came back without an error.
 pub fn all_sent_text(path: &str) -> Vec<String> {
     let mut calls: Vec<(String, String)> = vec![];
@@ -140,7 +158,25 @@ pub fn all_sent_text(path: &str) -> Vec<String> {
     calls.into_iter().filter(|(i, _)| done.contains(i) && !failed.contains(i)).map(|(_, t)| t).collect()
 }
 
-/// True if this turn was started by the owner's typed message and it holds a question mark.
+/// True when a Stop hook already bounced a reply in this turn (the turn starts at the last message that is not hook feedback, so an app
+/// event or a new typed message starts a fresh one). A check bounces at most once per turn (item 57).
+pub fn bounced_this_turn(path: &str) -> bool {
+    let mut bounced = false;
+    for d in lines_of(path) {
+        if s(&d, "type") != "user" { continue; }
+        let c = msg_content(&d);
+        if let Value::Array(a) = &c { if a.iter().any(|b| s(b, "type") == "tool_result") { continue; } }
+        let t = content_text(&c);
+        if t.trim().is_empty() { continue; }
+        let t = t.trim_start();
+        if t.starts_with("Stop hook feedback") || t.starts_with("Stop hook blocking error") { bounced = true; }
+        else if !t.starts_with("<system-reminder") { bounced = false; }
+    }
+    bounced
+}
+
+/// True if this turn was started by the owner's typed message and it asks something: a question mark, or a question word or request
+/// ("why", "how", "tell me", "look at", "check" ...) in his words (item 57).
 pub fn owner_asked(path: &str) -> bool {
     let ends = rei(r"<cross-session-message|<task-notification|<side-sessions-event|<ci-monitor-event|\[SYSTEM NOTIFICATION");
     let neutral = rei(r"^\s*(<system-reminder|Stop hook feedback)");
@@ -153,7 +189,7 @@ pub fn owner_asked(path: &str) -> bool {
         if t.trim().is_empty() { continue; }
         if is(&ends, &t) { last.clear(); } else if !is(&neutral, &t) { last = t; }
     }
-    last.contains('?')
+    last.contains('?') || is(&rei(r"^\s*(what|why|how|when|where|who|which|can|could|would|will|did|does|do|is|are|was|were|should|tell|show|explain|look|check|find|list|give|say|read|open|run)\b|\b(tell me|show me|let me know|how come|what's|look at)\b"), &last)
 }
 
 pub fn exists(p: &Path) -> bool { p.exists() }

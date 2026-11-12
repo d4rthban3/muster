@@ -156,6 +156,36 @@ def stood_down(data):
         d = parent
 
 
+def bounced_this_turn(path):
+    """True when a Stop hook already bounced a reply in this turn (the turn starts at the last message that is not hook feedback);
+    a check bounces at most once per turn (item 57)."""
+    bounced = False
+    try:
+        with open(path, encoding="utf-8") as fh:
+            for line in fh:
+                try:
+                    d = json.loads(line)
+                except ValueError:
+                    continue
+                if d.get("type") != "user":
+                    continue
+                c = (d.get("message") or {}).get("content", "")
+                if isinstance(c, list):
+                    if any(isinstance(b, dict) and b.get("type") == "tool_result" for b in c):
+                        continue
+                    c = " ".join(b.get("text", "") for b in c if isinstance(b, dict))
+                t = str(c).strip()
+                if not t:
+                    continue
+                if t.startswith("Stop hook feedback") or t.startswith("Stop hook blocking error"):
+                    bounced = True
+                elif not t.startswith("<system-reminder"):
+                    bounced = False
+    except OSError:
+        pass
+    return bounced
+
+
 def main():
     try:
         data = json.loads(sys.stdin.buffer.read().decode("utf-8", "replace"))
@@ -163,7 +193,7 @@ def main():
         return 0
     if stood_down(data):
         return 0
-    if data.get("stop_hook_active"):
+    if data.get("stop_hook_active") or bounced_this_turn(data.get("transcript_path") or ""):
         return 0
     if os.environ.get("MUSTER_ASSUME_MANAGER") != "1" and not is_manager_chat(data.get("transcript_path") or ""):
         return 0  # the owner's own chat, or a worker: never nag it

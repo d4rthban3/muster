@@ -69,6 +69,7 @@ pub fn run() -> i32 {
     if stood_down(&data, "board-stop.py") { return 0; }
     let profile = load_profile();
     if data.get("stop_hook_active").and_then(Value::as_bool).unwrap_or(false) { return 0; }
+    if bounced_this_turn(s(&data, "transcript_path")) { return 0; }
     let tpath = s(&data, "transcript_path");
     let mgr_re = manager_re(&profile);
     if std::env::var("MUSTER_ASSUME_MANAGER").ok().as_deref() != Some("1") {

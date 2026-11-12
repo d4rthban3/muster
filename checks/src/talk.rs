@@ -7,6 +7,7 @@ pub fn run() -> i32 {
     if stood_down(&data, "talk-check.py") { return 0; }
     let profile = load_profile();
     if data.get("stop_hook_active").and_then(Value::as_bool).unwrap_or(false) || profile.get("talk_check") == Some(&Value::Bool(false)) { return 0; }
+    if bounced_this_turn(s(&data, "transcript_path")) { return 0; }
     let text = s(&data, "last_assistant_message");
     if text.is_empty() { return 0; }
     let link = re(r"\[[^\]]*\]\([^)]*\)");

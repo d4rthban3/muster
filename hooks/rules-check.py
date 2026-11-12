@@ -206,6 +206,39 @@ ENDS_TURN = re.compile(r"<cross-session-message|<task-notification|<side-session
 NEUTRAL = re.compile(r"^\s*(<system-reminder|Stop hook feedback)", re.I)
 
 
+def bounced_this_turn(path):
+    """True when a Stop hook already bounced a reply in this turn (the turn starts at the last message that is not hook feedback);
+    a check bounces at most once per turn (item 57)."""
+    bounced = False
+    try:
+        with open(path, encoding="utf-8") as fh:
+            for line in fh:
+                try:
+                    d = json.loads(line)
+                except ValueError:
+                    continue
+                if d.get("type") != "user":
+                    continue
+                c = (d.get("message") or {}).get("content", "")
+                if isinstance(c, list):
+                    if any(isinstance(b, dict) and b.get("type") == "tool_result" for b in c):
+                        continue
+                    c = " ".join(b.get("text", "") for b in c if isinstance(b, dict))
+                t = str(c).strip()
+                if not t:
+                    continue
+                if t.startswith("Stop hook feedback") or t.startswith("Stop hook blocking error"):
+                    bounced = True
+                elif not t.startswith("<system-reminder"):
+                    bounced = False
+    except OSError:
+        pass
+    return bounced
+
+
+ASKING = re.compile(r"^\s*(what|why|how|when|where|who|which|can|could|would|will|did|does|do|is|are|was|were|should|tell|show|explain|look|check|find|list|give|say|read|open|run)\b|\b(tell me|show me|let me know|how come|what's|look at)\b", re.I)
+
+
 def owner_asked(path):
     """True if this turn was started by the owner's typed message and it holds a question mark. The turn's starting message is
     the owner's last typed message; a message from another chat or an app event (cross-session, task, side-sessions, CI)
@@ -234,7 +267,7 @@ def owner_asked(path):
                     last = c
     except OSError:
         pass
-    return "?" in last
+    return "?" in last or bool(ASKING.search(last))
 
 
 def main_folder(cwd):
@@ -435,6 +468,37 @@ def pretool(data, manager):
 
 
 # ---- Stop -----------------------------------------------------------------------------------------------------
+def card_skipped(path, use_id):
+    """True when the choice card got no answer from him: its result is an error ("the user doesn't want to proceed", a rejected
+    or interrupted card) or never came back. Then there is nothing to record (item 53)."""
+    if not use_id:
+        return False
+    try:
+        with open(path, encoding="utf-8") as fh:
+            for line in fh:
+                try:
+                    d = json.loads(line)
+                except ValueError:
+                    continue
+                c = (d.get("message") or {}).get("content", "")
+                if d.get("type") == "user" and isinstance(c, list):
+                    for b in c:
+                        if isinstance(b, dict) and b.get("type") == "tool_result" and b.get("tool_use_id") == use_id:
+                            body = json.dumps(b.get("content", ""))
+                            return bool(b.get("is_error")) or "doesn't want to proceed" in body or "has not answered" in body
+    except OSError:
+        return False  # an unreadable transcript is never "skipped"
+    return True
+
+
+def recorder_path(root):
+    """Where the choice recorder really is: the project's own scripts folder, else this plugin's, else just its name."""
+    for cand in (os.path.join(root or ".", "scripts", RECORDER), os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "scripts", RECORDER)):
+        if os.path.isfile(cand):
+            return os.path.normpath(os.path.abspath(cand))
+    return RECORDER
+
+
 def manager_reply_ok(text):
     t = LINK.sub(lambda m: m.group(0), text)
     if re.search(r"\bThe crew is idle\b", t, re.I):
@@ -450,16 +514,16 @@ def manager_reply_ok(text):
 
 def stop(data, manager):
     text = data.get("last_assistant_message") or ""
-    if not text or data.get("stop_hook_active"):
+    if not text or data.get("stop_hook_active") or bounced_this_turn(data.get("transcript_path") or ""):
         return
     uses = turn_blocks(data.get("transcript_path") or "")
     asked = any(u.get("name") == "AskUserQuestion" for u in uses)
     if manager:
-        if asked:
-            idx = max(i for i, u in enumerate(uses) if u.get("name") == "AskUserQuestion")
+        idx = max((i for i, u in enumerate(uses) if u.get("name") == "AskUserQuestion"), default=-1)
+        if asked and not card_skipped(data.get("transcript_path") or "", uses[idx].get("id")):
             recorded = any(u.get("name") == "Bash" and RECORDER in str((u.get("input") or {}).get("command", "")) for u in uses[idx + 1:])
             if not recorded:
-                return block("a choice card was answered but not recorded: run scripts/%s with his exact answer" % RECORDER + " under its list item before ending the turn")
+                return block("a choice card was answered but not recorded: run %s with his exact answer" % recorder_path(main_folder(data.get("cwd"))) + " under its list item before ending the turn")
             return
         if not manager_reply_ok(text) and not owner_asked(data.get("transcript_path") or ""):
             return block("to the owner the manager says only a question with its choices as buttons, a yes he must give, '<worker> is waiting for you: type in <chat>', or 'The crew is idle'. Rewrite the reply as one of those, or put the news on the board")

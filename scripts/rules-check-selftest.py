@@ -222,6 +222,14 @@ cases += [
     ("SHOWFIRST: ...with pictures shown this turn it passes", run("Stop", last_assistant_message="Which colour do you prefer? Pick a button.", transcript_path=tr(MG, [said("hi"), SHOT])), False),
     ("SHOWFIRST: a question that is not about looks passes", run("Stop", last_assistant_message="Ship it now? Pick a button.", transcript_path=tr(MG, [said("hi")])), False),
 ]
+# the card title of a started chat is its final name (item 69)
+def starts(title):
+    return run("PreToolUse", tool_name="mcp__ccd_session__start_session", tool_input={"title": title, "prompt": "x"}, transcript_path=m)
+cases += [
+    ("TITLE: a title with a Start prefix is refused", starts("Start Engine_PINR_006"), True),
+    ("TITLE: the worker's full name goes through", starts("Engine_PINR_006"), False),
+    ("TITLE: an ordinary session title goes through", starts("Fix the login bug"), False),
+]
 bad = 0
 for name, out, should_block in cases:
     ok = bool(out) == should_block

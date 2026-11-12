@@ -232,6 +232,12 @@ fn pretool(c: &Ctx, data: &Value, manager: bool) {
     let root = main_folder(s(data, "cwd"));
     if tool == "SendMessage" { return send_message(c, data, inp, &root); }
     if tool == "Agent" || tool == "Task" { return helper_problem(inp, manager); }
+    if tool.ends_with("start_session") {
+        // a started chat's card title is its final name: "Start Engine_PINR_006" would stay (item 69)
+        let t = s(inp, "title");
+        if is(&rei(r"^\s*start\s+\S+_\S+_\d{3}\s*$"), t) { return deny(&format!("a started chat's card title is its final name: use the worker's full name without a prefix (not \"{t}\")")); }
+        return;
+    }
     if tool == "AskUserQuestion" {
         if manager {
             let q = inp.get("questions").map(|v| v.to_string()).unwrap_or_default();

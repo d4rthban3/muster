@@ -26,7 +26,7 @@ main project folder's full path for the rules page.
 Use the app's tool for starting a session. Chat names there take only small letters, digits and dashes, so give it:
 - the short name: the role in small letters with dashes, plus the digits (made-up example: `builder-a-001`);
 - the title: the worker's full name, `<Role>_<project>_<digits>` (made-up example: `Builder A_MyProject_001`), which
-  is what the owner sees;
+  is what the owner sees. **The card title becomes the chat's final name**: never a "Start" or other prefix (a title like `Start Engine_PINR_006` stays as the chat's name; the check refuses it);
 - the model and effort from the worker's definition, and this chat's permission mode;
 - the folder: the main project folder itself for the manager (no copy). For every other worker, **make its copy
   yourself first**: the app cannot make copies of a project folder it has no record of, which is every folder setup
@@ -49,7 +49,7 @@ it, **start the chats again yourself**; never leave the owner to start them by h
 1. Start the chat; the result gives its session id.
 2. At once detach that id to the top level (`detach_session`; it needs no approval; it is refused for a chat you did not start, one the owner already moved, a fork, or one that shares another session's worktree, and is unavailable in unattended sessions: then say so and name what to drag).
 3. File that id in the project's sidebar group (see below).
-Then **check**: list the sessions of the project's group (`list_sessions` with group set to the project name) and confirm each chat you just started sits in it, and (`get_session`) that it shows `detached: true` (the parent id stays on record; that is normal); a chat still nested or ungrouped is fixed before you start the next one or tell anyone the crew is running. If a step is refused, say so in one line with what to drag where. No crew chat sits under the manager or under the chat that ran the setup.
+Then **check**: read the title back (`get_session`) and confirm it is exactly the worker's full name, then list the sessions of the project's group (`list_sessions` with group set to the project name) and confirm each chat you just started sits in it, and (`get_session`) that it shows `detached: true` (the parent id stays on record; that is normal); a chat still nested or ungrouped is fixed before you start the next one or tell anyone the crew is running. If a step is refused, say so in one line with what to drag where. No crew chat sits under the manager or under the chat that ran the setup.
 **Sidebar group:** every project's crew sits in its own sidebar group named with the project name the owner gave on
 the setup page. Make the group (or use one with that exact name) before the first crew chat starts, and file each crew
 chat into it right after it is detached, one by one. Never skip this step or leave it silently undone: if any chat is not in the group at the end,

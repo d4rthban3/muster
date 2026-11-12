@@ -395,12 +395,41 @@ def helper_problem(inp, manager):
             return deny("a helper never ships, pushes, messages other chats or talks to the owner; take that out of its brief and do it yourself")
 
 
+LOOK = re.compile(r"\b(looks?|looking|colou?rs?|designs?|mock-?ups?|layouts?|fonts?|styl(?:e|es|ing)|themes?|icons?|logos?|pictures?|images?|screenshots?|appearance|visuals?|dark mode|light mode|spacing|banners?)\b", re.I)
+IMG = re.compile(r"\.(png|jpe?g|gif|webp|svg|html?|pdf)\b", re.I)
+
+
+def pictures_shown(uses):
+    """Show first (item 63): pictures were shown to him in this turn (send-file, an artifact, or card option previews)."""
+    for u in uses:
+        inp = u.get("input") or {}
+        name = u.get("name")
+        if name == "SendUserFile" and (IMG.search(json.dumps(inp)) or inp.get("display") == "render"):
+            return True
+        if name == "Artifact":
+            return True
+        if name == "AskUserQuestion":
+            for q in inp.get("questions") or []:
+                if any(isinstance(o, dict) and o.get("preview") for o in q.get("options") or []):
+                    return True
+    return False
+
+
+def look_unshown(question, uses):
+    return bool(LOOK.search(question)) and not pictures_shown(uses)
+
+
 def pretool(data, manager):
     tool = data.get("tool_name", "")
     inp = data.get("tool_input") or {}
     root = main_folder(data.get("cwd"))
     if tool in ("Agent", "Task"):
         return helper_problem(inp, manager)
+    if tool == "AskUserQuestion":
+        if manager and look_unshown(json.dumps(inp.get("questions") or []),
+                                    turn_blocks(data.get("transcript_path") or "") + [{"name": "AskUserQuestion", "input": inp}]):
+            return deny("a question about how something looks comes after the pictures: show them first (send-file with render, or the card's option previews), then ask")
+        return
     if tool == "SendMessage":
         msg = str(inp.get("message", ""))
         if SOCIAL.match(msg):
@@ -527,6 +556,8 @@ def stop(data, manager):
             if not recorded:
                 return block("a choice card was answered but not recorded: run %s with his exact answer (or --no-pick if he skipped the card or typed his own words)" % recorder_path(main_folder(data.get("cwd"))) + " under its list item before ending the turn")
             return
+        if "?" in text and look_unshown(text, uses):
+            return block("a question about how something looks comes after the pictures: show them to him first in this turn (send-file with render, or card previews), then ask")
         if not manager_reply_ok(text) and not owner_asked(data.get("transcript_path") or ""):
             return block("to the owner the manager says only a question with its choices as buttons, a yes he must give, '<worker> is waiting for you: type in <chat>', or 'The crew is idle'. Rewrite the reply as one of those, or put the news on the board")
         return

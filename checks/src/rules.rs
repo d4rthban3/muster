@@ -209,6 +209,22 @@ fn social_re() -> fancy_regex::Regex {
     rei(&format!(r"^\s*{soc}\b(?:[\s.,!;&-]+{soc}\b)*[\s.,!;&-]*$"))
 }
 
+/// Show first (item 63): a question to him about how something looks must come after the pictures were shown in the same turn.
+const LOOK: &str = r"\b(looks?|looking|colou?rs?|designs?|mock-?ups?|layouts?|fonts?|styl(?:e|es|ing)|themes?|icons?|logos?|pictures?|images?|screenshots?|appearance|visuals?|dark mode|light mode|spacing|banners?)\b";
+fn pictures_shown(uses: &[Value]) -> bool {
+    let img = rei(r"\.(png|jpe?g|gif|webp|svg|html?|pdf)\b");
+    uses.iter().any(|u| {
+        let inp = u.get("input").cloned().unwrap_or(Value::Null);
+        match s(u, "name") {
+            "SendUserFile" => is(&img, &inp.to_string()) || s(&inp, "display") == "render",
+            "Artifact" => true,
+            "AskUserQuestion" => inp.get("questions").and_then(Value::as_array).map(|qs| qs.iter().any(|q| q.get("options").and_then(Value::as_array).map(|os| os.iter().any(|o| !s(o, "preview").is_empty())).unwrap_or(false))).unwrap_or(false),
+            _ => false,
+        }
+    })
+}
+fn look_unshown(question: &str, uses: &[Value]) -> bool { is(&rei(LOOK), question) && !pictures_shown(uses) }
+
 fn pretool(c: &Ctx, data: &Value, manager: bool) {
     let tool = s(data, "tool_name");
     let empty = Value::Object(Default::default());
@@ -216,6 +232,15 @@ fn pretool(c: &Ctx, data: &Value, manager: bool) {
     let root = main_folder(s(data, "cwd"));
     if tool == "SendMessage" { return send_message(c, data, inp, &root); }
     if tool == "Agent" || tool == "Task" { return helper_problem(inp, manager); }
+    if tool == "AskUserQuestion" {
+        if manager {
+            let q = inp.get("questions").map(|v| v.to_string()).unwrap_or_default();
+            let mut uses = turn_blocks(s(data, "transcript_path"));
+            uses.push(serde_json::json!({"name": "AskUserQuestion", "input": inp}));
+            if look_unshown(&q, &uses) { return deny("a question about how something looks comes after the pictures: show them first (send-file with render, or the card's option previews), then ask"); }
+        }
+        return;
+    }
     if matches!(tool, "Write" | "Edit" | "NotebookEdit") && !manager {
         let p = s(inp, "file_path").replace('\\', "/");
         if is(&c.protected, &p) {
@@ -329,6 +354,10 @@ fn stop(c: &Ctx, data: &Value, manager: bool) {
         if let Some(idx) = asked_at.filter(|&i| !card_skipped(tpath, s(&uses[i], "id"))) {
             let recorded = uses[idx + 1..].iter().any(|u| s(u, "name") == "Bash" && u.get("input").map(|i| s(i, "command").contains(&c.recorder)).unwrap_or(false));
             if !recorded { block(&format!("a choice card was answered but not recorded: run {} with his exact answer (or --no-pick if he skipped the card or typed his own words) under its list item before ending the turn", recorder_path(&main_folder(s(data, "cwd")), &c.recorder))); }
+            return;
+        }
+        if text.contains('?') && look_unshown(text, &uses) {
+            block("a question about how something looks comes after the pictures: show them to him first in this turn (send-file with render, or card previews), then ask");
             return;
         }
         if !manager_reply_ok(text) && !owner_asked(tpath) {

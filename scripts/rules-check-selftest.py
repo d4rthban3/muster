@@ -206,6 +206,22 @@ cases += [
     ("BOARD: a NEED the manager later answered on the same job is handled", bstop(NEED + "\n### 2026-11-12 | ORDER | Manager_X_001 -> Builder A_X_001 | a job\nStatus: open\nORDER: a job\n"), False),
     ("BOARD: a later manager entry on another job does not clear it", bstop(NEED + "\n### 2026-11-12 | ORDER | Manager_X_001 -> Builder A_X_001 | other job\nStatus: open\n"), True),
 ]
+# show first (item 63): a question to him about how something looks comes after the pictures, shown in the same turn
+def ask(t, **inp):
+    return run("PreToolUse", tool_name="AskUserQuestion", tool_input=inp, transcript_path=t)
+LQ = [{"question": "Which colour do you prefer for the header?", "options": [{"label": "A", "description": "x"}, {"label": "B", "description": "y"}]}]
+LQP = [{"question": "Which colour do you prefer for the header?", "options": [{"label": "A", "description": "x", "preview": "<pic>"}, {"label": "B", "description": "y"}]}]
+SHOT = use("SendUserFile", files=["/tmp/header.png"], status="normal", display="render")
+cases += [
+    ("SHOWFIRST: a look question card with no pictures is refused", ask(tr(MG, [said("hi")]), questions=LQ), True),
+    ("SHOWFIRST: ...with option previews it goes through", ask(tr(MG, [said("hi")]), questions=LQP), False),
+    ("SHOWFIRST: ...with pictures sent earlier in the turn it goes through", ask(tr(MG, [said("hi"), SHOT]), questions=LQ), False),
+    ("SHOWFIRST: a question that is not about looks goes through", ask(tr(MG, [said("hi")]), questions=[{"question": "Ship it now?", "options": []}]), False),
+    ("SHOWFIRST: a worker's card is not this check's business", ask(b, questions=LQ), False),
+    ("SHOWFIRST: a look question in a reply with no pictures is blocked", run("Stop", last_assistant_message="Which colour do you prefer? Pick a button.", transcript_path=tr(MG, [said("hi")])), True),
+    ("SHOWFIRST: ...with pictures shown this turn it passes", run("Stop", last_assistant_message="Which colour do you prefer? Pick a button.", transcript_path=tr(MG, [said("hi"), SHOT])), False),
+    ("SHOWFIRST: a question that is not about looks passes", run("Stop", last_assistant_message="Ship it now? Pick a button.", transcript_path=tr(MG, [said("hi")])), False),
+]
 bad = 0
 for name, out, should_block in cases:
     ok = bool(out) == should_block

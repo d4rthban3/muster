@@ -35,7 +35,7 @@
     ],
     "PreToolUse": [
       {
-        "matcher": "Agent|Task|SendMessage|Write|Edit|NotebookEdit|Bash",
+        "matcher": "AskUserQuestion|Agent|Task|SendMessage|Write|Edit|NotebookEdit|Bash",
         "hooks": [
           {
             "type": "command",

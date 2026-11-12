@@ -501,6 +501,8 @@ def recorder_path(root):
 
 def manager_reply_ok(text):
     t = LINK.sub(lambda m: m.group(0), text)
+    if len(t) <= 300 and len(t.strip().splitlines()) <= 3 and re.search(r"\bon the board\b", t, re.I):
+        return True  # a short pointer to the news (item 60)
     if re.search(r"\bThe crew is idle\b", t, re.I):
         return True
     if re.search(r"\bis waiting for you\b.*\btype in\b", t, re.I | re.S):

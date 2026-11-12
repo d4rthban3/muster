@@ -176,7 +176,9 @@ cases += [
 MG = "You are Manager_Muster_002"
 asked = lambda tid, ans, err=False: [use("AskUserQuestion", tid, questions=[]), res(tid, ans, err)]
 cases += [
-    ("STOP: a plain pointer to the board, unasked, still blocks", run("Stop", last_assistant_message="The news is on the board.", transcript_path=tr(MG)), True),
+    ("STOP: a short pointer to the board passes", run("Stop", last_assistant_message="The news is on the board.", transcript_path=tr(MG)), False),
+    ("STOP: a long report that mentions the board still blocks", run("Stop", last_assistant_message="I fixed all the things and then shipped them to main and it is all on the board now. " * 6, transcript_path=tr(MG)), True),
+    ("STOP: a code block alone is not a pass", run("Stop", last_assistant_message="Here:\n```bash\ngit pull\n```", transcript_path=tr(MG)), True),
     ("STOP: a plain answer to a question he asked passes", run("Stop", last_assistant_message="Because the test run timed out.", transcript_path=tr(MG, [said("why did the build fail?")])), False),
     ("STOP: a plain answer to words with no question mark passes", run("Stop", last_assistant_message="It stays in the plugin folder.", transcript_path=tr(MG, [said("tell me where the zip move ended up")])), False),
     ("STOP: a reply to a plain statement still blocks", run("Stop", last_assistant_message="All done, nice and good.", transcript_path=tr(MG, [said("ok thanks")])), True),

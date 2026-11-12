@@ -310,6 +310,7 @@ fn recorder_path(root: &str, name: &str) -> String {
 }
 
 fn manager_reply_ok(t: &str) -> bool {
+    if t.chars().count() <= 300 && t.trim().lines().count() <= 3 && is(&rei(r"\bon the board\b"), t) { return true; } // a short pointer to the news (item 60)
     if is(&rei(r"\bThe crew is idle\b"), t) { return true; }
     if is(&rei(r"(?s)\bis waiting for you\b.*\btype in\b"), t) { return true; }
     if is(&rei(r"\b(I need your yes|needs? your yes|your yes (is needed|to))\b"), t) { return true; }

@@ -435,8 +435,43 @@ def pretool(data, manager):
 
 
 # ---- Stop -----------------------------------------------------------------------------------------------------
+def card_skipped(path, use_id):
+    """True when the choice card got no answer from him: its result is an error ("the user doesn't want to proceed", a rejected
+    or interrupted card) or never came back. Then there is nothing to record (item 53)."""
+    if not use_id:
+        return False
+    try:
+        with open(path, encoding="utf-8") as fh:
+            for line in fh:
+                try:
+                    d = json.loads(line)
+                except ValueError:
+                    continue
+                c = (d.get("message") or {}).get("content", "")
+                if d.get("type") == "user" and isinstance(c, list):
+                    for b in c:
+                        if isinstance(b, dict) and b.get("type") == "tool_result" and b.get("tool_use_id") == use_id:
+                            body = json.dumps(b.get("content", ""))
+                            return bool(b.get("is_error")) or "doesn't want to proceed" in body or "has not answered" in body
+    except OSError:
+        pass
+    return True
+
+
+def recorder_path(root):
+    """Where the choice recorder really is: the project's own scripts folder, else this plugin's, else just its name."""
+    for cand in (os.path.join(root or ".", "scripts", RECORDER), os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "scripts", RECORDER)):
+        if os.path.isfile(cand):
+            return os.path.normpath(os.path.abspath(cand))
+    return RECORDER
+
+
 def manager_reply_ok(text):
     t = LINK.sub(lambda m: m.group(0), text)
+    if "```" in t and t.count("```") >= 2 and len(t) <= 800:
+        return True  # a command he asked for, given to run
+    if len(t) <= 300 and len(t.strip().splitlines()) <= 3 and re.search(r"\bon the board\b", t, re.I):
+        return True  # a plain pointer to the news
     if re.search(r"\bThe crew is idle\b", t, re.I):
         return True
     if re.search(r"\bis waiting for you\b.*\btype in\b", t, re.I | re.S):
@@ -455,11 +490,11 @@ def stop(data, manager):
     uses = turn_blocks(data.get("transcript_path") or "")
     asked = any(u.get("name") == "AskUserQuestion" for u in uses)
     if manager:
-        if asked:
-            idx = max(i for i, u in enumerate(uses) if u.get("name") == "AskUserQuestion")
+        idx = max((i for i, u in enumerate(uses) if u.get("name") == "AskUserQuestion"), default=-1)
+        if asked and not card_skipped(data.get("transcript_path") or "", uses[idx].get("id")):
             recorded = any(u.get("name") == "Bash" and RECORDER in str((u.get("input") or {}).get("command", "")) for u in uses[idx + 1:])
             if not recorded:
-                return block("a choice card was answered but not recorded: run scripts/%s with his exact answer" % RECORDER + " under its list item before ending the turn")
+                return block("a choice card was answered but not recorded: run %s with his exact answer" % recorder_path(main_folder(data.get("cwd"))) + " under its list item before ending the turn")
             return
         if not manager_reply_ok(text) and not owner_asked(data.get("transcript_path") or ""):
             return block("to the owner the manager says only a question with its choices as buttons, a yes he must give, '<worker> is waiting for you: type in <chat>', or 'The crew is idle'. Rewrite the reply as one of those, or put the news on the board")

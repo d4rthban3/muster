@@ -172,6 +172,18 @@ cases += [
     ("NOTE: a note holding a token is refused", send_rec(with_note("use token = abc123")), True),
     ("NOTE: a note with a line break is refused", send_rec(with_note("a\nb")), True),
 ]
+# the manager's stop check (item 53): wrong blocks fixed, the shape check kept
+MG = "You are Manager_Muster_002"
+asked = lambda tid, ans, err=False: [use("AskUserQuestion", tid, questions=[]), res(tid, ans, err)]
+cases += [
+    ("STOP: a plain pointer to the board passes for the manager", run("Stop", last_assistant_message="The news is on the board.", transcript_path=tr(MG)), False),
+    ("STOP: a command he asked for, in a code block, passes", run("Stop", last_assistant_message="Run this:\n```bash\ngit pull\n```", transcript_path=tr(MG)), False),
+    ("STOP: a long report to him still blocks", run("Stop", last_assistant_message="I fixed all the things and then shipped them to main and the live site now has the new version. " * 5, transcript_path=tr(MG)), True),
+    ("STOP: a card he skipped needs no record", run("Stop", last_assistant_message="The news is on the board.", transcript_path=tr(MG, asked("q1", "The user doesn't want to proceed", True))), False),
+    ("STOP: a skipped card does not excuse a bad reply", run("Stop", last_assistant_message="All done, nice and good.", transcript_path=tr(MG, asked("q1", "The user doesn't want to proceed", True))), True),
+    ("STOP: an answered card still needs its record", run("Stop", last_assistant_message="ok", transcript_path=tr(MG, asked("q1", "Your questions have been answered: x"))), True),
+    ("STOP: the refusal never names scripts/decide.py", "" if "decide.py" not in run("Stop", last_assistant_message="ok", transcript_path=tr(MG, asked("q1", "Your questions have been answered: x"))) else "BAD", False),
+]
 bad = 0
 for name, out, should_block in cases:
     ok = bool(out) == should_block

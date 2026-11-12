@@ -117,6 +117,24 @@ pub fn turn_blocks(path: &str) -> Vec<Value> {
     uses
 }
 
+/// True when the choice card (an AskUserQuestion with this id) got no answer from him: its result is an error, says he does not want to
+/// proceed, or never came back. Then there is nothing to record (item 53).
+pub fn card_skipped(path: &str, use_id: &str) -> bool {
+    if use_id.is_empty() { return false; }
+    for d in lines_of(path) {
+        if s(&d, "type") != "user" { continue; }
+        if let Value::Array(a) = msg_content(&d) {
+            for b in &a {
+                if s(b, "type") == "tool_result" && s(b, "tool_use_id") == use_id {
+                    let body = content_text(b.get("content").unwrap_or(&Value::Null));
+                    return b.get("is_error").and_then(Value::as_bool).unwrap_or(false) || body.contains("doesn't want to proceed") || body.contains("has not answered");
+                }
+            }
+        }
+    }
+    true
+}
+
 /// Messages really sent: a SendMessage whose result came back without an error.
 pub fn all_sent_text(path: &str) -> Vec<String> {
     let mut calls: Vec<(String, String)> = vec![];

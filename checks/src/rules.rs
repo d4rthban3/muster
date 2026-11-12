@@ -301,7 +301,17 @@ fn send_message(c: &Ctx, data: &Value, inp: &Value, root: &str) {
 }
 
 // ---- Stop ----
+/// Where the choice recorder really is: the project's own scripts folder, else this plugin's, else just its name.
+fn recorder_path(root: &str, name: &str) -> String {
+    for cand in [Path::new(root).join("scripts").join(name), exe_dir().join("..").join("scripts").join(name)] {
+        if cand.is_file() { return normalise(&std::fs::canonicalize(&cand).unwrap_or(cand)).to_string_lossy().to_string(); }
+    }
+    name.to_string()
+}
+
 fn manager_reply_ok(t: &str) -> bool {
+    if t.matches("```").count() >= 2 && t.chars().count() <= 800 { return true; } // a command he asked for, given to run
+    if t.chars().count() <= 300 && t.trim().lines().count() <= 3 && is(&rei(r"\bon the board\b"), t) { return true; } // a plain pointer to the news
     if is(&rei(r"\bThe crew is idle\b"), t) { return true; }
     if is(&rei(r"(?s)\bis waiting for you\b.*\btype in\b"), t) { return true; }
     if is(&rei(r"\b(I need your yes|needs? your yes|your yes (is needed|to))\b"), t) { return true; }
@@ -317,9 +327,9 @@ fn stop(c: &Ctx, data: &Value, manager: bool) {
     let uses = turn_blocks(tpath);
     let asked_at = uses.iter().rposition(|u| s(u, "name") == "AskUserQuestion");
     if manager {
-        if let Some(idx) = asked_at {
+        if let Some(idx) = asked_at.filter(|&i| !card_skipped(tpath, s(&uses[i], "id"))) {
             let recorded = uses[idx + 1..].iter().any(|u| s(u, "name") == "Bash" && u.get("input").map(|i| s(i, "command").contains(&c.recorder)).unwrap_or(false));
-            if !recorded { block(&format!("a choice card was answered but not recorded: run scripts/{} with his exact answer under its list item before ending the turn", c.recorder)); }
+            if !recorded { block(&format!("a choice card was answered but not recorded: run {} with his exact answer under its list item before ending the turn", recorder_path(&main_folder(s(data, "cwd")), &c.recorder))); }
             return;
         }
         if !manager_reply_ok(text) && !owner_asked(tpath) {

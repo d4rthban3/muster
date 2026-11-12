@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.58
+Affects: Manager.
+Idle-crew check: a Stop hook refuses a silent manager stop while an idle chat has an open item
+
 ## 0.3.57
 Affects: manager, builder, designer, inspector.
 Stop check fix: once per turn, plain answers pass, routed items handled, no-pick record

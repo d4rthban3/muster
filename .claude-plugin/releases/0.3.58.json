@@ -1,0 +1,18 @@
+{
+  "version": "0.3.58",
+  "changed_files": [
+    "hooks/hooks.json",
+    "hooks/idle-check.sh",
+    "scripts/idle-check-selftest.py",
+    "scripts/idle-check.py",
+    "scripts/setup-smoke.sh"
+  ],
+  "affected_roles": [
+    "Manager"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Idle-crew check: a Stop hook refuses a silent manager stop while an idle chat has an open item"
+}

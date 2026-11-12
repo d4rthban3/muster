@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.60
+Affects: Builder, Designer, Inspector.
+Worker queue check: a Stop hook refuses a worker's idle stop while open work is addressed to it
+
 ## 0.3.59
 Affects: manager, builder, designer, inspector.
 Show first: a question about how something looks needs the pictures shown in the same turn

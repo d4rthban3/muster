@@ -1,0 +1,20 @@
+{
+  "version": "0.3.60",
+  "changed_files": [
+    "hooks/hooks.json",
+    "hooks/worker-queue-check.sh",
+    "scripts/setup-smoke.sh",
+    "scripts/worker-queue-check-selftest.py",
+    "scripts/worker-queue-check.py"
+  ],
+  "affected_roles": [
+    "Builder",
+    "Designer",
+    "Inspector"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Worker queue check: a Stop hook refuses a worker's idle stop while open work is addressed to it"
+}

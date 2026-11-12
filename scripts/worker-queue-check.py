@@ -5,7 +5,7 @@ does not name it, the stop is refused once, so the worker does the work or says 
 
 Stop hook for a worker's chat (a manager's folder is left to idle-check.py). A worker is found by its own folder: the
 "Folder copy" column of muster/CREW.md. The shared files are read from the main project folder (the parent of the git
-common dir), never written. Open work = a board ORDER "-> <worker name> | <job>" whose Status is open, and an
+common dir), never written. Open work = a board ORDER "-> <worker name> | <job>" whose Status is open and that no later PASS or DONE entry names, and an
 open owner's-list item whose Stands line starts "with ... <worker name>" (a "standing" item never counts). Allowed through, silently: not a crew worker's
 folder, nothing open, the last message names each open job (or item), the hook is already continuing
 (stop_hook_active; it never loops), or any error. By hand: python3 scripts/worker-queue-check.py --list [--project DIR]
@@ -49,16 +49,32 @@ def my_name(main, cwd):
     return ""
 
 
+def norm(t):
+    return re.sub(r"[^a-z0-9]+", "-", t.lower()).strip("-")
+
+
+def finished(blk, job):
+    """True if this board entry is a PASS or DONE for the job (named in its heading or its first line)."""
+    h = re.match(r"### \S+ \| (PASS|DONE) \| [^|]*\| (.*)", blk)
+    if not h:
+        return False
+    first = (blk.splitlines() + ["", ""])
+    return norm(job) in norm(h.group(2)) or norm(job) in norm(" ".join(first[1:4]).split("What:")[0])
+
+
 def open_work(main, name):
     """[(label, key)] where key is the text the worker's last message must contain."""
     out = []
     board = read(os.path.join(main, "muster", "BOARD.md"))
-    for blk in re.split(r"\n(?=### )", board):
+    blocks = re.split(r"\n(?=### )", board)
+    for i, blk in enumerate(blocks):
         h = re.match(r"### \S+ \| ORDER \| .*? -> ([^|]+?) \| (.*)", blk)
         if h and h.group(1).strip().lower() in (name.lower(), "all") and re.search(r"^Status:\s*open", blk, re.M | re.I):
             if h.group(1).strip().lower() == "all" and name.lower() not in blk.lower():
                 continue  # an ALL order counts only if it names this worker
             job = h.group(2).strip()
+            if any(finished(b, job) for b in blocks[i + 1:]):
+                continue  # a later PASS or DONE names the same job: the order is finished, whatever its Status says
             out.append(("board order \"%s\"" % job, job))
     ol = read(os.path.join(main, "muster", "OWNERS-LIST.md"))
     m = re.search(r"(?:^|\n)## Open\n(.*?)(?:\n## |\Z)", ol, re.S)

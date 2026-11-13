@@ -225,6 +225,15 @@ fn pictures_shown(uses: &[Value]) -> bool {
 }
 fn look_unshown(question: &str, uses: &[Value]) -> bool { is(&rei(LOOK), question) && !pictures_shown(uses) }
 
+/// Group check (item 79): a chat really started this turn (not a card that only proposes one) must be followed by move_sessions into the
+/// project's group and then a list_sessions read-back.
+fn group_unfiled(uses: &[Value]) -> bool {
+    let starts = |u: &Value| s(u, "name").ends_with("start_session") && !matches!(u.get("input").map(|i| s(i, "initiation")).unwrap_or(""), "offer" | "own_initiative");
+    let Some(last) = uses.iter().rposition(|u| starts(u)) else { return false };
+    let Some(moved) = uses.iter().skip(last + 1).position(|u| s(u, "name").ends_with("move_sessions")) else { return true };
+    !uses.iter().skip(last + 1 + moved + 1).any(|u| s(u, "name").ends_with("list_sessions"))
+}
+
 /// Founder orders (item 76): a reply that says it cannot or will not do a task, or argues with it, when he typed it.
 fn refuses_order(t: &str) -> bool {
     // "I can't tell which one" is a question's lead-in, not a refusal
@@ -384,6 +393,10 @@ fn stop(c: &Ctx, data: &Value, manager: bool) {
     if text.is_empty() || data.get("stop_hook_active").and_then(Value::as_bool).unwrap_or(false) || bounced_this_turn(s(data, "transcript_path")) { return; }
     let tpath = s(data, "transcript_path");
     let uses = turn_blocks(tpath);
+    if manager && group_unfiled(&uses) && !is(&rei(r"\bdrag\b"), text) {
+        block("you started a chat this turn but did not file it: after start_session call move_sessions into the project's group, then read it back with list_sessions (skill start-the-crew). If the app refuses a step, say so and name what to drag");
+        return;
+    }
     let asked_at = uses.iter().rposition(|u| s(u, "name") == "AskUserQuestion");
     if manager {
         if let Some(idx) = asked_at.filter(|&i| !card_skipped(tpath, s(&uses[i], "id"))) {

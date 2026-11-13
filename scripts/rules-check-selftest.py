@@ -245,6 +245,19 @@ cases += [
     ("TITLE: the worker's full name goes through", starts("Engine_PINR_006"), False),
     ("TITLE: an ordinary session title goes through", starts("Fix the login bug"), False),
 ]
+# group check (item 79): a started chat must be filed into the group and read back
+S = lambda **k: use("mcp__ccd_session__start_session", title="Engine_P_006", prompt="x", **k)
+MV = use("mcp__ccd_sidebar__move_sessions", session_ids=["x"], group="P")
+LS = use("mcp__ccd_session_mgmt__list_sessions", group="P")
+cases += [
+    ("GROUP: a start with no move and read-back is flagged", run("Stop", last_assistant_message="The crew is idle.", transcript_path=tr(MG, [said("start it"), S(initiation="user_asked")])), True),
+    ("GROUP: a start and a move but no read-back is flagged", run("Stop", last_assistant_message="The crew is idle.", transcript_path=tr(MG, [said("start it"), S(initiation="user_asked"), MV])), True),
+    ("GROUP: a start followed by the move and the read-back passes", run("Stop", last_assistant_message="The crew is idle.", transcript_path=tr(MG, [said("start it"), S(initiation="user_asked"), MV, LS])), False),
+    ("GROUP: a read-back before the move does not count", run("Stop", last_assistant_message="The crew is idle.", transcript_path=tr(MG, [said("start it"), S(initiation="user_asked"), LS, MV])), True),
+    ("GROUP: a card that only proposes a chat is not a start", run("Stop", last_assistant_message="The crew is idle.", transcript_path=tr(MG, [said("start it"), S(initiation="offer")])), False),
+    ("GROUP: a refused step named with the drag line passes", run("Stop", last_assistant_message="The crew is idle. The app refused the move: drag Engine_P_006 into the group.", transcript_path=tr(MG, [said("start it"), S(initiation="user_asked")])), False),
+    ("GROUP: a worker is not checked", run("Stop", last_assistant_message="**READY \u00b7 x**\n- a\n- b", transcript_path=tr("You are Builder A_Muster_002, agents/builder.md", [said("go"), S(initiation="user_asked")])), False),
+]
 bad = 0
 for name, out, should_block in cases:
     ok = bool(out) == should_block

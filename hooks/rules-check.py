@@ -584,6 +584,22 @@ def manager_reply_ok(text):
     return has_q and has_choices
 
 
+def group_unfiled(uses):
+    """Group check (item 79): a chat really started this turn (not a card that only proposes one) must be followed by move_sessions into the
+    project's group and then a list_sessions read-back."""
+    names = [(u.get("name") or "", (u.get("input") or {}).get("initiation")) for u in uses]
+    last = -1
+    for i, (n, init) in enumerate(names):
+        if n.endswith("start_session") and init not in ("offer", "own_initiative"):
+            last = i
+    if last < 0:
+        return False
+    moved = next((i for i in range(last + 1, len(names)) if names[i][0].endswith("move_sessions")), None)
+    if moved is None:
+        return True
+    return not any(n.endswith("list_sessions") for n, _ in names[moved + 1:])
+
+
 REFUSES = re.compile(r"\b(i\s+can['\u2019]?t|i\s+cannot|i\s+won['\u2019]?t|i['\u2019]?m\s+unable|i\s+am\s+unable|i['\u2019]?m\s+not\s+able|i\s+am\s+not\s+able|i\s+(?:would|'d)\s+advise\s+against|i\s+don['\u2019]?t\s+think\s+(?:we|you)\s+should|i\s+(?:am\s+)?not\s+going\s+to|that\s+is\s+not\s+possible|that['\u2019]?s\s+not\s+possible|i\s+disagree|i\s+don['\u2019]?t\s+agree|that['\u2019]?s\s+a\s+bad\s+idea|would\s+be\s+a\s+mistake|i\s+took\s+(?:that|this)\s+to\s+mean|i\s+assumed|i\s+interpreted|you\s+(?:probably|likely|really)\s+mean|what\s+you\s+(?:really|probably)\s+mean|i\s+read\s+(?:that|this)\s+as|i['\u2019]ll\s+do\s+[^.]{0,60}\s+instead|i\s+will\s+do\s+[^.]{0,60}\s+instead)\b", re.I)
 
 
@@ -630,6 +646,8 @@ def stop(data, manager):
     if not text or data.get("stop_hook_active") or bounced_this_turn(data.get("transcript_path") or ""):
         return
     uses = turn_blocks(data.get("transcript_path") or "")
+    if manager and group_unfiled(uses) and not re.search(r"\bdrag\b", text, re.I):
+        return block("you started a chat this turn but did not file it: after start_session call move_sessions into the project's group, then read it back with list_sessions (skill start-the-crew). If the app refuses a step, say so and name what to drag")
     asked = any(u.get("name") == "AskUserQuestion" for u in uses)
     if manager:
         idx = max((i for i, u in enumerate(uses) if u.get("name") == "AskUserQuestion"), default=-1)

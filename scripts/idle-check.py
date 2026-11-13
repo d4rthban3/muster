@@ -182,6 +182,29 @@ def findings(project, now=None):
     return [(n, secs, fits(n, items)) for n, secs in idle_chats(crew(project), now)]
 
 
+HOLD_RE = re.compile(r"\baction:?\s*hold\b", re.I)
+BASIS_RE = re.compile(r"\b(item\s*\d+|D-\d+|decision\s*\d+|owner|founder|his\s+(?:word|words|choice|yes|go|pick|call|decision|click)|he\s+(?:said|asked|chose|picked|told))", re.I)
+
+
+def board_holds(project):
+    """[(recipient, short text)] for recent manager board lines that hold a worker and name no owner decision or item.
+    Muster's board: open entries "### date | KIND | from -> to | job"; line-style boards (PINR): the last 15 lines."""
+    out = []
+    if PROFILE.get("board_style") == "lines" and PROFILE.get("board"):
+        text = read(os.path.join(project, PROFILE["board"]))
+        lines = text.splitlines()[-15:]
+        for ln in lines:
+            m = re.match(r"^\S+\s*\|\s*[A-Za-z]+\s*\|\s*(.*?)\s*->\s*(.*?)\s*\|\s*(.*)$", ln.strip())
+            if m and re.search(r"\bManager_", m.group(1)) and HOLD_RE.search(m.group(3)) and not BASIS_RE.search(m.group(3)):
+                out.append((m.group(2), m.group(3)[:80]))
+        return out
+    for blk in re.split(r"\n(?=### )", read(os.path.join(project, "muster", "BOARD.md"))):
+        h = re.match(r"### \S+ \| \w+ \| (Manager_[^|]*?) -> ([^|]+?) \|", blk)
+        if h and re.search(r"^Status:\s*open", blk, re.M | re.I) and HOLD_RE.search(blk) and not BASIS_RE.search(blk):
+            out.append((h.group(2), blk.splitlines()[0][:80]))
+    return out
+
+
 def first_message(path):
     try:
         with open(path, encoding="utf-8") as fh:
@@ -221,6 +244,8 @@ def main(argv):
             print("%s idle %ds: %s" % (n, secs, "; ".join("%s (%s)" % x for x in f) or "no open item"))
         for n, why in waiting_chats(crew(project)):
             print("%s waits on the manager: %s" % (n, why))
+        for to, t in board_holds(project):
+            print("hold with no owner basis, to %s: %s" % (to, t))
         return 0
     try:
         data = json.loads(sys.stdin.read() or "{}")
@@ -234,13 +259,16 @@ def main(argv):
         msg = last_message(data).lower()
         missing = [f for f in findings(project) if f[2] and f[0].lower() not in msg]
         waiting = [w for w in waiting_chats(crew(project)) if w[0].lower() not in msg]
+        holds = [h for h in board_holds(project) if h[0].lower() not in msg]
     except Exception:
         return 0
-    if not missing and not waiting:
+    if not missing and not waiting and not holds:
         return 0
     lines = ["%s has been idle %d minutes and holds an open item: %s" %
              (n, max(1, secs // 60), "; ".join("%s (%s)" % x for x in f)) for n, secs, f in missing]
     lines += ["%s says it waits on the manager (%s)" % w for w in waiting]
+    lines += ["your board line holds %s (%s) but names no decision or item of his: a manager never holds a worker for a "
+              "measurement or convenience, and no order of yours outranks his word; release it or cite his words" % h for h in holds]
     print(json.dumps({"decision": "block", "reason":
         "Do not end this turn silently: " + " | ".join(lines) +
         ". Message each one (give it the next order quoting his words, answer what it waits on, or ask why it is idle), "

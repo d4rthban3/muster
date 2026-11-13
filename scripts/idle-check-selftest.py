@@ -32,4 +32,31 @@ o2 = run({"last_assistant_message": "Builder Q_X_001 and Builder R_X_001 are on 
 t("a waiting chat alone blocks until named", "Builder T_X_001 says" in o2 and "Builder Q_X_001 has been" not in o2)
 t("never loops", run({"stop_hook_active": True}) == "")
 t("silent outside a manager folder", subprocess.run([sys.executable, CHK, "--project", tempfile.mkdtemp()], input="{}", capture_output=True, text=True, env=env).stdout == "")
+
+# a manager's hold must rest on his word (item 74)
+def hproj(board, style=None):
+    d = tempfile.mkdtemp(); os.makedirs(os.path.join(d, "muster"))
+    open(os.path.join(d, "muster", "BOARD.md"), "w").write(board)
+    open(os.path.join(d, "muster", "CREW.md"), "w").write("## Running now\n\n## Archived\n")
+    return d
+def hrun(d, msg, extra_env=None):
+    return subprocess.run([sys.executable, CHK, "--project", d], input=json.dumps({"last_assistant_message": msg}),
+                          capture_output=True, text=True, env=dict(env, **(extra_env or {}))).stdout
+d1 = hproj("### 2026-11-12 | ORDER | Manager_X_001 -> Builder U_X_001 | quiet\nStatus: open\nAction: hold\nNeed: wait for the measurement.\n")
+t("a manager's hold with no owner basis is refused", "holds Builder U_X_001" in hrun(d1, "ok"))
+t("allowed once the reply names the held worker", hrun(d1, "Releasing Builder U_X_001") == "")
+d2 = hproj("### 2026-11-12 | ORDER | Manager_X_001 -> Builder U_X_001 | quiet\nStatus: open\nAction: hold\nNeed: hold after PASS for his go (item 12).\n")
+t("a hold that cites his item is allowed", hrun(d2, "ok") == "")
+d3 = hproj("### 2026-11-12 | ORDER | Manager_X_001 -> Builder U_X_001 | quiet\nStatus: done\nAction: hold\nNeed: wait.\n")
+t("a closed hold is ignored", hrun(d3, "ok") == "")
+d4 = tempfile.mkdtemp(); open(os.path.join(d4, "BOARD.md"), "w").write(
+    "2026-11-12 | RULE | Manager_P_005 -> Eng_P_006 | quiet window for timing. Action: hold\n"
+    "2026-11-12 | RULE | Manager_P_005 -> Web_P_004 | wait for his word on the route (item 12). Action: hold\n"
+    "2026-11-12 | NEED | Eng_P_006 -> Manager_P_005 | wait. Action: hold\n")
+open(os.path.join(d4, "profile.json"), "w").write(json.dumps({"board": "BOARD.md", "board_style": "lines", "crew_names": []}))
+os.makedirs(os.path.join(d4, "muster")); open(os.path.join(d4, "muster", "BOARD.md"), "w").write("")
+pe = {"MUSTER_PROFILE": os.path.join(d4, "profile.json")}
+o4 = hrun(d4, "ok", pe)
+t("PINR: a manager's hold line with no owner basis is refused", "holds Eng_P_006" in o4)
+t("PINR: a hold that cites his item and a worker's own line are not", "Web_P_004" not in o4.split("Do not end")[-1] and "Manager_P_005 (" not in o4)
 sys.exit(1 if bad else 0)

@@ -162,6 +162,12 @@ add("8 the renewed PINR manager behind the same worktree lines is the manager", 
 add("8 a Muster note 'You are one of the Muster crew ... Manager_Muster_001 gives every order' is a worker", run("rules-check.py", "Stop", plain=True, last_assistant_message=card, transcript_path=tr("Background: You are one of the Muster crew. Manager_Muster_001 gives every order. Builder A_Muster_001 builds. Task: read your rules page.")), False)
 add("8 setup's manager note (Job: go-between, agents/manager.md) is the manager", run("rules-check.py", "Stop", plain=True, last_assistant_message=card, transcript_path=tr("Task:\nJob:       the owner's go-between and record keeper for this project\nOwns: muster/\nFirst: read agents/manager.md")), True)
 add("8 a note naming only agents/builder.md is a worker even if it mentions the manager", run("rules-check.py", "Stop", plain=True, last_assistant_message=card, transcript_path=tr("Read agents/builder.md. Send reports to Manager_Muster_002.")), False)
+# item 78: "Job: You are Manager_PINR_006, ..." (the profile's crew pattern can swallow "You are " as part of one name)
+JY = lambda who: tr("Job:       You are %s, the founder's go-between and record keeper.\nOwns:      manager/\n" % who)
+add("8 'Job: You are Manager_PINR_006' is the manager", run("rules-check.py", "Stop", last_assistant_message=card, transcript_path=JY("Manager_PINR_006")), True)
+add("8 ...and it may write the founder's list", W(C + "/Founder/FOUNDER-LIST.md", JY("Manager_PINR_006")), False)
+add("8 'Job: You are Look Inspector_PINR_002' is a worker", run("rules-check.py", "Stop", last_assistant_message=card, transcript_path=JY("Look Inspector_PINR_002")), False)
+add("8 ...and it cannot write the founder's list", W(C + "/Founder/FOUNDER-LIST.md", JY("Look Inspector_PINR_002")), True)
 # shell writes into PINR's manager-only files
 B = lambda cmd, t, **k: run("rules-check.py", "PreToolUse", tool_name="Bash", tool_input={"command": cmd}, transcript_path=t, **k)
 P1 = '"%s/Founder/FOUNDER-LIST.md"' % C

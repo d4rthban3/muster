@@ -117,7 +117,7 @@ def is_manager(first):
         for m in re.finditer(lead, first, re.I):
             c = CREW_RE.match(first, m.end())
             if c and (best is None or m.start() < best[0]):
-                best = (m.start(), c.group(0))
+                best = (m.start(), re.sub(r"^(?:you are|i am|i'm)\s+(?:the\s+)?[*`]{0,2}", "", c.group(0), flags=re.I))  # a profile pattern may swallow "You are " before the name
                 break
     if best:
         return _token_is_manager(best[1])

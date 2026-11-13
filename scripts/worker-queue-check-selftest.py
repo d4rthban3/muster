@@ -53,6 +53,11 @@ t("PINR: never loops", prun("You are Eng_P_006", "x", stop_hook_active=True) == 
 t("PINR: finds the worker when the first message also names its manager and inspector",
   "block" in prun("You are Eng_P_006. Your manager is Manager_P_005 and your inspector is Eng Inspector_P_003.", "done"))
 t("PINR: the earliest name wins without \"You are\"", "block" in prun("Eng_P_006 here; inspector Eng Inspector_P_003", "done"))
+lst = lambda *a: subprocess.run([sys.executable, CHK, "--list", *a], capture_output=True, text=True, cwd=pp,
+                                 env=dict(os.environ, MUSTER_PROFILE=os.path.join(pp, "profile.json"))).stdout
+t("PINR: --list --worker names the open line without any chat", "serve burns" in lst("--worker", "Eng_P_006"))
+t("PINR: --list --worker says nothing open for a worker with none", "nothing open" in lst("--worker", "Web_P_00x"))
+t("PINR: --list without --worker says what to give", "--worker" in lst())
 t("PINR: silent for a chat that names no crew worker", prun("hello there", "x") == "")
 t("PINR: silent for the manager", prun("You are Manager_P_005", "x") == "")
 sys.exit(1 if bad else 0)

@@ -8,7 +8,8 @@ Stop hook for a worker's chat (a manager's folder is left to idle-check.py). A w
 common dir), never written. Open work = a board ORDER "-> <worker name> | <job>" whose Status is open and that no later PASS or DONE entry names, and an
 open owner's-list item whose Stands line starts "with ... <worker name>" (a "standing" item never counts). Allowed through, silently: not a crew worker's
 folder, nothing open, the last message names each open job (or item), the hook is already continuing
-(stop_hook_active; it never loops), or any error. By hand: python3 scripts/worker-queue-check.py --list [--project DIR]
+(stop_hook_active; it never loops), or any error. By hand: python3 scripts/worker-queue-check.py --list [--project DIR] [--worker "<name>"]  (--worker is needed on a line-style
+board when you are not in the worker's chat, e.g. from the manager's folder)
 
 Line-style boards (PINR's profile: "board_style": "lines", "board": path relative to the folder that holds
 .muster-checks, the installed copy beside profile.json; or MUSTER_PROFILE): lines look like
@@ -194,6 +195,11 @@ def main_lines(argv, cwd):
     root = os.path.dirname(HERE) if os.path.basename(HERE) == ".muster-checks" else cwd
     board = read(os.path.join(root, PROFILE["board"]))
     if not board:
+        if "--list" in argv:
+            print("no board found at %s" % os.path.join(root, PROFILE["board"]))
+        return 0
+    if "--list" in argv and "--worker" not in argv:
+        print("give the worker: --list --worker \"<name>\" (for example the name in a board line's '-> name')")
         return 0
     try:
         data = json.loads(sys.stdin.read() or "{}") if "--list" not in argv else {}

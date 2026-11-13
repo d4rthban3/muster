@@ -60,4 +60,24 @@ t("PINR: --list --worker says nothing open for a worker with none", "nothing ope
 t("PINR: --list without --worker says what to give", "--worker" in lst())
 t("PINR: silent for a chat that names no crew worker", prun("hello there", "x") == "")
 t("PINR: silent for the manager", prun("You are Manager_P_005", "x") == "")
+
+# a worker that waits on the manager must have sent the manager something this turn
+def wtranscript(sent):
+    f = os.path.join(pp, "w%d.jsonl" % len(os.listdir(pp)))
+    lines = [{"type": "user", "message": {"content": "You are Eng_P_006."}}]
+    if sent:
+        lines.append({"type": "assistant", "message": {"content": [{"type": "tool_use", "name": "SendMessage", "input": {"to": "Manager_P_005", "message": "NEED: x"}}]}})
+        lines.append({"type": "user", "message": {"content": [{"type": "tool_result", "content": "ok"}]}})
+    open(f, "w").write("\n".join(json.dumps(x) for x in lines) + "\n")
+    return f
+def wrun(msg, sent, cwd=pp, **env):
+    d = {"transcript_path": wtranscript(sent), "last_assistant_message": msg}
+    return subprocess.run([sys.executable, CHK], input=json.dumps(d), capture_output=True, text=True, cwd=cwd,
+                          env=dict(os.environ, **env)).stdout
+pe = {"MUSTER_PROFILE": os.path.join(pp, "profile.json")}
+t("PINR: a reply that waits on the manager with nothing sent is refused", "sent the manager nothing" in wrun("WAIT: Manager's choice on the route", False, **pe))
+t("PINR: allowed once a message to the manager was sent this turn", "sent the manager nothing" not in wrun("WAIT: Manager's choice on the route", True, **pe))
+t("PINR: a reply that does not wait on the manager is not refused for this", "sent the manager nothing" not in wrun("Burns route is live.", False, **pe))
+t("Muster: a worker waiting on the manager with nothing sent is refused", "sent the manager nothing" in wrun("Waiting on the manager's choice.", False, cwd=wt))
+t("Muster: allowed once a message to the manager was sent", "sent the manager nothing" not in wrun("Waiting on the manager's choice; job-one item 1.", True, cwd=wt))
 sys.exit(1 if bad else 0)

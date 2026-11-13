@@ -20,6 +20,22 @@ import sys
 import time
 
 IDLE_SECONDS = int(os.environ.get("MUSTER_IDLE_SECONDS") or 120)
+HERE = os.path.dirname(os.path.abspath(__file__))
+INSTALLED = os.path.basename(HERE) == ".muster-checks"
+
+
+def load_profile():
+    for cand in (os.environ.get("MUSTER_PROFILE"), os.path.join(HERE, "profile.json")):
+        if cand and os.path.isfile(cand):
+            try:
+                d = json.load(open(cand, encoding="utf-8"))
+                return d if isinstance(d, dict) else {}
+            except (OSError, ValueError):
+                return {}
+    return {}
+
+
+PROFILE = load_profile()
 
 
 def read(path):
@@ -47,6 +63,8 @@ def crew(project):
     """[(name, chat id)] from the Running now table of muster/CREW.md."""
     text = read(os.path.join(project, "muster", "CREW.md"))
     m = re.search(r"## Running now(.*?)(?:\n## |\Z)", text, re.S)
+    if not m and PROFILE.get("crew_names"):
+        return profile_crew()
     rows = []
     for line in (m.group(1) if m else "").splitlines():
         cells = [c.strip() for c in line.strip().strip("|").split("|")]
@@ -54,6 +72,43 @@ def crew(project):
         if len(cells) >= 2 and idm and cells[0] not in ("Name", ""):
             rows.append((cells[0], idm.group(0)))
     return rows
+
+
+def profile_crew():
+    """[(title, chat id)] of the app's non-archived chats whose title is a crew name in the profile (not a manager)."""
+    base = sessions_dir()
+    pats = [re.compile("^(?:%s)$" % x) for x in PROFILE.get("crew_names", [])]
+    mgr = [re.compile(x) for x in PROFILE.get("manager_names", [])]
+    rows = []
+    for f in glob.glob(os.path.join(base, "*", "*", "local_*.json")) if base else []:
+        try:
+            d = json.load(open(f, encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        t = d.get("title") or ""
+        if not d.get("isArchived") and any(p.match(t) for p in pats) and not any(m.search(t) for m in mgr):
+            rows.append((t, d.get("sessionId") or os.path.basename(f)[:-5]))
+    return rows
+
+
+def waiting_chats(rows):
+    """Chats whose last turn summary (the app's own, in its session record) says they are blocked or need something
+    and names the manager: [(name, detail)]."""
+    base = sessions_dir()
+    out = []
+    for name, cid in rows:
+        hits = glob.glob(os.path.join(base, "*", "*", cid + ".json")) if base else []
+        try:
+            d = json.load(open(hits[0], encoding="utf-8")) if hits else {}
+        except (OSError, ValueError):
+            continue
+        if d.get("isArchived"):
+            continue
+        ps = d.get("postTurnSummary") or {}
+        txt = " ".join(str(ps.get(k, "")) for k in ("status_detail", "needs_action"))
+        if (ps.get("status_category") == "blocked" or ps.get("needs_action")) and re.search(r"manager", txt, re.I):
+            out.append((name, txt.strip()[:100]))
+    return out
 
 
 def idle_chats(rows, now):
@@ -127,15 +182,45 @@ def findings(project, now=None):
     return [(n, secs, fits(n, items)) for n, secs in idle_chats(crew(project), now)]
 
 
+def first_message(path):
+    try:
+        with open(path, encoding="utf-8") as fh:
+            for line in fh:
+                try:
+                    d = json.loads(line)
+                except ValueError:
+                    continue
+                if d.get("type") != "user":
+                    continue
+                c = (d.get("message") or {}).get("content", "")
+                if isinstance(c, list):
+                    c = " ".join(b.get("text", "") for b in c if isinstance(b, dict))
+                return str(c)[:6000]
+    except OSError:
+        pass
+    return ""
+
+
+def is_manager_chat(data):
+    """Installed copy (a project that does not load the plugin): the chat's first message names a manager."""
+    pats = PROFILE.get("manager_names") or [r"\bManager_[^_\s]*_\d{3}\b"]
+    first = first_message(data.get("transcript_path") or "")
+    return any(re.search(p, first) for p in pats)
+
+
 def main(argv):
     project = os.getcwd()
     if "--project" in argv:
         project = argv[argv.index("--project") + 1]
-    if not os.path.isfile(os.path.join(project, "muster", "BOARD.md")):
+    elif INSTALLED:
+        project = os.path.dirname(HERE)
+    if not INSTALLED and not os.path.isfile(os.path.join(project, "muster", "BOARD.md")):
         return 0
     if "--list" in argv:
         for n, secs, f in findings(project):
             print("%s idle %ds: %s" % (n, secs, "; ".join("%s (%s)" % x for x in f) or "no open item"))
+        for n, why in waiting_chats(crew(project)):
+            print("%s waits on the manager: %s" % (n, why))
         return 0
     try:
         data = json.loads(sys.stdin.read() or "{}")
@@ -144,19 +229,22 @@ def main(argv):
     if data.get("stop_hook_active"):
         return 0
     try:
-        found = [f for f in findings(project) if f[2]]
+        if INSTALLED and not is_manager_chat(data):
+            return 0
         msg = last_message(data).lower()
-        missing = [f for f in found if f[0].lower() not in msg]
+        missing = [f for f in findings(project) if f[2] and f[0].lower() not in msg]
+        waiting = [w for w in waiting_chats(crew(project)) if w[0].lower() not in msg]
     except Exception:
         return 0
-    if not missing:
+    if not missing and not waiting:
         return 0
     lines = ["%s has been idle %d minutes and holds an open item: %s" %
              (n, max(1, secs // 60), "; ".join("%s (%s)" % x for x in f)) for n, secs, f in missing]
+    lines += ["%s says it waits on the manager (%s)" % w for w in waiting]
     print(json.dumps({"decision": "block", "reason":
-        "Do not end this turn silently: the crew has idle chats with open items. " + " | ".join(lines) +
-        ". Message each one (give it the next order quoting his words, or ask why it is idle), name it in your reply, "
-        "or if nothing fits say \"The crew is idle\" with the choices as buttons."}))
+        "Do not end this turn silently: " + " | ".join(lines) +
+        ". Message each one (give it the next order quoting his words, answer what it waits on, or ask why it is idle), "
+        "name it in your reply, or if nothing fits say \"The crew is idle\" with the choices as buttons."}))
     return 0
 
 

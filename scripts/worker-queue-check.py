@@ -190,6 +190,53 @@ def last_message(data):
     return ""
 
 
+WAIT_RE = re.compile(r"(wait\w*|need\w*|blocked|stuck)[^.\n]{0,60}\bmanager|\bmanager\W[^.\n]{0,40}(choice|decision|answer|go-ahead|go ahead|reply|call|approval)", re.I)
+
+
+def turn_calls(path):
+    """Tool calls (name, input text) made since the last real user message, read from the end of the transcript."""
+    calls = []
+    try:
+        with open(path, "rb") as fh:
+            fh.seek(max(0, os.path.getsize(path) - 400000))
+            lines = fh.read().decode("utf-8", "ignore").splitlines()
+    except OSError:
+        return None
+    for line in reversed(lines):
+        try:
+            e = json.loads(line)
+        except ValueError:
+            continue
+        c = (e.get("message") or {}).get("content")
+        if e.get("type") == "user":
+            if isinstance(c, list) and all(isinstance(b, dict) and b.get("type") == "tool_result" for b in c):
+                continue
+            return calls
+        if e.get("type") == "assistant" and isinstance(c, list):
+            for b in c:
+                if isinstance(b, dict) and b.get("type") == "tool_use":
+                    calls.append((b.get("name", ""), json.dumps(b.get("input", {}))))
+    return calls
+
+
+def waiting_unreported(data):
+    """A reason to refuse the stop if the reply says it waits on (or needs) the manager and this turn sent the manager
+    nothing: no message naming the manager, no write to the board. None otherwise (or when the turn cannot be read)."""
+    if not WAIT_RE.search(last_message(data)):
+        return None
+    calls = turn_calls(data.get("transcript_path") or "")
+    if calls is None:
+        return None
+    for name, inp in calls:
+        low = inp.lower()
+        if "send" in name.lower() and "manager" in low:
+            return None
+        if name in ("Write", "Edit", "Bash") and "board" in low:
+            return None
+    return ("Your reply says you are waiting on, or need, the manager, but this turn sent the manager nothing: a chat reply "
+            "alone is not seen. Send the manager one message (NEED, STUCK or READY) now, or write the line on the board.")
+
+
 def main_lines(argv, cwd):
     """Line-style board (PINR): the worker is named in the chat's first message."""
     root = os.path.dirname(HERE) if os.path.basename(HERE) == ".muster-checks" else cwd
@@ -216,7 +263,13 @@ def main_lines(argv, cwd):
     if "--list" in argv:
         print("%s: %s" % (name, "; ".join(l for l, _ in work) or "nothing open"))
         return 0
-    if data.get("stop_hook_active") or not work:
+    if data.get("stop_hook_active"):
+        return 0
+    why = waiting_unreported(data)
+    if why:
+        print(json.dumps({"decision": "block", "reason": why}))
+        return 0
+    if not work:
         return 0
     msg = last_message(data).lower()
     missing = [l for l, keys in work if not any(k.lower() in msg for k in keys)]
@@ -250,7 +303,13 @@ def main(argv):
         data = json.loads(sys.stdin.read() or "{}")
     except ValueError:
         return 0
-    if data.get("stop_hook_active") or not work:
+    if data.get("stop_hook_active"):
+        return 0
+    why = waiting_unreported(data)
+    if why:
+        print(json.dumps({"decision": "block", "reason": why}))
+        return 0
+    if not work:
         return 0
     msg = last_message(data).lower()
     missing = [l for l, k in work if k.lower() not in msg]

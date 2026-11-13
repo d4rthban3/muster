@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.61
+Affects: Builder, Designer, Inspector.
+Worker queue check reads PINR's line-style board and is installed there by install-checks.py
+
 ## 0.3.60
 Affects: Builder, Designer, Inspector.
 Worker queue check: a Stop hook refuses a worker's idle stop while open work is addressed to it

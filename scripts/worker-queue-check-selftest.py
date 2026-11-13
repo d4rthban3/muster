@@ -34,6 +34,7 @@ open(os.path.join(pp, "BOARD.md"), "w").write(
     "2026-11-12 | DONE | Eng_P_006 -> Manager_P_005 | old thing live. Action: start\n"
     "2026-11-12 | NEED | Look_P_002 -> Eng_P_006 | serve burns route. Action: start\n"
     "2026-11-12 | RULE | Manager_P_005 -> Eng_P_006 | wait for the build. Action: hold\n"
+    "2026-11-12 | PASS | Eng Inspector_P_003 -> Manager_P_005 | checked. Action: start\n"
     "2026-11-12 | NEED | Manager_P_005 -> Web_P_004 | other worker task. Action: start\n")
 open(os.path.join(pp, "profile.json"), "w").write(json.dumps({"board": "BOARD.md", "board_style": "lines"}))
 def transcript(first):
@@ -49,6 +50,9 @@ t("PINR: blocks on a NEED line after the worker's last DONE", "block" in o and "
 t("PINR: ignores work before its last DONE, a hold line and another worker's line", "old thing" not in o and "wait for the build" not in o and "other worker" not in o)
 t("PINR: allows when the reply names the sender", prun("You are Eng_P_006", "waiting on Look_P_002") == "")
 t("PINR: never loops", prun("You are Eng_P_006", "x", stop_hook_active=True) == "")
+t("PINR: finds the worker when the first message also names its manager and inspector",
+  "block" in prun("You are Eng_P_006. Your manager is Manager_P_005 and your inspector is Eng Inspector_P_003.", "done"))
+t("PINR: the earliest name wins without \"You are\"", "block" in prun("Eng_P_006 here; inspector Eng Inspector_P_003", "done"))
 t("PINR: silent for a chat that names no crew worker", prun("hello there", "x") == "")
 t("PINR: silent for the manager", prun("You are Manager_P_005", "x") == "")
 sys.exit(1 if bad else 0)

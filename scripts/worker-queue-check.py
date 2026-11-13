@@ -128,6 +128,17 @@ def first_message(path):
     return ""
 
 
+def pick_name(first, names):
+    """The chat's own name: the board name right after "You are", else the board name that appears earliest in the
+    first message (the longest if two start at the same place). Never a neighbour named later (manager, inspector)."""
+    low = first.lower()
+    for n in sorted(names, key=len, reverse=True):
+        if re.search(r"you are\s+(?:the\s+)?" + re.escape(n.lower()), low):
+            return n
+    hits = [(low.find(n.lower()), -len(n), n) for n in names if n.lower() in low]
+    return min(hits)[2] if hits else ""
+
+
 def line_open_work(board_text, name):
     """[(label, [keys])] for a line-style board; see the module note."""
     rows = []
@@ -192,8 +203,7 @@ def main_lines(argv, cwd):
         name = argv[argv.index("--worker") + 1] if "--worker" in argv else ""
     else:
         first = first_message(data.get("transcript_path") or "")
-        names = sorted((n for n in line_names(board) if n in first), key=len, reverse=True)
-        name = names[0] if names else ""
+        name = pick_name(first, line_names(board))
     if not name or re.search(r"\bManager_", name):
         return 0
     work = line_open_work(board, name)

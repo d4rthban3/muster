@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.66
+Affects: manager, builder, designer, inspector.
+Founder orders: a coded rule, the manager cannot refuse, argue with or reinterpret an order he typed
+
 ## 0.3.65
 Affects: Manager.
 No filler: a short routine reply to another chat's message is not bounced for wording (Python and Rust copies, programs rebuilt)

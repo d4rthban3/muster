@@ -1,0 +1,32 @@
+{
+  "version": "0.3.66",
+  "changed_files": [
+    "agents/manager.md",
+    "bin/SOURCE-STAMP",
+    "bin/linux-arm64/muster-checks",
+    "bin/linux-x86_64/muster-checks",
+    "bin/macos-arm64/muster-checks",
+    "bin/macos-x86_64/muster-checks",
+    "bin/windows-x86_64/muster-checks.exe",
+    "checks/src/common.rs",
+    "checks/src/rules.rs",
+    "directory/.claude-plugin/marketplace.json",
+    "directory/.claude-plugin/plugin.json",
+    "directory/agents/manager.md",
+    "hooks/rules-check.py",
+    "pages/manager.md",
+    "scripts/build-pages.py",
+    "scripts/rules-check-selftest.py"
+  ],
+  "affected_roles": [
+    "manager",
+    "builder",
+    "designer",
+    "inspector"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Founder orders: a coded rule, the manager cannot refuse, argue with or reinterpret an order he typed"
+}

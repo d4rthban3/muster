@@ -80,4 +80,10 @@ t("PINR: allowed once a message to the manager was sent this turn", "sent the ma
 t("PINR: a reply that does not wait on the manager is not refused for this", "sent the manager nothing" not in wrun("Burns route is live.", False, **pe))
 t("Muster: a worker waiting on the manager with nothing sent is refused", "sent the manager nothing" in wrun("Waiting on the manager's choice.", False, cwd=wt))
 t("Muster: allowed once a message to the manager was sent", "sent the manager nothing" not in wrun("Waiting on the manager's choice; job-one item 1.", True, cwd=wt))
+
+for msg, want in (("I need to edit the manager page next", False), ("Needs the manager rules page updated", False),
+                  ("Fixed the manager check and the manager file.", False), ("I am waiting on the manager", True),
+                  ("The manager's call is pending", True), ("WAIT: the route; Manager's choice", True),
+                  ("Needs the manager to pick one", True), ("Blocked on the manager for his go-ahead", True)):
+    t("wait words: %r %s" % (msg, "refused" if want else "allowed"), ("sent the manager nothing" in wrun(msg, False, cwd=wt)) == want)
 sys.exit(1 if bad else 0)

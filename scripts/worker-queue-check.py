@@ -190,7 +190,14 @@ def last_message(data):
     return ""
 
 
-WAIT_RE = re.compile(r"(wait\w*|need\w*|blocked|stuck)[^.\n]{0,60}\bmanager|\bmanager\W[^.\n]{0,40}(choice|decision|answer|go-ahead|go ahead|reply|call|approval)", re.I)
+ANSWER = r"(?:choice|decision|answer|go-ahead|go ahead|reply|call|approval|go)\b"
+WAIT_RE = re.compile(
+    r"\b(?:waiting|wait|waits|blocked|stuck)\s+(?:on|for)\s+(?:the\s+)?manager\b(?!\W?s?\s+(?:page|rules|check|file|definition))"  # waiting on / for the manager
+    r"|\bmanager\W?s\s+" + ANSWER +  # the manager's choice, decision, call...
+    r"|\bneeds?\s+(?:the\s+manager(?:\W?s)?|his)\s+" + ANSWER +  # needs the manager's answer, needs his go-ahead
+    r"|\bneeds?\s+the\s+manager\s+to\b"  # needs the manager to ...
+    r"|^\s*WAIT\b[^\n]*\bmanager\b",  # a line starting WAIT: ... Manager
+    re.I | re.M)
 
 
 def turn_calls(path):

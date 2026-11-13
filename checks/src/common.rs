@@ -78,7 +78,7 @@ pub fn stood_down(data: &Value, py_name: &str) -> bool {
     }
 }
 
-fn content_text(c: &Value) -> String {
+pub fn content_text(c: &Value) -> String {
     match c {
         Value::String(t) => t.clone(),
         Value::Array(a) => a.iter().filter_map(|b| b.as_object().map(|o| o.get("text").and_then(Value::as_str).unwrap_or("").to_string())).collect::<Vec<_>>().join(" "),
@@ -89,7 +89,7 @@ fn content_text(c: &Value) -> String {
 pub fn lines_of(path: &str) -> Vec<Value> {
     fs::read_to_string(path).map(|t| t.lines().filter_map(|l| serde_json::from_str::<Value>(l).ok()).collect()).unwrap_or_default()
 }
-fn msg_content(d: &Value) -> Value { d.get("message").and_then(|m| m.get("content")).cloned().unwrap_or(Value::String(String::new())) }
+pub fn msg_content(d: &Value) -> Value { d.get("message").and_then(|m| m.get("content")).cloned().unwrap_or(Value::String(String::new())) }
 
 pub fn first_message(path: &str) -> String {
     for d in lines_of(path) {

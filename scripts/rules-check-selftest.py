@@ -222,6 +222,13 @@ cases += [
     ("SHOWFIRST: ...with pictures shown this turn it passes", run("Stop", last_assistant_message="Which colour do you prefer? Pick a button.", transcript_path=tr(MG, [said("hi"), SHOT])), False),
     ("SHOWFIRST: a question that is not about looks passes", run("Stop", last_assistant_message="Ship it now? Pick a button.", transcript_path=tr(MG, [said("hi")])), False),
 ]
+# founder orders (item 76): a manager does not say it cannot do, or argue with, a task he typed
+cases += [
+    ("FOUNDER: a refusal of a task he typed is blocked", run("Stop", last_assistant_message="I can't do that from here, it would break the board.", transcript_path=tr(MG, [said("archive the old chats now")])), True),
+    ("FOUNDER: an argument against his order is blocked", run("Stop", last_assistant_message="I would advise against that. Which one? Pick a button.", transcript_path=tr(MG, [said("archive the old chats now")])), True),
+    ("FOUNDER: doing it and asking one question passes", run("Stop", last_assistant_message="Which chats do you mean? Pick a button.", transcript_path=tr(MG, [said("archive the old chats now")])), False),
+    ("FOUNDER: a refusal sentence after an app event (not his order) is not this check", run("Stop", last_assistant_message="The crew is idle. I can't start a chat for the inspector.", transcript_path=tr(MG, [said("<task-notification>x")])), False),
+]
 bad = 0
 for name, out, should_block in cases:
     ok = bool(out) == should_block

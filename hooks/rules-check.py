@@ -543,6 +543,38 @@ def manager_reply_ok(text):
     return has_q and has_choices
 
 
+REFUSES = re.compile(r"\b(i\s+can['\u2019]?t|i\s+cannot|i\s+won['\u2019]?t|i['\u2019]?m\s+unable|i\s+am\s+unable|i['\u2019]?m\s+not\s+able|i\s+am\s+not\s+able|i\s+(?:would|'d)\s+advise\s+against|i\s+don['\u2019]?t\s+think\s+(?:we|you)\s+should|i\s+(?:am\s+)?not\s+going\s+to|that\s+is\s+not\s+possible|that['\u2019]?s\s+not\s+possible)\b", re.I)
+
+
+def owner_typed_last(path):
+    """True when this turn was started by his own typed message (not an app event, another chat or hook feedback)."""
+    typed = False
+    try:
+        with open(path, encoding="utf-8") as fh:
+            for line in fh:
+                try:
+                    d = json.loads(line)
+                except ValueError:
+                    continue
+                if d.get("type") != "user":
+                    continue
+                c = (d.get("message") or {}).get("content", "")
+                if isinstance(c, list):
+                    if any(isinstance(b, dict) and b.get("type") == "tool_result" for b in c):
+                        continue
+                    c = " ".join(b.get("text", "") for b in c if isinstance(b, dict))
+                c = str(c)
+                if not c.strip():
+                    continue
+                if ENDS_TURN.search(c):
+                    typed = False
+                elif not re.match(r"^\s*(<system-reminder|Stop hook feedback|Stop hook blocking error)", c, re.I):
+                    typed = True
+    except OSError:
+        pass
+    return typed
+
+
 def stop(data, manager):
     text = data.get("last_assistant_message") or ""
     if not text or data.get("stop_hook_active") or bounced_this_turn(data.get("transcript_path") or ""):
@@ -556,6 +588,8 @@ def stop(data, manager):
             if not recorded:
                 return block("a choice card was answered but not recorded: run %s with his exact answer (or --no-pick if he skipped the card or typed his own words)" % recorder_path(main_folder(data.get("cwd"))) + " under its list item before ending the turn")
             return
+        if REFUSES.search(text) and owner_typed_last(data.get("transcript_path") or ""):
+            return block("he gave you an order in his own words: do it, period. If you are unsure, ask him one question; never argue and never say you cannot do a task he gave you directly (item 76)")
         if "?" in text and look_unshown(text, uses):
             return block("a question about how something looks comes after the pictures: show them to him first in this turn (send-file with render, or card previews), then ask")
         if not manager_reply_ok(text) and not owner_asked(data.get("transcript_path") or ""):

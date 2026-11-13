@@ -225,6 +225,11 @@ fn pictures_shown(uses: &[Value]) -> bool {
 }
 fn look_unshown(question: &str, uses: &[Value]) -> bool { is(&rei(LOOK), question) && !pictures_shown(uses) }
 
+/// Founder orders (item 76): a reply that says it cannot or will not do a task, or argues with it, when he typed it.
+fn refuses_order(t: &str) -> bool {
+    is(&rei(r"\b(i\s+can(?:'|’)?t|i\s+cannot|i\s+won(?:'|’)?t|i(?:'|’)?m\s+unable|i\s+am\s+unable|i(?:'|’)?m\s+not\s+able|i\s+am\s+not\s+able|i\s+(?:would|'d)\s+advise\s+against|i\s+don(?:'|’)?t\s+think\s+(?:we|you)\s+should|i\s+(?:am\s+)?not\s+going\s+to|that\s+is\s+not\s+possible|that(?:'|’)?s\s+not\s+possible)\b"), t)
+}
+
 fn pretool(c: &Ctx, data: &Value, manager: bool) {
     let tool = s(data, "tool_name");
     let empty = Value::Object(Default::default());
@@ -344,6 +349,22 @@ fn manager_reply_ok(t: &str) -> bool {
     has_q && has_choices
 }
 
+/// True when this turn was started by his own typed message (not an app event, another chat or hook feedback).
+fn owner_typed_last(path: &str) -> bool {
+    let ends = rei(r"<cross-session-message|<task-notification|<side-sessions-event|<ci-monitor-event|\[SYSTEM NOTIFICATION");
+    let neutral = rei(r"^\s*(<system-reminder|Stop hook feedback|Stop hook blocking error)");
+    let mut typed = false;
+    for d in lines_of(path) {
+        if s(&d, "type") != "user" { continue; }
+        let c = msg_content(&d);
+        if let Value::Array(a) = &c { if a.iter().any(|b| s(b, "type") == "tool_result") { continue; } }
+        let t = content_text(&c);
+        if t.trim().is_empty() { continue; }
+        if is(&ends, &t) { typed = false; } else if !is(&neutral, &t) { typed = true; }
+    }
+    typed
+}
+
 fn stop(c: &Ctx, data: &Value, manager: bool) {
     let text = s(data, "last_assistant_message");
     if text.is_empty() || data.get("stop_hook_active").and_then(Value::as_bool).unwrap_or(false) || bounced_this_turn(s(data, "transcript_path")) { return; }
@@ -354,6 +375,10 @@ fn stop(c: &Ctx, data: &Value, manager: bool) {
         if let Some(idx) = asked_at.filter(|&i| !card_skipped(tpath, s(&uses[i], "id"))) {
             let recorded = uses[idx + 1..].iter().any(|u| s(u, "name") == "Bash" && u.get("input").map(|i| s(i, "command").contains(&c.recorder)).unwrap_or(false));
             if !recorded { block(&format!("a choice card was answered but not recorded: run {} with his exact answer (or --no-pick if he skipped the card or typed his own words) under its list item before ending the turn", recorder_path(&main_folder(s(data, "cwd")), &c.recorder))); }
+            return;
+        }
+        if refuses_order(text) && owner_typed_last(tpath) {
+            block("he gave you an order in his own words: do it, period. If you are unsure, ask him one question; never argue and never say you cannot do a task he gave you directly (item 76)");
             return;
         }
         if text.contains('?') && look_unshown(text, &uses) {

@@ -237,6 +237,14 @@ cases += [
     ("FOUNDER: a worker's refusal in its own chat is not the manager's rule", run("Stop", last_assistant_message="**READY \u00b7 x**\n- I can't ship it\n- b", transcript_path=b), False),
     ("FOUNDER: a refusal sentence after an app event (not his order) is not this check", run("Stop", last_assistant_message="The crew is idle. I can't start a chat for the inspector.", transcript_path=tr(MG, [said("<task-notification>x")])), False),
 ]
+# the card title of a started chat is its final name (item 69)
+def starts(title):
+    return run("PreToolUse", tool_name="mcp__ccd_session__start_session", tool_input={"title": title, "prompt": "x"}, transcript_path=m)
+cases += [
+    ("TITLE: a title with a Start prefix is refused", starts("Start Engine_PINR_006"), True),
+    ("TITLE: the worker's full name goes through", starts("Engine_PINR_006"), False),
+    ("TITLE: an ordinary session title goes through", starts("Fix the login bug"), False),
+]
 bad = 0
 for name, out, should_block in cases:
     ok = bool(out) == should_block

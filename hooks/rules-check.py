@@ -461,6 +461,11 @@ def pretool(data, manager):
     root = main_folder(data.get("cwd"))
     if tool in ("Agent", "Task"):
         return helper_problem(inp, manager)
+    if tool.endswith("start_session"):
+        t = str(inp.get("title", ""))
+        if re.match(r"^\s*start\s+\S+_\S+_\d{3}\s*$", t, re.I):
+            return deny("a started chat's card title is its final name: use the worker's full name without a prefix (not \"%s\")" % t)
+        return
     if tool == "AskUserQuestion":
         if manager and look_unshown(json.dumps(inp.get("questions") or []),
                                     turn_blocks(data.get("transcript_path") or "") + [{"name": "AskUserQuestion", "input": inp}]):

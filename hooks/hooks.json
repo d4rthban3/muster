@@ -39,7 +39,7 @@
     ],
     "PreToolUse": [
       {
-        "matcher": "AskUserQuestion|Agent|Task|SendMessage|Write|Edit|NotebookEdit|Bash",
+        "matcher": "mcp__ccd_session__start_session|AskUserQuestion|Agent|Task|SendMessage|Write|Edit|NotebookEdit|Bash",
         "hooks": [
           {
             "type": "command",

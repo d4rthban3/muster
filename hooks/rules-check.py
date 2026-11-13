@@ -543,7 +543,12 @@ def manager_reply_ok(text):
     return has_q and has_choices
 
 
-REFUSES = re.compile(r"\b(i\s+can['\u2019]?t|i\s+cannot|i\s+won['\u2019]?t|i['\u2019]?m\s+unable|i\s+am\s+unable|i['\u2019]?m\s+not\s+able|i\s+am\s+not\s+able|i\s+(?:would|'d)\s+advise\s+against|i\s+don['\u2019]?t\s+think\s+(?:we|you)\s+should|i\s+(?:am\s+)?not\s+going\s+to|that\s+is\s+not\s+possible|that['\u2019]?s\s+not\s+possible)\b", re.I)
+REFUSES = re.compile(r"\b(i\s+can['\u2019]?t|i\s+cannot|i\s+won['\u2019]?t|i['\u2019]?m\s+unable|i\s+am\s+unable|i['\u2019]?m\s+not\s+able|i\s+am\s+not\s+able|i\s+(?:would|'d)\s+advise\s+against|i\s+don['\u2019]?t\s+think\s+(?:we|you)\s+should|i\s+(?:am\s+)?not\s+going\s+to|that\s+is\s+not\s+possible|that['\u2019]?s\s+not\s+possible|i\s+disagree|i\s+don['\u2019]?t\s+agree|that['\u2019]?s\s+a\s+bad\s+idea|would\s+be\s+a\s+mistake|i\s+took\s+(?:that|this)\s+to\s+mean|i\s+assumed|i\s+interpreted|you\s+(?:probably|likely|really)\s+mean|what\s+you\s+(?:really|probably)\s+mean|i\s+read\s+(?:that|this)\s+as|i['\u2019]ll\s+do\s+[^.]{0,60}\s+instead|i\s+will\s+do\s+[^.]{0,60}\s+instead)\b", re.I)
+
+
+def refuses_order(text):
+    """True when the reply refuses, argues with or reinterprets a task (item 76). "I can't tell which one" is a question's lead-in, not a refusal."""
+    return bool(REFUSES.search(re.sub(r"\bi\s+(?:can['\u2019]?t|cannot)\s+(?:tell|know|see|find|work\s+out|be\s+sure|understand|decide)\b", " ", text, flags=re.I)))
 
 
 def owner_typed_last(path):
@@ -577,6 +582,10 @@ def owner_typed_last(path):
 
 def stop(data, manager):
     text = data.get("last_assistant_message") or ""
+    # Founder orders (item 76): NOT subject to the once-per-turn pass; the only way through is doing it, or one short question
+    if manager and text and refuses_order(text) and owner_typed_last(data.get("transcript_path") or ""):
+        return block("he gave you an order in his own words, and a coded rule says you do it: no refusing, no \"cannot\", no arguing, no reinterpreting (item 76). "
+                     "Do the task now, or if you are unsure ask him ONE short question, nothing else")
     if not text or data.get("stop_hook_active") or bounced_this_turn(data.get("transcript_path") or ""):
         return
     uses = turn_blocks(data.get("transcript_path") or "")
@@ -588,8 +597,6 @@ def stop(data, manager):
             if not recorded:
                 return block("a choice card was answered but not recorded: run %s with his exact answer (or --no-pick if he skipped the card or typed his own words)" % recorder_path(main_folder(data.get("cwd"))) + " under its list item before ending the turn")
             return
-        if REFUSES.search(text) and owner_typed_last(data.get("transcript_path") or ""):
-            return block("he gave you an order in his own words: do it, period. If you are unsure, ask him one question; never argue and never say you cannot do a task he gave you directly (item 76)")
         if "?" in text and look_unshown(text, uses):
             return block("a question about how something looks comes after the pictures: show them to him first in this turn (send-file with render, or card previews), then ask")
         if not manager_reply_ok(text) and not owner_asked(data.get("transcript_path") or ""):

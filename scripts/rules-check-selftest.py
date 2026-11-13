@@ -227,6 +227,11 @@ cases += [
     ("FOUNDER: a refusal of a task he typed is blocked", run("Stop", last_assistant_message="I can't do that from here, it would break the board.", transcript_path=tr(MG, [said("archive the old chats now")])), True),
     ("FOUNDER: an argument against his order is blocked", run("Stop", last_assistant_message="I would advise against that. Which one? Pick a button.", transcript_path=tr(MG, [said("archive the old chats now")])), True),
     ("FOUNDER: doing it and asking one question passes", run("Stop", last_assistant_message="Which chats do you mean? Pick a button.", transcript_path=tr(MG, [said("archive the old chats now")])), False),
+    ("FOUNDER: a refusal is blocked even after one bounce already (no once-per-turn pass)", run("Stop", last_assistant_message="I can't do that from here, it would break the board.", transcript_path=tr(MG, [said("archive the old chats now"), said("Stop hook feedback:\nx")])), True),
+    ("FOUNDER: ...even when the stop hook is already active", run("Stop", last_assistant_message="I cannot do that.", stop_hook_active=True, transcript_path=tr(MG, [said("archive the old chats now")])), True),
+    ("FOUNDER: one short question is the way through", run("Stop", last_assistant_message="I can't tell which chats: do you mean all of them? Pick a button.", transcript_path=tr(MG, [said("archive the old chats now")])), False),
+    ("FOUNDER: reinterpreting his order is blocked", run("Stop", last_assistant_message="I took that to mean the PINR chats, so I archived those.", transcript_path=tr(MG, [said("archive the old chats now")])), True),
+    ("FOUNDER: a worker's refusal in its own chat is not the manager's rule", run("Stop", last_assistant_message="**READY \u00b7 x**\n- I can't ship it\n- b", transcript_path=b), False),
     ("FOUNDER: a refusal sentence after an app event (not his order) is not this check", run("Stop", last_assistant_message="The crew is idle. I can't start a chat for the inspector.", transcript_path=tr(MG, [said("<task-notification>x")])), False),
 ]
 bad = 0

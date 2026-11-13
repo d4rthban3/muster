@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.68
+Affects: Manager.
+Manager name: the rules check sees a PINR manager whose start note reads 'Job: You are Manager_PINR_N' (Python and Rust copies, programs rebuilt)
+
 ## 0.3.67
 Affects: manager.
 Start title: a started chat's card title is its final name; the check refuses a Start prefix

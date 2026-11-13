@@ -1,0 +1,24 @@
+{
+  "version": "0.3.64",
+  "changed_files": [
+    "agents/manager.md",
+    "directory/.claude-plugin/marketplace.json",
+    "directory/.claude-plugin/plugin.json",
+    "directory/agents/manager.md",
+    "pages/manager.md",
+    "scripts/build-pages.py",
+    "scripts/idle-check-selftest.py",
+    "scripts/idle-check.py"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Builder",
+    "Designer",
+    "Inspector"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "No hold above his word: manager page line; the manager's stop flags a hold that names no decision or item of his"
+}

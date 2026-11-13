@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.64
+Affects: Manager, Builder, Designer, Inspector.
+No hold above his word: manager page line; the manager's stop flags a hold that names no decision or item of his
+
 ## 0.3.63
 Affects: Manager, Builder, Designer, Inspector.
 Manager-wait: a worker may not end a turn waiting on the manager with nothing sent; the manager's stop names chats that wait on him

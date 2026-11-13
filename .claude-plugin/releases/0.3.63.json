@@ -1,0 +1,21 @@
+{
+  "version": "0.3.63",
+  "changed_files": [
+    "scripts/idle-check-selftest.py",
+    "scripts/idle-check.py",
+    "scripts/install-checks.py",
+    "scripts/worker-queue-check-selftest.py",
+    "scripts/worker-queue-check.py"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Builder",
+    "Designer",
+    "Inspector"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Manager-wait: a worker may not end a turn waiting on the manager with nothing sent; the manager's stop names chats that wait on him"
+}

@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.63
+Affects: Manager, Builder, Designer, Inspector.
+Manager-wait: a worker may not end a turn waiting on the manager with nothing sent; the manager's stop names chats that wait on him
+
 ## 0.3.62
 Affects: Builder, Designer, Inspector.
 Queue check --list: say what to give when --worker is missing, with a self-test

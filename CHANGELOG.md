@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.62
+Affects: Builder, Designer, Inspector.
+Queue check --list: say what to give when --worker is missing, with a self-test
+
 ## 0.3.61
 Affects: Builder, Designer, Inspector.
 Worker queue check reads PINR's line-style board and is installed there by install-checks.py

@@ -1,0 +1,17 @@
+{
+  "version": "0.3.62",
+  "changed_files": [
+    "scripts/worker-queue-check-selftest.py",
+    "scripts/worker-queue-check.py"
+  ],
+  "affected_roles": [
+    "Builder",
+    "Designer",
+    "Inspector"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Queue check --list: say what to give when --worker is missing, with a self-test"
+}

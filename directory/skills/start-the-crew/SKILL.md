@@ -50,6 +50,8 @@ it, **start the chats again yourself**; never leave the owner to start them by h
 2. At once detach that id to the top level (`detach_session`; it needs no approval; it is refused for a chat you did not start, one the owner already moved, a fork, or one that shares another session's worktree, and is unavailable in unattended sessions: then say so and name what to drag).
 3. File that id in the project's sidebar group (see below).
 Then **check**: read the title back (`get_session`) and confirm it is exactly the worker's full name, then list the sessions of the project's group (`list_sessions` with group set to the project name) and confirm each chat you just started sits in it, and (`get_session`) that it shows `detached: true` (the parent id stays on record; that is normal); a chat still nested or ungrouped is fixed before you start the next one or tell anyone the crew is running. If a step is refused, say so in one line with what to drag where. No crew chat sits under the manager or under the chat that ran the setup.
+**A coded check enforces the filing:** the manager's stop refuses a turn that started a chat (`start_session`, not just a card that proposes one) without `move_sessions` into the group and then a `list_sessions` read-back; if the app refuses a step, say so and name what to drag.
+
 **Sidebar group:** every project's crew sits in its own sidebar group named with the project name the owner gave on
 the setup page. Make the group (or use one with that exact name) before the first crew chat starts, and file each crew
 chat into it right after it is detached, one by one. Never skip this step or leave it silently undone: if any chat is not in the group at the end,

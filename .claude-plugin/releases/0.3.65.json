@@ -1,0 +1,23 @@
+{
+  "version": "0.3.65",
+  "changed_files": [
+    "bin/SOURCE-STAMP",
+    "bin/linux-arm64/muster-checks",
+    "bin/linux-x86_64/muster-checks",
+    "bin/macos-arm64/muster-checks",
+    "bin/macos-x86_64/muster-checks",
+    "bin/windows-x86_64/muster-checks.exe",
+    "checks/src/common.rs",
+    "checks/src/rules.rs",
+    "hooks/rules-check.py",
+    "scripts/rules-check-selftest.py"
+  ],
+  "affected_roles": [
+    "Manager"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "No filler: a short routine reply to another chat's message is not bounced for wording (Python and Rust copies, programs rebuilt)"
+}

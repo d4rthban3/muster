@@ -192,6 +192,22 @@ pub fn owner_asked(path: &str) -> bool {
     last.contains('?') || is(&rei(r"^\s*(what|why|how|when|where|who|which|can|could|would|will|did|does|do|is|are|was|were|should|tell|show|explain|look|check|find|list|give|say|read|open|run)\b|\b(tell me|show me|let me know|how come|what's|look at)\b"), &last)
 }
 
+/// True when this turn was started by a message from another chat or an app event, not the owner's typed words (item 75).
+pub fn peer_started(path: &str) -> bool {
+    let ends = rei(r"<cross-session-message|<task-notification|<side-sessions-event|<ci-monitor-event|\[SYSTEM NOTIFICATION");
+    let neutral = rei(r"^\s*(<system-reminder|Stop hook feedback)");
+    let mut last = false;
+    for d in lines_of(path) {
+        if s(&d, "type") != "user" { continue; }
+        let c = msg_content(&d);
+        if let Value::Array(a) = &c { if a.iter().any(|b| s(b, "type") == "tool_result") { continue; } }
+        let t = content_text(&c);
+        if t.trim().is_empty() { continue; }
+        if is(&ends, &t) { last = true; } else if !is(&neutral, &t) { last = false; }
+    }
+    last
+}
+
 pub fn exists(p: &Path) -> bool { p.exists() }
 pub fn read_all<R: Read>(mut r: R) -> String { let mut t = String::new(); let _ = r.read_to_string(&mut t); t }
 

@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.65
+Affects: Manager.
+No filler: a short routine reply to another chat's message is not bounced for wording (Python and Rust copies, programs rebuilt)
+
 ## 0.3.64
 Affects: Manager, Builder, Designer, Inspector.
 No hold above his word: manager page line; the manager's stop flags a hold that names no decision or item of his

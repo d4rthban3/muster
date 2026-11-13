@@ -270,6 +270,42 @@ def owner_asked(path):
     return "?" in last or bool(ASKING.search(last))
 
 
+def peer_started(path):
+    """True when this turn was started by a message from another chat or an app event (cross-session, task, side-sessions,
+    CI), not by the owner's typed words; hook feedback and system reminders change nothing (item 75)."""
+    last = False
+    try:
+        with open(path, encoding="utf-8") as fh:
+            for line in fh:
+                try:
+                    d = json.loads(line)
+                except ValueError:
+                    continue
+                if d.get("type") != "user":
+                    continue
+                c = (d.get("message") or {}).get("content", "")
+                if isinstance(c, list):
+                    if any(isinstance(b, dict) and b.get("type") == "tool_result" for b in c):
+                        continue
+                    c = " ".join(b.get("text", "") for b in c if isinstance(b, dict))
+                c = str(c)
+                if not c.strip():
+                    continue
+                if ENDS_TURN.search(c):
+                    last = True
+                elif not NEUTRAL.match(c):
+                    last = False
+    except OSError:
+        pass
+    return last
+
+
+def short_report(text):
+    """A one-to-three line reply of at most 300 characters: a routine report, not a long narration."""
+    t = text.strip()
+    return len(t) <= 300 and len(t.splitlines()) <= 3
+
+
 def main_folder(cwd):
     """The project's main folder: the parent of git's common dir (a worktree copy points at it), else cwd."""
     try:
@@ -558,7 +594,8 @@ def stop(data, manager):
             return
         if "?" in text and look_unshown(text, uses):
             return block("a question about how something looks comes after the pictures: show them to him first in this turn (send-file with render, or card previews), then ask")
-        if not manager_reply_ok(text) and not owner_asked(data.get("transcript_path") or ""):
+        if not manager_reply_ok(text) and not owner_asked(data.get("transcript_path") or "") \
+                and not (peer_started(data.get("transcript_path") or "") and short_report(text)):  # a short routine reply to another chat's message is not bounced (item 75)
             return block("to the owner the manager says only a question with its choices as buttons, a yes he must give, '<worker> is waiting for you: type in <chat>', or 'The crew is idle'. Rewrite the reply as one of those, or put the news on the board")
         return
     if asked or re.match(r"\s*Messages paused", text):

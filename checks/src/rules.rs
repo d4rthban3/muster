@@ -360,7 +360,7 @@ fn stop(c: &Ctx, data: &Value, manager: bool) {
             block("a question about how something looks comes after the pictures: show them to him first in this turn (send-file with render, or card previews), then ask");
             return;
         }
-        if !manager_reply_ok(text) && !owner_asked(tpath) {
+        if !manager_reply_ok(text) && !owner_asked(tpath) && !(peer_started(tpath) && text.trim().chars().count() <= 300 && text.trim().lines().count() <= 3) { // a short routine reply to another chat's message is not bounced (item 75)
             block("to the owner the manager says only a question with its choices as buttons, a yes he must give, '<worker> is waiting for you: type in <chat>', or 'The crew is idle'. Rewrite the reply as one of those, or put the news on the board");
         }
         return;

@@ -43,7 +43,9 @@ fn is_manager(c: &Ctx, first: &str) -> bool {
             let tail = &first[m.end()..];
             let anchored = re(&format!("^(?:{})", c.crew.as_str()));
             if let Some(cm) = find(&anchored, tail) {
-                if best.as_ref().map(|b| m.start() < b.0).unwrap_or(true) { best = Some((m.start(), cm.as_str().to_string())); }
+                // a profile pattern may swallow "You are " before the name
+                let name = rei(r"^(?:you are|i am|i'm)\s+(?:the\s+)?[*`]{0,2}").replace(cm.as_str(), "").to_string();
+                if best.as_ref().map(|b| m.start() < b.0).unwrap_or(true) { best = Some((m.start(), name)); }
                 break;
             }
             at = m.end().max(m.start() + 1);

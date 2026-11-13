@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.67
+Affects: manager.
+Start title: a started chat's card title is its final name; the check refuses a Start prefix
+
 ## 0.3.66
 Affects: manager, builder, designer, inspector.
 Founder orders: a coded rule, the manager cannot refuse, argue with or reinterpret an order he typed

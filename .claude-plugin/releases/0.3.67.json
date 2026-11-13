@@ -1,0 +1,27 @@
+{
+  "version": "0.3.67",
+  "changed_files": [
+    "bin/SOURCE-STAMP",
+    "bin/linux-arm64/muster-checks",
+    "bin/linux-x86_64/muster-checks",
+    "bin/macos-arm64/muster-checks",
+    "bin/macos-x86_64/muster-checks",
+    "bin/windows-x86_64/muster-checks.exe",
+    "checks/src/rules.rs",
+    "directory/.claude-plugin/marketplace.json",
+    "directory/.claude-plugin/plugin.json",
+    "directory/skills/start-the-crew/SKILL.md",
+    "hooks/hooks.json",
+    "hooks/rules-check.py",
+    "scripts/rules-check-selftest.py",
+    "skills/start-the-crew/SKILL.md"
+  ],
+  "affected_roles": [
+    "manager"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Start title: a started chat's card title is its final name; the check refuses a Start prefix"
+}

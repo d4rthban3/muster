@@ -19,6 +19,12 @@ step "find Python"
 PY=$(sh "$ROOT/scripts/find-python.sh") || fail "no working Python 3"
 echo "python command: $PY"
 
+step "setup's own questions are lettered lines, never a choice card or buttons (item 89, D-037)"
+SETUP="$ROOT/commands/setup.md"
+if grep -Eqi "AskUserQuestion|two buttons|each a button|as buttons|its own button|ask one question" "$SETUP"; then fail "commands/setup.md still asks a question as a choice card or buttons: $(grep -Ein 'AskUserQuestion|two buttons|each a button|as buttons|its own button|ask one question' "$SETUP" | head -3)"; fi
+[ "$(tr '\n' ' ' < "$SETUP" | grep -o 'lettered question' | wc -l)" -ge 8 ] || fail "commands/setup.md has fewer lettered questions than its choices need"
+grep -q '\*\*\*A\.\*\*\*' "$SETUP" || fail "commands/setup.md shows no bold-italic lettered choice"
+
 step "setup page: serve.py saves a choice"
 PROJECT="Bob's \$5 Shop"
 mkdir -p "$HOME/Muster"

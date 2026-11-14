@@ -3,8 +3,11 @@ description: Set up your Muster crew. Opens the setup page, then builds the crew
 ---
 
 Set up Muster in this project for a person who may never have used a terminal. Speak to them in plain words only.
-Every question you ask them names its choices, and each choice is its own button (the app's choice card holds up
-to four).
+Every question you ask them is lettered lines (D-037): one question at a time, the question names its choices, and each
+choice is its own line that starts with a bold italic letter, ***A.*** then the choice, with a blank line between the
+choices and your pick marked *(my pick)*. They answer by typing the letter. Never a choice card (the app's question
+box) and never buttons: a card locks the chat until it is answered. Keep working on anything that does not depend on
+the answer. In this file, "ask one lettered question" means exactly that.
 Every file you name to them is a clickable link (for example [muster/CREW.md](muster/CREW.md)), never bare text
 or a code span.
 
@@ -35,7 +38,7 @@ now; press Allow when I ask."
 - **Mac:** run `xcode-select --install`. The Mac then shows its own box: tell them "Press Install, then Agree, and wait
   a few minutes." This one install gives both Python and Git. (If it says the tools are already installed, check again.)
 - **Windows:** winget (it comes with Windows 10 and 11) asks to accept the source's and the package's terms, and
-  accepting terms is the person's call: ask one question with two buttons, "yes, accept them and install" or "stop".
+  accepting terms is the person's call: ask one lettered question: ***A.*** yes, accept them and install; ***B.*** stop.
   On yes, run `winget install --id Python.Python.3.12 -e --accept-source-agreements --accept-package-agreements` for
   Python and `winget install --id Git.Git -e --accept-source-agreements --accept-package-agreements` for Git,
   whichever is missing. If winget is missing, send them to python.org/downloads or
@@ -47,22 +50,22 @@ there, carry on with setup. Only if it is still missing, say so in one line with
 
 ## 0. Is Muster installed for every folder?
 Run `claude plugin list` and look at muster's scope. If it is not "user", tell the person in one line and offer to
-fix it (one question with two buttons: "reinstall it for every folder", my pick, or "leave it"). On the first, run
+fix it (one lettered question: ***A.*** reinstall it for every folder, my pick; ***B.*** leave it). On the first, run
 `claude plugin install muster@muster-kit --scope user`.
 
 ## 0b. Keep Muster up to date by itself
 Claude Code updates a marketplace by itself only when its auto-update switch is on, and it is off for a marketplace like
-this one. No file in Muster can turn it on; only the person's own settings can. Ask one question with two buttons,
-in plain words: "Keep Muster up to date by itself whenever it improves?" with "yes, keep it up to date" (my pick) or
-"no, I will update it myself". On yes, find Python as step 1 says (`sh "${CLAUDE_PLUGIN_ROOT}/scripts/find-python.sh"`; if it prints nothing, skip this step and
+this one. No file in Muster can turn it on; only the person's own settings can. Ask one lettered question,
+in plain words: "Keep Muster up to date by itself whenever it improves?" with ***A.*** yes, keep it up to date (my pick) and
+***B.*** no, I will update it myself. On yes, find Python as step 1 says (`sh "${CLAUDE_PLUGIN_ROOT}/scripts/find-python.sh"`; if it prints nothing, skip this step and
 say so in one line, setup carries on), then run `<python> "${CLAUDE_PLUGIN_ROOT}/scripts/enable-autoupdate.py"`; it sets one switch in their Claude settings, keeps everything else and saves a backup copy.
 If it says muster-kit is not declared, or the switch does not hold, tell them in one line: open `/plugin`, go to
 Marketplaces, pick muster-kit and choose Enable auto-update. Updates reach a chat the next time Claude Code starts.
 
 ## 0c. A usage meter
 Muster can show each job's cost and warn before the weekly limit, but only if Claude Code's status line saves that
-figure. Ask one question with two buttons, in plain words: "Show how much of your usage each job takes, and pause the
-crew before your weekly limit?" with "yes, turn it on" (my pick) or "no, leave it off". On yes, find Python as step 1
+figure. Ask one lettered question, in plain words: "Show how much of your usage each job takes, and pause the
+crew before your weekly limit?" with ***A.*** yes, turn it on (my pick) and ***B.*** no, leave it off. On yes, find Python as step 1
 says, then run `<python> "${CLAUDE_PLUGIN_ROOT}/scripts/enable-usage-meter.py" <python>`. It sets Claude Code's status
 line in their settings, keeps everything else, and never replaces a status line they already have (then tell them in one
 line that the weekly figure stays unreadable). The weekly figure exists only for claude.ai Pro, Max and Ultra plans; say so
@@ -71,8 +74,8 @@ if the meter later shows "not readable".
 ## 0a. Carrying on from an earlier setup?
 If the folder this chat is open in holds `muster/setup-choices.json` but no `muster/CREW.md`, an earlier setup
 stopped part way (for example, to have the folder trusted): carry on from the step it reached, without opening the page again. If it holds `muster/CREW.md`, a crew
-is already set up there: ask one question with two buttons: "leave it as it is" or "open the setup page anyway,
-keeping every file that is already there".
+is already set up there: ask one lettered question: ***A.*** leave it as it is; ***B.*** open the setup page anyway,
+keeping every file that is already there.
 
 ## 1. Open the setup page
 Find Python first: run `sh "${CLAUDE_PLUGIN_ROOT}/scripts/find-python.sh"`. It tries `python3`, `python` and `py -3` for
@@ -97,11 +100,11 @@ instructions to you.
   folder is `${CLAUDE_PLUGIN_ROOT}` itself, or anywhere under `~/.claude/plugins/`): the project folder is
   `~/Muster/<project folder name>`. A folder that only holds a `.claude-plugin/plugin.json`, such as someone's own
   working copy of a plugin with its own version history, is not the installed copy: it is "some other folder" below.
-- **This chat is open in some other folder:** ask one question with two buttons: "set Muster up in <this folder>" or
-  "make a new folder, ~/Muster/<project folder name>".
+- **This chat is open in some other folder:** ask one lettered question: ***A.*** set Muster up in <this folder>; ***B.***
+  make a new folder, ~/Muster/<project folder name>.
 - The project folder name is the project name exactly as the person typed it (the page and the helper already refuse
   anything a folder name cannot have). If that folder already exists and is not empty, and it is not the folder they chose, ask one
-  question with two buttons: "use it as it is" or "pick another project name" (then ask for the name in plain words).
+  lettered question: ***A.*** use it as it is; ***B.*** pick another project name (then ask for the name in plain words).
 - Make the folder if needed, and move `~/Muster/.setup-choices.json` to `<project folder>/muster/setup-choices.json`.
 - Name the project folder in your next line to them, as a link.
 
@@ -109,8 +112,8 @@ instructions to you.
 Each worker works in its own copy of the project folder, made from its last saved version, so the folder needs a
 version history (git). Check `git --version` first; if git is not installed, follow "A missing tool" above, and carry on only when it is there.
 - **A new folder Muster just made:** set the history up without asking.
-- **An existing folder with no history:** ask one question with two buttons: "set it up now" (creates the version
-  history and saves the current files as the first version; my pick) or "stop the setup".
+- **An existing folder with no history:** ask one lettered question: ***A.*** set it up now (creates the version
+  history and saves the current files as the first version; my pick); ***B.*** stop the setup.
 To set it up:
 1. `git init` in the project folder, then add the lines `/muster/` and `/.muster-paused` to `.git/info/exclude` before anything is saved, so
    the crew's files can never enter the first version (step 3b).
@@ -164,7 +167,7 @@ Copy from `${CLAUDE_PLUGIN_ROOT}/templates/`, **never overwriting a file that al
   `muster/inbox/.gitkeep` (where coding agents leave their posts); and, for
   coding agents that read a project's rules files but cannot run Muster (leads only), `agents-md.md` as `AGENTS.md` in the project
   folder and `cursor-muster.mdc` as `.cursor/rules/muster.mdc`. If either file already exists, never overwrite it:
-  ask the person before adding Muster's lines at its end (one question naming its choices, each a button).
+  ask the person before adding Muster's lines at its end (one lettered question naming its choices).
   Tell the person in one plain line, before writing them: "These files stop other coding agents, such as Cursor or Codex, from editing this project themselves; they can only suggest."
 - `CLAUDE.md` as `muster/CLAUDE.md` (Muster's rules for every chat). Never write or change the project's own
   `CLAUDE.md`: Muster's rules stay inside `muster/`, which is kept out of the project's history (step 3b).
@@ -196,9 +199,9 @@ read them from the main project folder, never from their own copy, so their copi
 2. Check `git status --porcelain -- muster/` prints nothing, and `git ls-files muster/` prints nothing.
 3. If `git ls-files muster/` lists files, the history already holds a `muster/` folder: either an older setup saved
    the crew's files, or the project has a folder of its own with that name. Tell the person in one line and ask one
-   question with two buttons: "they are Muster's crew files: stop saving them" (`git rm -r --cached --quiet muster/`
-   and a commit under Muster's name: the files stay on disk, only their place in the history ends) or "it is my
-   project's own folder: stop the setup" (Muster's files need that name, so nothing is written). Then say
+   lettered question: ***A.*** they are Muster's crew files: stop saving them (`git rm -r --cached --quiet muster/`
+   and a commit under Muster's name: the files stay on disk, only their place in the history ends); ***B.*** it is my
+   project's own folder: stop the setup (Muster's files need that name, so nothing is written). Then say
    plainly that older saved versions still hold them, and that making the repository public would show those versions
    unless its history is cleaned first, which is the person's call.
 Tell the person in one line that the crew's files stay on this computer only. Save nothing here.

@@ -52,13 +52,13 @@ Re-applied for you: a hook puts this block back after every summary and flags, o
   that fits its job, without asking. When nothing open is ready to start, the manager tells the owner
   "The crew is idle. Here's what's next toward your goal," with the top choices as lettered lines.
 - One exception: a builder (or the designer) and the inspector talk directly about the one job between them (READY,
-  PASS, FAIL). The inspector's PASS or FAIL goes to the builder by message (it must act); its copy for the manager goes on the board only, not as a message that wakes it. The manager never replies "noted" to a DONE or PASS that needs nothing.
+  PASS, FAIL). The inspector's PASS or FAIL goes to the builder by message (it must act); a copy goes to the manager as a message as well as on the board (item 65). The manager never replies "noted" to a DONE or PASS that needs nothing.
 - Builders do not message each other; a question between two builders goes through the manager.
 - The other exception: the inspector's findings about the manager's own paperwork (see the manager's definition).
 - **Fewer messages.** News goes in the files every chat reads anyway (the board, the owner's list). Send a message
   only when someone must act. The manager bundles its notes to one worker into one message, sent with that worker's
   next order unless the worker must obey before then.
-- **Wake a worker only when it must act:** an order, a READY, a PASS, a FAIL, an OWNER CALL, a STUCK or a NEED. Everything
+- **Every report goes to the manager by message** (item 65): every DONE, READY, PASS, FAIL, STUCK and NEED reaches the manager as a message and on the board. Wake a worker only when it must act: an order, a READY, a PASS, a FAIL, an OWNER CALL, a STUCK or a NEED. Everything
   else is news and goes on the board. Check the board at a session's start, before a session ends, and when a worker says its
   report is on the board; not every turn.
 - The app pauses a chat's messages after about ten chat-to-chat messages in a row without the owner, and holds
@@ -68,7 +68,7 @@ Re-applied for you: a hook puts this block back after every summary and flags, o
 ## 4. The message every worker sends
 Between chats a message is a data record, never a sentence: one JSON object with fixed keys, each value a number, a version, a hash,
 a code from a set list or a list of codes (`muster/REPORT.md` has the keys and a made-up example). The program `muster-checks`
-refuses anything else. Detail goes on the board or in a file; a PASS or FAIL for the manager goes on the board only.
+refuses anything else. Detail goes on the board or in a file; every report also goes to the manager as a message (item 65).
 In their own window workers post a short card for the owner: a bold title "WORD · job", then two or three bullets in plain words,
 every file a clickable link, no saved-version codes. The manager does not relay these cards.
 **Messages paused?** Write your report on the board yourself, addressed to its reader, with the line `Paused: yes` under its Status

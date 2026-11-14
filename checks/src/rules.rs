@@ -227,6 +227,17 @@ fn pictures_shown(uses: &[Value]) -> bool {
         }
     })
 }
+/// Item 88: only the sentences that end in a question mark, never a lettered choice line.
+fn question_part(text: &str) -> String {
+    let choice = re(r"^\s*\W*[A-Z]\.\W");
+    let q = re(r"[^.!?\n]*\?");
+    let mut out: Vec<String> = vec![];
+    for line in text.lines() {
+        if is(&choice, line) { continue; }
+        for m in q.find_iter(line).flatten() { out.push(m.as_str().to_string()); }
+    }
+    out.join(" ")
+}
 fn look_unshown(question: &str, uses: &[Value]) -> bool { (is(&rei(LOOK), question) || (is(&rei(LOOK_WEAK), question) && is(&rei(LOOK_SCREEN), question))) && !pictures_shown(uses) }
 
 /// Founder orders (item 76): a reply that says it cannot or will not do a task, or argues with it, when he typed it.
@@ -401,7 +412,7 @@ fn stop(c: &Ctx, data: &Value, manager: bool) {
             block("write each choice letter bold and italic, like ***A.*** red, one line per choice with a blank line between (item 80)");
             return;
         }
-        if text.contains('?') && look_unshown(text, &uses) {
+        if text.contains('?') && look_unshown(&question_part(text), &uses) {
             block("a question about how something looks comes after the pictures: show them to him first in this turn (send-file with render, or card previews), then ask");
             return;
         }

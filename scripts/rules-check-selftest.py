@@ -240,6 +240,10 @@ cases += [
     ("SHOWFIRST: a worker's card is not this check's business", ask(b, questions=LQ), False),
     ("SHOWFIRST: a look question in a reply with no pictures is blocked", run("Stop", last_assistant_message="Which colour do you prefer?\n\n***A.*** yes\n\n***B.*** no", transcript_path=tr(MG, [said("hi")])), True),
     ("SHOWFIRST: ...with pictures shown this turn it passes", run("Stop", last_assistant_message="Which colour do you prefer?\n\n***A.*** yes\n\n***B.*** no", transcript_path=tr(MG, [said("hi"), SHOT])), False),
+    ("SHOWFIRST (item 88): 'layout' in a list above a non-look question passes", run("Stop", last_assistant_message="Open items: burn layout, site cleanup.\n\nWhich do we push next?\n\n***A.*** the iPhone App Store path\n\n***B.*** clear the open site questions", transcript_path=tr(MG, [said("hi")])), False),
+    ("SHOWFIRST (item 88): a look word in a choice line only passes", run("Stop", last_assistant_message="Which do we push next?\n\n***A.*** fix the colour of the banner\n\n***B.*** clear the open site questions", transcript_path=tr(MG, [said("hi")])), False),
+    ("SHOWFIRST (item 88): no question, look words, passes", run("Stop", last_assistant_message="The crew is idle. The layout and colour work is done and shipped.", transcript_path=tr(MG, [said("hi")])), False),
+    ("SHOWFIRST (item 88): a real look question still blocks", run("Stop", last_assistant_message="Open items: none.\n\nWhich colour do you prefer for the page?\n\n***A.*** blue\n\n***B.*** green", transcript_path=tr(MG, [said("hi")])), True),
     ("SHOWFIRST: a question that is not about looks passes", run("Stop", last_assistant_message="Ship it now?\n\n***A.*** yes\n\n***B.*** no", transcript_path=tr(MG, [said("hi")])), False),
     # item 88: his question with no question mark is still a question; "looks" in a rules choice is not a look question
     ("ANSWER: his question (no question mark) then a plain two-line answer passes", run("Stop", last_assistant_message="Make up a new one for the keystore.\nIt is not your machine password.", transcript_path=tr(MG, [said("make up a keystore password or is that my machine password")])), False),

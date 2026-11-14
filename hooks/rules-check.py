@@ -505,6 +505,16 @@ def pictures_shown(uses):
     return False
 
 
+def question_part(text):
+    """Item 88: only the sentences that end in a question mark, never a lettered choice line; a word like layout elsewhere in the reply is not a look question."""
+    out = []
+    for line in text.splitlines():
+        if re.match(r"^\s*\W*[A-Z]\.\W", line):
+            continue
+        out += re.findall(r"[^.!?\n]*\?", line)
+    return " ".join(out)
+
+
 def look_unshown(question, uses):
     return bool(LOOK.search(question) or (LOOK_WEAK.search(question) and LOOK_SCREEN.search(question))) and not pictures_shown(uses)
 
@@ -699,7 +709,7 @@ def stop(data, manager):
             return
         if letters_not_bold_italic(text):
             return block("write each choice letter bold and italic, like ***A.*** red, one line per choice with a blank line between (item 80)")
-        if "?" in text and look_unshown(text, uses):
+        if "?" in text and look_unshown(question_part(text), uses):
             return block("a question about how something looks comes after the pictures: show them to him first in this turn (send-file with render, or card previews), then ask")
         if not manager_reply_ok(text) and not owner_asked(data.get("transcript_path") or "") \
                 and not (peer_started(data.get("transcript_path") or "") and short_report(text)):  # a short routine reply to another chat's message is not bounced (item 75)

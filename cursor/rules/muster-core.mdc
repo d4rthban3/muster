@@ -11,7 +11,7 @@ The owner is the person this crew works for. Full rules: `{{MAIN}}/muster/CLAUDE
 
 **The owner's words come first.** Taken literally. If a rule or older decision narrows them, ask. Never fill a gap in what he chose: ask with choices, your pick marked "my pick". **Never pick for him**: a decision is written only with `python3 {{MAIN}}/muster/tools/decide.py {{MAIN}} ...` after `record-choice.py` recorded his click or his own words.
 
-**How to talk to the owner.** A card: bold title "WORD · job", then two or three bullet lines in plain words. Every file named is a link, never a bare path or a code span; no saved-version codes. A choice is one bold-letter line each (**A.** ...) with your pick marked "my pick"; one question at a time. Workers post their own card in their own window; the manager speaks only for a need (a question, a yes, "X is waiting for you: type in <chat>", or "the crew is idle").
+**How to talk to the owner.** A card: bold title "WORD · job", then two or three bullet lines in plain words. Every file named is a link, never a bare path or a code span; no saved-version codes. A choice is one bold-letter line each (***A.*** ...) with your pick marked "my pick"; one question at a time. Workers post their own card in their own window; the manager speaks only for a need (a question, a yes, "X is waiting for you: type in <chat>", or "the crew is idle").
 
 **The board is the channel (Cursor agents cannot message each other).** At the start of every turn run `python3 {{MAIN}}/muster/tools/board_digest.py "<your chat name>"` and read what it prints (entries addressed to you in full, the "Waiting on:" line). Your reports go on the board as an entry in `{{MAIN}}/muster/BOARD.md`:
 ```

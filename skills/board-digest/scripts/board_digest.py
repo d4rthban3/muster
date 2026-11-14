@@ -203,7 +203,7 @@ def main():
             print("ARCHIVE SKIPPED: %s" % err)
         write_waiting_line(os.path.join(root, "muster", "BOARD.md"), line)
     if owner_q:
-        print("\nOWNER QUESTIONS (ask the owner the top one as lettered lines (**A.** ...) before ending your turn, unless his own words answer it):")
+        print("\nOWNER QUESTIONS (ask the owner the top one as lettered lines (***A.*** ...) before ending your turn, unless his own words answer it):")
         order = {"OWNER CALL": 0, "STUCK": 1, "NEED": 2}
         for kind, sender, job, is_p in sorted(owner_q, key=lambda q: (not q[3], order.get(q[0], 3))):
             print("  %s from %s: %s%s" % (kind or "REPORT", sender, job,

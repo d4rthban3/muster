@@ -140,7 +140,7 @@ printf '{"type":"assistant","message":{"role":"assistant","content":[{"type":"to
 hook manager false "So C fits what you want, and I am recording it." | grep -q '"decision": "block"' || fail "Stop hook did not catch a manager choosing for the owner"
 hook mgr-card false "So C fits what you want, and I am recording it." | grep -q . && fail "Stop hook blocked although a choice card was answered this turn"
 cp "$SCRATCH/tr/manager.jsonl" "$SCRATCH/tr/mgr-letter.jsonl"
-printf '{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"Which?\\n\\n**A.** red\\n\\n**B.** blue"}]}}\n{"type":"user","message":{"role":"user","content":"b"}}\n' >> "$SCRATCH/tr/mgr-letter.jsonl"
+printf '{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"Which?\\n\\n***A.*** red\\n\\n***B.*** blue"}]}}\n{"type":"user","message":{"role":"user","content":"b"}}\n' >> "$SCRATCH/tr/mgr-letter.jsonl"
 hook mgr-letter false "So B fits what you want, and I am recording it." | grep -q . && fail "Stop hook blocked although he typed a letter answer this turn (item 80)"
 hook manager false "You picked B, so I am recording it." | grep -q . && fail "Stop hook blocked although the message says he picked"
 hook manager false "You said you want it calm, so C fits what you want, I am recording it." | grep -q '"decision": "block"' || fail "Stop hook let through 'you said ... I am recording it'"

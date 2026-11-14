@@ -307,12 +307,22 @@ def short_report(text):
 
 
 LETTER_ANSWER = re.compile(r"^\s*\(?([A-Da-d])\)?[.:!]*\s*$")
-LETTERED = re.compile(r"^\s*\*\*[A-D]\.\*\*", re.M)
+LETTERED = re.compile(r"^\s*\*{2,3}[A-D]\.\*{2,3}", re.M)
+
+
+LETTER_LINE = re.compile(r"^\s*(?:\*{1,3}|_)?\(?([A-D])[.)]\*{0,3}\s", re.M)
+GOOD_LETTER_LINE = re.compile(r"^\s*\*\*\*[A-D]\.\*\*\*\s")
+
+
+def letters_not_bold_italic(text):
+    """True when the reply writes two or more lettered choice lines and any of them is not ***A.*** (bold and italic) (item 80)."""
+    lines = [l for l in text.splitlines() if LETTER_LINE.match(l)]
+    return len(lines) >= 2 and any(not GOOD_LETTER_LINE.match(l) for l in lines)
 
 
 def typed_letter_answer(path):
     """The letter he typed (A to D) when this turn was started by his bare typed letter and the manager's last text asked a
-    lettered question (**A.** ...); else None. A message from another chat or an app event, hook feedback and system
+    lettered question (***A.*** ...); else None. A message from another chat or an app event, hook feedback and system
     reminders are not his words (item 80, D-037)."""
     prev, last = "", None
     try:
@@ -507,7 +517,7 @@ def pretool(data, manager):
         return
     if tool == "AskUserQuestion":
         if manager:  # item 80, D-037: a card locks the chat until he answers
-            return deny("no choice card (it locks the chat until he answers): write the question in the chat as lettered lines, **A.** ... one per line with a blank line between, your pick marked \"my pick\"; he answers by typing a letter. Keep working on anything that does not depend on his answer")
+            return deny("no choice card (it locks the chat until he answers): write the question in the chat as lettered lines, ***A.*** ... one per line with a blank line between, your pick marked \"my pick\"; he answers by typing a letter. Keep working on anything that does not depend on his answer")
         return
     if tool == "SendMessage":
         msg = str(inp.get("message", ""))
@@ -618,7 +628,7 @@ def manager_reply_ok(text):
     if re.search(r"\b(I need your yes|needs? your yes|your yes (is needed|to))\b", t, re.I):
         return True
     has_q = "?" in t
-    has_choices = bool(re.search(r"^\*\*[A-D]\.\*\*", t, re.M))  # lettered lines are the question form (D-037)
+    has_choices = bool(re.search(r"^\*\*\*[A-D]\.\*\*\*", t, re.M))  # lettered lines are the question form (D-037)
     return has_q and has_choices
 
 
@@ -679,13 +689,16 @@ def stop(data, manager):
         if asked and not card_skipped(data.get("transcript_path") or "", uses[idx].get("id")):
             recorded = any(u.get("name") == "Bash" and RECORDER in str((u.get("input") or {}).get("command", "")) for u in uses[idx + 1:])
             if not recorded:
-                return block("a choice card was answered but not recorded: run %s with his exact answer (or --no-pick if he skipped the card or typed his own words)" % recorder_path(main_folder(data.get("cwd"))) + " under its list item before ending the turn")
+                # never name a flag the project's recorder lacks
+                return block("a choice card was answered but not recorded: run %s with his exact answer%s under its list item before ending the turn" % (recorder_path(main_folder(data.get("cwd"))), " (or --no-pick if he skipped the card or typed his own words)" if RECORDER == "record-choice.py" else ""))
             return
+        if letters_not_bold_italic(text):
+            return block("write each choice letter bold and italic, like ***A.*** red, one line per choice with a blank line between (item 80)")
         if "?" in text and look_unshown(text, uses):
             return block("a question about how something looks comes after the pictures: show them to him first in this turn (send-file with render, or card previews), then ask")
         if not manager_reply_ok(text) and not owner_asked(data.get("transcript_path") or "") \
                 and not (peer_started(data.get("transcript_path") or "") and short_report(text)):  # a short routine reply to another chat's message is not bounced (item 75)
-            return block("to the owner the manager says only a question with its choices as lettered lines (**A.** ...), a yes he must give, '<worker> is waiting for you: type in <chat>', or 'The crew is idle'. Rewrite the reply as one of those, or put the news on the board")
+            return block("to the owner the manager says only a question with its choices as lettered lines (***A.*** ...), a yes he must give, '<worker> is waiting for you: type in <chat>', or 'The crew is idle'. Rewrite the reply as one of those, or put the news on the board")
         return
     if asked or re.match(r"\s*Messages paused", text):
         return

@@ -172,7 +172,11 @@ add("8 ...and it cannot write the founder's list", W(C + "/Founder/FOUNDER-LIST.
 AQ = lambda t: run("rules-check.py", "PreToolUse", tool_name="AskUserQuestion", tool_input={"questions": [{"question": "Ship it?", "options": []}]}, transcript_path=t)
 add("10 a PINR manager's choice card is refused (lettered lines instead)", AQ(mgr), True)
 add("10 a PINR worker's card is not this check's business", AQ(site), False)
-add("10 a PINR manager's lettered question passes the Stop check", run("rules-check.py", "Stop", last_assistant_message="Ship it?\n\n**A.** yes\n\n**B.** no", transcript_path=mgr), False)
+add("10 a PINR manager's lettered question passes the Stop check", run("rules-check.py", "Stop", last_assistant_message="Ship it?\n\n***A.*** yes\n\n***B.*** no", transcript_path=mgr), False)
+LET = tr("You are Manager_PINR_002", [{"type": "assistant", "message": {"content": [{"type": "text", "text": "***A.*** red\n\n***B.*** blue"}]}}, {"type": "user", "message": {"content": "a"}}])
+letout = run("rules-check.py", "Stop", last_assistant_message="Going ahead.", transcript_path=LET)
+add("10 a typed letter in PINR must be recorded", letout, True)
+add("10 ...with PINR's own recorder, naming no flag it lacks", "" if "decide.py" in letout and "--no-pick" not in letout else "BAD", False)
 # shell writes into PINR's manager-only files
 B = lambda cmd, t, **k: run("rules-check.py", "PreToolUse", tool_name="Bash", tool_input={"command": cmd}, transcript_path=t, **k)
 P1 = '"%s/Founder/FOUNDER-LIST.md"' % C

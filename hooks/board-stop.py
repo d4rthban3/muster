@@ -256,12 +256,12 @@ def main():
         return 0
     if picks and not missed:
         print(json.dumps({"decision": "block", "reason": "You wrote that you are choosing or recording for the owner, but he "
-                          "has not picked this turn. Do not decide for him: ask him now with lettered lines (**A.** ...), the option you "
+                          "has not picked this turn. Do not decide for him: ask him now with lettered lines (***A.*** ...), the option you "
                           "favour marked \"my pick\", and record nothing until he types a letter."}))
         return 0
     names = "; ".join("%s (%s)" % (e["from"] or "a worker", "paused" if e["paused"] else e["kind"]) for e in missed)
     reason = ("The board holds open items for the owner that you have not told him about: %s. "
-              "Before you stop, ask him the top one as lettered lines (**A.** ...), or say \"<worker> is waiting for you: "
+              "Before you stop, ask him the top one as lettered lines (***A.*** ...), or say \"<worker> is waiting for you: "
               "type in <chat link>\" for a paused chat; then stop." % names)
     if picks:
         reason += (" Also: you wrote that you are choosing or recording for the owner, but he has not picked this turn; "

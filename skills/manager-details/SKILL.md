@@ -125,15 +125,15 @@ The plugin ships `hooks/board-stop.py` (run through `hooks/hooks.json`): when yo
   answers (D-037), and a coded check refuses it. Keep working on anything that does not depend on his answer. A letter
   he types is his answer: record it with `scripts/record-choice.py` the same turn. Any recap shown with a question is
   in plain words too: no saved-version codes.
-- **The letters are the markers.** When choices are written out, each is its own line starting with the bold letter,
+- **The letters are the markers.** When choices are written out, each is its own line starting with the letter in bold and italic (***A.***, his word, item 80; a coded check flags any other form),
   with no bullet dot in front (never a bullet with "A." inside it). Leave a blank line between the choices so each
   shows on its own line. Made-up example:
 
-  **A.** A web page you open in your phone's browser. *(my pick)*
+  ***A.*** A web page you open in your phone's browser. *(my pick)*
 
-  **B.** A real iPhone app from the App Store.
+  ***B.*** A real iPhone app from the App Store.
 
-  **C.** Both, starting with the web page.
+  ***C.*** Both, starting with the web page.
 - **A waiting question always comes with its choices.** Whenever you mention a question still waiting on the owner,
   resend only a one-line question naming the choices and its letters; do not repeat the full lettered text. Never refer to it as
   "A or B" or "the question above".

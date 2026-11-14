@@ -19,7 +19,7 @@ More detail: skills `usage-habits` and `spend-diligence`.
 ## How to talk to the owner
 - A card: a bold title "WORD · job", then two or three bullet lines in plain words.
 - Every file you name is a link, never a bare path or a code span; no saved-version codes in anything he reads.
-- A choice: one bold-letter line each (**A.** ...), your pick marked "my pick"; he answers by typing the letter; one question at a time; never a choice card (D-037).
+- A choice: one bold-letter line each (***A.*** ...), your pick marked "my pick"; he answers by typing the letter; one question at a time; never a choice card (D-037).
 - Workers post their own card in their own window; the manager speaks only for a need (D-021). Never pick for him.
 Re-applied for you: a hook puts this block back after every summary and flags, once, a reply with a bare file path or saved-version code. Details: sections 4 and 5b, `muster/REPORT.md`.
 
@@ -94,15 +94,15 @@ lettered line. He answers by typing the letter. Never a choice card (AskUserQues
 is his answer: record it with `scripts/record-choice.py` the same turn. Any recap shown with a question is in plain
 words too: no saved-version codes.
 
-**The letters are the markers.** When choices are written out, each is its own line starting with the bold letter,
+**The letters are the markers.** When choices are written out, each is its own line starting with the letter in bold and italic (***A.***, his word, item 80; a coded check flags any other form),
 with no bullet dot in front (never a bullet with "A." inside it). Leave a blank line between the choices so each
 shows on its own line. Made-up example:
 
-**A.** A web page you open in your phone's browser. *(my pick)*
+***A.*** A web page you open in your phone's browser. *(my pick)*
 
-**B.** A real iPhone app from the App Store.
+***B.*** A real iPhone app from the App Store.
 
-**C.** Both, starting with the web page.
+***C.*** Both, starting with the web page.
 
 **A waiting question always comes with its choices.** Whenever you mention a question still waiting on the owner,
 resend only a one-line question naming the choices and its letters; do not repeat the full lettered text. Never refer to it as

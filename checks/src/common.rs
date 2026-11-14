@@ -209,12 +209,12 @@ pub fn peer_started(path: &str) -> bool {
 }
 
 /// The letter he typed (A to D) when this turn was started by his bare typed letter and the manager's last text asked a lettered
-/// question (**A.** ...); else None. Messages from other chats, app events, hook feedback and system reminders are not his words (item 80, D-037).
+/// question (***A.*** ...); else None. Messages from other chats, app events, hook feedback and system reminders are not his words (item 80, D-037).
 pub fn typed_letter_answer(path: &str) -> Option<String> {
     let ends = rei(r"<cross-session-message|<task-notification|<side-sessions-event|<ci-monitor-event|\[SYSTEM NOTIFICATION");
     let neutral = rei(r"^\s*(<system-reminder|Stop hook feedback)");
     let letter = re(r"^\s*\(?([A-Da-d])\)?[.:!]*\s*$");
-    let lettered = re(r"(?m)^\s*\*\*[A-D]\.\*\*");
+    let lettered = re(r"(?m)^\s*\*{2,3}[A-D]\.\*{2,3}");
     let (mut prev, mut last) = (String::new(), None::<String>);
     for d in lines_of(path) {
         let c = msg_content(&d);
@@ -235,6 +235,14 @@ pub fn typed_letter_answer(path: &str) -> Option<String> {
         }
     }
     last
+}
+
+/// True when the reply writes two or more lettered choice lines and any of them is not ***A.*** (bold and italic) (item 80).
+pub fn letters_not_bold_italic(text: &str) -> bool {
+    let any = re(r"^\s*(?:\*{1,3}|_)?\(?[A-D][.)]\*{0,3}\s");
+    let good = re(r"^\s*\*\*\*[A-D]\.\*\*\*\s");
+    let lines: Vec<&str> = text.lines().filter(|l| is(&any, l)).collect();
+    lines.len() >= 2 && lines.iter().any(|l| !is(&good, l))
 }
 
 pub fn exists(p: &Path) -> bool { p.exists() }

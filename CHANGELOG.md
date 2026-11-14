@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.77
+Affects: Manager.
+Pictures first only for looks (item 88): the check reads only the sentences that end in a question mark and skips lettered choice lines, so layout or look in a list or choice no longer fires; a real look question still blocks
+
 ## 0.3.76
 Affects: Manager, Builder.
 Live checks: install-checks --live runs the checks and PINR's recorder from the Muster folder; ship moves the main folder to the new main

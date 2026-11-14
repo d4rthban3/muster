@@ -441,7 +441,8 @@ fn stop(c: &Ctx, data: &Value, manager: bool) {
     }
     if is(&re(r"^\s*\*\*(DONE|READY|PASS|FAIL|STUCK|NEED)\b"), body) { // item 65: every report reaches the manager as a message
         let root = main_folder(s(data, "cwd"));
-        if !uses.iter().any(|u| s(u, "name") == "SendMessage" && u.get("input").map(|i| recipient_is_manager(s(i, "to"), &root)).unwrap_or(false)) {
+        // SendMessage (to) or the app's older send_message tool (session_id); either reaches the manager
+        if !uses.iter().any(|u| u.get("input").map(|i| (s(u, "name") == "SendMessage" && recipient_is_manager(s(i, "to"), &root)) || (s(u, "name").ends_with("send_message") && recipient_is_manager(s(i, "session_id"), &root))).unwrap_or(false)) {
             let w = body.split_whitespace().next().unwrap_or("").trim_matches('*');
             block(&format!("a report reaches the manager as a message as well as the board (item 65): send the manager your {w} report with SendMessage (a different ID from any copy to someone else), then end the turn with the card"));
         }

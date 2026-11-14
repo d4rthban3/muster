@@ -740,7 +740,9 @@ def stop(data, manager):
         return block("your end-of-turn reply is a card: a bold title line 'WORD · job', then two or three '- ' bullets (what, the result with real numbers, what is left or what you need)")
     if re.match(r"^\s*\*\*(DONE|READY|PASS|FAIL|STUCK|NEED)\b", body):  # item 65: every report reaches the manager as a message
         root = main_folder(data.get("cwd"))
-        if not any(u.get("name") == "SendMessage" and recipient_is_manager((u.get("input") or {}).get("to", ""), root) for u in uses):
+        # SendMessage (to) or the app's older send_message tool (session_id); either reaches the manager
+        if not any((u.get("name") == "SendMessage" and recipient_is_manager((u.get("input") or {}).get("to", ""), root))
+                   or ((u.get("name") or "").endswith("send_message") and recipient_is_manager((u.get("input") or {}).get("session_id", ""), root)) for u in uses):
             return block("a report reaches the manager as a message as well as the board (item 65): send the manager your %s report with SendMessage (a different ID from any copy to someone else), then end the turn with the card" % body.split()[0].strip("*"))
 
 

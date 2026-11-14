@@ -98,6 +98,7 @@ cases = [
     ("REPORT: a READY card with no message to the manager is blocked (item 65)", run("Stop", last_assistant_message="**READY · x**\n- a\n- b", transcript_path=b), True),
     ("REPORT: a READY card sent only to the inspector is blocked", run("Stop", last_assistant_message="**READY · x**\n- a\n- b", transcript_path=tr("You are Builder A_Muster_002, agents/builder.md", [said("go"), use("SendMessage", "s1", to="Inspector_Muster_002", message="m")])), True),
     ("REPORT: a READY card after a message to the manager passes", run("Stop", last_assistant_message="**READY · x**\n- a\n- b", transcript_path=tr("You are Builder A_Muster_002, agents/builder.md", [said("go"), use("SendMessage", "s1", to="Manager_Muster_002", message="m")])), False),
+    ("REPORT: a READY card after the app's send_message to the manager passes", run("Stop", last_assistant_message="**READY · x**\n- a\n- b", transcript_path=tr("You are Builder A_Muster_002, agents/builder.md", [said("go"), use("mcp__ccd_session_mgmt__send_message", "s1", session_id="Manager_Muster_002", message="m")])), False),
     ("a worker reply that is not a card is blocked", run("Stop", last_assistant_message="Done.", transcript_path=b), True),
     ("a stop already continued is let through", run("Stop", last_assistant_message="Done.", stop_hook_active=True, transcript_path=b), False),
     ("the owner's own chat is silent at stop", run("Stop", last_assistant_message="Done.", transcript_path=owner), False),

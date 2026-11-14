@@ -134,6 +134,12 @@ if $PY "$ROOT/scripts/decide.py" "$FN" --item 5 --title "Hedge" --decision "blue
 $PY "$ROOT/scripts/decide.py" "$FN" --item 5 --title "Ok" --decision "blue" --why "w" --said "use blue for the header" --chose "blue" --others "green" >/dev/null || fail "decide.py refused his whole clear line"
 if $PY "$ROOT/scripts/decide.py" "$FN" --item 1 --title "Nothing" --decision "red" --why "w" >/dev/null 2>&1; then fail "decide.py took a decision with no proof"; fi
 [ "$(grep -c '^### D-' "$FOLDER/muster/DECISIONS-LOG.md")" = 4 ] || fail "decisions log changed by a refused call"
+printf '# List\n\n## Open\n8. "which colour"\n   Kind: question\n   Choice (2026-01-01): Which?\n     Options: A. red | B. blue\n     Picked: B. blue\n     He said: b\n\n9. "no letter recorded"\n   Kind: question\n   Choice (2026-01-01): Which?\n     Options: A. red | B. blue\n     Picked: (no pick: he answered in his own words)\n     He said: surprise me\n\n## Closed\n' > "$FOLDER/muster/OWNERS-LIST.md"
+$PY "$ROOT/scripts/decide.py" "$FN" --item 8 --title "Letter" --decision "blue" --why "he typed b" --said "b" >/dev/null || fail "decide.py refused his typed letter recorded under the item (item 80)"
+grep -q "Chosen by: his typed letter (B. blue) (list item 8)" "$FOLDER/muster/DECISIONS-LOG.md" || fail "decide.py did not record the typed letter's option"
+if $PY "$ROOT/scripts/decide.py" "$FN" --item 9 --title "Letter" --decision "blue" --why "w" --said "b" >/dev/null 2>&1; then fail "decide.py took a letter he never typed under the item"; fi
+if $PY "$ROOT/scripts/decide.py" "$FN" --item 8 --title "Letter" --decision "red" --why "w" --said "a" >/dev/null 2>&1; then fail "decide.py took a different letter than the one he typed"; fi
+if $PY "$ROOT/scripts/decide.py" "$FN" --item 8 --title "Letter" --decision "red" --why "w" --said "b" --chose "red" >/dev/null 2>&1; then fail "decide.py took a --chose that is not the letter's option"; fi
 printf '# Board\n\n## Entries\n' > "$FOLDER/muster/BOARD.md"
 cp "$SCRATCH/tr/manager.jsonl" "$SCRATCH/tr/mgr-card.jsonl"
 printf '{"type":"assistant","message":{"role":"assistant","content":[{"type":"tool_use","name":"AskUserQuestion","input":{}}]}}\n' >> "$SCRATCH/tr/mgr-card.jsonl"

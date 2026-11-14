@@ -73,6 +73,20 @@ if a.picked:
     if not ok:
         sys.exit("decide: refused. Item %d has no \"Picked: %s\" line. Record his click first with scripts/record-choice.py; "
                  "if he has not clicked, ask him." % (a.item, a.picked))
+elif re.fullmatch(r"\(?[A-Da-d]\)?[.:!]*", a.said.strip()):
+    # a bare typed letter answers a lettered question (item 80): it must be recorded under the item as a "He said:" line, and
+    # the item's recorded Options must hold a choice with that letter; that option is the choice (no --chose needed)
+    letter = re.sub(r"[^A-Da-d]", "", a.said).upper()
+    said_lines = [norm(l.split(":", 1)[1]) for l in block if norm(l).startswith("he said:")]
+    opts = [o.strip() for l in block if norm(l).startswith("options:") for o in l.split(":", 1)[1].split(" | ")]
+    pick = [o for o in opts if re.match(r"^%s[.)]\s" % letter, o, re.I)]
+    if not any(re.fullmatch(r"\(?%s\)?[.:!]*" % letter, h, re.I) for h in said_lines) or not pick:
+        sys.exit("decide: refused. His typed \"%s\" is not recorded under item %d with that letter's option: run "
+                 "scripts/record-choice.py with his question, every option (A. ..., B. ...) and --said \"%s\" first; if he did not type it, ask him."
+                 % (a.said, a.item, a.said))
+    if a.chose and norm(a.chose) not in norm(pick[0]):
+        sys.exit("decide: refused. --chose \"%s\" is not the option his letter %s names (%s)." % (a.chose, letter, pick[0]))
+    how = "his typed letter (%s)" % pick[0]
 else:
     # only his own words count: the quoted words on the item's first line, and lines record-choice.py wrote as "He said:".
     # Never the manager's Kind, Did, Stands or Checked lines.

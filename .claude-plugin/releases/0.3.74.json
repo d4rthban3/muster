@@ -1,0 +1,14 @@
+{
+  "version": "0.3.74",
+  "changed_files": [
+    "brand/muster-icon.png"
+  ],
+  "affected_roles": [
+    "Designer"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Tidy folder: muster-icon.png moves into brand/"
+}

@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.74
+Affects: Designer.
+Tidy folder: muster-icon.png moves into brand/
+
 ## 0.3.73
 Affects: Manager, Builder.
 Answer his question: a reply to a question of his without a question mark passes; pictures-first fires only on on-screen look questions

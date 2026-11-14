@@ -104,7 +104,7 @@ add("3 decide.py recording passes", run("rules-check.py", "Stop", last_assistant
 add("3 record-choice.py does not count under the PINR profile", run("rules-check.py", "Stop", last_assistant_message="ok", transcript_path=tr("You are Manager_PINR_002", asked + [use("Bash", command="python3 scripts/record-choice.py p 3")])), True)
 add("3 Muster itself still wants record-choice.py", run("rules-check.py", "Stop", plain=True, last_assistant_message="ok", transcript_path=tr("You are Manager_Muster_002", asked + [use("Bash", command="python3 manager/decide.py --title t")])), True)
 add("3 the PINR manager is the manager: a non-question is blocked", run("rules-check.py", "Stop", last_assistant_message="All done, nice.", transcript_path=mgr), True)
-add("3 a PINR worker whose note names the manager is not the manager", run("rules-check.py", "Stop", last_assistant_message="**READY · x**\n- a\n- b", transcript_path=mgr_note), False)
+add("3 a PINR worker whose note names the manager is not the manager", run("rules-check.py", "Stop", last_assistant_message="**WORKING · x**\n- a\n- b", transcript_path=mgr_note), False)
 # 4 board path (lines style)
 write_board("2026-11-08 | NEED | Site_PINR_002 -> Manager | token wording", "2026-11-08 | LIVE | Look Header_PINR_002 -> Manager | Paused: yes | fix live")  # file order: oldest first
 bs = lambda said, t=mgr, **k: run("board-stop.py", "Stop", last_assistant_message=said, transcript_path=t, **k)
@@ -156,7 +156,7 @@ add("7 the engine's own CLAUDE.md is not on the list", W(C + "/PINR-claudecode-h
 add("7 a worker's ordinary file is not on the list", W(C + "/pinr-live/src/a.js", site), False)
 add("7 without the profile PINR's paths are not protected", run("rules-check.py", "PreToolUse", plain=True, tool_name="Write", tool_input={"file_path": C + "/CLAUDE.md"}, transcript_path=tr("You are Builder A_Muster_003")), False)
 # the manager test: only a chat's own name makes it the manager
-card = "**READY \u00b7 x**\n- a\n- b"
+card = "**WORKING \u00b7 x**\n- a\n- b"
 ins = tr("Your starting note: report to Manager_PINR_002. Job: Look Inspector_PINR_001, reads the look work.")
 add("8 a PINR worker whose note says to report to Manager_PINR_002 is not the manager", run("rules-check.py", "Stop", last_assistant_message=card, transcript_path=ins), False)
 add("8 ...even when the manager is named first and its own name comes after 'You are'", run("rules-check.py", "Stop", last_assistant_message=card, transcript_path=tr("Manager_PINR_002 started this chat. You are Look Inspector_PINR_001.")), False)

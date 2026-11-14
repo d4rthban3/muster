@@ -16,6 +16,9 @@ import re
 import sys
 
 
+NOREPEAT = " Your reply already reached the owner: do not write it again. Do what this asks, then end with at most one new line, or nothing."
+
+
 def load_profile():
     """Optional project profile: profile.json beside this file (or the file named in MUSTER_PROFILE). None means Muster's own rules."""
     for cand in (os.environ.get("MUSTER_PROFILE"), os.path.join(os.path.dirname(os.path.abspath(__file__)), "profile.json")):
@@ -302,7 +305,7 @@ def main():
     if picks and not missed:
         print(json.dumps({"decision": "block", "reason": "You wrote that you are choosing or recording for the owner, but he "
                           "has not picked this turn. Do not decide for him: ask him now with lettered lines (***A.*** ...), the option you "
-                          "favour marked \"my pick\", and record nothing until he types a letter."}))
+                          "favour marked \"my pick\", and record nothing until he types a letter." + NOREPEAT}))
         return 0
     names = "; ".join("%s (%s)" % (e["from"] or "a worker", "paused" if e["paused"] else e["kind"]) for e in missed)
     reason = ("The board holds open items for the owner that you have not told him about: %s. "
@@ -311,7 +314,7 @@ def main():
     if picks:
         reason += (" Also: you wrote that you are choosing or recording for the owner, but he has not picked this turn; "
                    "ask him with lettered lines, the option you favour marked \"my pick\", and record nothing until he types a letter.")
-    print(json.dumps({"decision": "block", "reason": reason}))
+    print(json.dumps({"decision": "block", "reason": reason + NOREPEAT}))
     return 0
 
 

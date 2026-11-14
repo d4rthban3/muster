@@ -41,7 +41,8 @@ pub fn py_str(t: &str) -> String {
     o
 }
 pub fn say(line: &str) { let _ = writeln!(std::io::stdout(), "{line}"); }
-pub fn block(reason: &str) { say(&py_obj(&[("decision", "block".into()), ("reason", format!("Muster rule: {reason}"))])); }
+pub const NOREPEAT: &str = " Your reply already reached the owner: do not write it again. Do what this asks, then end with at most one new line, or nothing.";
+pub fn block(reason: &str) { say(&py_obj(&[("decision", "block".into()), ("reason", format!("Muster rule: {reason}{NOREPEAT}"))])); }
 pub fn deny(reason: &str) {
     say(&format!("{{\"hookSpecificOutput\": {{\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"deny\", \"permissionDecisionReason\": {}}}}}", py_str(&format!("Muster rule: {reason}"))));
 }

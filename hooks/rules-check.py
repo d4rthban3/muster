@@ -368,13 +368,14 @@ def main_folder(cwd):
     return cwd
 
 
+NOREPEAT = " Your reply already reached the owner: do not write it again. Do what this asks, then end with at most one new line, or nothing."
 def deny(reason):
     print(json.dumps({"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "deny",
                                              "permissionDecisionReason": "Muster rule: " + reason}}))
 
 
 def block(reason):
-    print(json.dumps({"decision": "block", "reason": "Muster rule: " + reason}))
+    print(json.dumps({"decision": "block", "reason": "Muster rule: " + reason + NOREPEAT}))
 
 
 # ---- PreToolUse -----------------------------------------------------------------------------------------------

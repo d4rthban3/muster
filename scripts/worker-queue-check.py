@@ -28,6 +28,9 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 
+NOREPEAT = " Your reply already reached the owner: do not write it again. Do what this asks, then end with at most one new line, or nothing."
+
+
 def load_profile():
     for cand in (os.environ.get("MUSTER_PROFILE"), os.path.join(HERE, "profile.json")):
         if cand and os.path.isfile(cand):
@@ -274,7 +277,7 @@ def main_lines(argv, cwd):
         return 0
     why = waiting_unreported(data)
     if why:
-        print(json.dumps({"decision": "block", "reason": why}))
+        print(json.dumps({"decision": "block", "reason": why + NOREPEAT}))
         return 0
     if not work:
         return 0
@@ -284,7 +287,7 @@ def main_lines(argv, cwd):
         return 0
     print(json.dumps({"decision": "block", "reason":
         "Do not go idle: open work is addressed to you (%s). Do it now, or if you are waiting, say in your reply what you are "
-        "waiting for and name who gave it. If it is not yours, tell the manager." % "; ".join(missing)}))
+        "waiting for and name who gave it. If it is not yours, tell the manager." % "; ".join(missing) + NOREPEAT}))
     return 0
 
 
@@ -314,7 +317,7 @@ def main(argv):
         return 0
     why = waiting_unreported(data)
     if why:
-        print(json.dumps({"decision": "block", "reason": why}))
+        print(json.dumps({"decision": "block", "reason": why + NOREPEAT}))
         return 0
     if not work:
         return 0
@@ -324,7 +327,7 @@ def main(argv):
         return 0
     print(json.dumps({"decision": "block", "reason":
         "Do not go idle: open work is addressed to you (%s). Do it now (the next piece), or if you are waiting, say in your reply "
-        "what you are waiting for and name the job. If it is not yours, send the manager one NEED." % "; ".join(missing)}))
+        "what you are waiting for and name the job. If it is not yours, send the manager one NEED." % "; ".join(missing) + NOREPEAT}))
     return 0
 
 

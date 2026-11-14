@@ -25,7 +25,7 @@ pub fn run() -> i32 {
         (_, Some(h)) => format!("a saved-version code (\"{h}\")"),
         _ => String::new(),
     };
-    say(&py_obj(&[("decision", "block".into()), ("reason", format!("Your reply to the owner has {what}. Say it again in plain words with each file as a clickable link and no saved-version codes."))]));
+    say(&py_obj(&[("decision", "block".into()), ("reason", format!("Your reply to the owner has {what}. Send just the corrected line or lines, in plain words with each file as a clickable link and no saved-version codes.{NOREPEAT}"))]));
     0
 }
 

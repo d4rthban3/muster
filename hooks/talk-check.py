@@ -12,6 +12,9 @@ import sys
 
 CREW = r"(?:Manager|Builder [A-Za-z]|Designer|Design Inspector|Inspector|Sketchpad|AI Socket|Agent Teacher)"
 CREW_RE = re.compile(r"agents[/\\](?:manager|builder|designer|inspector|design-inspector|sketchpad|ai-socket|agent-teacher)\.md|\b%s_[^\s_][^_\n]*_\d{3}\b" % CREW)
+NOREPEAT = " Your reply already reached the owner: do not write it again. Do what this asks, then end with at most one new line, or nothing."
+
+
 def load_profile():
     """Optional project profile: profile.json beside this file (or the file named in MUSTER_PROFILE). None means Muster's own rules."""
     for cand in (os.environ.get("MUSTER_PROFILE"), os.path.join(os.path.dirname(os.path.abspath(__file__)), "profile.json")):
@@ -120,7 +123,7 @@ def main():
     if not CREW_RE.search(first_message(data.get("transcript_path") or "")):
         return 0  # the owner's own chat or another project
     what = ("a bare file path or file name (\"%s\")" % bad_path.group(0)) if bad_path else ("a saved-version code (\"%s\")" % bad_hex.group(0))
-    print(json.dumps({"decision": "block", "reason": "Your reply to the owner has %s. Say it again in plain words with each file as a clickable link and no saved-version codes." % what}))
+    print(json.dumps({"decision": "block", "reason": "Your reply to the owner has %s. Send just the corrected line or lines, in plain words with each file as a clickable link and no saved-version codes." % what + NOREPEAT}))
     return 0
 
 

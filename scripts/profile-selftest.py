@@ -208,6 +208,21 @@ add("8 ...and cannot shell-write them either", run("rules-check.py", "PreToolUse
 SUM = "This session is being continued from a previous conversation that ran out of context.\n\nSummary: ... You are operating in a git worktree ... "
 add("8 a summarized manager ('I am **Manager_PINR_001**') is still the manager", run("rules-check.py", "Stop", last_assistant_message=card, transcript_path=tr(SUM + "I am **Manager_PINR_001**, the founder's go-between. Workers report to me.")), True)
 add("8 a summarized worker ('I am Site_PINR_003', manager named after) is still a worker", run("rules-check.py", "Stop", last_assistant_message=card, transcript_path=tr(SUM + "I am Site_PINR_003 and report to **Manager_PINR_002**.")), False)
+# item 87: every Stop block says the reply already reached the owner and must not be written again (Python and Rust sources, then live)
+import re as _re
+NR = "do not write it again"
+def nr_sites(path, start, end):
+    src = open(os.path.join(ROOT, path), encoding="utf-8").read()
+    return [m.start() for m in _re.finditer(start, src)], [("NOREPEAT" in src[m.start():src.index(end, m.start())]) for m in _re.finditer(start, src)]
+for path in ("hooks/rules-check.py", "hooks/board-stop.py", "hooks/talk-check.py", "scripts/idle-check.py", "scripts/worker-queue-check.py"):
+    n, ok = nr_sites(path, r'"decision": "block"', "}))")
+    add("87 every Stop block in %s (%d) carries the no-repeat line" % (path, len(n)), "" if n and all(ok) else "BAD %s" % ok, False)
+for path in ("checks/src/common.rs", "checks/src/boardstop.rs", "checks/src/talk.rs"):
+    n, ok = nr_sites(path, r'\("decision", "block"\.into\(\)\)', "]));")
+    add("87 every Stop block in %s (%d) carries the no-repeat line" % (path, len(n)), "" if n and all(ok) else "BAD %s" % ok, False)
+add("87 a live rules-check block says so", "" if NR in letout else "BAD", False)
+add("87 a live board-stop block says so", "" if NR in (write_board("2026-11-08 | LIVE | Look Header_PINR_002 -> Manager | Paused: yes | fix") or bs("Fine.")) else "BAD", False)
+add("87 a live talk-check block says so", "" if NR in run("talk-check.py", "Stop", plain=True, last_assistant_message=bare, transcript_path=tr("You are Builder A_Muster_003")) else "BAD", False)
 # install-checks and check-report
 IC = os.path.join(T, "ic")
 os.makedirs(IC)

@@ -25,6 +25,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 INSTALLED = os.path.basename(HERE) == ".muster-checks"
 
 
+NOREPEAT = " Your reply already reached the owner: do not write it again. Do what this asks, then end with at most one new line, or nothing."
+
+
 def load_profile():
     for cand in (os.environ.get("MUSTER_PROFILE"), os.path.join(HERE, "profile.json")):
         if cand and os.path.isfile(cand):
@@ -307,7 +310,7 @@ def main(argv):
     print(json.dumps({"decision": "block", "reason":
         "Do not end this turn silently: " + " | ".join(lines) +
         ". Message each one (give it the next order quoting his words, answer what it waits on, or ask why it is idle), "
-        "name it in your reply, or if nothing fits say \"The crew is idle\" with the choices as buttons."}))
+        "name it in your reply, or if nothing fits say \"The crew is idle\" with the choices as buttons." + NOREPEAT}))
     return 0
 
 

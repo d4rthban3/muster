@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.70
+Affects: Manager.
+No repeat: an open item, a waiting chat or a hold is said once and a worker's next message ends silent when unchanged; decide.py reads his typed letter
+
 ## 0.3.69
 Affects: Manager, Builder, Designer, Inspector.
 No locking card: questions to the owner are lettered lines with bold-italic letters he answers by typing; the manager's choice card is refused; a typed letter must be recorded

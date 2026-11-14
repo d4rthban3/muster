@@ -1,0 +1,26 @@
+{
+  "version": "0.3.70",
+  "changed_files": [
+    "bin/SOURCE-STAMP",
+    "bin/linux-arm64/muster-checks",
+    "bin/linux-x86_64/muster-checks",
+    "bin/macos-arm64/muster-checks",
+    "bin/macos-x86_64/muster-checks",
+    "bin/windows-x86_64/muster-checks.exe",
+    "checks/src/boardstop.rs",
+    "hooks/board-stop.py",
+    "scripts/decide.py",
+    "scripts/idle-check-selftest.py",
+    "scripts/idle-check.py",
+    "scripts/profile-selftest.py",
+    "scripts/setup-smoke.sh"
+  ],
+  "affected_roles": [
+    "Manager"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "No repeat: an open item, a waiting chat or a hold is said once and a worker's next message ends silent when unchanged; decide.py reads his typed letter"
+}

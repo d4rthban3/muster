@@ -116,11 +116,12 @@ fi
 # the main folder moves with every release (item 90: PINR reads Muster live from it): fast-forward only, never forced; if it cannot,
 # say so plainly and leave it exactly as it is. A failure here never undoes or hides the ship.
 mainfolder() {
-  if [ "$(git -C "$mainroot" rev-parse --is-inside-work-tree 2>/dev/null)" != true ]; then echo "== MAIN FOLDER NOT UPDATED: $mainroot is not a git folder; left as it is"; return; fi
-  cur=$(git -C "$mainroot" rev-parse --abbrev-ref HEAD 2>/dev/null)
+  # cd into it (not git -C): on Windows this script's paths are bash paths, which only bash itself understands
+  if ! (cd "$mainroot" 2>/dev/null && [ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" = true ]); then echo "== MAIN FOLDER NOT UPDATED: $mainroot is not a git folder; left as it is"; return; fi
+  cur=$(cd "$mainroot" && git rev-parse --abbrev-ref HEAD 2>/dev/null)
   if [ "$cur" != main ]; then echo "== MAIN FOLDER NOT UPDATED: $mainroot is on '$cur', not main; left as it is (update it by hand)"; return; fi
-  git -C "$mainroot" fetch -q origin 2>/dev/null || { echo "== MAIN FOLDER NOT UPDATED: could not fetch origin in $mainroot; left as it is"; return; }
-  if out=$(git -C "$mainroot" merge -q --ff-only origin/main 2>&1); then echo "== main folder $mainroot is now at $new"
+  (cd "$mainroot" && git fetch -q origin 2>/dev/null) || { echo "== MAIN FOLDER NOT UPDATED: could not fetch origin in $mainroot; left as it is"; return; }
+  if out=$(cd "$mainroot" && git merge -q --ff-only origin/main 2>&1); then echo "== main folder $mainroot is now at $new"
   else echo "== MAIN FOLDER NOT UPDATED: $mainroot could not be fast-forwarded to $new (it holds work of its own); left as it is: $(echo "$out" | head -1)"; fi
 }
 mainfolder

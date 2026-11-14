@@ -122,7 +122,7 @@ if BIN:
         ("RECORDS: touches naming a real top-level folder goes through", send_rec(RDY, cwd=os.path.join(HERE, "..")), False),
         ("RECORDS: touches that spell a sentence one word per entry are refused", send_rec(RDY.replace('["hooks"]', '["path","uses","backslashes","on","windows"]'), cwd=os.path.join(HERE, "..")), True),
         ("RECORDS: touches naming nothing in the project are refused", send_rec(RDY.replace('["hooks"]', '["nothing-here"]'), cwd=os.path.join(HERE, "..")), True),
-        ("RECORDS: a PASS copy for the manager as a message is refused", send_rec(REC, "Manager_Muster_003"), True),
+        ("RECORDS: a PASS copy for the manager as a message goes through (item 65)", send_rec(REC, "Manager_Muster_003"), False),
     ]
 # the weekly goal: an ORDER whose job is not on the owner's set list waits; setting it again changes it; no goal enforces nothing
 GOALPY = os.path.join(HERE, "goal.py")

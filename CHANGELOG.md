@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.75
+Affects: Manager, Builder.
+Setup lettered: every question setup asks is lettered lines, never a choice card or buttons
+
 ## 0.3.74
 Affects: Designer.
 Tidy folder: muster-icon.png moves into brand/

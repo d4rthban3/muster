@@ -1,0 +1,16 @@
+{
+  "version": "0.3.75",
+  "changed_files": [
+    "commands/setup.md",
+    "scripts/setup-smoke.sh"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Builder"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Setup lettered: every question setup asks is lettered lines, never a choice card or buttons"
+}

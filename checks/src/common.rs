@@ -75,6 +75,7 @@ pub fn stood_down(data: &Value, py_name: &str) -> bool {
     loop {
         let mc = d.join(".muster-checks");
         if mc.join(py_name).is_file() || mc.join("muster-checks").is_file() || mc.join("muster-checks.exe").is_file() { return true; }
+        if d.join(".git").is_file() { return false; } // a linked worktree's root: the installed copy of the main folder above is not this chat's
         match d.parent() { Some(p) if p != d => d = p.to_path_buf(), _ => return false }
     }
 }

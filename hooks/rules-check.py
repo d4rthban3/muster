@@ -754,6 +754,8 @@ def stood_down(data):
     while True:
         if os.path.isfile(os.path.join(d, ".muster-checks", os.path.basename(me))):
             return True
+        if os.path.isfile(os.path.join(d, ".git")):  # a linked worktree's root: the installed copy of the main folder above is not this chat's
+            return False
         parent = os.path.dirname(d)
         if parent == d:
             return False

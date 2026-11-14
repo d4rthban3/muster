@@ -132,6 +132,12 @@ add("5 talk-check still works without the profile", run("talk-check.py", "Stop",
 add("6 the plugin's talk-check stands down in a project with its own copy", run("talk-check.py", "Stop", plain=True, cwd=PROJ, last_assistant_message=bare, transcript_path=tr("You are Builder A_Muster_003")), False)
 add("6 the plugin's rules-check stands down too", run("rules-check.py", "PreToolUse", plain=True, cwd=PROJ, tool_name="SendMessage", tool_input={"to": "x", "message": "noted"}, transcript_path=tr("You are Builder A_Muster_003")), False)
 add("6 ...and from a sub-folder of that project", run("rules-check.py", "PreToolUse", plain=True, cwd=os.path.join(PROJ, "sub"), tool_name="SendMessage", tool_input={"to": "x", "message": "noted"}, transcript_path=tr("You are Builder A_Muster_003")), False)
+# item 93: the Muster folder runs its checks live from .muster-checks; a builder's linked worktree under it has no such copy, so the plugin's own checks must still run there
+WT = os.path.join(PROJ, ".claude", "worktrees", "wt1")
+os.makedirs(os.path.join(WT, "sub"))
+open(os.path.join(WT, ".git"), "w").write("gitdir: /x/.git/worktrees/wt1\n")
+add("6 item 93: the plugin's rules-check still runs inside a linked worktree under the project", run("rules-check.py", "PreToolUse", plain=True, cwd=WT, tool_name="SendMessage", tool_input={"to": "x", "message": "noted"}, transcript_path=tr("You are Builder A_Muster_003")), True)
+add("6 item 93: ...and from a sub-folder of that worktree", run("rules-check.py", "PreToolUse", plain=True, cwd=os.path.join(WT, "sub"), tool_name="SendMessage", tool_input={"to": "x", "message": "noted"}, transcript_path=tr("You are Builder A_Muster_003")), True)
 add("6 the installed copy itself still works", run("rules-check.py", "PreToolUse", tool_name="SendMessage", tool_input={"to": "x", "message": "noted"}, transcript_path=tr("You are Builder A_Muster_003")), True)
 add("6 without .muster-checks the plugin's own copy still works", run("rules-check.py", "PreToolUse", plain=True, tool_name="SendMessage", tool_input={"to": "x", "message": "noted"}, transcript_path=tr("You are Builder A_Muster_003")), True)
 # the shipped profile's real board path: a folder holding .muster-checks, the board beside it under PINR-claudecode-handoff/
@@ -309,6 +315,18 @@ open(rf, "w").write(pinr_report)
 cr = lambda *a: subprocess.run([PY, os.path.join(ROOT, "scripts", "check-report.py"), *a], capture_output=True, text=True).returncode
 add("check-report --profile pinr accepts a PINR report", "" if cr(rf, "--profile", "pinr") == 0 else "BAD", False)
 add("check-report without a profile still wants the ID", "" if cr(rf) == 1 else "BAD", False)
+
+# item 93: the Muster folder runs its own checks live; the plugin's own shell hooks stand down only for a check the folder really installed, and not inside a worktree
+MP = os.path.join(T, "musterproj")
+os.makedirs(os.path.join(MP, "muster")); open(os.path.join(MP, "muster", "CLAUDE.md"), "w").write("# rules\n")
+os.makedirs(os.path.join(MP, ".muster-checks")); open(os.path.join(MP, ".muster-checks", "profile.json"), "w").write('{"message_form": "text"}')
+MWT = os.path.join(MP, ".claude", "worktrees", "b1"); os.makedirs(MWT); open(os.path.join(MWT, ".git"), "w").write("gitdir: /x\n")
+shsend = lambda cwd: subprocess.run(["sh", os.path.join(ROOT, "hooks", "rules-check.sh")], input=json.dumps(dict(hook_event_name="PreToolUse", cwd=cwd, tool_name="SendMessage", tool_input={"to": "x", "message": "noted"}, transcript_path=tr("You are Builder A_Muster_003"))), capture_output=True, text=True, cwd=cwd, env=dict(ENV, MUSTER_MESSAGE_FORM="text")).stdout
+add("item 93: a profile-only .muster-checks does not silence the plugin's shell hook", "" if "Muster rule" in shsend(MP) else "BAD", False)
+imp = icl(MP, "--profile", "muster", "--live", LM)
+add("item 93: the Muster profile installs live and the hook matcher covers cards, helpers and chat starts", "" if imp.returncode == 0 and all(w in open(os.path.join(MP, ".claude", "settings.json")).read() for w in ("AskUserQuestion", "mcp__ccd_session__start_session", "Agent")) else "BAD " + imp.stdout + imp.stderr, False)
+add("item 93: with the live stand-in installed the plugin's shell hook stands down in the main folder", "" if shsend(MP) == "" else "BAD " + shsend(MP)[:100], False)
+add("item 93: ...but not inside a builder's linked worktree under it", "" if "Muster rule" in shsend(MWT) else "BAD", False)
 
 bad = 0
 for name, out, should_block in cases:

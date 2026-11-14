@@ -1,0 +1,18 @@
+{
+  "version": "0.3.71",
+  "changed_files": [
+    "profiles/pinr.json",
+    "scripts/decide-pinr.py",
+    "scripts/install-checks.py",
+    "scripts/profile-selftest.py"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Builder"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "PINR's decide.py: his typed letter and a handover line are recorded; install-checks --profile pinr installs it"
+}

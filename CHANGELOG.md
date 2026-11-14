@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.71
+Affects: Manager, Builder.
+PINR's decide.py: his typed letter and a handover line are recorded; install-checks --profile pinr installs it
+
 ## 0.3.70
 Affects: Manager.
 No repeat: an open item, a waiting chat or a hold is said once and a worker's next message ends silent when unchanged; decide.py reads his typed letter

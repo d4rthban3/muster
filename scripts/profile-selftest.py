@@ -321,7 +321,7 @@ MP = os.path.join(T, "musterproj")
 os.makedirs(os.path.join(MP, "muster")); open(os.path.join(MP, "muster", "CLAUDE.md"), "w").write("# rules\n")
 os.makedirs(os.path.join(MP, ".muster-checks")); open(os.path.join(MP, ".muster-checks", "profile.json"), "w").write('{"message_form": "text"}')
 MWT = os.path.join(MP, ".claude", "worktrees", "b1"); os.makedirs(MWT); open(os.path.join(MWT, ".git"), "w").write("gitdir: /x\n")
-shsend = lambda cwd: subprocess.run(["sh", os.path.join(ROOT, "hooks", "rules-check.sh")], input=json.dumps(dict(hook_event_name="PreToolUse", cwd=cwd, tool_name="SendMessage", tool_input={"to": "x", "message": "noted"}, transcript_path=tr("You are Builder A_Muster_003"))), capture_output=True, text=True, cwd=cwd, env=dict(ENV, MUSTER_MESSAGE_FORM="text")).stdout
+shsend = lambda cwd: subprocess.run(["sh", os.path.join(LM, "hooks", "rules-check.sh")], input=json.dumps(dict(hook_event_name="PreToolUse", cwd=cwd, tool_name="SendMessage", tool_input={"to": "x", "message": "noted"}, transcript_path=tr("You are Builder A_Muster_003"))), capture_output=True, text=True, cwd=cwd, env=dict(ENV, MUSTER_MESSAGE_FORM="text")).stdout
 add("item 93: a profile-only .muster-checks does not silence the plugin's shell hook", "" if "Muster rule" in shsend(MP) else "BAD", False)
 imp = icl(MP, "--profile", "muster", "--live", LM)
 add("item 93: the Muster profile installs live and the hook matcher covers cards, helpers and chat starts", "" if imp.returncode == 0 and all(w in open(os.path.join(MP, ".claude", "settings.json")).read() for w in ("AskUserQuestion", "mcp__ccd_session__start_session", "Agent")) else "BAD " + imp.stdout + imp.stderr, False)

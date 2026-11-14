@@ -4,10 +4,10 @@ use crate::common::*;
 use serde_json::Value;
 use std::collections::HashMap;
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 #[derive(Clone)]
-struct Entry { kind: String, from: String, job: String, status: String, paused: bool, resumed: bool }
+struct Entry { kind: String, from: String, job: String, status: String, paused: bool, resumed: bool, body: String }
 
 fn entries(text: &str) -> Vec<Entry> {
     let (head, status_re, pause_yes, pause_no) = (re(r"^\s*###\s"), rei(r"^\s*status\s*:\s*([A-Za-z]+)"), rei(r"^\s*paused\s*:\s*yes"), rei(r"^\s*paused\s*:\s*no"));
@@ -20,8 +20,9 @@ fn entries(text: &str) -> Vec<Entry> {
             if let Some(c) = cur.take() { out.push(c); }
             let parts: Vec<String> = line.split('|').map(|p| p.trim_matches(|c| c == ' ' || c == '#' || c == '`').to_string()).collect();
             let frm = parts.get(2).map(|p| sub(&arrow, p, "")).unwrap_or_default();
-            cur = Some(Entry { kind: parts.get(1).map(|p| p.to_uppercase()).unwrap_or_default(), from: frm, job: parts.get(3).cloned().unwrap_or_default(), status: "open".into(), paused: false, resumed: false });
+            cur = Some(Entry { kind: parts.get(1).map(|p| p.to_uppercase()).unwrap_or_default(), from: frm, job: parts.get(3).cloned().unwrap_or_default(), status: "open".into(), paused: false, resumed: false, body: String::new() });
         } else if let Some(c) = cur.as_mut() {
+            c.body.push_str(line); c.body.push('\n');
             if let Some(m) = caps(&status_re, line) { c.status = m[1].to_lowercase(); }
             if is(&pause_yes, line) { c.paused = true; }
             if is(&pause_no, line) { c.resumed = true; }
@@ -35,7 +36,21 @@ fn entries(text: &str) -> Vec<Entry> {
 fn line_entries(text: &str) -> Vec<Entry> {
     let row = re(r"^\s*\d{4}-\d\d-\d\d\s*\|\s*([A-Za-z ]+?)\s*\|\s*([^|]*?)\s*\|\s*(.*)$");
     let (yes, no, arrow) = (rei(r"\bpaused\s*:\s*yes"), rei(r"\bpaused\s*:\s*no"), re(r"\s*->.*"));
-    text.lines().filter_map(|l| caps(&row, l).map(|m| Entry { kind: m[1].to_uppercase(), from: sub(&arrow, &m[2], ""), job: String::new(), status: "open".into(), paused: is(&yes, l), resumed: is(&no, l) })).collect()
+    text.lines().filter_map(|l| caps(&row, l).map(|m| Entry { kind: m[1].to_uppercase(), from: sub(&arrow, &m[2], ""), job: String::new(), status: "open".into(), paused: is(&yes, l), resumed: is(&no, l), body: l.to_string() })).collect()
+}
+
+/// FNV-1a 64-bit (the same hash as the Python copy).
+fn fnv(t: &str) -> u64 { let mut h: u64 = 0xcbf29ce484222325; for b in t.bytes() { h = (h ^ b as u64).wrapping_mul(0x100000001b3); } h }
+
+fn told_file(tpath: &str, cwd: &str) -> PathBuf {
+    let d = std::env::var("MUSTER_STATE_DIR").ok().filter(|d| !d.is_empty()).map(PathBuf::from).unwrap_or_else(std::env::temp_dir);
+    d.join(format!("muster-told-{:016x}.txt", fnv(if tpath.is_empty() { cwd } else { tpath })))
+}
+
+/// What the manager has been told about an item: changes when the worker, kind, job, status or any line of its entry changes.
+fn item_fp(e: &Entry) -> String {
+    let py_bool = if e.paused { "True" } else { "False" };
+    format!("{:016x}", fnv(&[e.from.as_str(), e.kind.as_str(), e.job.as_str(), e.status.as_str(), py_bool, e.body.trim_end_matches('\n')].join("|")))
 }
 
 fn manager_re(profile: &Value) -> fancy_regex::Regex {
@@ -95,7 +110,7 @@ pub fn run() -> i32 {
             let p = e.path().join(".muster-paused");
             if p.is_file() {
                 let who = fs::read_to_string(&p).ok().and_then(|t| t.lines().next().map(|l| l.trim().to_string())).filter(|l| !l.is_empty()).unwrap_or_else(|| e.file_name().to_string_lossy().to_string());
-                items.push(Entry { kind: String::new(), from: who, job: String::new(), status: "open".into(), paused: true, resumed: false });
+                items.push(Entry { kind: String::new(), from: who, job: String::new(), status: "open".into(), paused: true, resumed: false, body: String::new() });
             }
         }
     }
@@ -103,6 +118,9 @@ pub fn run() -> i32 {
     let mut last: HashMap<String, usize> = HashMap::new();
     for (i, e) in items.iter().enumerate() { last.insert(e.from.clone(), i); }
     let mut missed: Vec<Entry> = vec![];
+    let tfile = told_file(tpath, &cwd.to_string_lossy());
+    let mut told: std::collections::BTreeSet<String> = fs::read_to_string(&tfile).map(|t| t.split_whitespace().map(String::from).collect()).unwrap_or_default();
+    let told0 = told.clone();
     for i in 0..items.len() {
         let mut e = items[i].clone();
         let attn = |k: &str| matches!(k, "NEED" | "STUCK" | "OWNER CALL");
@@ -114,9 +132,13 @@ pub fn run() -> i32 {
         // routed: a LATER entry written by the manager on the same job counts as handled (item 59)
         if !e.job.is_empty() && items[i + 1..].iter().any(|x| x.from.to_lowercase().starts_with("manager") && x.job.to_lowercase() == e.job.to_lowercase()) { continue; }
         if !(e.paused || (kinds_open && attn(&e.kind))) { continue; }
-        if (!e.from.is_empty() && said.contains(&e.from.to_lowercase())) || (!e.job.is_empty() && said.contains(&e.job.to_lowercase())) { continue; }
+        let fp = item_fp(&e);
+        if (!e.from.is_empty() && said.contains(&e.from.to_lowercase())) || (!e.job.is_empty() && said.contains(&e.job.to_lowercase())) { told.insert(fp); continue; }
+        if told.contains(&fp) { continue; } // already said once and unchanged: a worker's message must not make the manager say it again (item 81)
+        told.insert(fp);
         missed.push(e);
     }
+    if told != told0 { let _ = fs::write(&tfile, told.iter().cloned().collect::<Vec<_>>().join("\n") + "\n"); }
     let picks_re = rei(r"fits what you want|fits what you said|i'?m recording|i am recording|i'?ll record|i will record|i went with|i'?ll go with|i will go with|i'?m going with|i am going with|i picked|i chose|i'?ve chosen|i have chosen|so [a-d] (fits|it is)|recording (it|that|this) as");
     let told_re = rei(r"you (picked|chose|clicked|selected)");
     let picks = is(&picks_re, &said) && !is(&told_re, &said) && !card_answered_this_turn(tpath);

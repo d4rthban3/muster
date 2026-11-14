@@ -17,6 +17,7 @@ import json
 import os
 import re
 import sys
+import tempfile
 import time
 
 IDLE_SECONDS = int(os.environ.get("MUSTER_IDLE_SECONDS") or 120)
@@ -205,6 +206,18 @@ def board_holds(project):
     return out
 
 
+def fnv(text):
+    """FNV-1a 64-bit, the same hash as hooks/board-stop.py: both checks keep what the manager was already told in one small file."""
+    h = 0xcbf29ce484222325
+    for b in text.encode("utf-8"):
+        h = ((h ^ b) * 0x100000001b3) & 0xFFFFFFFFFFFFFFFF
+    return h
+
+
+def told_file(transcript_path, project):
+    return os.path.join(os.environ.get("MUSTER_STATE_DIR") or tempfile.gettempdir(), "muster-told-%016x.txt" % fnv(transcript_path or project))
+
+
 def first_message(path):
     try:
         with open(path, encoding="utf-8") as fh:
@@ -257,9 +270,31 @@ def main(argv):
         if INSTALLED and not is_manager_chat(data):
             return 0
         msg = last_message(data).lower()
-        missing = [f for f in findings(project) if f[2] and f[0].lower() not in msg]
-        waiting = [w for w in waiting_chats(crew(project)) if w[0].lower() not in msg]
-        holds = [h for h in board_holds(project) if h[0].lower() not in msg]
+        tfile = told_file(data.get("transcript_path") or "", project)
+        try:
+            told = set(open(tfile, encoding="utf-8").read().split())
+        except OSError:
+            told = set()
+        told0 = set(told)
+
+        def fresh(kind, who, what, key):
+            """Not named in the reply and not already said once unchanged (item 81): a worker's message must not make the manager repeat itself."""
+            fp = "%016x" % fnv("idle|%s|%s|%s" % (kind, who, what))
+            if key.lower() in msg:
+                told.add(fp)
+                return False
+            if fp in told:
+                return False
+            told.add(fp)
+            return True
+        missing = [f for f in findings(project) if f[2] and fresh("item", f[0], "; ".join("%s (%s)" % x for x in f[2]), f[0])]
+        waiting = [w for w in waiting_chats(crew(project)) if fresh("wait", w[0], w[1], w[0])]
+        holds = [h for h in board_holds(project) if fresh("hold", h[0], h[1], h[0])]
+        if told != told0:
+            try:
+                open(tfile, "w", encoding="utf-8").write("\n".join(sorted(told)) + "\n")
+            except OSError:
+                pass
     except Exception:
         return 0
     if not missing and not waiting and not holds:

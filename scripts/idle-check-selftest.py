@@ -16,8 +16,9 @@ def rec(i, ago, arch=False, summ=None):
     json.dump({"isArchived": arch, "lastActivityAt": now - ago * 1000, "postTurnSummary": summ or {}}, open(os.path.join(tmp, "s", "a", "b", cid(i) + ".json"), "w"))
 rec(1, 5); rec(2, 600); rec(3, 600); rec(4, 600, True); rec(5, 5, summ={"status_category": "blocked", "status_detail": "WAIT: Manager's choice", "needs_action": "the manager's choice"})
 env = dict(os.environ, MUSTER_SESSIONS_DIR=os.path.join(tmp, "s"))
-def run(inp):
-    return subprocess.run([sys.executable, CHK, "--project", tmp], input=json.dumps(inp), capture_output=True, text=True, env=env).stdout
+def run(inp, state=None):
+    e = dict(env, MUSTER_STATE_DIR=state or tempfile.mkdtemp())  # a fresh memory of what was said, unless a test shares one
+    return subprocess.run([sys.executable, CHK, "--project", tmp], input=json.dumps(inp), capture_output=True, text=True, env=e).stdout
 bad = 0
 def t(name, ok):
     global bad; bad += (not ok); print(("PASS " if ok else "FAIL ") + name)
@@ -41,7 +42,7 @@ def hproj(board, style=None):
     return d
 def hrun(d, msg, extra_env=None):
     return subprocess.run([sys.executable, CHK, "--project", d], input=json.dumps({"last_assistant_message": msg}),
-                          capture_output=True, text=True, env=dict(env, **(extra_env or {}))).stdout
+                          capture_output=True, text=True, env=dict(env, MUSTER_STATE_DIR=tempfile.mkdtemp(), **(extra_env or {}))).stdout
 d1 = hproj("### 2026-11-12 | ORDER | Manager_X_001 -> Builder U_X_001 | quiet\nStatus: open\nAction: hold\nNeed: wait for the measurement.\n")
 t("a manager's hold with no owner basis is refused", "holds Builder U_X_001" in hrun(d1, "ok"))
 t("allowed once the reply names the held worker", hrun(d1, "Releasing Builder U_X_001") == "")
@@ -59,4 +60,16 @@ pe = {"MUSTER_PROFILE": os.path.join(d4, "profile.json")}
 o4 = hrun(d4, "ok", pe)
 t("PINR: a manager's hold line with no owner basis is refused", "holds Eng_P_006" in o4)
 t("PINR: a hold that cites his item and a worker's own line are not", "Web_P_004" not in o4.split("Do not end")[-1] and "Manager_P_005 (" not in o4)
+
+# item 81: once said, unchanged, a worker's message must not make the manager say it again
+st = tempfile.mkdtemp()
+first = run({"last_assistant_message": "ok", "transcript_path": "/t/one"}, st)
+t("repeat: the first stop with idle chats and open items blocks", "block" in first)
+t("repeat: the same findings on the next stop pass silently", run({"last_assistant_message": "ok", "transcript_path": "/t/one"}, st) == "")
+t("repeat: another manager chat has its own memory", "block" in run({"last_assistant_message": "ok", "transcript_path": "/t/two"}, st))
+os.makedirs(os.path.join(tmp, "muster"), exist_ok=True)
+open(os.path.join(tmp, "muster", "OWNERS-LIST.md"), "a").write("\n")
+with open(os.path.join(tmp, "muster", "OWNERS-LIST.md"), "w") as f:
+    f.write("## Open\n1. \"a\"\n   Stands: with Builder R_X_001 (changed)\n\n## Closed\n")
+t("repeat: a changed item is said again", "Builder R_X_001" in run({"last_assistant_message": "ok", "transcript_path": "/t/one"}, st))
 sys.exit(1 if bad else 0)

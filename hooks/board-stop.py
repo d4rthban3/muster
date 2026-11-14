@@ -11,6 +11,7 @@ It blocks at most once per stop: when Claude Code is already continuing because 
 """
 import json
 import os
+import tempfile
 import re
 import sys
 
@@ -192,6 +193,40 @@ def bounced_this_turn(path):
     return bounced
 
 
+def fnv(text):
+    """FNV-1a 64-bit hash (the same in the Python and Rust copies)."""
+    h = 0xcbf29ce484222325
+    for b in text.encode("utf-8"):
+        h = ((h ^ b) * 0x100000001b3) & 0xFFFFFFFFFFFFFFFF
+    return h
+
+
+def told_file(transcript_path, cwd):
+    d = os.environ.get("MUSTER_STATE_DIR") or tempfile.gettempdir()
+    return os.path.join(d, "muster-told-%016x.txt" % fnv(transcript_path or cwd))
+
+
+def item_fp(e):
+    """What the manager has been told about an item: it changes when the worker, kind, job, status or any line of its entry changes."""
+    return "%016x" % fnv("|".join([e["from"], e["kind"], e["job"], e["status"], str(e["paused"]), "\n".join(e["body"])]))
+
+
+def load_told(path):
+    try:
+        with open(path, encoding="utf-8") as fh:
+            return set(fh.read().split())
+    except OSError:
+        return set()
+
+
+def save_told(path, told):
+    try:
+        with open(path, "w", encoding="utf-8") as fh:
+            fh.write("\n".join(sorted(told)) + "\n")
+    except OSError:
+        pass
+
+
 def main():
     try:
         data = json.loads(sys.stdin.buffer.read().decode("utf-8", "replace"))
@@ -229,6 +264,9 @@ def main():
             pass
         items.append({"kind": "", "from": who, "job": "", "status": "open", "paused": True, "resumed": False, "body": []})
     missed = []
+    tfile = told_file(data.get("transcript_path") or "", cwd)
+    told = load_told(tfile)
+    told0 = set(told)
     kinds_open = PROFILE.get("board_kinds_open", True)
     # a chat is paused NOW only if its LAST entry on the board says "Paused: yes" and is open: a later entry from the
     # same chat, "Paused: no", or Status done clears it (the owner typed in the chat and it carried on)
@@ -248,9 +286,16 @@ def main():
             continue
         if not (e["paused"] or (kinds_open and e["kind"] in ("NEED", "STUCK", "OWNER CALL"))):
             continue
+        fp = item_fp(e)
         if (e["from"] and e["from"].lower() in said) or (e["job"] and e["job"].lower() in said):
+            told.add(fp)
             continue
+        if fp in told:
+            continue  # already said once and unchanged: a worker's message must not make the manager say it again (item 81)
+        told.add(fp)
         missed.append(e)
+    if told != told0:
+        save_told(tfile, told)
     picks = bool(PICKS.search(said)) and not TOLD.search(said) and not card_answered_this_turn(data.get("transcript_path") or "")
     if not missed and not picks:
         return 0

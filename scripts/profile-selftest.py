@@ -61,10 +61,11 @@ PLAINPROJ = os.path.join(T, "plainproj")
 os.makedirs(PLAINPROJ)
 
 
-def run(script, ev, plain=False, cwd=None, **kw):
+def run(script, ev, plain=False, cwd=None, state=None, **kw):
     d = NOPROF if plain else CK
+    env = dict(ENV, MUSTER_STATE_DIR=state or tempfile.mkdtemp(dir=T))  # a fresh memory of what the manager was told, unless a case shares one
     r = subprocess.run(cmd_for(d, script), input=json.dumps(dict(hook_event_name=ev, cwd=cwd or (PLAINPROJ if plain else PROJ), **kw)),
-                       capture_output=True, text=True, env=ENV)
+                       capture_output=True, text=True, env=env)
     return r.stdout.strip()
 
 
@@ -113,6 +114,14 @@ add("4 an old NEED line is not nagged (no closing mark exists)", (write_board("2
 add("4 a later line from the same chat clears a pause", (write_board("2026-11-08 | LIVE | Look Header_PINR_002 -> Manager | Paused: yes | fix", "2026-11-08 | DONE | Look Header_PINR_002 -> Manager | next thing") or bs("Fine.")), False)
 add("4 a pause followed by a later line (no Paused word) from the same chat is cleared, a later 'Paused: no' too", (write_board("2026-11-07 | LIVE | Manager_PINR_002 -> Site | Paused: yes | x", "2026-11-08 | NEED | Look Header_PINR_002 -> Manager | Paused: yes | y", "2026-11-08 | RESUMED | Look Header_PINR_002 -> Manager | Paused: no | y", "2026-11-09 | DONE | Manager_PINR_002 -> Site | ok") or bs("Fine.")), False)
 add("4 a pause that is a chat's latest line still counts when others wrote after it", (write_board("2026-11-08 | LIVE | Look Header_PINR_002 -> Manager | Paused: yes | x", "2026-11-09 | DONE | Site_PINR_002 -> Manager | later") or bs("Fine.")), True)
+# 81: the same open item is said once; a worker's next message does not make the manager say it again
+ST = tempfile.mkdtemp(dir=T)
+PA = "2026-11-08 | LIVE | Look Header_PINR_002 -> Manager | Paused: yes | x"
+add("4b the first stop with a paused chat unmentioned blocks", (write_board(PA) or bs("Fine.", state=ST)), True)
+add("4b the next stop (a worker's message started the turn) with the same pause passes silently", bs("Fine.", state=ST), False)
+add("4b a changed line for that chat is said again", (write_board(PA + " changed") or bs("Fine.", state=ST)), True)
+add("4b a different chat's pause is new", (write_board(PA + " changed", "2026-11-08 | LIVE | Site_PINR_002 -> Manager | Paused: yes | y") or bs("Fine.", state=ST)), True)
+add("4b ...and then silent again for both", bs("Fine.", state=ST), False)
 add("4 a worker chat is never nagged", (write_board("2026-11-08 | LIVE | Site_PINR_002 -> Manager | Paused: yes | x") or bs("Fine.", t=site)), False)
 add("4 no board at the path is silent", (os.remove(board) or bs("Fine.")), False)
 # 5 no second talk check

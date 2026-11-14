@@ -8,6 +8,8 @@
 # force-pushes, never touches another branch, and never pushes anything in muster/.
 # --with <branch> (repeatable): ship several passed branches as one release. Batch only branches that do not touch the same files.
 # It refuses unless the crew board (muster/BOARD.md in the main folder, if the project has one) holds an entry headed "| PASS |" naming this exact saved version.
+# Afterwards the main folder (the checkout this branch's worktree belongs to) is fast-forwarded to the new main, never forced; if it
+# cannot be (another branch, work of its own), it says "MAIN FOLDER NOT UPDATED" and why, and leaves the folder as it is.
 # --dry-run: do everything on this computer, push nothing. --no-wait: push, but do not wait on GitHub (used by the test).
 set -u
 export MSYS2_ARG_CONV_EXCL='*'   # Git Bash on Windows must not rewrite 'origin/main:file' as a path list
@@ -111,4 +113,15 @@ if [ $wait = 1 ]; then
   echo "== proving the new content is served (the published version, and a changed line of the site if the site changed)"
   bash scripts/live-check.sh "$new" $proof_file "$proof_line" || stop "the new content is not being served yet; run scripts/live-check.sh \"$new\" again in a few minutes"
 fi
+# the main folder moves with every release (item 90: PINR reads Muster live from it): fast-forward only, never forced; if it cannot,
+# say so plainly and leave it exactly as it is. A failure here never undoes or hides the ship.
+mainfolder() {
+  if [ "$(git -C "$mainroot" rev-parse --is-inside-work-tree 2>/dev/null)" != true ]; then echo "== MAIN FOLDER NOT UPDATED: $mainroot is not a git folder; left as it is"; return; fi
+  cur=$(git -C "$mainroot" rev-parse --abbrev-ref HEAD 2>/dev/null)
+  if [ "$cur" != main ]; then echo "== MAIN FOLDER NOT UPDATED: $mainroot is on '$cur', not main; left as it is (update it by hand)"; return; fi
+  git -C "$mainroot" fetch -q origin 2>/dev/null || { echo "== MAIN FOLDER NOT UPDATED: could not fetch origin in $mainroot; left as it is"; return; }
+  if out=$(git -C "$mainroot" merge -q --ff-only origin/main 2>&1); then echo "== main folder $mainroot is now at $new"
+  else echo "== MAIN FOLDER NOT UPDATED: $mainroot could not be fast-forwarded to $new (it holds work of its own); left as it is: $(echo "$out" | head -1)"; fi
+}
+mainfolder
 echo "SHIPPED $new"

@@ -400,6 +400,22 @@ git add -A; git commit -q -m "change two"
 mkdir -p muster; printf '# Builders log\n' > muster/BUILDERS-LOG.md
 bash scripts/ship.sh "a different note" --no-wait > "$SH/keep.out" 2>&1; grep -q "SHIPPED 1.2.5" "$SH/keep.out" || { cat "$SH/keep.out"; fail "ship refused a branch that already has its version"; }
 grep -q "| 1.2.5 | .*| a different note" muster/BUILDERS-LOG.md || fail "ship did not add its line to the builders' log: $(cat muster/BUILDERS-LOG.md)"
+# item 90: after a ship the main folder (the checkout the branch's worktree belongs to) moves to the shipped version, fast-forward only
+MF="$SH/mainfolder"; git clone -q -b main "$SH/remote.git" "$MF"
+git -C "$MF" config user.name t; git -C "$MF" config user.email t@localhost
+git -C "$MF" worktree add -q -b builder/live "$SH/wt-live" origin/main
+( cd "$SH/wt-live"; mkdir -p scripts; cp "$ROOT/scripts/ship.sh" "$ROOT/scripts/find-python.sh" "$ROOT/scripts/version-check.sh" "$ROOT/scripts/scan-leaks.sh" scripts/; echo more > more.txt; git add -A; git commit -q -m "more"
+  bash scripts/ship.sh "live folder" --roles Builder --no-wait > "$SH/mf.out" 2>&1; grep -q "main folder .* is now at 1.2.6" "$SH/mf.out" || { cat "$SH/mf.out"; fail "ship did not move the main folder"; } )
+git -C "$MF" show HEAD:.claude-plugin/plugin.json | grep -q '"1.2.6"' || fail "the main folder is not at the shipped version"
+# a main folder on another branch, or with work of its own, is said plainly and left alone
+git -C "$MF" checkout -q -b elsewhere
+( cd "$SH/wt-live"; git fetch -q origin; git reset -q --hard origin/main; echo again > again.txt; git add -A; git commit -q -m "again"
+  bash scripts/ship.sh "second live" --roles Builder --no-wait > "$SH/mf2.out" 2>&1; grep -q "MAIN FOLDER NOT UPDATED: .* is on 'elsewhere'" "$SH/mf2.out" || { cat "$SH/mf2.out"; fail "ship did not say the main folder was on another branch"; }; grep -q "SHIPPED 1.2.7" "$SH/mf2.out" || fail "the ship itself was affected" )
+[ "$(git -C "$MF" rev-parse --abbrev-ref HEAD)" = elsewhere ] || fail "ship moved a main folder that was on another branch"
+git -C "$MF" checkout -q main; echo "mine" >> "$MF/.claude-plugin/plugin.json"
+( cd "$SH/wt-live"; git fetch -q origin; git reset -q --hard origin/main; echo third > third.txt; git add -A; git commit -q -m "third"
+  bash scripts/ship.sh "third live" --roles Builder --no-wait > "$SH/mf3.out" 2>&1; grep -q "MAIN FOLDER NOT UPDATED: .*fast-forwarded" "$SH/mf3.out" || { cat "$SH/mf3.out"; fail "ship did not say the main folder could not be fast-forwarded"; }; grep -q "SHIPPED 1.2.8" "$SH/mf3.out" || fail "the ship itself was affected" )
+grep -q "^mine$" "$MF/.claude-plugin/plugin.json" || fail "ship overwrote work in the main folder"
 rm -rf muster
 [ "$(grep -c '^## 1.2.5' CHANGELOG.md)" = 1 ] || fail "the changelog entry was doubled"
 grep -q "my own note" .claude-plugin/releases/1.2.5.json || fail "the branch's own release file was overwritten"

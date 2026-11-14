@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.78
+Affects: Manager, Builder, Inspector, Designer.
+Group check (item 79): the manager's stop refuses a started chat with no move_sessions and list_sessions read-back. Report to manager always (item 65): PASS/FAIL copies to the manager are allowed and a worker's report card needs a message to the manager
+
 ## 0.3.77
 Affects: Manager.
 Pictures first only for looks (item 88): the check reads only the sentences that end in a question mark and skips lettered choice lines, so layout or look in a list or choice no longer fires; a real look question still blocks

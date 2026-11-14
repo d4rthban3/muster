@@ -1,0 +1,33 @@
+{
+  "version": "0.3.78",
+  "changed_files": [
+    "agents/inspector.md",
+    "bin/SOURCE-STAMP",
+    "bin/linux-arm64/muster-checks",
+    "bin/linux-x86_64/muster-checks",
+    "bin/macos-arm64/muster-checks",
+    "bin/macos-x86_64/muster-checks",
+    "bin/windows-x86_64/muster-checks.exe",
+    "checks/src/rules.rs",
+    "directory/agents/inspector.md",
+    "directory/skills/start-the-crew/SKILL.md",
+    "directory/templates/CLAUDE.md",
+    "hooks/rules-check.py",
+    "pages/inspector.md",
+    "scripts/profile-selftest.py",
+    "scripts/rules-check-selftest.py",
+    "skills/start-the-crew/SKILL.md",
+    "templates/CLAUDE.md"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Builder",
+    "Inspector",
+    "Designer"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Group check (item 79): the manager's stop refuses a started chat with no move_sessions and list_sessions read-back. Report to manager always (item 65): PASS/FAIL copies to the manager are allowed and a worker's report card needs a message to the manager"
+}

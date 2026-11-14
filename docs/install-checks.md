@@ -9,6 +9,12 @@ plugin gets them automatically. A project that does not (for example PINR) insta
 4. Start the crew's chats fresh (a running chat reads hooks when it starts). The checks act only in chats whose first
    message names a crew role, never in the owner's own chats.
 5. After each Muster update run the same command again to refresh the copies. `--remove` takes them away.
+6. Or stay current with no re-install: add `--live <the Muster folder>` (a folder that is a checkout of Muster, for example
+   `python3 <muster folder>/scripts/install-checks.py . --profile pinr --live <muster folder>`). It then puts small stand-ins
+   in `.muster-checks/` (and the profile's recorder) that run each check straight from that folder every time, with the
+   project's own profile and message form; a new Muster version reaches the project as soon as the folder is updated. If the
+   folder goes missing, each stand-in says so plainly (a hook shows the message and lets the turn go on; a recorder stops with
+   it). Running the command again without `--live` puts plain copies back.
 
 What it enforces: messages between chats are a six-line report or an order that quotes the owner's words; no "noted"
 replies; a report ID is sent once; PASS and FAIL copies for the manager go on the board; no new order when the week is at

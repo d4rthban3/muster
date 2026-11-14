@@ -280,30 +280,30 @@ add("item 90: --live --dry-run writes nothing", "" if dl.returncode == 0 and not
 il = icl(LP, "--profile", "pinr", "--live", LM)
 icl(LP, "--profile", "pinr", "--live", LM)
 LC = os.path.join(LP, ".muster-checks")
-add("item 90: --live installs stand-ins, not copies, and live.json names the Muster folder", "" if il.returncode == 0 and "MUSTER-LIVE-STANDIN" in open(os.path.join(LC, "rules-check.py")).read() and json.load(open(os.path.join(LC, "live.json")))["muster"] == LM else "BAD " + il.stdout + il.stderr, False)
-add("item 90: the recorder is a stand-in too, PINR's own kept once", "" if "MUSTER-LIVE-STANDIN" in open(os.path.join(LP, "manager", "decide.py")).read() and open(os.path.join(LC, "recorder.before")).read() == OLD else "BAD", False)
+add("item 90: --live installs stand-ins, not copies, and live.json names the Muster folder", "" if il.returncode == 0 and "MUSTER-LIVE-STANDIN" in open(os.path.join(LC, "rules-check.py"), encoding="utf-8").read() and json.load(open(os.path.join(LC, "live.json")))["muster"] == LM else "BAD " + il.stdout + il.stderr, False)
+add("item 90: the recorder is a stand-in too, PINR's own kept once", "" if "MUSTER-LIVE-STANDIN" in open(os.path.join(LP, "manager", "decide.py"), encoding="utf-8").read() and open(os.path.join(LC, "recorder.before")).read() == OLD else "BAD", False)
 lstop = lambda said, tp: subprocess.run([PY, os.path.join(LC, "rules-check.py")], input=json.dumps(dict(hook_event_name="Stop", cwd=LP, last_assistant_message=said, transcript_path=tp)), capture_output=True, text=True, env=dict(ENV, CLAUDE_PROJECT_DIR=LP)).stdout.strip()
 lpre = subprocess.run([PY, os.path.join(LC, "rules-check.py")], input=json.dumps(dict(hook_event_name="PreToolUse", cwd=LP, tool_name="AskUserQuestion", tool_input={"questions": [{"question": "Ship it?", "options": []}]}, transcript_path=mgr)), capture_output=True, text=True, env=dict(ENV, CLAUDE_PROJECT_DIR=LP)).stdout
 add("item 90: the stand-in applies PINR's profile (a PINR manager's choice card is refused)", "" if "Muster rule" in lpre else "BAD " + lpre[:200], False)
 # change a check in the Muster folder: the project runs the new code with no re-install
 rcp = os.path.join(LM, "hooks", "rules-check.py")
-src = open(rcp).read()
-open(rcp, "w").write(src.replace("def main():", "def main():\n    print('LIVE-CHANGE-SEEN'); return", 1) if "def main():" in src else src + "\nprint('LIVE-CHANGE-SEEN')\n")
+src = open(rcp, encoding="utf-8").read()
+open(rcp, "w", encoding="utf-8", newline="").write(src.replace("def main():", "def main():\n    print('LIVE-CHANGE-SEEN'); return", 1) if "def main():" in src else src + "\nprint('LIVE-CHANGE-SEEN')\n")
 seen = subprocess.run([PY, os.path.join(LC, "rules-check.py")], input="{}", capture_output=True, text=True, env=dict(ENV, CLAUDE_PROJECT_DIR=LP)).stdout
 add("item 90: a change in the Muster folder reaches the project with no re-install", "" if "LIVE-CHANGE-SEEN" in seen else "BAD " + seen[:200], False)
-open(rcp, "w").write(src)
+open(rcp, "w", encoding="utf-8", newline="").write(src)
 # the recorder stand-in records under the project's own log
 rd = subprocess.run([PY, os.path.join(LP, "manager", "decide.py"), "--title", "T", "--question", "Q?", "--said", "b", "--chose", "B"], capture_output=True, text=True)
 add("item 90: the recorder stand-in records in the project's own log", "" if rd.returncode == 0 and rd.stdout.strip() == "6" else "BAD " + rd.stdout + rd.stderr, False)
 # a missing Muster folder is said plainly, never silently
 shutil.move(LM, LM + ".gone")
 miss = subprocess.run([PY, os.path.join(LC, "rules-check.py")], input="{}", capture_output=True, text=True, env=dict(ENV, CLAUDE_PROJECT_DIR=LP))
-add("item 90: a missing Muster folder is said plainly by a hook and lets the turn go on", "" if miss.returncode == 0 and "systemMessage" in miss.stdout and LM in miss.stdout and '"decision"' not in miss.stdout else "BAD " + miss.stdout, False)
+add("item 90: a missing Muster folder is said plainly by a hook and lets the turn go on", "" if miss.returncode == 0 and LM in json.loads(miss.stdout).get("systemMessage", "") and "decision" not in json.loads(miss.stdout) else "BAD " + miss.stdout, False)
 missr = subprocess.run([PY, os.path.join(LP, "manager", "decide.py"), "--title", "T", "--question", "Q?", "--said", "b", "--chose", "B"], capture_output=True, text=True)
 add("item 90: ...and a recorder stops with the same plain message", "" if missr.returncode == 1 and LM in missr.stderr else "BAD " + missr.stderr, False)
 shutil.move(LM + ".gone", LM)
 icl(LP)
-add("item 90: install without --live puts plain copies back and removes live.json", "" if "MUSTER-LIVE-STANDIN" not in open(os.path.join(LC, "rules-check.py")).read() and not os.path.exists(os.path.join(LC, "live.json")) else "BAD", False)
+add("item 90: install without --live puts plain copies back and removes live.json", "" if "MUSTER-LIVE-STANDIN" not in open(os.path.join(LC, "rules-check.py"), encoding="utf-8").read() and not os.path.exists(os.path.join(LC, "live.json")) else "BAD", False)
 rf = os.path.join(T, "r.txt")
 open(rf, "w").write(pinr_report)
 cr = lambda *a: subprocess.run([PY, os.path.join(ROOT, "scripts", "check-report.py"), *a], capture_output=True, text=True).returncode

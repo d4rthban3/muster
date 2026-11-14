@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.73
+Affects: Manager, Builder.
+Answer his question: a reply to a question of his without a question mark passes; pictures-first fires only on on-screen look questions
+
 ## 0.3.72
 Affects: Manager, Builder.
 No repeat after a stop: every Stop-check block says the reply already reached the owner and must not be written again

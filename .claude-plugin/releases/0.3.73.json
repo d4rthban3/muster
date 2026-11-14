@@ -1,0 +1,24 @@
+{
+  "version": "0.3.73",
+  "changed_files": [
+    "bin/SOURCE-STAMP",
+    "bin/linux-arm64/muster-checks",
+    "bin/linux-x86_64/muster-checks",
+    "bin/macos-arm64/muster-checks",
+    "bin/macos-x86_64/muster-checks",
+    "bin/windows-x86_64/muster-checks.exe",
+    "checks/src/common.rs",
+    "checks/src/rules.rs",
+    "hooks/rules-check.py",
+    "scripts/rules-check-selftest.py"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Builder"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Answer his question: a reply to a question of his without a question mark passes; pictures-first fires only on on-screen look questions"
+}

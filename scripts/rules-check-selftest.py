@@ -249,6 +249,11 @@ cases += [
     ("SHOWFIRST (item 88): no question, look words, passes", run("Stop", last_assistant_message="The crew is idle. The layout and colour work is done and shipped.", transcript_path=tr(MG, [said("hi")])), False),
     ("SHOWFIRST (item 88): a real look question still blocks", run("Stop", last_assistant_message="Open items: none.\n\nWhich colour do you prefer for the page?\n\n***A.*** blue\n\n***B.*** green", transcript_path=tr(MG, [said("hi")])), True),
     ("SHOWFIRST: a question that is not about looks passes", run("Stop", last_assistant_message="Ship it now?\n\n***A.*** yes\n\n***B.*** no", transcript_path=tr(MG, [said("hi")])), False),
+    # item 91: two or more lettered choice lines are the question, with or without a question mark
+    ("LETTERS: a lead-in ending in a colon plus lettered lines passes", run("Stop", last_assistant_message="Sentence 5 of 6, on what stays on the phone:\n\n***A.*** the list stays\n\n***B.*** only the totals stay\n\n***C.*** nothing stays", transcript_path=tr(MG, [said("hi")])), False),
+    ("LETTERS: two lettered lines with a question mark still pass", run("Stop", last_assistant_message="Keep it?\n\n***A.*** yes\n\n***B.*** no", transcript_path=tr(MG, [said("hi")])), False),
+    ("LETTERS: one lone lettered line with no question still blocks", run("Stop", last_assistant_message="Here is the thing.\n\n***A.*** yes", transcript_path=tr(MG, [said("hi")])), True),
+    ("LETTERS: filler with no lettered lines still blocks", run("Stop", last_assistant_message="On what stays on the phone:\nthe list stays.", transcript_path=tr(MG, [said("hi")])), True),
     # item 88: his question with no question mark is still a question; "looks" in a rules choice is not a look question
     ("ANSWER: his question (no question mark) then a plain two-line answer passes", run("Stop", last_assistant_message="Make up a new one for the keystore.\nIt is not your machine password.", transcript_path=tr(MG, [said("make up a keystore password or is that my machine password")])), False),
     ("ANSWER: a question with a question mark then a plain answer passes", run("Stop", last_assistant_message="Make up a new one for the keystore.\nIt is not your machine password.", transcript_path=tr(MG, [said("should i make up a keystore password?")])), False),

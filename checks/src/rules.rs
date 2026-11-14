@@ -368,8 +368,8 @@ fn manager_reply_ok(t: &str) -> bool {
     if is(&rei(r"(?s)\bis waiting for you\b.*\btype in\b"), t) { return true; }
     if is(&rei(r"\b(I need your yes|needs? your yes|your yes (is needed|to))\b"), t) { return true; }
     let has_q = t.contains('?');
-    let has_choices = is(&re(r"(?m)^\*\*\*[A-D]\.\*\*\*"), t); // lettered lines are the question form (D-037)
-    has_q && has_choices
+    let letters = re(r"(?m)^\*\*\*[A-D]\.\*\*\*").find_iter(t).count(); // lettered lines are the question form (D-037)
+    letters >= 2 || (has_q && letters >= 1) // two or more lettered choices are the question, with or without a "?" (item 91)
 }
 
 /// True when this turn was started by his own typed message (not an app event, another chat or hook feedback).

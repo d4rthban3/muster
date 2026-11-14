@@ -641,8 +641,8 @@ def manager_reply_ok(text):
     if re.search(r"\b(I need your yes|needs? your yes|your yes (is needed|to))\b", t, re.I):
         return True
     has_q = "?" in t
-    has_choices = bool(re.search(r"^\*\*\*[A-D]\.\*\*\*", t, re.M))  # lettered lines are the question form (D-037)
-    return has_q and has_choices
+    letters = len(re.findall(r"^\*\*\*[A-D]\.\*\*\*", t, re.M))  # lettered lines are the question form (D-037)
+    return letters >= 2 or (has_q and letters >= 1)  # two or more lettered choices are the question, with or without a "?" (item 91)
 
 
 def group_unfiled(uses):

@@ -7,14 +7,14 @@ or <Role>_<project>_<digits>); it is silent in the owner's own chats and on any 
 PreToolUse (a chat is about to act):
   SendMessage    a message between chats must be a six-line report (FIRST WORD, What, Where with touches:, Why, How, Need,
                  and a Usage line on DONE and READY; a READY shows a test count) or an order (To, Job, Owner's words with
-                 his words in quotes, Owns, Out, Done); no "noted/thanks" replies; no ID sent twice; no PASS or FAIL
-                 copy to the manager as a message (it goes on the board); no new order while the week is at 90% (usage.py).
+                 his words in quotes, Owns, Out, Done); no "noted/thanks" replies; no ID sent twice; no new order while the week is at 90% (usage.py).
   Write/Edit/Bash  only the manager changes the owner's list, the decisions log, the crew list, the rules pages and
                  muster/CLAUDE.md; nobody saves or pushes anything under muster/.
 Stop (a chat is about to end its turn; blocks at most once, never loops):
   manager        the reply to the owner is a question with its choices, a yes he must give, "<worker> is waiting for you:
                  type in <chat>", or "The crew is idle"; and an answer to a choice card is recorded (record-choice.py).
-  other workers  the reply is a card: a bold "WORD . job" title, then two or three bullets.
+  other workers  the reply is a card: a bold "WORD . job" title, then two or three bullets; a card headed DONE, READY, PASS, FAIL, STUCK or NEED
+                 needs a message to the manager in the same turn (item 65).
 Exit 0 always; a refusal is printed as the hook's JSON.
 """
 import json
@@ -508,8 +508,6 @@ def pretool(data, manager):
             sent = all_sent_text(data.get("transcript_path") or "")
             if any(("[ID %s]" % m.group(2)) in s for s in sent):
                 return deny("this report's ID [%s] was already sent; a repeat is dropped" % m.group(2))
-            if re.match(r"^\s*(PASS|FAIL)\b", msg) and recipient_is_manager(inp.get("to", ""), root):
-                return deny("a PASS or FAIL copy for the manager goes on the board only, not as a message")
         if not bad_order and usage_at_limit(root):
             return deny("the week is at 90% or more (scripts/usage.py exits 3): start no new order; finish and park what is running")
         return
@@ -669,6 +667,10 @@ def stop(data, manager):
     title_ok = bool(re.match(r"^\s*\*\*[^*\n]+\s[·.]\s[^*\n]+\*\*\s*$", body.splitlines()[0])) if body else False
     if not title_ok or not 2 <= len(bullets) <= 3:
         return block("your end-of-turn reply is a card: a bold title line 'WORD · job', then two or three '- ' bullets (what, the result with real numbers, what is left or what you need)")
+    if re.match(r"^\s*\*\*(DONE|READY|PASS|FAIL|STUCK|NEED)\b", body):  # item 65: every report reaches the manager as a message
+        root = main_folder(data.get("cwd"))
+        if not any(u.get("name") == "SendMessage" and recipient_is_manager((u.get("input") or {}).get("to", ""), root) for u in uses):
+            return block("a report reaches the manager as a message as well as the board (item 65): send the manager your %s report with SendMessage (a different ID from any copy to someone else), then end the turn with the card" % body.split()[0].strip("*"))
 
 
 def stood_down(data):

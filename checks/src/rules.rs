@@ -323,9 +323,6 @@ fn send_message(c: &Ctx, data: &Value, inp: &Value, root: &str) {
         let rec: Value = serde_json::from_str(msg.trim()).unwrap_or(Value::Null);
         let (id, kind) = (s(&rec, "id"), s(&rec, "kind"));
         if sent().iter().any(|t| serde_json::from_str::<Value>(t.trim()).map(|r| s(&r, "id") == id).unwrap_or(false)) { return deny(&format!("this record's id {id} was already sent; a repeat is dropped")); }
-        if (kind == "PASS" || kind == "FAIL") && (recipient_is_manager(s(inp, "to"), root) || s(&rec, "to").starts_with("manager")) {
-            return deny("a PASS or FAIL copy for the manager goes on the board only, not as a message");
-        }
         if kind == "ORDER" { if let Some(why) = goal_problem(root, s(&rec, "job")) { return deny(&why); } }
         if kind == "ORDER" && usage_at_limit(root) { return deny("the week is at 90% or more (scripts/usage.py exits 3): start no new order; finish and park what is running"); }
         return;
@@ -342,7 +339,6 @@ fn send_message(c: &Ctx, data: &Value, inp: &Value, root: &str) {
     if let Some(m) = caps(&re(&format!(r"^\s*{FIRST}: .+ \[ID ([^\]]+)\]")), msg) {
         let idtag = format!("[ID {}]", &m[2]);
         if sent().iter().any(|t| t.contains(&idtag)) { return deny(&format!("this report's ID [{}] was already sent; a repeat is dropped", &m[2])); }
-        if is(&re(r"^\s*(PASS|FAIL)\b"), msg) && recipient_is_manager(s(inp, "to"), root) { return deny("a PASS or FAIL copy for the manager goes on the board only, not as a message"); }
     }
     if bad_order.is_none() && usage_at_limit(root) { return deny("the week is at 90% or more (scripts/usage.py exits 3): start no new order; finish and park what is running"); }
 }
@@ -420,6 +416,14 @@ fn stop(c: &Ctx, data: &Value, manager: bool) {
     let title_ok = body.lines().next().map(|l| is(&re(r"^\s*\*\*[^*\n]+\s[·.]\s[^*\n]+\*\*\s*$"), l)).unwrap_or(false);
     if !title_ok || !(2..=3).contains(&nb) {
         block("your end-of-turn reply is a card: a bold title line 'WORD · job', then two or three '- ' bullets (what, the result with real numbers, what is left or what you need)");
+        return;
+    }
+    if is(&re(r"^\s*\*\*(DONE|READY|PASS|FAIL|STUCK|NEED)\b"), body) { // item 65: every report reaches the manager as a message
+        let root = main_folder(s(data, "cwd"));
+        if !uses.iter().any(|u| s(u, "name") == "SendMessage" && u.get("input").map(|i| recipient_is_manager(s(i, "to"), &root)).unwrap_or(false)) {
+            let w = body.split_whitespace().next().unwrap_or("").trim_matches('*');
+            block(&format!("a report reaches the manager as a message as well as the board (item 65): send the manager your {w} report with SendMessage (a different ID from any copy to someone else), then end the turn with the card"));
+        }
     }
 }
 

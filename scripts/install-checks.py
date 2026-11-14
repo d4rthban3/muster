@@ -34,6 +34,31 @@ def cmd(name):
     return 'python3 "$CLAUDE_PROJECT_DIR/.muster-checks/%s"' % name
 
 
+def install_recorder(proj, dest, prof):
+    """A profile may name its own choice recorder (item 86): copy it over the project's, keeping the old one once."""
+    src, to = prof.get("recorder_script"), prof.get("recorder_dest")
+    if not src or not to:
+        return
+    target = os.path.join(proj, to)
+    keep = os.path.join(dest, "recorder.before")
+    if os.path.isfile(target) and not os.path.exists(keep) and "Muster's decide.py for PINR's layout" not in open(target, encoding="utf-8").read():
+        shutil.copyfile(target, keep)
+    os.makedirs(os.path.dirname(target), exist_ok=True)
+    shutil.copyfile(os.path.join(ROOT, src), target)
+
+
+def restore_recorder(proj, dest):
+    """Put back the project's own recorder that install_recorder replaced (nothing to do if it never did)."""
+    keep, pfile = os.path.join(dest, "recorder.before"), os.path.join(dest, "profile.json")
+    try:
+        to = json.load(open(pfile, encoding="utf-8")).get("recorder_dest")
+    except (OSError, ValueError):
+        return
+    if to and os.path.isfile(keep):
+        shutil.copyfile(keep, os.path.join(proj, to))
+        os.remove(keep)
+
+
 def main():
     argv = sys.argv[1:]
     profile = None
@@ -81,6 +106,7 @@ def main():
         if not hooks[ev]:
             del hooks[ev]
     if remove:
+        restore_recorder(proj, os.path.join(proj, ".muster-checks"))
         shutil.rmtree(os.path.join(proj, ".muster-checks"), ignore_errors=True)
         if not hooks:
             settings.pop("hooks", None)
@@ -91,7 +117,9 @@ def main():
             shutil.copyfile(os.path.join(ROOT, src), os.path.join(dest, name))
         if pfile:
             shutil.copyfile(pfile, os.path.join(dest, "profile.json"))
+            install_recorder(proj, dest, json.load(open(pfile, encoding="utf-8")))
         elif os.path.exists(os.path.join(dest, "profile.json")):
+            restore_recorder(proj, dest)
             os.remove(os.path.join(dest, "profile.json"))
         hooks.setdefault("Stop", []).append({"hooks": [{"type": "command", "command": cmd(n)} for n in ("board-stop.py", "talk-check.py", "rules-check.py", "worker-queue-check.py", "idle-check.py")]})
         hooks.setdefault("PreToolUse", []).append({"matcher": "SendMessage|Write|Edit|NotebookEdit|Bash",

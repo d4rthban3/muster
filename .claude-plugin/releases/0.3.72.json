@@ -1,0 +1,29 @@
+{
+  "version": "0.3.72",
+  "changed_files": [
+    "bin/SOURCE-STAMP",
+    "bin/linux-arm64/muster-checks",
+    "bin/linux-x86_64/muster-checks",
+    "bin/macos-arm64/muster-checks",
+    "bin/macos-x86_64/muster-checks",
+    "bin/windows-x86_64/muster-checks.exe",
+    "checks/src/boardstop.rs",
+    "checks/src/common.rs",
+    "checks/src/talk.rs",
+    "hooks/board-stop.py",
+    "hooks/rules-check.py",
+    "hooks/talk-check.py",
+    "scripts/idle-check.py",
+    "scripts/profile-selftest.py",
+    "scripts/worker-queue-check.py"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Builder"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "No repeat after a stop: every Stop-check block says the reply already reached the owner and must not be written again"
+}

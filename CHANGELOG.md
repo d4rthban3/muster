@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.72
+Affects: Manager, Builder.
+No repeat after a stop: every Stop-check block says the reply already reached the owner and must not be written again
+
 ## 0.3.71
 Affects: Manager, Builder.
 PINR's decide.py: his typed letter and a handover line are recorded; install-checks --profile pinr installs it

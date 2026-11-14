@@ -241,6 +241,15 @@ cases += [
     ("SHOWFIRST: a look question in a reply with no pictures is blocked", run("Stop", last_assistant_message="Which colour do you prefer?\n\n***A.*** yes\n\n***B.*** no", transcript_path=tr(MG, [said("hi")])), True),
     ("SHOWFIRST: ...with pictures shown this turn it passes", run("Stop", last_assistant_message="Which colour do you prefer?\n\n***A.*** yes\n\n***B.*** no", transcript_path=tr(MG, [said("hi"), SHOT])), False),
     ("SHOWFIRST: a question that is not about looks passes", run("Stop", last_assistant_message="Ship it now?\n\n***A.*** yes\n\n***B.*** no", transcript_path=tr(MG, [said("hi")])), False),
+    # item 88: his question with no question mark is still a question; "looks" in a rules choice is not a look question
+    ("ANSWER: his question (no question mark) then a plain two-line answer passes", run("Stop", last_assistant_message="Make up a new one for the keystore.\nIt is not your machine password.", transcript_path=tr(MG, [said("make up a keystore password or is that my machine password")])), False),
+    ("ANSWER: a question with a question mark then a plain answer passes", run("Stop", last_assistant_message="Make up a new one for the keystore.\nIt is not your machine password.", transcript_path=tr(MG, [said("should i make up a keystore password?")])), False),
+    ("ANSWER: the same plain reply with nothing asked by him is still blocked", run("Stop", last_assistant_message="Make up a new one for the keystore.\nIt is not your machine password.", transcript_path=tr(MG, [said("hi")])), True),
+    ("ANSWER: a statement of his that is not a question still blocks a filler reply", run("Stop", last_assistant_message="Make up a new one for the keystore.\nIt is not your machine password.", transcript_path=tr(MG, [said("the build finished overnight")])), True),
+    ("LOOKS: a rules choice that says 'looks right' passes without pictures", run("Stop", last_assistant_message="Which rule wording reads right?\n\n***A.*** the short one\n\n***B.*** it looks right as written", transcript_path=tr(MG, [said("hi")])), False),
+    ("LOOKS: 'look' about the crew's order, not a screen, passes", run("Stop", last_assistant_message="Should the manager look at the board first?\n\n***A.*** yes\n\n***B.*** no", transcript_path=tr(MG, [said("hi")])), False),
+    ("LOOKS: a real visual choice (header on a page) still needs pictures", run("Stop", last_assistant_message="Should the header look bigger on the page?\n\n***A.*** yes\n\n***B.*** no", transcript_path=tr(MG, [said("hi")])), True),
+    ("LOOKS: ...and passes once the pictures were shown", run("Stop", last_assistant_message="Should the header look bigger on the page?\n\n***A.*** yes\n\n***B.*** no", transcript_path=tr(MG, [said("hi"), SHOT])), False),
 ]
 # founder orders (item 76): a manager does not say it cannot do, or argue with, a task he typed
 cases += [

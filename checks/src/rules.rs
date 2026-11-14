@@ -212,7 +212,9 @@ fn social_re() -> fancy_regex::Regex {
 }
 
 /// Show first (item 63): a question to him about how something looks must come after the pictures were shown in the same turn.
-const LOOK: &str = r"\b(looks?|looking|colou?rs?|designs?|mock-?ups?|layouts?|fonts?|styl(?:e|es|ing)|themes?|icons?|logos?|pictures?|images?|screenshots?|appearance|visuals?|dark mode|light mode|spacing|banners?)\b";
+const LOOK: &str = r"\b(colou?rs?|mock-?ups?|layouts?|fonts?|icons?|logos?|pictures?|images?|screenshots?|appearance|visuals?|dark mode|light mode|spacing|banners?)\b";
+const LOOK_WEAK: &str = r"\b(looks?|looking|designs?|styl(?:e|es|ing)|themes?)\b";
+const LOOK_SCREEN: &str = r"\b(pages?|screens?|sites?|websites?|apps?|buttons?|headers?|footers?|tiles?|cards?|charts?|dashboards?|tabs?|menus?|ui|display|phones?|mobile|windows?|panes?|panels?|texts?|on screen|homepage|web)\b";
 fn pictures_shown(uses: &[Value]) -> bool {
     let img = rei(r"\.(png|jpe?g|gif|webp|svg|html?|pdf)\b");
     uses.iter().any(|u| {
@@ -225,7 +227,7 @@ fn pictures_shown(uses: &[Value]) -> bool {
         }
     })
 }
-fn look_unshown(question: &str, uses: &[Value]) -> bool { is(&rei(LOOK), question) && !pictures_shown(uses) }
+fn look_unshown(question: &str, uses: &[Value]) -> bool { (is(&rei(LOOK), question) || (is(&rei(LOOK_WEAK), question) && is(&rei(LOOK_SCREEN), question))) && !pictures_shown(uses) }
 
 /// Founder orders (item 76): a reply that says it cannot or will not do a task, or argues with it, when he typed it.
 fn refuses_order(t: &str) -> bool {

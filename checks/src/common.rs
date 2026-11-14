@@ -190,7 +190,7 @@ pub fn owner_asked(path: &str) -> bool {
         if t.trim().is_empty() { continue; }
         if is(&ends, &t) { last.clear(); } else if !is(&neutral, &t) { last = t; }
     }
-    last.contains('?') || is(&rei(r"^\s*(what|why|how|when|where|who|which|can|could|would|will|did|does|do|is|are|was|were|should|tell|show|explain|look|check|find|list|give|say|read|open|run)\b|\b(tell me|show me|let me know|how come|what's|look at)\b"), &last)
+    last.contains('?') || is(&rei(r"^\s*(what|why|how|when|where|who|which|can|could|would|will|did|does|do|is|are|was|were|should|tell|show|explain|look|check|find|list|give|say|read|open|run)\b|\b(tell me|show me|let me know|how come|what's|look at|or (is|are|do|does|should|can|would)|is (that|it|this)|do (i|we)|should (i|we)|can (i|we))\b"), &last)
 }
 
 /// True when this turn was started by a message from another chat or an app event, not the owner's typed words (item 75).

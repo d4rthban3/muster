@@ -236,7 +236,7 @@ def bounced_this_turn(path):
     return bounced
 
 
-ASKING = re.compile(r"^\s*(what|why|how|when|where|who|which|can|could|would|will|did|does|do|is|are|was|were|should|tell|show|explain|look|check|find|list|give|say|read|open|run)\b|\b(tell me|show me|let me know|how come|what's|look at)\b", re.I)
+ASKING = re.compile(r"^\s*(what|why|how|when|where|who|which|can|could|would|will|did|does|do|is|are|was|were|should|tell|show|explain|look|check|find|list|give|say|read|open|run)\b|\b(tell me|show me|let me know|how come|what's|look at|or (is|are|do|does|should|can|would)|is (that|it|this)|do (i|we)|should (i|we)|can (i|we))\b", re.I)
 
 
 def owner_asked(path):
@@ -481,7 +481,11 @@ def helper_problem(inp, manager):
             return deny("a helper never ships, pushes, messages other chats or talks to the owner; take that out of its brief and do it yourself")
 
 
-LOOK = re.compile(r"\b(looks?|looking|colou?rs?|designs?|mock-?ups?|layouts?|fonts?|styl(?:e|es|ing)|themes?|icons?|logos?|pictures?|images?|screenshots?|appearance|visuals?|dark mode|light mode|spacing|banners?)\b", re.I)
+# item 88: a question is about how something looks on screen when it holds a picture word, or a word like look/design/style
+# together with a word for something on a screen; "looks right" in a rules choice is not that
+LOOK = re.compile(r"\b(colou?rs?|mock-?ups?|layouts?|fonts?|icons?|logos?|pictures?|images?|screenshots?|appearance|visuals?|dark mode|light mode|spacing|banners?)\b", re.I)
+LOOK_WEAK = re.compile(r"\b(looks?|looking|designs?|styl(?:e|es|ing)|themes?)\b", re.I)
+LOOK_SCREEN = re.compile(r"\b(pages?|screens?|sites?|websites?|apps?|buttons?|headers?|footers?|tiles?|cards?|charts?|dashboards?|tabs?|menus?|ui|display|phones?|mobile|windows?|panes?|panels?|texts?|on screen|homepage|web)\b", re.I)
 IMG = re.compile(r"\.(png|jpe?g|gif|webp|svg|html?|pdf)\b", re.I)
 
 
@@ -502,7 +506,7 @@ def pictures_shown(uses):
 
 
 def look_unshown(question, uses):
-    return bool(LOOK.search(question)) and not pictures_shown(uses)
+    return bool(LOOK.search(question) or (LOOK_WEAK.search(question) and LOOK_SCREEN.search(question))) and not pictures_shown(uses)
 
 
 def pretool(data, manager):

@@ -55,7 +55,7 @@ fn card_answered_this_turn(path: &str) -> bool {
         match s(&d, "type") {
             "user" => {
                 let human = matches!(&c, Value::String(_)) || c.as_array().map(|a| a.iter().any(|b| s(b, "type") == "text")).unwrap_or(false);
-                if human { last_human = Some(true); card_after = false; }
+                if human { last_human = Some(true); card_after = is(&re(r"^\s*\(?[A-Da-d]\)?[.:!]*\s*$"), &content_text(&c)); } // a typed letter answers a lettered question (D-037)
             }
             "assistant" => if let Some(a) = c.as_array() { if a.iter().any(|b| s(b, "type") == "tool_use" && s(b, "name") == "AskUserQuestion") { card_after = true; } },
             _ => {}
@@ -121,13 +121,13 @@ pub fn run() -> i32 {
     let told_re = rei(r"you (picked|chose|clicked|selected)");
     let picks = is(&picks_re, &said) && !is(&told_re, &said) && !card_answered_this_turn(tpath);
     if missed.is_empty() && !picks { return 0; }
-    let favour = "ask him with a choice card, the option you favour marked \"my pick\", and record nothing until he clicks.";
+    let favour = "ask him with lettered lines, the option you favour marked \"my pick\", and record nothing until he types a letter.";
     if picks && missed.is_empty() {
-        say(&py_obj(&[("decision", "block".into()), ("reason", format!("You wrote that you are choosing or recording for the owner, but he has not picked this turn. Do not decide for him: ask him now with a choice card, the option you favour marked \"my pick\", and record nothing until he clicks."))]));
+        say(&py_obj(&[("decision", "block".into()), ("reason", format!("You wrote that you are choosing or recording for the owner, but he has not picked this turn. Do not decide for him: ask him now with lettered lines (**A.** ...), the option you favour marked \"my pick\", and record nothing until he types a letter."))]));
         return 0;
     }
     let names: Vec<String> = missed.iter().map(|e| format!("{} ({})", if e.from.is_empty() { "a worker" } else { &e.from }, if e.paused { "paused".to_string() } else { e.kind.clone() })).collect();
-    let mut reason = format!("The board holds open items for the owner that you have not told him about: {}. Before you stop, ask him the top one as a choice card, or say \"<worker> is waiting for you: type in <chat link>\" for a paused chat; then stop.", names.join("; "));
+    let mut reason = format!("The board holds open items for the owner that you have not told him about: {}. Before you stop, ask him the top one as lettered lines (**A.** ...), or say \"<worker> is waiting for you: type in <chat link>\" for a paused chat; then stop.", names.join("; "));
     if picks { reason.push_str(&format!(" Also: you wrote that you are choosing or recording for the owner, but he has not picked this turn; {favour}")); }
     say(&py_obj(&[("decision", "block".into()), ("reason", reason)]));
     0

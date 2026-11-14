@@ -114,6 +114,9 @@ PICKS = re.compile(r"fits what you want|fits what you said|i'?m recording|i am r
 TOLD = re.compile(r"you (picked|chose|clicked|selected)", re.I)
 
 
+LETTER_ANSWER = re.compile(r"^\s*\(?([A-Da-d])\)?[.:!]*\s*$")
+
+
 def card_answered_this_turn(transcript_path):
     """True if an AskUserQuestion card was asked after the owner's last typed message (so its answer came this turn).
     Unknown (not found in the last 3 MB) counts as True: never block on a guess."""
@@ -136,7 +139,7 @@ def card_answered_this_turn(transcript_path):
             human = isinstance(c, str) or (isinstance(c, list) and any(
                 isinstance(b, dict) and b.get("type") == "text" for b in c))
             if human:
-                last_human, card_after = True, False
+                last_human, card_after = True, bool(LETTER_ANSWER.match(c if isinstance(c, str) else " ".join(b.get("text", "") for b in c if isinstance(b, dict))))  # a typed letter answers a lettered question (D-037)
         elif d.get("type") == "assistant" and isinstance(c, list):
             if any(isinstance(b, dict) and b.get("type") == "tool_use" and b.get("name") == "AskUserQuestion" for b in c):
                 card_after = True
@@ -253,16 +256,16 @@ def main():
         return 0
     if picks and not missed:
         print(json.dumps({"decision": "block", "reason": "You wrote that you are choosing or recording for the owner, but he "
-                          "has not picked this turn. Do not decide for him: ask him now with a choice card, the option you "
-                          "favour marked \"my pick\", and record nothing until he clicks."}))
+                          "has not picked this turn. Do not decide for him: ask him now with lettered lines (**A.** ...), the option you "
+                          "favour marked \"my pick\", and record nothing until he types a letter."}))
         return 0
     names = "; ".join("%s (%s)" % (e["from"] or "a worker", "paused" if e["paused"] else e["kind"]) for e in missed)
     reason = ("The board holds open items for the owner that you have not told him about: %s. "
-              "Before you stop, ask him the top one as a choice card, or say \"<worker> is waiting for you: "
+              "Before you stop, ask him the top one as lettered lines (**A.** ...), or say \"<worker> is waiting for you: "
               "type in <chat link>\" for a paused chat; then stop." % names)
     if picks:
         reason += (" Also: you wrote that you are choosing or recording for the owner, but he has not picked this turn; "
-                   "ask him with a choice card, the option you favour marked \"my pick\", and record nothing until he clicks.")
+                   "ask him with lettered lines, the option you favour marked \"my pick\", and record nothing until he types a letter.")
     print(json.dumps({"decision": "block", "reason": reason}))
     return 0
 

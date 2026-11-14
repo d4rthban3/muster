@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Record an owner's choice on his list, word for word. The manager runs it after every choice card or button answer.
+"""Record an owner's choice on his list, word for word. The manager runs it after every lettered answer he types.
 
 Usage: record-choice.py <project-folder> <item-number> --question "..." --option "A. ..." --option "B. ..." --picked "B. ..." [--said "his own words"]
 Writes, under item <number> in muster/OWNERS-LIST.md (nothing else is changed), a block:

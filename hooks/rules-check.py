@@ -306,6 +306,45 @@ def short_report(text):
     return len(t) <= 300 and len(t.splitlines()) <= 3
 
 
+LETTER_ANSWER = re.compile(r"^\s*\(?([A-Da-d])\)?[.:!]*\s*$")
+LETTERED = re.compile(r"^\s*\*\*[A-D]\.\*\*", re.M)
+
+
+def typed_letter_answer(path):
+    """The letter he typed (A to D) when this turn was started by his bare typed letter and the manager's last text asked a
+    lettered question (**A.** ...); else None. A message from another chat or an app event, hook feedback and system
+    reminders are not his words (item 80, D-037)."""
+    prev, last = "", None
+    try:
+        with open(path, encoding="utf-8") as fh:
+            for line in fh:
+                try:
+                    d = json.loads(line)
+                except ValueError:
+                    continue
+                c = (d.get("message") or {}).get("content", "")
+                if d.get("type") == "assistant" and isinstance(c, list):
+                    t = " ".join(b.get("text", "") for b in c if isinstance(b, dict) and b.get("type") == "text").strip()
+                    if t:
+                        prev = t
+                elif d.get("type") == "user":
+                    if isinstance(c, list):
+                        if any(isinstance(b, dict) and b.get("type") == "tool_result" for b in c):
+                            continue
+                        c = " ".join(b.get("text", "") for b in c if isinstance(b, dict))
+                    c = str(c)
+                    if not c.strip() or NEUTRAL.match(c):
+                        continue
+                    if ENDS_TURN.search(c):
+                        last = None
+                        continue
+                    m = LETTER_ANSWER.match(c)
+                    last = m.group(1).upper() if m and LETTERED.search(prev) else None
+    except OSError:
+        pass
+    return last
+
+
 def main_folder(cwd):
     """The project's main folder: the parent of git's common dir (a worktree copy points at it), else cwd."""
     try:
@@ -467,9 +506,8 @@ def pretool(data, manager):
             return deny("a started chat's card title is its final name: use the worker's full name without a prefix (not \"%s\")" % t)
         return
     if tool == "AskUserQuestion":
-        if manager and look_unshown(json.dumps(inp.get("questions") or []),
-                                    turn_blocks(data.get("transcript_path") or "") + [{"name": "AskUserQuestion", "input": inp}]):
-            return deny("a question about how something looks comes after the pictures: show them first (send-file with render, or the card's option previews), then ask")
+        if manager:  # item 80, D-037: a card locks the chat until he answers
+            return deny("no choice card (it locks the chat until he answers): write the question in the chat as lettered lines, **A.** ... one per line with a blank line between, your pick marked \"my pick\"; he answers by typing a letter. Keep working on anything that does not depend on his answer")
         return
     if tool == "SendMessage":
         msg = str(inp.get("message", ""))
@@ -580,7 +618,7 @@ def manager_reply_ok(text):
     if re.search(r"\b(I need your yes|needs? your yes|your yes (is needed|to))\b", t, re.I):
         return True
     has_q = "?" in t
-    has_choices = bool(re.search(r"^\*\*[A-D]\.\*\*", t, re.M)) or bool(re.search(r"\bbuttons?\b", t, re.I))
+    has_choices = bool(re.search(r"^\*\*[A-D]\.\*\*", t, re.M))  # lettered lines are the question form (D-037)
     return has_q and has_choices
 
 
@@ -632,6 +670,11 @@ def stop(data, manager):
     uses = turn_blocks(data.get("transcript_path") or "")
     asked = any(u.get("name") == "AskUserQuestion" for u in uses)
     if manager:
+        letter = typed_letter_answer(data.get("transcript_path") or "")
+        if letter:
+            if any(u.get("name") == "Bash" and RECORDER in str((u.get("input") or {}).get("command", "")) for u in uses):
+                return  # recorded: a turn that answers his typed letter is handled
+            return block("he answered your lettered question by typing \"%s\", and it is not recorded: run %s with the question, every option's text and the one he picked (word for word) under its list item before ending the turn" % (letter, recorder_path(main_folder(data.get("cwd")))))
         idx = max((i for i, u in enumerate(uses) if u.get("name") == "AskUserQuestion"), default=-1)
         if asked and not card_skipped(data.get("transcript_path") or "", uses[idx].get("id")):
             recorded = any(u.get("name") == "Bash" and RECORDER in str((u.get("input") or {}).get("command", "")) for u in uses[idx + 1:])
@@ -642,7 +685,7 @@ def stop(data, manager):
             return block("a question about how something looks comes after the pictures: show them to him first in this turn (send-file with render, or card previews), then ask")
         if not manager_reply_ok(text) and not owner_asked(data.get("transcript_path") or "") \
                 and not (peer_started(data.get("transcript_path") or "") and short_report(text)):  # a short routine reply to another chat's message is not bounced (item 75)
-            return block("to the owner the manager says only a question with its choices as buttons, a yes he must give, '<worker> is waiting for you: type in <chat>', or 'The crew is idle'. Rewrite the reply as one of those, or put the news on the board")
+            return block("to the owner the manager says only a question with its choices as lettered lines (**A.** ...), a yes he must give, '<worker> is waiting for you: type in <chat>', or 'The crew is idle'. Rewrite the reply as one of those, or put the news on the board")
         return
     if asked or re.match(r"\s*Messages paused", text):
         return

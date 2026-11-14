@@ -168,6 +168,11 @@ add("8 'Job: You are Manager_PINR_006' is the manager", run("rules-check.py", "S
 add("8 ...and it may write the founder's list", W(C + "/Founder/FOUNDER-LIST.md", JY("Manager_PINR_006")), False)
 add("8 'Job: You are Look Inspector_PINR_002' is a worker", run("rules-check.py", "Stop", last_assistant_message=card, transcript_path=JY("Look Inspector_PINR_002")), False)
 add("8 ...and it cannot write the founder's list", W(C + "/Founder/FOUNDER-LIST.md", JY("Look Inspector_PINR_002")), True)
+# item 80, D-037: no locking choice card for the manager, in PINR too; a worker's tools are not this check's business
+AQ = lambda t: run("rules-check.py", "PreToolUse", tool_name="AskUserQuestion", tool_input={"questions": [{"question": "Ship it?", "options": []}]}, transcript_path=t)
+add("10 a PINR manager's choice card is refused (lettered lines instead)", AQ(mgr), True)
+add("10 a PINR worker's card is not this check's business", AQ(site), False)
+add("10 a PINR manager's lettered question passes the Stop check", run("rules-check.py", "Stop", last_assistant_message="Ship it?\n\n**A.** yes\n\n**B.** no", transcript_path=mgr), False)
 # shell writes into PINR's manager-only files
 B = lambda cmd, t, **k: run("rules-check.py", "PreToolUse", tool_name="Bash", tool_input={"command": cmd}, transcript_path=t, **k)
 P1 = '"%s/Founder/FOUNDER-LIST.md"' % C

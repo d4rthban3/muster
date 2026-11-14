@@ -6,7 +6,7 @@ Usage: decide.py <project-folder> --item N --title "..." --decision "his exact w
 
 The decision log is never appended by hand. This script refuses unless the owner's list item N (muster/OWNERS-LIST.md)
 already holds the proof, written there by scripts/record-choice.py right after his answer:
-  --picked  must equal a "Picked:" line under item N (his click on a choice card or button), or
+  --picked  must equal a "Picked:" line under item N (his typed letter), or
   --said    must be his WHOLE typed line: the quoted words on item N's first line, or a whole "He said:" line (at least
             three words, never a piece of one), it must contain --chose, the name of the option chosen, and must not
             hedge ("or", "maybe", "whatever", "either"...) nor name any --others option. The manager's own lines never count.

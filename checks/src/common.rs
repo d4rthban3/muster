@@ -208,6 +208,35 @@ pub fn peer_started(path: &str) -> bool {
     last
 }
 
+/// The letter he typed (A to D) when this turn was started by his bare typed letter and the manager's last text asked a lettered
+/// question (**A.** ...); else None. Messages from other chats, app events, hook feedback and system reminders are not his words (item 80, D-037).
+pub fn typed_letter_answer(path: &str) -> Option<String> {
+    let ends = rei(r"<cross-session-message|<task-notification|<side-sessions-event|<ci-monitor-event|\[SYSTEM NOTIFICATION");
+    let neutral = rei(r"^\s*(<system-reminder|Stop hook feedback)");
+    let letter = re(r"^\s*\(?([A-Da-d])\)?[.:!]*\s*$");
+    let lettered = re(r"(?m)^\s*\*\*[A-D]\.\*\*");
+    let (mut prev, mut last) = (String::new(), None::<String>);
+    for d in lines_of(path) {
+        let c = msg_content(&d);
+        match s(&d, "type") {
+            "assistant" => if let Value::Array(a) = &c {
+                let t: Vec<&str> = a.iter().filter(|b| s(b, "type") == "text").map(|b| s(b, "text")).collect();
+                let t = t.join(" ").trim().to_string();
+                if !t.is_empty() { prev = t; }
+            },
+            "user" => {
+                if let Value::Array(a) = &c { if a.iter().any(|b| s(b, "type") == "tool_result") { continue; } }
+                let t = content_text(&c);
+                if t.trim().is_empty() || is(&neutral, &t) { continue; }
+                if is(&ends, &t) { last = None; continue; }
+                last = letter.captures(&t).ok().flatten().and_then(|m| m.get(1)).filter(|_| is(&lettered, &prev)).map(|m| m.as_str().to_uppercase());
+            }
+            _ => {}
+        }
+    }
+    last
+}
+
 pub fn exists(p: &Path) -> bool { p.exists() }
 pub fn read_all<R: Read>(mut r: R) -> String { let mut t = String::new(); let _ = r.read_to_string(&mut t); t }
 

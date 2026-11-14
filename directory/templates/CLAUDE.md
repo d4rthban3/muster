@@ -13,13 +13,13 @@ Saving the owner's usage comes before everything but his words. The owner: "what
 - Near the limit: ship what passed, park the rest, and say what was left out.
 - Message only when someone must act, one bundled note per worker.
 - Read only the part of a file that is needed.
-- One question to the owner at a time, with buttons.
+- One question to the owner at a time, as lettered lines he answers by typing a letter.
 More detail: skills `usage-habits` and `spend-diligence`.
 
 ## How to talk to the owner
 - A card: a bold title "WORD · job", then two or three bullet lines in plain words.
 - Every file you name is a link, never a bare path or a code span; no saved-version codes in anything he reads.
-- A choice: one bold-letter line each (**A.** ...), your pick marked "my pick", plus buttons; one question at a time.
+- A choice: one bold-letter line each (**A.** ...), your pick marked "my pick"; he answers by typing the letter; one question at a time; never a choice card (D-037).
 - Workers post their own card in their own window; the manager speaks only for a need (D-021). Never pick for him.
 Re-applied for you: a hook puts this block back after every summary and flags, once, a reply with a bare file path or saved-version code. Details: sections 4 and 5b, `muster/REPORT.md`.
 
@@ -50,7 +50,7 @@ Re-applied for you: a hook puts this block back after every summary and flags, o
   outside that app); when a step would need it, it stops and sends STUCK instead of working around it.
 - The crew never stalls. Whenever a worker finishes, the manager gives it the next open order from the owner's list
   that fits its job, without asking. When nothing open is ready to start, the manager tells the owner
-  "The crew is idle. Here's what's next toward your goal," with the top choices as buttons.
+  "The crew is idle. Here's what's next toward your goal," with the top choices as lettered lines.
 - One exception: a builder (or the designer) and the inspector talk directly about the one job between them (READY,
   PASS, FAIL). The inspector's PASS or FAIL goes to the builder by message (it must act); its copy for the manager goes on the board only, not as a message that wakes it. The manager never replies "noted" to a DONE or PASS that needs nothing.
 - Builders do not message each other; a question between two builders goes through the manager.
@@ -75,7 +75,7 @@ every file a clickable link, no saved-version codes. The manager does not relay 
 line, and tell the owner in one line to type in your chat. When you can act again, your first act is to close it (`Status: done`,
 `Paused: no`). If the board refuses your write, leave a one-line file `.muster-paused` in your own folder and delete it on resume.
 Nothing can wake a paused chat except the owner typing in it. The manager, before it ends any turn, runs the board check and asks the
-owner the top open NEED, STUCK or OWNER CALL (and every `Paused: yes` chat) as a choice card.
+owner the top open NEED, STUCK or OWNER CALL (and every `Paused: yes` chat) as lettered lines.
 
 ## 5. When you are not sure, ask; never guess
 - Not sure what an order means? Send one NEED report to the manager. Do not guess.
@@ -84,13 +84,14 @@ owner the top open NEED, STUCK or OWNER CALL (and every `Paused: yes` chat) as a
   means, what counts as done, what matters more, what is in or out of the job): never fill them, however sure you
   feel. One NEED report instead.
 - **Nothing the owner did not choose goes in.** A gap or an extra you notice goes to the owner (through the manager)
-  as its own question that names its choices, each a button. Never write it in first and offer to take it out.
+  as its own question that names its choices, each a lettered line. Never write it in first and offer to take it out.
 
 ## 5b. Asking the owner a choice
-**Every choice is a button, and the question names the choices.** The question itself says the choices (made-up
+**Every choice is a lettered line, and the question names the choices.** The question itself says the choices (made-up
 example: "How should MyProject reach your phone: a web page, an iPhone app, or both?"), and every choice is its own
-button. A box that holds at most two buttons cannot carry three or four choices: then use the app's choice card
-(AskUserQuestion, up to four clickable choices; the app adds "Other"). Any recap shown with a question is in plain
+lettered line. He answers by typing the letter. Never a choice card (AskUserQuestion): it locks the chat until he answers
+(D-037), and a coded check refuses it. Keep working on anything that does not depend on his answer. A letter he types
+is his answer: record it with `scripts/record-choice.py` the same turn. Any recap shown with a question is in plain
 words too: no saved-version codes.
 
 **The letters are the markers.** When choices are written out, each is its own line starting with the bold letter,
@@ -104,8 +105,7 @@ shows on its own line. Made-up example:
 **C.** Both, starting with the web page.
 
 **A waiting question always comes with its choices.** Whenever you mention a question still waiting on the owner,
-resend only its buttons (the end-of-turn box, or the app's choice card for three or four) with a one-line question
-naming the choices; do not repeat the full lettered text. Never refer to it as
+resend only a one-line question naming the choices and its letters; do not repeat the full lettered text. Never refer to it as
 "A or B" or "the question above".
 
 ## 6. What needs the owner's yes

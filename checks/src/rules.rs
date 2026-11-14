@@ -248,12 +248,7 @@ fn pretool(c: &Ctx, data: &Value, manager: bool) {
         return;
     }
     if tool == "AskUserQuestion" {
-        if manager {
-            let q = inp.get("questions").map(|v| v.to_string()).unwrap_or_default();
-            let mut uses = turn_blocks(s(data, "transcript_path"));
-            uses.push(serde_json::json!({"name": "AskUserQuestion", "input": inp}));
-            if look_unshown(&q, &uses) { return deny("a question about how something looks comes after the pictures: show them first (send-file with render, or the card's option previews), then ask"); }
-        }
+        if manager { return deny("no choice card (it locks the chat until he answers): write the question in the chat as lettered lines, **A.** ... one per line with a blank line between, your pick marked \"my pick\"; he answers by typing a letter. Keep working on anything that does not depend on his answer"); } // item 80, D-037
         return;
     }
     if matches!(tool, "Write" | "Edit" | "NotebookEdit") && !manager {
@@ -355,7 +350,7 @@ fn manager_reply_ok(t: &str) -> bool {
     if is(&rei(r"(?s)\bis waiting for you\b.*\btype in\b"), t) { return true; }
     if is(&rei(r"\b(I need your yes|needs? your yes|your yes (is needed|to))\b"), t) { return true; }
     let has_q = t.contains('?');
-    let has_choices = is(&re(r"(?m)^\*\*[A-D]\.\*\*"), t) || is(&rei(r"\bbuttons?\b"), t);
+    let has_choices = is(&re(r"(?m)^\*\*[A-D]\.\*\*"), t); // lettered lines are the question form (D-037)
     has_q && has_choices
 }
 
@@ -388,6 +383,13 @@ fn stop(c: &Ctx, data: &Value, manager: bool) {
     let uses = turn_blocks(tpath);
     let asked_at = uses.iter().rposition(|u| s(u, "name") == "AskUserQuestion");
     if manager {
+        if let Some(letter) = typed_letter_answer(tpath) {
+            let recorded = uses.iter().any(|u| s(u, "name") == "Bash" && u.get("input").map(|i| s(i, "command").contains(&c.recorder)).unwrap_or(false));
+            if !recorded {
+                block(&format!("he answered your lettered question by typing \"{letter}\", and it is not recorded: run {} with the question, every option's text and the one he picked (word for word) under its list item before ending the turn", recorder_path(&main_folder(s(data, "cwd")), &c.recorder)));
+            }
+            return; // a turn that answers his typed letter is handled once recorded
+        }
         if let Some(idx) = asked_at.filter(|&i| !card_skipped(tpath, s(&uses[i], "id"))) {
             let recorded = uses[idx + 1..].iter().any(|u| s(u, "name") == "Bash" && u.get("input").map(|i| s(i, "command").contains(&c.recorder)).unwrap_or(false));
             if !recorded { block(&format!("a choice card was answered but not recorded: run {} with his exact answer (or --no-pick if he skipped the card or typed his own words) under its list item before ending the turn", recorder_path(&main_folder(s(data, "cwd")), &c.recorder))); }
@@ -398,7 +400,7 @@ fn stop(c: &Ctx, data: &Value, manager: bool) {
             return;
         }
         if !manager_reply_ok(text) && !owner_asked(tpath) && !(peer_started(tpath) && text.trim().chars().count() <= 300 && text.trim().lines().count() <= 3) { // a short routine reply to another chat's message is not bounced (item 75)
-            block("to the owner the manager says only a question with its choices as buttons, a yes he must give, '<worker> is waiting for you: type in <chat>', or 'The crew is idle'. Rewrite the reply as one of those, or put the news on the board");
+            block("to the owner the manager says only a question with its choices as lettered lines (**A.** ...), a yes he must give, '<worker> is waiting for you: type in <chat>', or 'The crew is idle'. Rewrite the reply as one of those, or put the news on the board");
         }
         return;
     }

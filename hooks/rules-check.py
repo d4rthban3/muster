@@ -633,8 +633,8 @@ def manager_reply_ok(text):
     if re.search(r"\b(I need your yes|needs? your yes|your yes (is needed|to))\b", t, re.I):
         return True
     has_q = "?" in t
-    has_choices = bool(re.search(r"^\*\*\*[A-D]\.\*\*\*", t, re.M))  # lettered lines are the question form (D-037)
-    return has_q and has_choices
+    letters = len(re.findall(r"^\*\*\*[A-D]\.\*\*\*", t, re.M))  # lettered lines are the question form (D-037)
+    return letters >= 2 or (has_q and letters >= 1)  # two or more lettered choices are the question, with or without a "?" (item 91)
 
 
 REFUSES = re.compile(r"\b(i\s+can['\u2019]?t|i\s+cannot|i\s+won['\u2019]?t|i['\u2019]?m\s+unable|i\s+am\s+unable|i['\u2019]?m\s+not\s+able|i\s+am\s+not\s+able|i\s+(?:would|'d)\s+advise\s+against|i\s+don['\u2019]?t\s+think\s+(?:we|you)\s+should|i\s+(?:am\s+)?not\s+going\s+to|that\s+is\s+not\s+possible|that['\u2019]?s\s+not\s+possible|i\s+disagree|i\s+don['\u2019]?t\s+agree|that['\u2019]?s\s+a\s+bad\s+idea|would\s+be\s+a\s+mistake|i\s+took\s+(?:that|this)\s+to\s+mean|i\s+assumed|i\s+interpreted|you\s+(?:probably|likely|really)\s+mean|what\s+you\s+(?:really|probably)\s+mean|i\s+read\s+(?:that|this)\s+as|i['\u2019]ll\s+do\s+[^.]{0,60}\s+instead|i\s+will\s+do\s+[^.]{0,60}\s+instead)\b", re.I)

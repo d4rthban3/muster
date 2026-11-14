@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.76
+Affects: Manager, Builder.
+Live checks: install-checks --live runs the checks and PINR's recorder from the Muster folder; ship moves the main folder to the new main
+
 ## 0.3.75
 Affects: Manager, Builder.
 Setup lettered: every question setup asks is lettered lines, never a choice card or buttons

@@ -1,0 +1,20 @@
+{
+  "version": "0.3.76",
+  "changed_files": [
+    "docs/install-checks.md",
+    "scripts/install-checks.py",
+    "scripts/live-standin.py",
+    "scripts/profile-selftest.py",
+    "scripts/setup-smoke.sh",
+    "scripts/ship.sh"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Builder"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Live checks: install-checks --live runs the checks and PINR's recorder from the Muster folder; ship moves the main folder to the new main"
+}

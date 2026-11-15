@@ -1,0 +1,26 @@
+{
+  "version": "0.3.94",
+  "changed_files": [
+    "bin/SOURCE-STAMP",
+    "bin/linux-arm64/muster-checks",
+    "bin/linux-x86_64/muster-checks",
+    "bin/macos-arm64/muster-checks",
+    "bin/macos-x86_64/muster-checks",
+    "bin/windows-x86_64/muster-checks.exe",
+    "checks/src/common.rs",
+    "checks/src/rules.rs",
+    "hooks/precompact-board.py",
+    "hooks/renew-after-summary.py",
+    "hooks/rules-check.py",
+    "hooks/talk-check.py",
+    "scripts/idle-check.py",
+    "scripts/rules-check-selftest.py",
+    "scripts/worker-queue-check.py"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Manager after compact (item 112): a manager keeps its rights after its chat compacts"
+}

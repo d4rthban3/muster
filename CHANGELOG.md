@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.94
+Affects: see .claude-plugin/releases/0.3.94.json.
+Manager after compact (item 112): a manager keeps its rights after its chat compacts
+
 ## 0.3.93
 Affects: see .claude-plugin/releases/0.3.93.json.
 Phone menu (item 7): a Menu button at the top right of every page on a phone

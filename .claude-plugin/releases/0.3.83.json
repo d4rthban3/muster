@@ -1,0 +1,15 @@
+{
+  "version": "0.3.83",
+  "changed_files": [
+    "directory/skills/manager-details/SKILL.md",
+    "scripts/idle-check-selftest.py",
+    "scripts/idle-check.py",
+    "skills/manager-details/SKILL.md"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Idle report card and daily crew sweep (items 95, 96)"
+}

@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.83
+Affects: see .claude-plugin/releases/0.3.83.json.
+Idle report card and daily crew sweep (items 95, 96)
+
 ## 0.3.82
 Affects: see .claude-plugin/releases/0.3.82.json.
 Muster crew runs its checks live from the Muster folder; checks find the current manager (items 93, 94)

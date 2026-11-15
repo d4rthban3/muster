@@ -837,6 +837,8 @@ def stop(data, manager):
             return
         if letters_not_bold_italic(text):
             return block("write each choice letter bold and italic, like ***A.*** red, one line per choice with a blank line between (item 80)")
+        if len(re.findall(r"^\*\*\*[A-D]\.\*\*\*", text, re.M)) >= 2 and not re.search(r"\bmy pick\b", text, re.I):
+            return block("every lettered question carries your pick: mark one choice *(my pick)* and give a one-line reason, looks included; a pick is advice only and nothing is ordered until he answers (item 100)")
         if is_news(text) and not owner_form_ok(text) and not owner_asked(data.get("transcript_path") or ""):
             return block("never tell the owner PASS, LIVE, DONE, shipped or progress news (item 97): his chat gets only a lettered question, a yes he must give, "
                          "'<worker> is waiting for you: type in <chat>', or the idle card. When nothing needs him, end this turn with no text at all")

@@ -1,0 +1,26 @@
+{
+  "version": "0.3.85",
+  "changed_files": [
+    "bin/SOURCE-STAMP",
+    "bin/linux-arm64/muster-checks",
+    "bin/linux-x86_64/muster-checks",
+    "bin/macos-arm64/muster-checks",
+    "bin/macos-x86_64/muster-checks",
+    "bin/windows-x86_64/muster-checks.exe",
+    "checks/src/rules.rs",
+    "hooks/renew-after-summary.py",
+    "hooks/renew-after-summary.sh",
+    "hooks/rules-check.py",
+    "profiles/muster.json",
+    "profiles/pinr.json",
+    "scripts/install-checks.py",
+    "scripts/profile-selftest.py",
+    "scripts/rules-check-selftest.py"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Renew by size: any crew chat over the size line renews; crew names from the profile (item 99)"
+}

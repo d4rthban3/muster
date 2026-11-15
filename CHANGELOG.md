@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.85
+Affects: see .claude-plugin/releases/0.3.85.json.
+Renew by size: any crew chat over the size line renews; crew names from the profile (item 99)
+
 ## 0.3.84
 Affects: see .claude-plugin/releases/0.3.84.json.
 Quiet manager: silent end after a worker message, no news to the owner, no repeated reports (item 97)

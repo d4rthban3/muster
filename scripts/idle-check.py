@@ -8,6 +8,10 @@ Idle card (item 95): when two or more chats are idle with no open item to order 
 to the owner: a bullet line for each, naming it with "since <when>", "why: <reason>" and "unblocked by: <what>", plus the one lettered
 question that unblocks the most (two or more ***A.*** lines, or one with a "?"); said once unchanged, like every news line (item 81).
 
+Crew sweep (item 96), at a manager's first stop of a session and again each day it still holds: (1) every crew chat that a newer number replaced and
+that is not archived (the app's session records: title "<role>_<project>_<NNN>", isArchived), (2) every crew member (the crew list's Running
+now table, or the profile's crew names) with no board entry from it or to it dated within the last day. Each is named once until it changes.
+
 Run as a Stop hook (hooks.json registration comes later) or by hand:  python3 scripts/idle-check.py [--project DIR] [--list]
 Reads only: muster/CREW.md, muster/OWNERS-LIST.md, muster/BOARD.md in the project folder, and the app's session
 records (read-only). Writes and sends nothing. Silent (exit 0) when not in a manager folder, on any error, or when
@@ -184,6 +188,89 @@ def last_message(data):
     return ""
 
 
+BOARD_LINE = re.compile(r"^(?:###\s+)?(\d{4}-\d{2}-\d{2})\S*\s*\|\s*[^|]+\|\s*(.*?)\s*->\s*(.*?)\s*\|")
+TITLE_NUM = re.compile(r"^(.+)_(\d{3})$")
+
+
+def crew_title_filter(project):
+    """A title belongs to this crew when it names one of the crew list's projects, or matches the profile's crew or manager names."""
+    projects = set()
+    for name, _ in crew(project):
+        m = TITLE_NUM.match(name)
+        if m and "_" in m.group(1):
+            projects.add(m.group(1).rsplit("_", 1)[1])
+    pats = [re.compile("^(?:%s)$" % x) for x in (PROFILE.get("crew_names") or []) + (PROFILE.get("manager_names") or [])]
+    projects.update(re.findall(r"\bManager_([^_\s]+)_\d{3}\b", read(os.path.join(project, "muster", "CREW.md"))))
+
+    def ok(title):
+        m = TITLE_NUM.match(title)
+        if not m or "_" not in m.group(1):
+            return False
+        return m.group(1).rsplit("_", 1)[1] in projects or any(p.search(title) for p in pats)
+    return ok
+
+
+def session_records():
+    """[(title, sessionId, archived)] from the app's session records (read-only); [] where they cannot be read."""
+    base = sessions_dir()
+    out = []
+    for f in glob.glob(os.path.join(base, "*", "*", "local_*.json")) if base else []:
+        try:
+            d = json.load(open(f, encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        out.append((d.get("title") or "", d.get("sessionId") or os.path.basename(f)[:-5], bool(d.get("isArchived"))))
+    return out
+
+
+def replaced_unarchived(project):
+    """[(title, newer title)]: a crew chat a newer number replaced that is still not archived."""
+    ok = crew_title_filter(project)
+    recs = [r for r in session_records() if ok(r[0])]
+    newest = {}
+    for t, _, _ in recs:
+        m = TITLE_NUM.match(t)
+        if m and (m.group(1) not in newest or int(m.group(2)) > newest[m.group(1)][0]):
+            newest[m.group(1)] = (int(m.group(2)), t)
+    out = []
+    for t, _, arch in recs:
+        m = TITLE_NUM.match(t)
+        if m and not arch and int(m.group(2)) < newest[m.group(1)][0]:
+            out.append((t, newest[m.group(1)][1]))
+    return out
+
+
+def board_entries(project):
+    """[(date, from, to)] of every board entry, Muster's headed entries and PINR's one-line style."""
+    paths = [os.path.join(project, "muster", "BOARD.md")]
+    if PROFILE.get("board"):
+        paths.append(os.path.join(project, PROFILE["board"]))
+    out = []
+    for p in paths:
+        for ln in read(p).splitlines():
+            m = BOARD_LINE.match(ln.strip())
+            if m:
+                out.append((m.group(1), m.group(2), m.group(3)))
+    return out
+
+
+def quiet_members(project, today=None):
+    """Crew members (not managers, not archived) with no board entry from or to them dated within the last day."""
+    import datetime
+    today = today or datetime.date.today()
+    cutoff = (today - datetime.timedelta(days=1)).isoformat()
+    recent = [(f + " " + t).lower() for d, f, t in board_entries(project) if d >= cutoff]
+    arch = set(t for t, _, a in session_records() if a)
+    mgr = [re.compile(x) for x in (PROFILE.get("manager_names") or [r"\bManager_[^_\s]*_\d{3}\b"])]
+    out = []
+    for name, _ in crew(project):
+        if name in arch or any(m.search(name) for m in mgr):
+            continue
+        if not any(name.lower() in r for r in recent):
+            out.append(name)
+    return out
+
+
 LETTERS = re.compile(r"^\s*\*{2,3}[A-D]\.\*{2,3}", re.M)
 
 
@@ -323,12 +410,24 @@ def main(argv):
         card = ""
         if not missing and len(still) >= 2 and fresh("card", ",".join(sorted(n for n, _ in still)), "", "\x00never-in-reply"):
             card = card_problem(last_message(data), [n for n, _ in still])
+        # item 96: replaced chats still not archived, and crew members with no order and no report in the last day (once a day while unchanged)
+        import datetime
+        day = datetime.date.today().isoformat()
+        sweep = []
+        if not missing and not os.environ.get("MUSTER_NO_SWEEP"):  # the variable is for the older self-tests only
+            sweep += ["%s was replaced by %s and is not archived yet" % x for x in replaced_unarchived(project) if fresh("replaced", x[0], day, x[0])]
+            sweep += ["%s has had no order and no report on the board for a day" % n for n in quiet_members(project) if fresh("quiet", n, day, n)]
         if told != told0:
             try:
                 open(tfile, "w", encoding="utf-8").write("\n".join(sorted(told)) + "\n")
             except OSError:
                 pass
     except Exception:
+        return 0
+    if sweep and not missing and not waiting and not holds and not card:
+        print(json.dumps({"decision": "block", "reason":
+            "Crew sweep (item 96): " + " | ".join(sweep) + ". Archive each replaced chat once its work has passed to the newer one (D-005), and give each quiet "
+            "member its next order or find out why it has none; name each in your reply." + NOREPEAT}))
         return 0
     if not missing and not waiting and not holds:
         if card:

@@ -15,7 +15,7 @@ w("muster/OWNERS-LIST.md", "## Open\n1. \"a\"\n   Stands: with Builder R_X_001\n
 def rec(i, ago, arch=False, summ=None):
     json.dump({"isArchived": arch, "lastActivityAt": now - ago * 1000, "postTurnSummary": summ or {}}, open(os.path.join(tmp, "s", "a", "b", cid(i) + ".json"), "w"))
 rec(1, 5); rec(2, 600); rec(3, 600); rec(4, 600, True); rec(5, 5, summ={"status_category": "blocked", "status_detail": "WAIT: Manager's choice", "needs_action": "the manager's choice"})
-env = dict(os.environ, MUSTER_SESSIONS_DIR=os.path.join(tmp, "s"))
+env = dict(os.environ, MUSTER_SESSIONS_DIR=os.path.join(tmp, "s"), MUSTER_NO_SWEEP="1")
 def run(inp, state=None):
     e = dict(env, MUSTER_STATE_DIR=state or tempfile.mkdtemp())  # a fresh memory of what was said, unless a test shares one
     return subprocess.run([sys.executable, CHK, "--project", tmp], input=json.dumps(inp), capture_output=True, text=True, env=e).stdout
@@ -86,7 +86,7 @@ def cproj(idle_ago, items=""):
     return d, os.path.join(d, "s")
 def crun(d, sd, msg):
     return subprocess.run([sys.executable, CHK, "--project", d], input=json.dumps({"last_assistant_message": msg}), capture_output=True, text=True,
-                          env=dict(os.environ, MUSTER_SESSIONS_DIR=sd, MUSTER_STATE_DIR=tempfile.mkdtemp())).stdout
+                          env=dict(os.environ, MUSTER_SESSIONS_DIR=sd, MUSTER_STATE_DIR=tempfile.mkdtemp(), MUSTER_NO_SWEEP="1")).stdout
 CARD = ("**IDLE \u00b7 crew**\n- Builder A_Y_001: idle since 14:02, why: its piece passed and nothing is open, unblocked by: a new order from his list\n"
         "- Builder B_Y_001: idle since 14:10, why: waits for the owner's ship allowance, unblocked by: his typed yes\n\n"
         "Which should come first?\n\n***A.*** the usage meter\n\n***B.*** the site clean-up")
@@ -102,7 +102,42 @@ d2, sd2 = cproj([600, 600, 5], "1. \"x\"\n   Stands: with Builder A_Y_001\n")
 o2 = crun(d2, sd2, "ok")
 t("idle card: an idle worker with open work and no order blocks, named, before the card", "Builder A_Y_001 has been idle" in o2)
 st2 = tempfile.mkdtemp()
-a1 = subprocess.run([sys.executable, CHK, "--project", d], input=json.dumps({"last_assistant_message": "ok", "transcript_path": "/t/c"}), capture_output=True, text=True, env=dict(os.environ, MUSTER_SESSIONS_DIR=sd, MUSTER_STATE_DIR=st2)).stdout
-a2 = subprocess.run([sys.executable, CHK, "--project", d], input=json.dumps({"last_assistant_message": "ok", "transcript_path": "/t/c"}), capture_output=True, text=True, env=dict(os.environ, MUSTER_SESSIONS_DIR=sd, MUSTER_STATE_DIR=st2)).stdout
+a1 = subprocess.run([sys.executable, CHK, "--project", d], input=json.dumps({"last_assistant_message": "ok", "transcript_path": "/t/c"}), capture_output=True, text=True, env=dict(os.environ, MUSTER_SESSIONS_DIR=sd, MUSTER_STATE_DIR=st2, MUSTER_NO_SWEEP="1")).stdout
+a2 = subprocess.run([sys.executable, CHK, "--project", d], input=json.dumps({"last_assistant_message": "ok", "transcript_path": "/t/c"}), capture_output=True, text=True, env=dict(os.environ, MUSTER_SESSIONS_DIR=sd, MUSTER_STATE_DIR=st2, MUSTER_NO_SWEEP="1")).stdout
 t("idle card: said once, unchanged, it is not asked again", "block" in a1 and a2 == "")
+
+# item 96: a replaced chat not yet archived, and crew members with no order and no report for a day
+import datetime
+TODAY = datetime.date.today().isoformat()
+def sproj(titles, board, names=("Manager_Z_001", "Builder A_Z_001", "Builder B_Z_001")):
+    d = tempfile.mkdtemp(); os.makedirs(os.path.join(d, "muster")); sd = os.path.join(d, "s", "a", "b"); os.makedirs(sd)
+    open(os.path.join(d, "muster", "BOARD.md"), "w").write(board)
+    open(os.path.join(d, "muster", "OWNERS-LIST.md"), "w").write("## Open\n\n## Closed\n")
+    open(os.path.join(d, "muster", "CREW.md"), "w").write("## Running now\n| Name | Model | Effort | Folder | Chat id | Started |\n|---|---|---|---|---|---|\n" +
+        "".join("| %s | m | medium | f | %s | d |\n" % (n, cid(i)) for i, n in enumerate(names, 1)) + "\n## Archived\n")
+    for i, (title, arch) in enumerate(titles, 1):
+        json.dump({"title": title, "sessionId": cid(i), "isArchived": arch, "lastActivityAt": now - 5000, "postTurnSummary": {}}, open(os.path.join(sd, cid(i) + ".json"), "w"))
+    return d, os.path.join(d, "s")
+def srun(d, sd, st=None, msg="ok"):
+    return subprocess.run([sys.executable, CHK, "--project", d], input=json.dumps({"last_assistant_message": msg, "transcript_path": "/t/s"}), capture_output=True, text=True,
+                          env=dict(os.environ, MUSTER_SESSIONS_DIR=sd, MUSTER_STATE_DIR=st or tempfile.mkdtemp())).stdout
+BOARD_OK = "### %s | ORDER | Manager_Z_001 -> Builder A_Z_001 | j\nStatus: open\n### %s | READY | Builder B_Z_001 -> Inspector_Z_001 | k\nStatus: open\n" % (TODAY, TODAY)
+d, sd = sproj([("Manager_Z_001", False), ("Builder A_Z_001", False), ("Builder A_Z_002", False), ("Builder B_Z_001", False)], BOARD_OK)
+o = srun(d, sd)
+t("sweep: a replaced chat that is not archived is named with its replacement", "Builder A_Z_001 was replaced by Builder A_Z_002" in o and "item 96" in o)
+d, sd = sproj([("Manager_Z_001", False), ("Builder A_Z_001", True), ("Builder A_Z_002", False), ("Builder B_Z_001", False)], BOARD_OK)
+t("sweep: an archived replaced chat is not named", srun(d, sd) == "")
+d, sd = sproj([("Manager_Z_001", False), ("Builder A_Z_001", False), ("Builder B_Z_001", False)], BOARD_OK.replace("Builder B_Z_001", "Builder C_Z_001"))
+o = srun(d, sd)
+t("sweep: a member with no order and no report in a day is named", "Builder B_Z_001 has had no order and no report" in o and "Builder A_Z_001 has had" not in o)
+d, sd = sproj([("Manager_Z_001", False), ("Builder A_Z_001", False), ("Builder B_Z_001", False)], BOARD_OK.replace(TODAY, "2020-01-01"))
+t("sweep: an old board names both workers, never the manager", "Builder A_Z_001 has had" in srun(d, sd) and "Manager_Z_001 has had" not in srun(d, sd))
+d, sd = sproj([("Manager_Z_001", False), ("Builder A_Z_001", False), ("Builder B_Z_001", False)], BOARD_OK)
+t("sweep: everyone active and nothing replaced is silent", srun(d, sd) == "")
+st3 = tempfile.mkdtemp(); d, sd = sproj([("Manager_Z_001", False), ("Builder A_Z_001", False), ("Builder A_Z_002", False), ("Builder B_Z_001", False)], BOARD_OK)
+t("sweep: said once, unchanged, it is not said again the same day", "block" in srun(d, sd, st3) and srun(d, sd, st3) == "")
+d, sd = sproj([("Manager_Z_001", False), ("Builder A_Z_001", False), ("Builder A_Z_002", False), ("Builder B_Z_001", False)], BOARD_OK)
+t("sweep: naming the chat in the reply satisfies it", srun(d, sd, msg="Archiving Builder A_Z_001 now") == "")
+d, sd = sproj([("Manager_Z_001", False), ("Builder A_Z_001", False), ("Builder A_Z_002", False), ("Other_Q_001", False), ("Other_Q_002", False)], BOARD_OK)
+t("sweep: another project's replaced chat is not this crew's", "Other_Q_001" not in srun(d, sd))
 sys.exit(1 if bad else 0)

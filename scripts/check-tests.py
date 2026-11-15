@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Fails if a test file on disk is not listed in muster/CHECKS.md.
+"""Fails if a test file on disk is not listed in muster/CHECKS.md or in the top-level CHECKS.md (the one a project tracks in git).
 
 Usage: check-tests.py [project-folder]   (default: the current folder)
 A test file is test_*.py, *_test.py, *.test.* or *.spec.* anywhere in the project, outside .git, node_modules, .claude
-and muster. A file counts as listed when its name appears in muster/CHECKS.md. No test files: passes. No CHECKS.md but
+and muster. A file counts as listed when its name appears in either file. No test files: passes. No CHECKS.md at all but
 test files: fails. Prints what it found; changes nothing.
 """
 import fnmatch
@@ -25,14 +25,16 @@ def main():
         for f in files:
             if any(fnmatch.fnmatch(f, p) for p in PATTERNS):
                 found.append(os.path.relpath(os.path.join(here, f), root))
-    checks = os.path.join(root, "muster", "CHECKS.md")
-    try:
-        with open(checks, encoding="utf-8") as fh:
-            text = fh.read()
-    except OSError:
-        text = None
+    texts = []
+    for rel in (os.path.join("muster", "CHECKS.md"), "CHECKS.md"):
+        try:
+            with open(os.path.join(root, rel), encoding="utf-8") as fh:
+                texts.append(fh.read())
+        except OSError:
+            pass
+    text = "\n".join(texts) if texts else None
     missing = [f for f in found if text is None or os.path.basename(f) not in text]
-    print("%d test file(s) on disk, %d missing from muster/CHECKS.md" % (len(found), len(missing)))
+    print("%d test file(s) on disk, %d missing from CHECKS.md" % (len(found), len(missing)))
     for f in missing:
         print("  not in CHECKS.md: " + f)
     return 1 if missing else 0

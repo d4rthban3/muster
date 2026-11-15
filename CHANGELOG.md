@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.95
+Affects: see .claude-plugin/releases/0.3.95.json.
+Compact at 200k (D-041): chats compact in place at 200k
+
 ## 0.3.94
 Affects: see .claude-plugin/releases/0.3.94.json.
 Manager after compact (item 112): a manager keeps its rights after its chat compacts

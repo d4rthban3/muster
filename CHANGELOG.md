@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.90
+Affects: see .claude-plugin/releases/0.3.90.json.
+Compact in place (D-039, item 105): no size renewals; chats compact at 300k and write their open job to the board first
+
 ## 0.3.89
 Affects: see .claude-plugin/releases/0.3.89.json.
 Approval relay (items 103, 104): the manager carries his yes to the worker, idle card once per idle stretch, ship.sh skips a needless rebase

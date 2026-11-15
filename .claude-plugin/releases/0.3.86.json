@@ -1,0 +1,27 @@
+{
+  "version": "0.3.86",
+  "changed_files": [
+    "bin/SOURCE-STAMP",
+    "bin/linux-arm64/muster-checks",
+    "bin/linux-x86_64/muster-checks",
+    "bin/macos-arm64/muster-checks",
+    "bin/macos-x86_64/muster-checks",
+    "bin/windows-x86_64/muster-checks.exe",
+    "checks/src/rules.rs",
+    "directory/skills/decision-log/SKILL.md",
+    "directory/skills/manager-details/SKILL.md",
+    "directory/templates/CLAUDE.md",
+    "hooks/rules-check.py",
+    "scripts/profile-selftest.py",
+    "scripts/rules-check-selftest.py",
+    "skills/decision-log/SKILL.md",
+    "skills/manager-details/SKILL.md",
+    "templates/CLAUDE.md"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Always your pick (item 100): the manager's reply check refuses lettered choices with no marked pick"
+}

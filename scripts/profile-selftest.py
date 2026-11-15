@@ -369,6 +369,25 @@ LCS = json.load(open(os.path.join(MP, ".claude", "settings.json"))).get("hooks",
 add("item 99: the install adds the summary hook (SessionStart, compact)", "" if any(g.get("matcher") == "compact" and "renew-after-summary.py" in json.dumps(g) for g in LCS) else "BAD", False)
 add("item 99: with the live stand-in installed the plugin's summary hook stands down in the main folder, not in a worktree", "" if subprocess.run(["sh", os.path.join(LM, "hooks", "renew-after-summary.sh")], input="{}", capture_output=True, text=True, cwd=MP).stdout == "" else "BAD", False)
 
+# item 102: crew-plan.py trim keeps unused tool servers out of a crew copy's first call
+_wt = os.path.join(T, "wt-trim"); os.makedirs(_wt); open(os.path.join(_wt, ".git"), "w").write("gitdir: x\n")
+_main = os.path.join(T, "main-trim"); os.makedirs(os.path.join(_main, ".git"))
+def _trim(role, folder):
+    r = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "crew-plan.py"), "trim", role, folder, "--profile", os.path.join(ROOT, "profiles", "muster.json")], capture_output=True, text=True)
+    return r.returncode, r.stdout
+_rc, _ = _trim("Builder A_Muster_002", _wt)
+_deny = json.load(open(os.path.join(_wt, ".claude", "settings.local.json")))["permissions"]["deny"]
+cases.append(("item 102: a builder copy leaves the browser, simulator and blockchain tools out", "" if _rc == 0 and "mcp__Claude_Browser" in _deny and "mcp__BlockchainQuery" in _deny else "x", False))
+_wt2 = os.path.join(T, "wt-trim2"); os.makedirs(_wt2); open(os.path.join(_wt2, ".git"), "w").write("gitdir: x\n")
+_trim("Designer_Muster_002", _wt2)
+_deny2 = json.load(open(os.path.join(_wt2, ".claude", "settings.local.json")))["permissions"]["deny"]
+cases.append(("item 102: a designer copy keeps the tools that show a page", "" if "mcp__Claude_Browser" not in _deny2 and "mcp__BlockchainQuery" in _deny2 else "x", False))
+_rc3, _ = _trim("Manager_Muster_002", _main)
+cases.append(("item 102: the main folder (the owner's own chats) is never trimmed", "" if _rc3 == 1 and not os.path.exists(os.path.join(_main, ".claude")) else "x", False))
+_trim("Builder A_Muster_002", _wt)
+_deny4 = json.load(open(os.path.join(_wt, ".claude", "settings.local.json")))["permissions"]["deny"]
+cases.append(("item 102: running it twice does not repeat a name", "" if len(_deny4) == len(set(_deny4)) else "x", False))
+
 bad = 0
 for name, out, should_block in cases:
     ok = bool(out) == should_block

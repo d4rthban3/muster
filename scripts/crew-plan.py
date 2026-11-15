@@ -11,7 +11,13 @@
       SMALL or BIG for a piece of work: small = at most 3 files and 60 changed lines, nothing in engine, data, database or
       deploy folders, nothing a visitor sees (site pages, styles, scripts, pictures), no rules or protocol file. Anything else, or
       anything it cannot tell, is BIG. Small pieces are checked in the manager's chat by a fresh checker; big ones go to an inspector chat.
+  crew-plan.py trim "<Role>_<project>_<N>" <folder> [--profile FILE]
+      Item 102: a crew chat's own copy (a git worktree, never the main folder, never the owner's own chats) gets a
+      .claude/settings.local.json that keeps the app's tool lists the crew never uses out of the chat's first call:
+      permissions.deny names whole tool servers (browser, phone simulator, blockchain, email and similar). The designer keeps the
+      ones that show a page. Names come from the profile's "crew_deny" (else the built-in list); other settings already in the file stay.
 """
+import json
 import math
 import os
 import re
@@ -75,6 +81,42 @@ def size(base, head, repo):
     print("SMALL: %d files, %d changed lines, nothing in engine, data, deploy, visible or rules files" % (len(files), lines))
 
 
+# Tool servers a crew chat never uses (item 102). Whole-server names: the chat's first call then leaves their tool lists out.
+CREW_DENY = ["Artifact", "mcp__Claude_Browser", "mcp__claude-in-chrome", "mcp__computer-use", "mcp__Claude_Code_iOS_Simulator",
+             "mcp__BlockchainQuery", "mcp__visualize", "mcp__mcp-registry", "mcp__scheduled-tasks"]
+DESIGNER_KEEPS = ["mcp__Claude_Browser", "mcp__claude-in-chrome", "mcp__computer-use", "mcp__Claude_Code_iOS_Simulator", "mcp__visualize", "Artifact"]
+
+
+def trim(role, folder, profile_path=None):
+    folder = os.path.abspath(folder)
+    git = os.path.join(folder, ".git")
+    if not os.path.isfile(git):  # a worktree has a .git FILE; the main folder has a directory: never trim the owner's own chats
+        print("REFUSED: %s is not a crew copy (a git worktree); the main folder and the owner's own chats are never trimmed" % folder)
+        sys.exit(1)
+    deny = list(CREW_DENY)
+    if profile_path and os.path.isfile(profile_path):
+        try:
+            deny = list(json.load(open(profile_path, encoding="utf-8")).get("crew_deny", deny))
+        except Exception:
+            pass
+    if slug(role) == "designer":
+        deny = [d for d in deny if d not in DESIGNER_KEEPS]
+    path = os.path.join(folder, ".claude", "settings.local.json")
+    cur = {}
+    if os.path.isfile(path):
+        try:
+            cur = json.load(open(path, encoding="utf-8"))
+        except Exception:
+            print("REFUSED: %s is not readable JSON; left as it is" % path)
+            sys.exit(1)
+    perms = cur.setdefault("permissions", {})
+    old = [d for d in perms.get("deny", []) if d not in CREW_DENY and d not in deny]
+    perms["deny"] = old + deny
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    json.dump(cur, open(path, "w", encoding="utf-8"), indent=2)
+    print("OK: %s now leaves %d tool servers out of the first call" % (path, len(deny)))
+
+
 def main():
     a = sys.argv[1:]
     if len(a) >= 2 and a[0] == "inspectors":
@@ -92,6 +134,9 @@ def main():
         else:
             print("REFUSED: %s is not named for %s (expected a folder starting '%s-'); a renewed chat gets its own new copy, never another role's old one" % (a[2], role, want))
             sys.exit(1)
+    elif len(a) >= 3 and a[0] == "trim":
+        role, _p, _n = parse_chat(a[1])
+        trim(role, a[2], a[a.index("--profile") + 1] if "--profile" in a else None)
     elif len(a) >= 3 and a[0] == "size":
         size(a[1], a[2], a[a.index("--repo") + 1] if "--repo" in a else ".")
     else:

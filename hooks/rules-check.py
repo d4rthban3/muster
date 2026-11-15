@@ -703,8 +703,66 @@ def owner_typed_last(path):
     return typed
 
 
+RENEW_MARK = "Muster renewal by size:"
+
+
+def context_tokens(path):
+    """The chat's own last context size: input + cache read + cache creation tokens of its last assistant message (item 99)."""
+    last = 0
+    try:
+        with open(path, encoding="utf-8") as fh:
+            for line in fh:
+                try:
+                    d = json.loads(line)
+                except ValueError:
+                    continue
+                u = (d.get("message") or {}).get("usage") if d.get("type") == "assistant" else None
+                if isinstance(u, dict):
+                    last = sum(int(u.get(k) or 0) for k in ("input_tokens", "cache_read_input_tokens", "cache_creation_input_tokens"))
+    except OSError:
+        pass
+    return last
+
+
+def renew_told(path):
+    """True when this chat was already told to renew by size (the told note is in its own transcript): said once per chat."""
+    try:
+        with open(path, encoding="utf-8") as fh:
+            for line in fh:
+                if RENEW_MARK not in line:
+                    continue
+                try:
+                    d = json.loads(line)
+                except ValueError:
+                    continue
+                if d.get("type") == "user" and RENEW_MARK in json.dumps((d.get("message") or {}).get("content", "")):
+                    return True
+    except OSError:
+        pass
+    return False
+
+
+def renew_problem(data, manager):
+    path = data.get("transcript_path") or ""
+    limit = int(PROFILE.get("renew_tokens") or 200000)
+    n = context_tokens(path)
+    if n <= limit or renew_told(path):
+        return ""
+    if manager:
+        return ("%s this chat now carries %d tokens on every message, which burns the owner's usage (D-016). At once write a short handover to "
+                "muster/handovers/<your chat name>.md (what is open, the files that matter, the next step), then tell the owner in one line, linked, that you "
+                "need a fresh manager chat. Do this once." % (RENEW_MARK, n))
+    return ("%s this chat now carries %d tokens on every message, which burns the owner's usage (D-016). At once, if a job is in progress write a short handover to "
+            "muster/handovers/<your chat name>.md in the main project folder (what is open, the files that matter, the next step), then send the manager "
+            "\"DONE: renewal <your chat name>\". Do this once, then carry on until the manager starts your fresh chat." % (RENEW_MARK, n))
+
+
 def stop(data, manager):
     text = data.get("last_assistant_message") or ""
+    if not data.get("stop_hook_active"):
+        why = renew_problem(data, manager)
+        if why:
+            return block(why)
     # Founder orders (item 76): NOT subject to the once-per-turn pass; the only way through is doing it, or one short question
     if manager and text and refuses_order(text) and owner_typed_last(data.get("transcript_path") or ""):
         return block("he gave you an order in his own words, and a coded rule says you do it: no refusing, no \"cannot\", no arguing, no reinterpreting (item 76). "

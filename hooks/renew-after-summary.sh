@@ -1,8 +1,10 @@
 #!/bin/sh
 # SessionStart hook (matcher "compact"): runs the check in renew-after-summary.py. Silent in any project without muster/CLAUDE.md
 # in this folder or above it, so it costs nothing elsewhere.
-d=$(pwd); found=""
+d=$(pwd); found=""; wt=""
 while [ -n "$d" ] && [ "$d" != "/" ]; do
+  [ -z "$wt" ] && [ -f "$d/.muster-checks/renew-after-summary.py" ] && exit 0   # the project runs its own installed copy: stand down (not from inside a linked worktree)
+  [ -f "$d/.git" ] && wt=1
   [ -f "$d/muster/CLAUDE.md" ] && { found=1; break; }
   d=$(dirname "$d")
 done

@@ -35,6 +35,10 @@ def said(text):
     return {"type": "user", "message": {"content": text}}
 
 
+def big(n):
+    return {"type": "assistant", "message": {"content": [{"type": "text", "text": "x"}], "usage": {"input_tokens": 5, "cache_read_input_tokens": n - 5000, "cache_creation_input_tokens": 4995}}}
+
+
 def run(ev, **kw):
     r = subprocess.run([BIN, "rules"] if BIN else [sys.executable, HOOK], input=json.dumps(dict(hook_event_name=ev, cwd=T, **kw)), capture_output=True, text=True, env=RUN_ENV)
     return r.stdout.strip()
@@ -85,6 +89,13 @@ cases = [
     ("a question mark from another chat is not his: a long answer still blocks", run("Stop", last_assistant_message="Yes, it is shipped and live on the site now, with the new version and every check green on all three systems. " * 4, transcript_path=tr("You are Manager_Muster_002", [said("<cross-session-message from=\"x\">is it done?</cross-session-message>")])), True),
     ("a short routine reply to another chat's message is not bounced (item 75)", run("Stop", last_assistant_message="Yes, it is shipped.", transcript_path=tr("You are Manager_Muster_002", [said("<cross-session-message from=\"x\">is it done?</cross-session-message>")])), False),
     ("item 75: a short report after a worker's READY passes", run("Stop", last_assistant_message="Builder A finished the READY and it passed.", transcript_path=tr("You are Manager_Muster_002", [said("<cross-session-message from=\"b\">READY: x [ID b-1]</cross-session-message>")])), False),
+    ('item 99: a worker over 200000 tokens is told to renew by size', run("Stop", last_assistant_message="**WORKING \u00b7 x**\n- a\n- b", transcript_path=tr("You are Builder A_Muster_002, agents/builder.md", [big(250000)])), True),
+    ('item 99: ...even with no text at all', run("Stop", last_assistant_message="", transcript_path=tr("You are Builder A_Muster_002, agents/builder.md", [big(250000)])), True),
+    ('item 99: a worker under the line is silent', run("Stop", last_assistant_message="**WORKING \u00b7 x**\n- a\n- b", transcript_path=tr("You are Builder A_Muster_002, agents/builder.md", [big(150000)])), False),
+    ('item 99: said once per chat (the told note is in the transcript)', run("Stop", last_assistant_message="**WORKING \u00b7 x**\n- a\n- b", transcript_path=tr("You are Builder A_Muster_002, agents/builder.md", [big(250000), {"type": "user", "message": {"content": "Stop hook feedback:\nMuster rule: Muster renewal by size: this chat now carries 250000 tokens"}}])), False),
+    ('item 99: a manager over the line is told to hand over', run("Stop", last_assistant_message="Which first?\n\n***A.*** a\n\n***B.*** b", transcript_path=tr("You are Manager_Muster_002", [big(300000)])), True),
+    ('item 99: a stop already continuing because of a hook is not blocked again', run("Stop", last_assistant_message="**WORKING \u00b7 x**\n- a\n- b", stop_hook_active=True, transcript_path=tr("You are Builder A_Muster_002, agents/builder.md", [big(250000)])), False),
+    ("item 99: the owner's own chat is never told", run("Stop", last_assistant_message="hi", transcript_path=tr("hello", [big(900000)])), False),
     ("item 75: a short reply to HIS typed statement still blocks", run("Stop", last_assistant_message="All done, nice and good.", transcript_path=tr("You are Manager_Muster_002", [said("<cross-session-message from=\"b\">x</cross-session-message>"), said("ok thanks")])), True),
     ("his question, then hook feedback inside his turn: the answer still passes", run("Stop", last_assistant_message="Yes, it is shipped.", transcript_path=tr("You are Manager_Muster_002", [said("well?"), said("Stop hook feedback: rewrite it"), said("<system-reminder>note</system-reminder>")])), False),
     ("his question, then an app event (task notification): long narration blocked", run("Stop", last_assistant_message="The task finished and the result was written to the file and then checked against every one of the notes. " * 4, transcript_path=tr("You are Manager_Muster_002", [said("well?"), said("<system-reminder>[SYSTEM NOTIFICATION] <task-notification>x</task-notification></system-reminder>")])), True),

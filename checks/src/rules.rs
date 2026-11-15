@@ -398,8 +398,39 @@ fn owner_typed_last(path: &str) -> bool {
     typed
 }
 
+const RENEW_MARK: &str = "Muster renewal by size:";
+
+/// The chat's own last context size: input + cache read + cache creation tokens of its last assistant message (item 99).
+fn context_tokens(path: &str) -> u64 {
+    let mut last = 0;
+    for d in lines_of(path) {
+        if s(&d, "type") != "assistant" { continue; }
+        if let Some(u) = d.get("message").and_then(|m| m.get("usage")).filter(|u| u.is_object()) {
+            last = ["input_tokens", "cache_read_input_tokens", "cache_creation_input_tokens"].iter().map(|k| u.get(*k).and_then(Value::as_u64).unwrap_or(0)).sum();
+        }
+    }
+    last
+}
+fn renew_told(path: &str) -> bool {
+    lines_of(path).iter().any(|d| s(d, "type") == "user" && content_text(&msg_content(d)).contains(RENEW_MARK))
+}
+fn renew_problem(c: &Ctx, data: &Value, manager: bool) -> Option<String> {
+    let path = s(data, "transcript_path");
+    let limit = c.profile.get("renew_tokens").and_then(Value::as_u64).filter(|n| *n > 0).unwrap_or(200000);
+    let n = context_tokens(path);
+    if n <= limit || renew_told(path) { return None; }
+    Some(if manager {
+        format!("{RENEW_MARK} this chat now carries {n} tokens on every message, which burns the owner's usage (D-016). At once write a short handover to muster/handovers/<your chat name>.md (what is open, the files that matter, the next step), then tell the owner in one line, linked, that you need a fresh manager chat. Do this once.")
+    } else {
+        format!("{RENEW_MARK} this chat now carries {n} tokens on every message, which burns the owner's usage (D-016). At once, if a job is in progress write a short handover to muster/handovers/<your chat name>.md in the main project folder (what is open, the files that matter, the next step), then send the manager \"DONE: renewal <your chat name>\". Do this once, then carry on until the manager starts your fresh chat.")
+    })
+}
+
 fn stop(c: &Ctx, data: &Value, manager: bool) {
     let text = s(data, "last_assistant_message");
+    if !data.get("stop_hook_active").and_then(Value::as_bool).unwrap_or(false) {
+        if let Some(why) = renew_problem(c, data, manager) { block(&why); return; }
+    }
     // Founder orders (item 76): NOT subject to the once-per-turn pass. A manager reply that refuses, says it cannot, argues with or
     // reinterprets a task he typed is refused every time; the only way through is doing it, or one short question to him.
     if manager && !text.is_empty() && refuses_order(text) && owner_typed_last(s(data, "transcript_path")) {

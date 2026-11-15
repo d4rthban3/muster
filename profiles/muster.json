@@ -1,4 +1,5 @@
 {
   "name": "Muster",
-  "message_form": "text"
+  "message_form": "text",
+  "renew_tokens": 200000
 }

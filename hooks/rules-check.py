@@ -171,8 +171,8 @@ def turn_blocks(path):
     return uses
 
 
-def all_sent_text(path):
-    """The text of messages that were really sent: a SendMessage whose result came back without an error. A call still
+def all_sent_pairs(path):
+    """The (recipient, text) of messages that were really sent: a SendMessage whose result came back without an error. A call still
     waiting for its result (this one, or a sibling sent in the same turn) and a call a hook refused do not count, so a
     refused send does not use up its ID."""
     calls, failed, done = {}, set(), set()
@@ -190,7 +190,7 @@ def all_sent_text(path):
                     if not isinstance(b, dict):
                         continue
                     if d.get("type") == "assistant" and b.get("type") == "tool_use" and b.get("name") == "SendMessage":
-                        calls[b.get("id")] = str((b.get("input") or {}).get("message", ""))
+                        calls[b.get("id")] = (str((b.get("input") or {}).get("to", "")), str((b.get("input") or {}).get("message", "")))
                     elif d.get("type") == "user" and b.get("type") == "tool_result":
                         done.add(b.get("tool_use_id"))
                         rc = b.get("content", "")
@@ -199,7 +199,34 @@ def all_sent_text(path):
                             failed.add(b.get("tool_use_id"))
     except OSError:
         pass
-    return [t for i, t in calls.items() if i in done and i not in failed]
+    return [c for i, c in calls.items() if i in done and i not in failed]
+
+
+def all_sent_text(path):
+    return [t for _, t in all_sent_pairs(path)]
+
+
+DUP_WHY = "this report (same job and first word) was already sent to this chat with nothing changed; send it again only when something changed (item 97)"
+
+
+def same_report(a, b):
+    """Item 97: two reports of the same job and first word with nothing changed (only the ID differs)."""
+    def norm(m):
+        try:
+            d = json.loads(m)
+            if isinstance(d, dict):
+                d.pop("id", None)
+                return json.dumps(d, sort_keys=True)
+        except ValueError:
+            pass
+        mm = re.match(r"^\s*%s: (.+?) \[ID [^\]]+\]\s*\n(.*)$" % FIRST, m, re.S)
+        return None if not mm else "%s|%s|%s" % (mm.group(1), mm.group(2), re.sub(r"\s+", " ", mm.group(3).strip()))
+    na, nb = norm(a), norm(b)
+    return na is not None and na == nb
+
+
+def dup_report(to, msg, path):
+    return any(t == to and same_report(m, msg) for t, m in all_sent_pairs(path))
 
 
 ENDS_TURN = re.compile(r"<cross-session-message|<task-notification|<side-sessions-event|<ci-monitor-event|\[SYSTEM NOTIFICATION", re.I)
@@ -561,6 +588,8 @@ def pretool(data, manager):
                 why = goal_problem(root, str(rec.get("job", "")))
                 if why:
                     return deny(why)
+            if dup_report(str(inp.get("to", "")), msg, data.get("transcript_path") or ""):
+                return deny(DUP_WHY)
             return
         if ORDERS_FREE and not re.match(r"^\s*%s\s*:" % FIRST, msg):
             return  # this project has no order shape: only a message that claims to be a report is checked
@@ -576,6 +605,8 @@ def pretool(data, manager):
             sent = all_sent_text(data.get("transcript_path") or "")
             if any(("[ID %s]" % m.group(2)) in s for s in sent):
                 return deny("this report's ID [%s] was already sent; a repeat is dropped" % m.group(2))
+        if m and dup_report(str(inp.get("to", "")), msg, data.get("transcript_path") or ""):
+            return deny(DUP_WHY)
         if not bad_order and usage_at_limit(root):
             return deny("the week is at 90% or more (scripts/usage.py exits 3): start no new order; finish and park what is running")
         return
@@ -648,6 +679,24 @@ def manager_reply_ok(text):
     has_q = "?" in t
     letters = len(re.findall(r"^\*\*\*[A-D]\.\*\*\*", t, re.M))  # lettered lines are the question form (D-037)
     return letters >= 2 or (has_q and letters >= 1)  # two or more lettered choices are the question, with or without a "?" (item 91)
+
+
+NEWS_UP = re.compile(r"\b(PASS|LIVE|DONE)\b")
+NEWS_LO = re.compile(r"\b(shipped|passed|merged|released|progress|landed|finished)\b", re.I)
+
+
+def owner_form_ok(t):
+    """The forms a manager may use to the owner (item 97): a lettered question, a yes he must give, "<worker> is waiting for you: type in <chat>", the idle card."""
+    if re.search(r"\bThe crew is idle\b", t, re.I) or re.search(r"\bis waiting for you\b.*\btype in\b", t, re.I | re.S):
+        return True
+    if re.search(r"\b(I need your yes|needs? your yes|your yes (is needed|to))\b", t, re.I):
+        return True
+    letters = len(re.findall(r"^\*\*\*[A-D]\.\*\*\*", t, re.M))
+    return letters >= 2 or ("?" in t and letters >= 1)
+
+
+def is_news(t):
+    return bool(NEWS_UP.search(t) or NEWS_LO.search(t))
 
 
 def group_unfiled(uses):
@@ -730,6 +779,9 @@ def stop(data, manager):
             return
         if letters_not_bold_italic(text):
             return block("write each choice letter bold and italic, like ***A.*** red, one line per choice with a blank line between (item 80)")
+        if is_news(text) and not owner_form_ok(text) and not owner_asked(data.get("transcript_path") or ""):
+            return block("never tell the owner PASS, LIVE, DONE, shipped or progress news (item 97): his chat gets only a lettered question, a yes he must give, "
+                         "'<worker> is waiting for you: type in <chat>', or the idle card. When nothing needs him, end this turn with no text at all")
         if "?" in text and look_unshown(question_part(text), uses):
             return block("a question about how something looks comes after the pictures: show them to him first in this turn (send-file with render, or card previews), then ask")
         if not manager_reply_ok(text) and not owner_asked(data.get("transcript_path") or "") \

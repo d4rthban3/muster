@@ -292,6 +292,39 @@ def card_problem(raw, names):
     return "; ".join(out)
 
 
+ENDS_TURN = re.compile(r"<cross-session-message|<task-notification|<side-sessions-event|<ci-monitor-event|\[SYSTEM NOTIFICATION", re.I)
+NEUTRAL = re.compile(r"^\s*(<system-reminder|Stop hook feedback)", re.I)
+
+
+def peer_started(path):
+    """True when this turn was started by a message from another chat or an app event, not by the owner's typed words (item 75)."""
+    last = False
+    try:
+        with open(path, encoding="utf-8") as fh:
+            for line in fh:
+                try:
+                    d = json.loads(line)
+                except ValueError:
+                    continue
+                if d.get("type") != "user":
+                    continue
+                c = (d.get("message") or {}).get("content", "")
+                if isinstance(c, list):
+                    if any(isinstance(b, dict) and b.get("type") == "tool_result" for b in c):
+                        continue
+                    c = " ".join(b.get("text", "") for b in c if isinstance(b, dict))
+                c = str(c)
+                if not c.strip():
+                    continue
+                if ENDS_TURN.search(c):
+                    last = True
+                elif not NEUTRAL.match(c):
+                    last = False
+    except OSError:
+        pass
+    return last
+
+
 def findings(project, now=None):
     now = now or time.time()
     items = open_items(project)
@@ -385,6 +418,8 @@ def main(argv):
         if INSTALLED and not is_manager_chat(data):
             return 0
         msg = last_message(data).lower()
+        if not msg.strip() and peer_started(data.get("transcript_path") or ""):
+            return 0  # item 97: a turn a worker's message started may end with no text; nothing here demands a line then
         tfile = told_file(data.get("transcript_path") or "", project)
         try:
             told = set(open(tfile, encoding="utf-8").read().split())

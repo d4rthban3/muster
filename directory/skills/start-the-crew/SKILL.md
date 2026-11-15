@@ -20,7 +20,7 @@ try to turn off the app's message limits.
 The first message of every new chat begins with the line "Your five-line starting note, from the manager (or from the
 setup, for the first crew):". A worker's note (never the manager's) then has the line "Your end-of-turn reply is a short card for the owner to read in your own window (title, two or three bullets); the full report still goes by message." and the line "Re-read your rules page before starting each new order." and the line "Computer use only on the manager's order naming the owner's words and the one app; never the whole screen or the clipboard; if a step needs more, send STUCK."; then the five lines. The First line always begins with "read <plugin folder>/agents/
 <role>.md and follow it for the rest of this chat" (the app cannot start a chat as a worker type), and names the
-main project folder's full path for the rules page.
+main project folder's full path for the rules page. **When the project is the Muster folder itself** (it holds its own `agents/` and `hooks/`), the First line names that folder's own live file, `<the Muster folder>/agents/<role>.md`, never a plugin-cache version folder (`.../plugins/cache/muster-kit/muster/<version>/...`): a ship then reaches every new chat with no version number to change (item 93).
 
 ## In the desktop app
 Use the app's tool for starting a session. Chat names there take only small letters, digits and dashes, so give it:

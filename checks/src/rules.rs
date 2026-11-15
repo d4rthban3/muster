@@ -122,8 +122,18 @@ pub fn normalise(p: &Path) -> PathBuf {
 }
 fn recipient_is_manager(to: &str, root: &str) -> bool {
     if is(&re(r"\bManager"), to) { return true; }
-    if let Ok(t) = std::fs::read_to_string(Path::new(root).join("muster").join("CREW.md")) {
-        for l in t.lines() { if !to.is_empty() && l.contains(to) && l.trim_start_matches(|c| c == '|' || c == ' ').starts_with("Manager") { return true; } }
+    // the crew lists read live every time: Muster's own, and the one the project's profile names ("crew_list", item 94)
+    let profile = load_profile();
+    let mut lists = vec![Path::new(root).join("muster").join("CREW.md")];
+    if let Some(p) = profile.get("crew_list").and_then(Value::as_str) { lists.push(Path::new(root).join(p)); }
+    let names: Vec<fancy_regex::Regex> = pstrings(&profile, "manager_names").iter().map(|x| re(&format!("^(?:{x})"))).collect();
+    for path in lists {
+        if let Ok(t) = std::fs::read_to_string(path) {
+            for l in t.lines() {
+                let row = l.trim_start_matches(|c| c == '|' || c == ' ');
+                if !to.is_empty() && l.contains(to) && (row.starts_with("Manager") || names.iter().any(|n| is(n, row))) { return true; }
+            }
+        }
     }
     false
 }

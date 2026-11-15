@@ -12,7 +12,7 @@ Copies hooks/rules-check.py, hooks/board-stop.py, hooks/talk-check.py, scripts/u
 and adds the hooks to <project>/.claude/settings.json (existing settings and other hooks are kept). Run it again after a
 Muster update to refresh the copies; --remove takes everything it added away. The checks act only in a chat whose first
 message names a crew role (Manager_<project>_001, Builder A_..., agents/<role>.md), so the owner's own chats are never touched.
-Do not install it in a project that also loads the plugin: the checks would run twice. Standard library only.
+In a project that also loads the plugin (the Muster folder itself), the plugin's own copy of each check stands down where the project has the installed file of that name, so no check runs twice; it does not stand down inside a linked worktree under the project (a builder's copy), which has no installed copy and keeps the plugin's checks (item 93). Standard library only.
 """
 import json
 import os
@@ -34,7 +34,10 @@ MARK = ".muster-checks/"
 
 
 def cmd(name):
-    return 'python3 "$CLAUDE_PROJECT_DIR/.muster-checks/%s"' % name
+    """Item 94: a builder's linked worktree runs the MAIN folder's live copy of the check, never an older copy carried in the worktree; with no main folder
+    (not a git folder, or git too old to say) it runs the project's own copy as before."""
+    return ("sh -c 'r=$(git -C \"$CLAUDE_PROJECT_DIR\" rev-parse --path-format=absolute --git-common-dir 2>/dev/null); m=${r%/.git}; "
+            "[ -f \"$m/.muster-checks/NAME\" ] || m=$CLAUDE_PROJECT_DIR; exec python3 \"$m/.muster-checks/NAME\"'").replace("NAME", name)
 
 
 def install_recorder(proj, dest, prof, live=False):
@@ -154,7 +157,7 @@ def main():
             restore_recorder(proj, dest)
             os.remove(os.path.join(dest, "profile.json"))
         hooks.setdefault("Stop", []).append({"hooks": [{"type": "command", "command": cmd(n)} for n in ("board-stop.py", "talk-check.py", "rules-check.py", "worker-queue-check.py", "idle-check.py")]})
-        hooks.setdefault("PreToolUse", []).append({"matcher": "SendMessage|Write|Edit|NotebookEdit|Bash",
+        hooks.setdefault("PreToolUse", []).append({"matcher": "mcp__ccd_session__start_session|AskUserQuestion|Agent|Task|SendMessage|Write|Edit|NotebookEdit|Bash",
                                                    "hooks": [{"type": "command", "command": cmd("rules-check.py")}]})
     os.makedirs(os.path.dirname(sfile), exist_ok=True)
     with open(sfile, "w", encoding="utf-8") as fh:

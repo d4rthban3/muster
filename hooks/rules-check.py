@@ -107,11 +107,8 @@ def _token_is_manager(tok):
         re.fullmatch(x, tok) for x in PROFILE.get("manager_names", []))
 
 
-def is_manager(first):
-    """Only the chat's OWN name makes it the manager. Its own name is the first crew name that follows 'Job:', 'You are' or 'I am' (a summary says "I am **Manager_X_001**") in
-    its starting note (every such place is tried: 'You are operating in a git worktree' holds no name). Else the first
-    agents/<role>.md it names, else a Job line that says 'go-between' or 'record keeper'. A crew name that is merely
-    mentioned ("report to Manager_X_002", "Manager_X_001 gives every order") never makes a chat the manager."""
+def _own_token(first):
+    """The chat's own crew name (or agents/<role>.md) in its starting note, or None (see is_manager)."""
     best = None
     for lead in (r"\bJob:\s*[*`]{0,2}", r"\b(?:you are|i am|i'm)\s+(?:the\s+)?[*`]{0,2}"):
         for m in re.finditer(lead, first, re.I):
@@ -119,8 +116,17 @@ def is_manager(first):
             if c and (best is None or m.start() < best[0]):
                 best = (m.start(), re.sub(r"^(?:you are|i am|i'm)\s+(?:the\s+)?[*`]{0,2}", "", c.group(0), flags=re.I))  # a profile pattern may swallow "You are " before the name
                 break
-    if best:
-        return _token_is_manager(best[1])
+    return best[1] if best else None
+
+
+def is_manager(first):
+    """Only the chat's OWN name makes it the manager. Its own name is the first crew name that follows 'Job:', 'You are' or 'I am' (a summary says "I am **Manager_X_001**") in
+    its starting note (every such place is tried: 'You are operating in a git worktree' holds no name). Else the first
+    agents/<role>.md it names, else a Job line that says 'go-between' or 'record keeper'. A crew name that is merely
+    mentioned ("report to Manager_X_002", "Manager_X_001 gives every order") never makes a chat the manager."""
+    tok = _own_token(first)
+    if tok:
+        return _token_is_manager(tok)
     m = re.search(r"agents[/\\](?:manager|builder|designer|inspector|design-inspector|sketchpad|ai-socket|agent-teacher)\.md", first)
     if m:
         return _token_is_manager(m.group(0))
@@ -447,15 +453,63 @@ def shell_write_targets(cmd):
     return out
 
 
+NAME_NUM = re.compile(r"^(.*?)_(\d{3})$")
+ID_RE = re.compile(r"local_[0-9a-f-]{36}")
+
+
+def _crew_lists(root):
+    """[(path, is Muster's own crew.md)]: the crew lists, read live every time (item 94)."""
+    lists = [(os.path.join(root, "muster", "CREW.md"), True)]
+    if PROFILE.get("crew_list"):
+        lists.append((os.path.join(root, PROFILE["crew_list"]), False))
+    return lists
+
+
+def _is_manager_name(name):
+    return re.fullmatch(r"Manager_[^_\s|]+_\d{3}", name) is not None or any(re.search("^(?:%s)$" % x, name) for x in PROFILE.get("manager_names", []))
+
+
+def crew_rows(root):
+    """[(name, chat id, is a manager)] of the crew list rows that are running: Muster's 'Running now' table; a profile's list in full."""
+    out = []
+    for path, own in _crew_lists(root):
+        try:
+            text = open(path, encoding="utf-8").read()
+        except OSError:
+            continue
+        if own:
+            m = re.search(r"## Running now(.*?)(?:\n## |\Z)", text, re.S)
+            text = m.group(1) if m else ""
+        for l in text.splitlines():
+            if not l.lstrip().startswith("|"):
+                continue
+            cells = [c.strip().strip("*`") for c in l.strip().strip("|").split("|")]
+            idm = ID_RE.search(l)
+            if cells and NAME_NUM.match(cells[0]) and (idm or not own):
+                out.append((cells[0], idm.group(0) if idm else "", _is_manager_name(cells[0])))
+    return out
+
+
+def managers_in_force(root):
+    """[(name, id)] the newest manager of each project in the crew lists: the manager a worker's report goes to, never the one in its memory."""
+    best = {}
+    for name, cid, mgr in crew_rows(root):
+        m = NAME_NUM.match(name)
+        if mgr and m and (m.group(1) not in best or int(m.group(2)) > int(NAME_NUM.match(best[m.group(1)][0]).group(2))):
+            best[m.group(1)] = (name, cid)
+    return list(best.values())
+
+
 def recipient_is_manager(to, root):
-    to = str(to)
+    """True when `to` is the manager in force (item 101). With a crew list that names managers, only the newest one counts: an
+    older manager's name or id, from a worker's memory, no longer does. With no readable list: any Manager name, as before."""
+    to = str(to).strip()
+    force = managers_in_force(root)
+    if force:
+        return any(to and to in (n, i) for n, i in force)
     if re.search(r"\bManager", to):
         return True
-    # the crew lists read live every time: Muster's own, and the one the project's profile names ("crew_list", item 94: a renewed manager's id is found there)
-    lists = [os.path.join(root, "muster", "CREW.md")]
-    if PROFILE.get("crew_list"):
-        lists.append(os.path.join(root, PROFILE["crew_list"]))
-    for path in lists:
+    for path, _ in _crew_lists(root):
         try:
             for l in open(path, encoding="utf-8"):
                 if to and to in l and (l.lstrip("| ").startswith("Manager") or MANAGER_RE.match(l.lstrip("| "))):
@@ -463,6 +517,83 @@ def recipient_is_manager(to, root):
         except OSError:
             pass
     return False
+
+
+def manager_now(root):
+    force = managers_in_force(root)
+    return "; the manager in force is " + " / ".join("%s (%s)" % (n, i) if i else n for n, i in force) + " (from the crew list)" if force else ""
+
+
+def sessions_dir():
+    d = os.environ.get("MUSTER_SESSIONS_DIR")
+    if d:
+        return d
+    home = os.path.expanduser("~")
+    for c in (os.path.join(home, "Library", "Application Support", "Claude", "claude-code-sessions"),
+              os.path.join(os.environ.get("APPDATA", ""), "Claude", "claude-code-sessions"),
+              os.path.join(home, ".config", "Claude", "claude-code-sessions")):
+        if os.path.isdir(c):
+            return c
+    return ""
+
+
+def session_record(cid):
+    """The app's session record for a chat id (read-only), or None."""
+    import glob
+    base = sessions_dir()
+    for f in glob.glob(os.path.join(base, "*", "*", cid + ".json")) if base and cid else []:
+        try:
+            return json.load(open(f, encoding="utf-8"))
+        except (OSError, ValueError):
+            pass
+    return None
+
+
+def sends_all(path):
+    """[(recipient, text)] of every message the chat sent (SendMessage 'to', or the app's send_message 'session_id')."""
+    out = []
+    try:
+        with open(path, encoding="utf-8") as fh:
+            for line in fh:
+                try:
+                    d = json.loads(line)
+                except ValueError:
+                    continue
+                c = (d.get("message") or {}).get("content", "")
+                for b in c if isinstance(c, list) else []:
+                    if isinstance(b, dict) and d.get("type") == "assistant" and b.get("type") == "tool_use" and (b.get("name") == "SendMessage" or str(b.get("name")).endswith("send_message")):
+                        i = b.get("input") or {}
+                        out.append((str(i.get("to") or i.get("session_id") or ""), str(i.get("message") or "")))
+    except OSError:
+        pass
+    return out
+
+
+def handover(first, root, path):
+    """Item 101. None unless this chat is a manager and the crew list names a newer manager of the same project. Else
+    {"new": (name, id), "running": the newer manager's chat is running, "untold": running workers not yet told its name and id}."""
+    own = _own_token(first)
+    m = NAME_NUM.match(own or "")
+    if not m or not _is_manager_name(own):
+        return None
+    newer = [(n, i) for n, i, mgr in crew_rows(root) if mgr and NAME_NUM.match(n) and NAME_NUM.match(n).group(1) == m.group(1) and int(NAME_NUM.match(n).group(2)) > int(m.group(2))]
+    if not newer:
+        return None
+    new = max(newer, key=lambda x: int(NAME_NUM.match(x[0]).group(2)))
+    rec = session_record(new[1])
+    running = bool(rec) and not rec.get("isArchived")
+    untold = []
+    if running:
+        sent = sends_all(path)
+        for name, cid, mgr in crew_rows(root):
+            if mgr or cid == new[1] or not cid:
+                continue
+            r = session_record(cid)
+            if r is not None and r.get("isArchived"):
+                continue
+            if not any(to in (cid, name) and new[1] in t and new[0] in t for to, t in sent):
+                untold.append(name)
+    return {"new": new, "running": running, "untold": untold}
 
 
 def goal_problem(root, job):
@@ -806,7 +937,25 @@ def renew_problem(data, manager):
             "\"DONE: renewal <your chat name>\". Do this once, then carry on until the manager starts your fresh chat." % (RENEW_MARK, n))
 
 
+def handover_stop(data):
+    """Item 101: an outgoing manager (the crew list names a newer one) ends silent, owes no owner-facing line, and once the new manager runs
+    tells every running worker its name and id, then archives itself (D-005). True when this stop is the outgoing manager's."""
+    path = data.get("transcript_path") or ""
+    if owner_typed_last(path):
+        return False  # his own typed words to this chat are still answered under the usual rules
+    h = handover(first_message(path), main_folder(data.get("cwd")), path)
+    if not h:
+        return False
+    if h["running"] and not data.get("stop_hook_active") and not bounced_this_turn(path):
+        todo = ("tell each running worker the new manager's name and id (%s, %s) with SendMessage: %s; then " % (h["new"][0], h["new"][1], ", ".join(h["untold"]))) if h["untold"] else ""
+        block("handover (item 101): %s runs now, so you are the outgoing manager. %sarchive yourself (archive_session with session_id \"self\", D-005). "
+              "Say nothing to the owner; end with no text" % (h["new"][0], todo))
+    return True
+
+
 def stop(data, manager):
+    if manager and handover_stop(data):
+        return
     text = data.get("last_assistant_message") or ""
     if not data.get("stop_hook_active"):
         why = renew_problem(data, manager)
@@ -858,7 +1007,7 @@ def stop(data, manager):
         # SendMessage (to) or the app's older send_message tool (session_id); either reaches the manager
         if not any((u.get("name") == "SendMessage" and recipient_is_manager((u.get("input") or {}).get("to", ""), root))
                    or ((u.get("name") or "").endswith("send_message") and recipient_is_manager((u.get("input") or {}).get("session_id", ""), root)) for u in uses):
-            return block("a report reaches the manager as a message as well as the board (item 65): send the manager your %s report with SendMessage (a different ID from any copy to someone else), then end the turn with the card" % body.split()[0].strip("*"))
+            return block("a report reaches the manager as a message as well as the board (item 65): send the manager your %s report with SendMessage (a different ID from any copy to someone else), then end the turn with the card%s" % (body.split()[0].strip("*"), manager_now(root)))
 
 
 def stood_down(data):

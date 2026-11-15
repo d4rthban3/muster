@@ -63,3 +63,14 @@ table{width:100%;border-collapse:collapse;font-size:15px;margin:8px 0}th,td{text
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}.btn:hover,.btn:active{transform:none}}
 
 .see{display:inline-block;margin-top:4px;color:var(--mut);font-size:15px}
+
+.menu{position:static}
+.mbtn{list-style:none;font:600 16px/1 "DM Sans",sans-serif;display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border-radius:999px;border:2px solid var(--text);background:var(--acc);color:var(--acc-text);cursor:pointer}
+.mbtn::-webkit-details-marker{display:none}
+.mbtn svg{width:20px;height:20px}
+.mbtn:focus-visible{outline:3px solid var(--purple);outline-offset:2px}
+.mpanel{position:absolute;right:16px;top:64px;z-index:30;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:8px;min-width:230px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.mpanel a{display:block;padding:14px 12px;color:var(--text);text-decoration:none;font-weight:600;font-size:17px;border-radius:8px}
+.mpanel a+a{border-top:1px solid var(--line)}
+.mpanel a:hover,.mpanel a:focus-visible{background:var(--bg)}
+@media (min-width:900px){.mpanel{right:calc((100vw - 860px)/2 + 16px)}}

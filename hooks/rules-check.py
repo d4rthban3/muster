@@ -654,6 +654,11 @@ def look_unshown(question, uses):
     return bool(LOOK.search(question) or (LOOK_WEAK.search(question) and LOOK_SCREEN.search(question))) and not pictures_shown(uses)
 
 
+# item 108: a chat's own memory folder (~/.claude/projects/<project>/memory/) never holds crew rules
+MEMORY_DIR = re.compile(r"/\.claude/projects/[^/]+/memory/")
+CREW_RULE_WORDS = re.compile(r"\b[Mm]uster\b|\bcrew\b|rules page|\bD-0\d\d\b|\bitem \d{2,3}\b|\b(?:Manager|Builder|Inspector|Designer)[ _]|\b(?:READY|STUCK)\b")
+MEMORY_WHY = "the Muster files are the only rulebook (item 108): do not write crew rules into your own memory; if a rule is missing or wrong, send the manager a NEED"
+
 def pretool(data, manager):
     tool = data.get("tool_name", "")
     inp = data.get("tool_input") or {}
@@ -713,6 +718,12 @@ def pretool(data, manager):
         if not bad_order and usage_at_limit(root):
             return deny("the week is at 90% or more (scripts/usage.py exits 3): start no new order; finish and park what is running")
         return
+    # item 108, D-027: the Muster files are the only rulebook; no crew chat writes crew rules into its own memory
+    if tool in ("Write", "Edit", "MultiEdit", "NotebookEdit"):
+        mp = str(inp.get("file_path", "")).replace("\\", "/")
+        body = " ".join(str(inp.get(k, "")) for k in ("content", "new_string", "new_source"))
+        if MEMORY_DIR.search(mp) and CREW_RULE_WORDS.search(body):
+            return deny(MEMORY_WHY)
     if tool in ("Write", "Edit", "NotebookEdit") and not manager:
         p = str(inp.get("file_path", "")).replace("\\", "/")
         if PROTECTED.search(p):
@@ -727,6 +738,8 @@ def pretool(data, manager):
             args = re.sub(r"(\"[^\"]*\"|'[^']*')", " ", mg.group(2))
             if re.search(r"(?<![\w/.-])(muster/?|muster/[^\s]*\.\w+|muster/(rules|handovers|superseded|x-post)/\S*)(?=\s|$)", args):
                 return deny("nothing under muster/ is ever saved or committed")
+        if CREW_RULE_WORDS.search(re.sub(r"\S*/\.claude/projects/\S*", " ", cmd)) and any(MEMORY_DIR.search(os.path.normpath(os.path.join(data.get("cwd") or os.getcwd(), os.path.expanduser(t))).replace("\\", "/")) for t in shell_write_targets(cmd)):
+            return deny(MEMORY_WHY)
         if not manager and PROFILE_PROTECTED is not None:
             base = data.get("cwd") or os.getcwd()
             for tgt in shell_write_targets(cmd):

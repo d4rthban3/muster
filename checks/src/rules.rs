@@ -355,6 +355,15 @@ fn pretool(c: &Ctx, data: &Value, manager: bool) {
         if manager { return deny("no choice card (it locks the chat until he answers): write the question in the chat as lettered lines, ***A.*** ... one per line with a blank line between, your pick marked \"my pick\"; he answers by typing a letter. Keep working on anything that does not depend on his answer"); } // item 80, D-037
         return;
     }
+    // item 108, D-027: the Muster files are the only rulebook; no crew chat writes crew rules into its own memory
+    let mem_dir = re(r"/\.claude/projects/[^/]+/memory/");
+    let rule_words = re(r"\b[Mm]uster\b|\bcrew\b|rules page|\bD-0\d\d\b|\bitem \d{2,3}\b|\b(?:Manager|Builder|Inspector|Designer)[ _]|\b(?:READY|STUCK)\b");
+    const MEMORY_WHY: &str = "the Muster files are the only rulebook (item 108): do not write crew rules into your own memory; if a rule is missing or wrong, send the manager a NEED";
+    if matches!(tool, "Write" | "Edit" | "MultiEdit" | "NotebookEdit") {
+        let mp = s(inp, "file_path").replace('\\', "/");
+        let body = ["content", "new_string", "new_source"].iter().map(|k| s(inp, k)).collect::<Vec<_>>().join(" ");
+        if is(&mem_dir, &mp) && is(&rule_words, &body) { return deny(MEMORY_WHY); }
+    }
     if matches!(tool, "Write" | "Edit" | "NotebookEdit") && !manager {
         let p = s(inp, "file_path").replace('\\', "/");
         if is(&c.protected, &p) {
@@ -371,6 +380,14 @@ fn pretool(c: &Ctx, data: &Value, manager: bool) {
             let Some(mg) = caps(&git, seg) else { continue };
             let args = sub(&quoted, &mg[2], " ");
             if is(&musterpath, &args) { return deny("nothing under muster/ is ever saved or committed"); }
+        }
+        let cmd_no_path = sub(&re(r"\S*/\.claude/projects/\S*"), cmd, " ");
+        if is(&rule_words, &cmd_no_path) {
+            let base = { let cw = s(data, "cwd"); if cw.is_empty() { std::env::current_dir().unwrap_or_default() } else { cw.into() } };
+            for tgt in shell_write_targets(cmd) {
+                let full = normalise(&base.join(expand_home(&tgt))).to_string_lossy().replace('\\', "/");
+                if is(&mem_dir, &full) { return deny(MEMORY_WHY); }
+            }
         }
         if !manager {
             if let Some(pp) = &c.profile_protected {

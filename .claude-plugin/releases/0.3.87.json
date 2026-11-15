@@ -1,0 +1,26 @@
+{
+  "version": "0.3.87",
+  "changed_files": [
+    "bin/SOURCE-STAMP",
+    "bin/linux-arm64/muster-checks",
+    "bin/linux-x86_64/muster-checks",
+    "bin/macos-arm64/muster-checks",
+    "bin/macos-x86_64/muster-checks",
+    "bin/windows-x86_64/muster-checks.exe",
+    "checks/src/rules.rs",
+    "directory/skills/start-the-crew/SKILL.md",
+    "hooks/rules-check.py",
+    "profiles/muster.json",
+    "profiles/pinr.json",
+    "scripts/crew-plan.py",
+    "scripts/profile-selftest.py",
+    "scripts/rules-check-selftest.py",
+    "skills/start-the-crew/SKILL.md"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Renew line 300k and trimmed start load (item 102): renew at 300k; crew chats start without unused tools"
+}

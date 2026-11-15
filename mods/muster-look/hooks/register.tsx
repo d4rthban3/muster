@@ -12,16 +12,12 @@ export const register: Register = on => {
     if (parsed === null) return next(e)
 
     const { Box, Text, Markdown } = $.ui.resolve(e)
-    const isTerminal = e.surface === 'terminal'
 
-    const chip = (label: string, c: typeof YELLOW) =>
-      isTerminal ? (
-        <Text color={c.text} backgroundColor={c.fill} bold>{` ${label} `}</Text>
-      ) : (
-        <Box borderStyle="round" borderColor={c.edge} backgroundColor={c.fill} paddingX={1}>
-          <Text color={c.text} bold>{label}</Text>
-        </Box>
-      )
+    // One line tall on every surface: a tinted fill and text in the chip's own
+    // colour (the owner asked for smaller chips than the bordered box).
+    const chip = (label: string, c: typeof YELLOW) => (
+      <Text color={c.text} backgroundColor={c.fill} bold>{` ${label} `}</Text>
+    )
 
     const rows = parsed.pieces.map((p, i) => {
       const inQ = parsed.isQuestion && i >= parsed.startsAt

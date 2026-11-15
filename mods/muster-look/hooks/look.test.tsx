@@ -33,3 +33,14 @@ test('plain text goes to the engine untouched', async ($, on) => {
   expect((await ui.find({ type: 'Text', text: /engine/ }))?.text).toBe('engine')
   await ui.unmount()
 })
+
+test('a mixed-case title and a plain one become chips; chips are one line', async ($, on) => {
+  on('ui.render', ($, e) => {
+    const { Text } = $.ui.resolve(e)
+    return <Text>engine</Text>
+  })
+  const ui = await $.ui.mount(MSG('**PASS received · muster look build**\n- Done.', 'desktop'))
+  expect((await ui.find({ type: 'Text', text: /PASS received · muster look build/ }))?.text).toContain('PASS received')
+  expect(await ui.find({ type: 'Text', text: /engine/ })).toBeFalsy()
+  await ui.unmount()
+})

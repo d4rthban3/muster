@@ -7,7 +7,7 @@ export type Piece =
 
 export type Parsed = { pieces: Piece[]; isQuestion: boolean; startsAt: number }
 
-const TITLE = /^\*\*([A-Z][A-Z_ ]{1,24}) · (.{1,80}?)\*\*\s*$/
+const TITLE = /^\*\*([A-Za-z][A-Za-z_ ]{1,24}) · (.{1,80}?)\*\*\s*$/
 const CHOICE = /^\*\*\*([A-Z])\.\*\*\*\s*(.*)$/
 
 export function parse(text: string): Parsed | null {

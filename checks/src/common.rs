@@ -257,6 +257,65 @@ pub fn letters_not_bold_italic(text: &str) -> bool {
     lines.len() >= 2 && lines.iter().any(|l| !is(&good, l))
 }
 
+/// The choices of a lettered question, each reduced to its words (no letter, no "my pick"); empty unless there are two or more (item 114).
+pub fn question_key(text: &str) -> HashSet<String> {
+    let line = re(r"(?m)^\*\*\*[A-D]\.\*\*\*\s*(.*)$");
+    let pick = rei(r"\(?\*?my pick\*?\)?");
+    let junk = re(r"[^a-z0-9]+");
+    let mut opts: HashSet<String> = HashSet::new();
+    let mut n = 0;
+    for c in line.captures_iter(text).flatten() {
+        let b = sub(&pick, c.get(1).map(|m| m.as_str()).unwrap_or(""), " ").to_lowercase();
+        let b = sub(&junk, &b, " ").trim().to_string();
+        if !b.is_empty() { n += 1; opts.insert(b.chars().take(60).collect()); }
+    }
+    if n >= 2 { opts } else { HashSet::new() }
+}
+
+/// Item 114: this lettered question (nearly) matches one already put to him since his last typed words. A reply the Stop hook bounced does
+/// not count; his typed message clears the list.
+pub fn question_repeated(path: &str, text: &str) -> bool {
+    let mine = question_key(text);
+    if mine.is_empty() { return false; }
+    let ends = rei(r"<cross-session-message|<task-notification|<side-sessions-event|<ci-monitor-event|\[SYSTEM NOTIFICATION");
+    let neutral = rei(r"^\s*(<system-reminder|Stop hook feedback)");
+    let bounce = re(r"^\s*Stop hook (feedback|blocking error)");
+    let mut seen: Vec<(HashSet<String>, String)> = vec![];
+    let mut user_after = false;
+    for d in lines_of(path) {
+        let c = msg_content(&d);
+        match s(&d, "type") {
+            "assistant" => if let Value::Array(a) = &c {
+                let t: Vec<&str> = a.iter().filter(|b| s(b, "type") == "text").map(|b| s(b, "text")).collect();
+                let t = t.join("\n");
+                let k = question_key(&t);
+                if !k.is_empty() { seen.push((k, t)); user_after = false; }
+            },
+            "user" => {
+                if let Value::Array(a) = &c { if a.iter().any(|b| s(b, "type") == "tool_result") { continue; } }
+                let t = content_text(&c);
+                if t.trim().is_empty() { continue; }
+                user_after = true;
+                if is(&bounce, &t) { seen.pop(); }
+                else if is(&ends, &t) || is(&neutral, &t) {}
+                else { seen.clear(); }
+            }
+            _ => {}
+        }
+    }
+    if !user_after { if let Some((_, t)) = seen.last() { if t.trim() == text.trim() { seen.pop(); } } }
+    seen.iter().any(|(k, _)| { let i = mine.intersection(k).count() as f64; let u = mine.union(k).count() as f64; i / u >= 0.7 })
+}
+
+/// Item 114: news words on a line that is neither a choice nor a question, in a reply that carries a lettered question.
+pub fn news_with_question(text: &str) -> bool {
+    let line = re(r"^\*\*\*[A-D]\.\*\*\*");
+    if text.lines().filter(|l| is(&line, l.trim())).count() < 2 { return false; }
+    let up = re(r"\b(PASS|LIVE|DONE)\b");
+    let lo = rei(r"\b(shipped|passed|merged|released|progress|landed|finished)\b");
+    text.lines().any(|l| !is(&line, l.trim()) && !l.contains('?') && (is(&up, l) || is(&lo, l)))
+}
+
 pub fn exists(p: &Path) -> bool { p.exists() }
 pub fn read_all<R: Read>(mut r: R) -> String { let mut t = String::new(); let _ = r.read_to_string(&mut t); t }
 

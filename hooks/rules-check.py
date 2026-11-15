@@ -832,6 +832,77 @@ def is_news(t):
     return bool(NEWS_UP.search(t) or NEWS_LO.search(t))
 
 
+CHOICE_LINE = re.compile(r"^\*\*\*[A-D]\.\*\*\*\s*(.*)$", re.M)
+
+
+def question_key(text):
+    """The choices of a lettered question, each reduced to its words (no letter, no 'my pick'); empty unless there are two or more."""
+    opts = []
+    for body in CHOICE_LINE.findall(text):
+        b = re.sub(r"\(?\*?my pick\*?\)?", " ", body, flags=re.I)
+        b = re.sub(r"[^a-z0-9]+", " ", b.lower()).strip()
+        if b:
+            opts.append(b[:60])
+    return frozenset(opts) if len(opts) >= 2 else frozenset()
+
+
+def question_repeated(path, text):
+    """Item 114: True when this lettered question (nearly) matches one already put to him since his last typed words. A reply the
+    Stop hook bounced does not count (the rewrite is the same question); his typed message clears the list."""
+    mine = question_key(text)
+    if not mine:
+        return False
+    seen = []  # (key, text) of the manager's earlier lettered messages since he last typed
+    user_after = False  # a message came in after the last lettered reply
+    try:
+        with open(path, encoding="utf-8") as fh:
+            for line in fh:
+                try:
+                    d = json.loads(line)
+                except ValueError:
+                    continue
+                c = (d.get("message") or {}).get("content", "")
+                if d.get("type") == "assistant" and isinstance(c, list):
+                    t = "\n".join(b.get("text", "") for b in c if isinstance(b, dict) and b.get("type") == "text")
+                    k = question_key(t)
+                    if k:
+                        seen.append((k, t))
+                        user_after = False
+                elif d.get("type") == "user":
+                    if isinstance(c, list):
+                        if any(isinstance(b, dict) and b.get("type") == "tool_result" for b in c):
+                            continue
+                        c = " ".join(b.get("text", "") for b in c if isinstance(b, dict))
+                    c = str(c)
+                    if not c.strip():
+                        continue
+                    user_after = True
+                    if re.match(r"\s*Stop hook (feedback|blocking error)", c):
+                        if seen:
+                            seen.pop()  # the reply that was bounced never counted as asked
+                    elif ENDS_TURN.search(c) or NEUTRAL.match(c):
+                        pass
+                    else:
+                        seen = []
+    except OSError:
+        return False
+    if seen and not user_after and seen[-1][1].strip() == text.strip():
+        seen.pop()  # this very reply, already in the file
+    return any(len(mine & k) / len(mine | k) >= 0.7 for k, _ in seen)
+
+
+def news_with_question(text):
+    """Item 114: news words on a line that is neither a choice nor a question, in a reply that carries a lettered question."""
+    if len(CHOICE_LINE.findall(text)) < 2:
+        return False
+    for ln in text.splitlines():
+        if CHOICE_LINE.match(ln.strip()) or "?" in ln:
+            continue
+        if is_news(ln):
+            return True
+    return False
+
+
 def group_unfiled(uses):
     """Group check (item 79): a chat really started this turn (not a card that only proposes one) must be followed by move_sessions into the
     project's group and then a list_sessions read-back."""
@@ -919,6 +990,10 @@ def stop(data, manager):
         if is_news(text) and not owner_form_ok(text) and not owner_asked(data.get("transcript_path") or ""):
             return block("never tell the owner PASS, LIVE, DONE, shipped or progress news (item 97): his chat gets only a lettered question, a yes he must give, "
                          "or the idle card. When nothing needs him, end this turn with no text at all")
+        if news_with_question(text) and not owner_asked(data.get("transcript_path") or ""):
+            return block("news does not ride along with a question (item 114): his chat gets the question alone; the news goes to the board only")
+        if question_repeated(data.get("transcript_path") or "", text):
+            return block("he has already been asked this question and has not answered (item 114): do not put it to him again; keep working on what does not depend on his answer, and end this turn with no text")
         if "?" in text and look_unshown(question_part(text), uses):
             return block("a question about how something looks comes after the pictures: show them to him first in this turn (send-file with render, or card previews), then ask")
         if not manager_reply_ok(text) and not owner_asked(data.get("transcript_path") or "") \

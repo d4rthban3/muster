@@ -14,8 +14,12 @@ RUN_ENV = dict(os.environ, MUSTER_MESSAGE_FORM="text")  # these cases are the ol
 T = tempfile.mkdtemp()
 
 
+import itertools
+_tn = itertools.count()
+
+
 def tr(first, extra=()):
-    p = os.path.join(T, "t%d.jsonl" % len(os.listdir(T)))
+    p = os.path.join(T, "t%d.jsonl" % next(_tn))
     with open(p, "w") as f:
         f.write(json.dumps({"type": "user", "message": {"content": first}}) + "\n")
         for e in extra:
@@ -62,6 +66,11 @@ def compacted(first):
 
 compacted_mgr = compacted("Manager_Muster")
 compacted_b = compacted("Builder A_Muster, agents/builder.md")
+
+Q = "Which first?\n\n***A.*** ship the menu fix *(my pick)* because it is small\n\n***B.*** wait for the next piece"
+asst = lambda t: {"type": "assistant", "message": {"content": [{"type": "text", "text": t}]}}
+usr = lambda t: {"type": "user", "message": {"content": t}}
+mgr_first = "You are Manager_Muster"
 bn = tr("You are Builder A_Muster, agents/builder.md")
 mn = tr("You are Manager_Muster")
 cases = [
@@ -78,6 +87,12 @@ cases = [
     ("item 108: crew words written outside memory go through", run("PreToolUse", tool_name="Write", tool_input={"file_path": "/home/x/Muster/notes.md", "content": "Builder A sends READY"}, transcript_path=b), False),
     ("D-039: a manager still edits the crew list after a compaction rewrote its first message", run("PreToolUse", tool_name="Edit", tool_input={"file_path": "/home/x/p/muster/CREW.md", "new_string": "x"}, transcript_path=compacted_mgr), False),
     ("D-039: a builder is still stopped from the crew list after a compaction", run("PreToolUse", tool_name="Edit", tool_input={"file_path": "/home/x/p/muster/CREW.md", "new_string": "x"}, transcript_path=compacted_b), True),
+    ("item 114: a question already put to him is not asked again", run("Stop", last_assistant_message=Q, transcript_path=tr(mgr_first, [asst(Q), usr("<cross-session-message from=x>PASS</cross-session-message>")])), True),
+    ("item 114: the same question after he typed something is allowed", run("Stop", last_assistant_message=Q, transcript_path=tr(mgr_first, [asst(Q), usr("hello"), usr("<cross-session-message from=x>PASS</cross-session-message>")])), False),
+    ("item 114: a question the Stop hook bounced is not counted as asked", run("Stop", last_assistant_message=Q, transcript_path=tr(mgr_first, [asst(Q), usr("Stop hook feedback: fix it"), asst(Q)])), False),
+    ("item 114: a different question is allowed", run("Stop", last_assistant_message=Q.replace("ship the menu fix", "start the new report").replace("wait for the next piece", "park it"), transcript_path=tr(mgr_first, [asst(Q), usr("<cross-session-message from=x>PASS</cross-session-message>")])), False),
+    ("item 114: news riding along with a question is refused", run("Stop", last_assistant_message="The menu fix has PASS and is shipped.\n\n" + Q, transcript_path=tr(mgr_first, [usr("<cross-session-message from=x>PASS</cross-session-message>")])), True),
+    ("item 114: the question alone is allowed", run("Stop", last_assistant_message=Q, transcript_path=tr(mgr_first, [usr("<cross-session-message from=x>PASS</cross-session-message>")])), False),
     ("a reply of 'noted' is refused", send("noted", b), True),
     ("'noted, thanks' is refused", send("noted, thanks", b), True),
     ("'Got it. Thanks and will do!' is refused", send("Got it. Thanks and will do!", b), True),

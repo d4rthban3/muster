@@ -542,6 +542,14 @@ fn stop(c: &Ctx, data: &Value, manager: bool) {
             block("never tell the owner PASS, LIVE, DONE, shipped or progress news (item 97): his chat gets only a lettered question, a yes he must give, or the idle card. When nothing needs him, end this turn with no text at all");
             return;
         }
+        if news_with_question(text) && !owner_asked(tpath) {
+            block("news does not ride along with a question (item 114): his chat gets the question alone; the news goes to the board only");
+            return;
+        }
+        if question_repeated(tpath, text) {
+            block("he has already been asked this question and has not answered (item 114): do not put it to him again; keep working on what does not depend on his answer, and end this turn with no text");
+            return;
+        }
         if re(r"(?m)^\*\*\*[A-D]\.\*\*\*").find_iter(text).count() >= 2 && !is(&rei(r"\bmy pick\b"), text) {
             block("every lettered question carries your pick: mark one choice *(my pick)* and give a one-line reason, looks included; a pick is advice only and nothing is ordered until he answers (item 100)");
             return;

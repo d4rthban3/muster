@@ -4,6 +4,10 @@ running and match them against open items on the owner's list and open orders on
 open item that fits it and the manager's last message does not name that chat, the stop is refused once, naming the
 chat and the item, so the manager gives it the next order or says "The crew is idle".
 
+Idle card (item 95): when two or more chats are idle with no open item to order (still idle), the manager's reply must be ONE card
+to the owner: a bullet line for each, naming it with "since <when>", "why: <reason>" and "unblocked by: <what>", plus the one lettered
+question that unblocks the most (two or more ***A.*** lines, or one with a "?"); said once unchanged, like every news line (item 81).
+
 Run as a Stop hook (hooks.json registration comes later) or by hand:  python3 scripts/idle-check.py [--project DIR] [--list]
 Reads only: muster/CREW.md, muster/OWNERS-LIST.md, muster/BOARD.md in the project folder, and the app's session
 records (read-only). Writes and sends nothing. Silent (exit 0) when not in a manager folder, on any error, or when
@@ -180,6 +184,27 @@ def last_message(data):
     return ""
 
 
+LETTERS = re.compile(r"^\s*\*{2,3}[A-D]\.\*{2,3}", re.M)
+
+
+def card_problem(raw, names):
+    """Item 95: what a reply to the owner lacks when two or more workers are idle and still idle. Empty when it is the card."""
+    lines = raw.splitlines()
+    lacking = []
+    for n in names:
+        ok = any(n.lower() in l.lower() and re.search(r"\bsince\b", l, re.I) and re.search(r"\bwhy\b", l, re.I) and re.search(r"\bunblock", l, re.I) for l in lines)
+        if not ok:
+            lacking.append(n)
+    letters = len(LETTERS.findall(raw))
+    q_ok = letters >= 2 or ("?" in raw and letters >= 1)
+    out = []
+    if lacking:
+        out.append("no line with 'since', 'why' and 'unblocked by' for: " + ", ".join(lacking))
+    if not q_ok:
+        out.append("no lettered question (two or more ***A.*** lines, or one with a '?') for the choice that unblocks the most")
+    return "; ".join(out)
+
+
 def findings(project, now=None):
     now = now or time.time()
     items = open_items(project)
@@ -293,6 +318,11 @@ def main(argv):
         missing = [f for f in findings(project) if f[2] and fresh("item", f[0], "; ".join("%s (%s)" % x for x in f[2]), f[0])]
         waiting = [w for w in waiting_chats(crew(project)) if fresh("wait", w[0], w[1], w[0])]
         holds = [h for h in board_holds(project) if fresh("hold", h[0], h[1], h[0])]
+        # item 95: two or more chats idle with no open item to order: the owner gets one card, not single-line news
+        still = [(n, secs) for n, secs, f in findings(project) if not f]
+        card = ""
+        if not missing and len(still) >= 2 and fresh("card", ",".join(sorted(n for n, _ in still)), "", "\x00never-in-reply"):
+            card = card_problem(last_message(data), [n for n, _ in still])
         if told != told0:
             try:
                 open(tfile, "w", encoding="utf-8").write("\n".join(sorted(told)) + "\n")
@@ -301,6 +331,11 @@ def main(argv):
     except Exception:
         return 0
     if not missing and not waiting and not holds:
+        if card:
+            print(json.dumps({"decision": "block", "reason":
+                "Two or more workers are idle with nothing to order and the owner has no clear report (item 95). Send him ONE card: a bold title, one bullet "
+                "line per worker (%s), each saying 'since <when>', 'why: <reason>' and 'unblocked by: <what>', then the one lettered question "
+                "(***A.*** ...) that unblocks the most. Missing: %s." % ("; ".join("%s idle %d min" % (n, max(1, sec // 60)) for n, sec in still), card) + NOREPEAT}))
         return 0
     lines = ["%s has been idle %d minutes and holds an open item: %s" %
              (n, max(1, secs // 60), "; ".join("%s (%s)" % x for x in f)) for n, secs, f in missing]

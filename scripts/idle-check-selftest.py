@@ -72,4 +72,37 @@ open(os.path.join(tmp, "muster", "OWNERS-LIST.md"), "a").write("\n")
 with open(os.path.join(tmp, "muster", "OWNERS-LIST.md"), "w") as f:
     f.write("## Open\n1. \"a\"\n   Stands: with Builder R_X_001 (changed)\n\n## Closed\n")
 t("repeat: a changed item is said again", "Builder R_X_001" in run({"last_assistant_message": "ok", "transcript_path": "/t/one"}, st))
+
+# item 95: two or more idle workers with nothing to order: the owner gets one card with each worker's since, why and unblock, and one lettered question
+def cproj(idle_ago, items=""):
+    d = tempfile.mkdtemp(); os.makedirs(os.path.join(d, "muster")); sd = os.path.join(d, "s", "a", "b"); os.makedirs(sd)
+    names = ["Manager_Y_001"] + ["Builder %s_Y_001" % c for c in "ABC"]
+    open(os.path.join(d, "muster", "BOARD.md"), "w").write("")
+    open(os.path.join(d, "muster", "OWNERS-LIST.md"), "w").write("## Open\n" + items + "\n## Closed\n")
+    open(os.path.join(d, "muster", "CREW.md"), "w").write("## Running now\n| Name | Model | Effort | Folder | Chat id | Started |\n|---|---|---|---|---|---|\n" +
+        "".join("| %s | m | medium | f | %s | d |\n" % (n, cid(i)) for i, n in enumerate(names, 1)) + "\n## Archived\n")
+    for i, ago in enumerate([5] + idle_ago, 1):
+        json.dump({"isArchived": False, "lastActivityAt": now - ago * 1000, "postTurnSummary": {}}, open(os.path.join(sd, cid(i) + ".json"), "w"))
+    return d, os.path.join(d, "s")
+def crun(d, sd, msg):
+    return subprocess.run([sys.executable, CHK, "--project", d], input=json.dumps({"last_assistant_message": msg}), capture_output=True, text=True,
+                          env=dict(os.environ, MUSTER_SESSIONS_DIR=sd, MUSTER_STATE_DIR=tempfile.mkdtemp())).stdout
+CARD = ("**IDLE \u00b7 crew**\n- Builder A_Y_001: idle since 14:02, why: its piece passed and nothing is open, unblocked by: a new order from his list\n"
+        "- Builder B_Y_001: idle since 14:10, why: waits for the owner's ship allowance, unblocked by: his typed yes\n\n"
+        "Which should come first?\n\n***A.*** the usage meter\n\n***B.*** the site clean-up")
+d, sd = cproj([600, 600, 5])
+o = crun(d, sd, "The crew is idle.")
+t("idle card: two idle workers and a one-line news reply block", "block" in o and "Builder A_Y_001" in o and "Builder B_Y_001" in o and "item 95" in o)
+t("idle card: a card naming each with since, why, unblocked by and a lettered question passes", crun(d, sd, CARD) == "")
+t("idle card: a card with no lettered question blocks", "lettered question" in crun(d, sd, CARD.split("Which should")[0]))
+t("idle card: a line without 'why' blocks and names the worker", "Builder B_Y_001" in crun(d, sd, CARD.replace("why: waits", "waits")).split("Missing:")[-1])
+d1, sd1 = cproj([600, 5, 5])
+t("idle card: one idle worker is not the card's business", crun(d1, sd1, "ok") == "")
+d2, sd2 = cproj([600, 600, 5], "1. \"x\"\n   Stands: with Builder A_Y_001\n")
+o2 = crun(d2, sd2, "ok")
+t("idle card: an idle worker with open work and no order blocks, named, before the card", "Builder A_Y_001 has been idle" in o2)
+st2 = tempfile.mkdtemp()
+a1 = subprocess.run([sys.executable, CHK, "--project", d], input=json.dumps({"last_assistant_message": "ok", "transcript_path": "/t/c"}), capture_output=True, text=True, env=dict(os.environ, MUSTER_SESSIONS_DIR=sd, MUSTER_STATE_DIR=st2)).stdout
+a2 = subprocess.run([sys.executable, CHK, "--project", d], input=json.dumps({"last_assistant_message": "ok", "transcript_path": "/t/c"}), capture_output=True, text=True, env=dict(os.environ, MUSTER_SESSIONS_DIR=sd, MUSTER_STATE_DIR=st2)).stdout
+t("idle card: said once, unchanged, it is not asked again", "block" in a1 and a2 == "")
 sys.exit(1 if bad else 0)

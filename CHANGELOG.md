@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.98
+Affects: see .claude-plugin/releases/0.3.98.json.
+Item 115: a question from the owner gets an answer; orders from his question are blocked unless they cite his choice
+
 ## 0.3.97
 Affects: see .claude-plugin/releases/0.3.97.json.
 PINR rule 21: decide-pinr.py says the founder, never he/him/his

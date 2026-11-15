@@ -1,0 +1,29 @@
+{
+  "version": "0.3.98",
+  "changed_files": [
+    "agents/manager.md",
+    "bin/SOURCE-STAMP",
+    "bin/linux-arm64/muster-checks",
+    "bin/linux-x86_64/muster-checks",
+    "bin/macos-arm64/muster-checks",
+    "bin/macos-x86_64/muster-checks",
+    "bin/windows-x86_64/muster-checks.exe",
+    "checks/src/common.rs",
+    "checks/src/rules.rs",
+    "directory/agents/manager.md",
+    "directory/skills/manager-details/SKILL.md",
+    "directory/templates/CLAUDE.md",
+    "hooks/rules-check.py",
+    "pages/manager.md",
+    "scripts/profile-selftest.py",
+    "scripts/rules-check-selftest.py",
+    "skills/manager-details/SKILL.md",
+    "templates/CLAUDE.md"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Item 115: a question from the owner gets an answer; orders from his question are blocked unless they cite his choice"
+}

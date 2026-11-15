@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.93
+Affects: see .claude-plugin/releases/0.3.93.json.
+Phone menu (item 7): a Menu button at the top right of every page on a phone
+
 ## 0.3.92
 Affects: see .claude-plugin/releases/0.3.92.json.
 Memory rule check (item 108, D-027): a crew chat cannot write crew rules into its own memory

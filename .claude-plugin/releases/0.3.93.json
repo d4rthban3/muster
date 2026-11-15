@@ -1,0 +1,19 @@
+{
+  "version": "0.3.93",
+  "changed_files": [
+    "docs/chatgpt.html",
+    "docs/checklist.html",
+    "docs/compatibility.html",
+    "docs/cursor.html",
+    "docs/grokbot.html",
+    "docs/index.html",
+    "docs/menu.js",
+    "docs/style.css"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Phone menu (item 7): a Menu button at the top right of every page on a phone"
+}

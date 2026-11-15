@@ -1,0 +1,29 @@
+{
+  "version": "0.3.81",
+  "changed_files": [
+    "agents/builder.md",
+    "agents/designer.md",
+    "agents/manager.md",
+    "directory/agents/builder.md",
+    "directory/agents/designer.md",
+    "directory/agents/manager.md",
+    "directory/skills/deploy-rules/SKILL.md",
+    "directory/skills/manager-details/SKILL.md",
+    "pages/builder.md",
+    "pages/designer.md",
+    "pages/manager.md",
+    "scripts/ship.sh",
+    "skills/deploy-rules/SKILL.md",
+    "skills/manager-details/SKILL.md"
+  ],
+  "affected_roles": [
+    "Builder",
+    "Designer",
+    "Manager"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Ship blocked: a worker whose push the app refuses for the owner's yes never asks him; it sends the manager a NEED and the manager asks in his own chat and runs ship.sh"
+}

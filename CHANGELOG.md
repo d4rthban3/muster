@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.81
+Affects: Builder, Designer, Manager.
+Ship blocked: a worker whose push the app refuses for the owner's yes never asks him; it sends the manager a NEED and the manager asks in his own chat and runs ship.sh
+
 ## 0.3.80
 Affects: Manager.
 Letters are the question: two or more lettered choice lines count as the manager's question with or without a question mark

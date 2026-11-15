@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.82
+Affects: see .claude-plugin/releases/0.3.82.json.
+Muster crew runs its checks live from the Muster folder; checks find the current manager (items 93, 94)
+
 ## 0.3.81
 Affects: Builder, Designer, Manager.
 Ship blocked: a worker whose push the app refuses for the owner's yes never asks him; it sends the manager a NEED and the manager asks in his own chat and runs ship.sh

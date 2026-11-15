@@ -1,0 +1,33 @@
+{
+  "version": "0.3.82",
+  "changed_files": [
+    "bin/SOURCE-STAMP",
+    "bin/linux-arm64/muster-checks",
+    "bin/linux-x86_64/muster-checks",
+    "bin/macos-arm64/muster-checks",
+    "bin/macos-x86_64/muster-checks",
+    "bin/windows-x86_64/muster-checks.exe",
+    "checks/src/common.rs",
+    "checks/src/rules.rs",
+    "directory/skills/start-the-crew/SKILL.md",
+    "hooks/board-stop.py",
+    "hooks/board-stop.sh",
+    "hooks/idle-check.sh",
+    "hooks/rules-check.py",
+    "hooks/rules-check.sh",
+    "hooks/talk-check.py",
+    "hooks/talk-check.sh",
+    "hooks/worker-queue-check.sh",
+    "profiles/muster.json",
+    "profiles/pinr.json",
+    "scripts/install-checks.py",
+    "scripts/profile-selftest.py",
+    "skills/start-the-crew/SKILL.md"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Muster crew runs its checks live from the Muster folder; checks find the current manager (items 93, 94)"
+}

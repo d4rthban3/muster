@@ -16,7 +16,11 @@ export const register: Register = on => {
     // One line tall on every surface: a tinted fill and text in the chip's own
     // colour (the owner asked for smaller chips than the bordered box).
     const chip = (label: string, c: typeof YELLOW) => (
-      <Text color={c.text} backgroundColor={c.fill} bold>{` ${label} `}</Text>
+      <Text>
+        <Text color={c.edge}>{'\u25D6'}</Text>
+        <Text color={c.text} backgroundColor={c.fill} bold>{` ${label} `}</Text>
+        <Text color={c.edge}>{'\u25D7'}</Text>
+      </Text>
     )
 
     const rows = parsed.pieces.map((p, i) => {

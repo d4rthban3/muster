@@ -793,7 +793,7 @@ def renew_told(path):
 
 def renew_problem(data, manager):
     path = data.get("transcript_path") or ""
-    limit = int(PROFILE.get("renew_tokens") or 200000)
+    limit = int(PROFILE.get("renew_tokens") or 300000)
     n = context_tokens(path)
     if n <= limit or renew_told(path):
         return ""

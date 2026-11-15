@@ -319,7 +319,7 @@ add("check-report without a profile still wants the ID", "" if cr(rf) == 1 else 
 # item 99: renewal by size, and the summary hook's crew names come from the project's profile
 def bigt(n): return {"type": "assistant", "message": {"content": [{"type": "text", "text": "x"}], "usage": {"input_tokens": 5, "cache_read_input_tokens": n - 5000, "cache_creation_input_tokens": 4995}}}
 card99 = "**WORKING \u00b7 x**\n- a\n- b"
-add("item 99: a PINR-named worker over 200000 tokens is told to renew", run("rules-check.py", "Stop", cwd=PROJ, last_assistant_message=card99, transcript_path=tr("You are Site_PINR_002. Job: Site_PINR_002, builds the site.", [bigt(600000)])), True)
+add("item 99: a PINR-named worker over 300000 tokens is told to renew", run("rules-check.py", "Stop", cwd=PROJ, last_assistant_message=card99, transcript_path=tr("You are Site_PINR_002. Job: Site_PINR_002, builds the site.", [bigt(600000)])), True)
 add("item 99: a PINR-named worker under the line is silent", run("rules-check.py", "Stop", cwd=PROJ, last_assistant_message=card99, transcript_path=tr("You are Site_PINR_002. Job: Site_PINR_002, builds the site.", [bigt(120000)])), False)
 rs = lambda first, prof=True: subprocess.run([PY, os.path.join(ROOT, "hooks", "renew-after-summary.py")], input=json.dumps({"transcript_path": tr(first)}), capture_output=True, text=True,
                                             env=dict(ENV, **({"MUSTER_PROFILE": os.path.join(ROOT, "profiles", "pinr.json")} if prof else {}))).stdout

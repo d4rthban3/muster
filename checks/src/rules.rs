@@ -439,7 +439,7 @@ fn renew_told(path: &str) -> bool {
 }
 fn renew_problem(c: &Ctx, data: &Value, manager: bool) -> Option<String> {
     let path = s(data, "transcript_path");
-    let limit = c.profile.get("renew_tokens").and_then(Value::as_u64).filter(|n| *n > 0).unwrap_or(200000);
+    let limit = c.profile.get("renew_tokens").and_then(Value::as_u64).filter(|n| *n > 0).unwrap_or(300000);
     let n = context_tokens(path);
     if n <= limit || renew_told(path) { return None; }
     Some(if manager {

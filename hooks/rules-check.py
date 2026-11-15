@@ -11,8 +11,7 @@ PreToolUse (a chat is about to act):
   Write/Edit/Bash  only the manager changes the owner's list, the decisions log, the crew list, the rules pages and
                  muster/CLAUDE.md; nobody saves or pushes anything under muster/.
 Stop (a chat is about to end its turn; blocks at most once, never loops):
-  manager        the reply to the owner is a question with its choices, a yes he must give, "<worker> is waiting for you:
-                 type in <chat>", or "The crew is idle"; and an answer to a choice card is recorded (record-choice.py).
+  manager        the reply to the owner is a question with its choices, a yes he must give, or "The crew is idle"; and an answer to a choice card is recorded (record-choice.py).
   other workers  the reply is a card: a bold "WORD . job" title, then two or three bullets; a card headed DONE, READY, PASS, FAIL, STUCK or NEED
                  needs a message to the manager in the same turn (item 65).
 Exit 0 always; a refusal is printed as the hook's JSON.
@@ -803,8 +802,6 @@ def manager_reply_ok(text):
         return True  # a short pointer to the news (item 60)
     if re.search(r"\bThe crew is idle\b", t, re.I):
         return True
-    if re.search(r"\bis waiting for you\b.*\btype in\b", t, re.I | re.S):
-        return True
     if re.search(r"\b(I need your yes|needs? your yes|your yes (is needed|to))\b", t, re.I):
         return True
     has_q = "?" in t
@@ -817,8 +814,8 @@ NEWS_LO = re.compile(r"\b(shipped|passed|merged|released|progress|landed|finishe
 
 
 def owner_form_ok(t):
-    """The forms a manager may use to the owner (item 97): a lettered question, a yes he must give, "<worker> is waiting for you: type in <chat>", the idle card."""
-    if re.search(r"\bThe crew is idle\b", t, re.I) or re.search(r"\bis waiting for you\b.*\btype in\b", t, re.I | re.S):
+    """The forms a manager may use to the owner (item 97): a lettered question, a yes he must give, the idle card (never "type in <chat>", item 103)."""
+    if re.search(r"\bThe crew is idle\b", t, re.I):
         return True
     if re.search(r"\b(I need your yes|needs? your yes|your yes (is needed|to))\b", t, re.I):
         return True
@@ -988,14 +985,16 @@ def stop(data, manager):
             return block("write each choice letter bold and italic, like ***A.*** red, one line per choice with a blank line between (item 80)")
         if len(re.findall(r"^\*\*\*[A-D]\.\*\*\*", text, re.M)) >= 2 and not re.search(r"\bmy pick\b", text, re.I):
             return block("every lettered question carries your pick: mark one choice *(my pick)* and give a one-line reason, looks included; a pick is advice only and nothing is ordered until he answers (item 100)")
+        if re.search(r"\bis waiting for you\b|\btype (?:it |your \w+ |anything )?in (?:the |that |this )?[\w .-]*\b(?:chat|window)\b", text, re.I):
+            return block("never send the owner to type in a worker's chat (item 103): carrying his approval is your job; forward his quoted go to the worker that asked, by message, and say nothing to him")
         if is_news(text) and not owner_form_ok(text) and not owner_asked(data.get("transcript_path") or ""):
             return block("never tell the owner PASS, LIVE, DONE, shipped or progress news (item 97): his chat gets only a lettered question, a yes he must give, "
-                         "'<worker> is waiting for you: type in <chat>', or the idle card. When nothing needs him, end this turn with no text at all")
+                         "or the idle card. When nothing needs him, end this turn with no text at all")
         if "?" in text and look_unshown(question_part(text), uses):
             return block("a question about how something looks comes after the pictures: show them to him first in this turn (send-file with render, or card previews), then ask")
         if not manager_reply_ok(text) and not owner_asked(data.get("transcript_path") or "") \
                 and not (peer_started(data.get("transcript_path") or "") and short_report(text)):  # a short routine reply to another chat's message is not bounced (item 75)
-            return block("to the owner the manager says only a question with its choices as lettered lines (***A.*** ...), a yes he must give, '<worker> is waiting for you: type in <chat>', or 'The crew is idle'. Rewrite the reply as one of those, or put the news on the board")
+            return block("to the owner the manager says only a question with its choices as lettered lines (***A.*** ...), a yes he must give, or 'The crew is idle'; never send him to type in a worker's chat, relay his answer yourself (item 103). Rewrite the reply as one of those, or put the news on the board")
         return
     if asked or re.match(r"\s*Messages paused", text):
         return

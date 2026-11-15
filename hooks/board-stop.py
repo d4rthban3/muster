@@ -311,8 +311,7 @@ def main():
         return 0
     names = "; ".join("%s (%s)" % (e["from"] or "a worker", "paused" if e["paused"] else e["kind"]) for e in missed)
     reason = ("The board holds open items for the owner that you have not told him about: %s. "
-              "Before you stop, ask him the top one as lettered lines (***A.*** ...), or say \"<worker> is waiting for you: "
-              "type in <chat link>\" for a paused chat; then stop." % names)
+              "Before you stop, ask him the top one as lettered lines (***A.*** ...), or, for a paused chat, answer it yourself or relay his quoted answer to that chat: never send him to type in it (item 103); then stop." % names)
     if picks:
         reason += (" Also: you wrote that you are choosing or recording for the owner, but he has not picked this turn; "
                    "ask him with lettered lines, the option you favour marked \"my pick\", and record nothing until he types a letter.")

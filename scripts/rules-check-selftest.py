@@ -94,7 +94,7 @@ cases = [
     ("item 97: LIVE and shipped news is blocked", run("Stop", last_assistant_message="LIVE PROVEN 0.3.80, shipped.", transcript_path=tr("You are Manager_Muster_002", [said("<cross-session-message from=\"b\">DONE: x [ID b-2]</cross-session-message>")])), True),
     ("item 97: progress news is blocked", run("Stop", last_assistant_message="Progress: the builder is rebuilding the programs.", transcript_path=tr("You are Manager_Muster_002", [said("<cross-session-message from=\"b\">x</cross-session-message>")])), True),
     ("item 97: a lettered question that mentions the ship passes", run("Stop", last_assistant_message="Ship 0.3.80 now?\n\n***A.*** yes, ship it (my pick)\n\n***B.*** hold it", transcript_path=tr("You are Manager_Muster_002", [said("<cross-session-message from=\"b\">PASS: x [ID b-3]</cross-session-message>")])), False),
-    ("item 97: 'is waiting for you: type in' passes", run("Stop", last_assistant_message="Builder A is waiting for you: type in Builder A_Muster_002 (shipped work needs your yes).", transcript_path=tr("You are Manager_Muster_002", [said("<cross-session-message from=\"b\">x</cross-session-message>")])), False),
+    ("item 103: 'is waiting for you: type in' is refused (the manager carries his approval)", run("Stop", last_assistant_message="Builder A is waiting for you: type in Builder A_Muster_002 (shipped work needs your yes).", transcript_path=tr("You are Manager_Muster_002", [said("<cross-session-message from=\"b\">x</cross-session-message>")])), True),
     ("item 97: an empty reply after a worker's message is not asked for text", run("Stop", last_assistant_message="", transcript_path=tr("You are Manager_Muster_002", [said("<cross-session-message from=\"b\">PASS: x [ID b-4]</cross-session-message>")])), False),
     ("item 97: his own question may be answered with the news he asked for", run("Stop", last_assistant_message="It is shipped: 0.3.80 is live.", transcript_path=tr("You are Manager_Muster_002", [said("is it shipped yet?")])), False),
     ("item 97: the same report to the same chat unchanged is refused", run("PreToolUse", tool_name="SendMessage", tool_input={"to": "Inspector_Muster_002", "message": good.replace("x-1", "x-2")}, transcript_path=tr("You are Builder A_Muster_002, agents/builder.md", [use("SendMessage", "s1", to="Inspector_Muster_002", message=good), res("s1")])), True),
@@ -113,7 +113,8 @@ cases = [
     ("a question mark in hook feedback or a system note is not his (long reply)", run("Stop", last_assistant_message="Yes, it is shipped and live on the site now, with the new version and every check green on all three systems. " * 4, transcript_path=tr("You are Manager_Muster_002", [said("[SYSTEM NOTIFICATION - NOT USER INPUT] ready?"), said("<system-reminder>really?")])), True),
     ("a manager question as lettered lines passes", run("Stop", last_assistant_message="Which one?\n\n***A.*** yes (my pick)\n\n***B.*** no", transcript_path=m), False),
     ("a manager idle line passes", run("Stop", last_assistant_message="The crew is idle. Here's what's next.", transcript_path=m), False),
-    ("a manager waiting line passes", run("Stop", last_assistant_message="Builder A is waiting for you: type in Builder A_Muster_002.", transcript_path=m), False),
+    ("item 103: a manager waiting line is refused", run("Stop", last_assistant_message="Builder A is waiting for you: type in Builder A_Muster_002.", transcript_path=m), True),
+    ("item 103: 'type it in the chat' is refused", run("Stop", last_assistant_message="Please type it in the Builder A chat.", transcript_path=m), True),
     ("an unrecorded choice answer blocks the manager", run("Stop", last_assistant_message="ok", transcript_path=tr("You are Manager_Muster_002", [use("AskUserQuestion", questions=[])])), True),
     ("a recorded choice answer passes", run("Stop", last_assistant_message="ok", transcript_path=tr("You are Manager_Muster_002", [use("AskUserQuestion", questions=[]), use("Bash", command="python3 scripts/record-choice.py p 3 --picked A")])), False),
     ("a worker card passes", run("Stop", last_assistant_message="**WORKING · x**\n- a\n- b", transcript_path=b), False),
@@ -230,7 +231,7 @@ def bstop(board, said="Nothing else."):
 NEED = "\n### 2026-11-12 | NEED | Builder A_X_001 -> Manager_X_001 | a job\nStatus: open\nNEED: a job\n"
 cases += [
     ("BOARD: an open NEED the manager has not routed is demanded", bstop(NEED), True),
-    ("BOARD: ...and passes once the reply names it", bstop(NEED, "Builder A_X_001 is waiting for you: type in Builder A_X_001."), False),
+    ("BOARD: ...and passes once the reply names it", bstop(NEED, "Relayed his answer to Builder A_X_001."), False),
     ("BOARD: a NEED with a routed Status line is handled", bstop(NEED.replace("Status: open", "Status: routed")), False),
     ("BOARD: a NEED the manager later answered on the same job is handled", bstop(NEED + "\n### 2026-11-12 | ORDER | Manager_X_001 -> Builder A_X_001 | a job\nStatus: open\nORDER: a job\n"), False),
     ("BOARD: a later manager entry on another job does not clear it", bstop(NEED + "\n### 2026-11-12 | ORDER | Manager_X_001 -> Builder A_X_001 | other job\nStatus: open\n"), True),
@@ -274,7 +275,7 @@ cases += [
     ("PICK: the same question with a marked pick passes", run("Stop", last_assistant_message="Ship it now?\n\n***A.*** yes *(my pick: it passed)*\n\n***B.*** no", transcript_path=tr(MG, [said("hi")])), False),
     ("PICK: a look question with its pick passes once the pictures were shown", run("Stop", last_assistant_message="Which colour do you prefer?\n\n***A.*** blue *(my pick: it reads best)*\n\n***B.*** green", transcript_path=tr(MG, [said("hi"), SHOT])), False),
     ("PICK: a look question without a pick blocks", run("Stop", last_assistant_message="Which colour do you prefer?\n\n***A.*** blue\n\n***B.*** green", transcript_path=tr(MG, [said("hi"), SHOT])), True),
-    ("PICK: a reply with no lettered question is not this check's business", run("Stop", last_assistant_message="Builder A is waiting for you: type in Builder A_Muster_002.", transcript_path=tr(MG, [said("hi")])), False),
+    ("PICK: a reply with no lettered question is not this check's business", run("Stop", last_assistant_message="The crew is idle.", transcript_path=tr(MG, [said("hi")])), False),
     ("SHOWFIRST: a question that is not about looks passes", run("Stop", last_assistant_message="Ship it now?\n\n***A.*** yes (my pick)\n\n***B.*** no", transcript_path=tr(MG, [said("hi")])), False),
     # item 91: two or more lettered choice lines are the question, with or without a question mark
     ("LETTERS: a lead-in ending in a colon plus lettered lines passes", run("Stop", last_assistant_message="Sentence 5 of 6, on what stays on the phone:\n\n***A.*** the list stays (my pick)\n\n***B.*** only the totals stay\n\n***C.*** nothing stays", transcript_path=tr(MG, [said("hi")])), False),

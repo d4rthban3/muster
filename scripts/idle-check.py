@@ -325,6 +325,28 @@ def peer_started(path):
     return last
 
 
+def running_workers(rows, now):
+    """Crew chats other than a manager that were active within IDLE_SECONDS (item 103: a worker is on the goal)."""
+    base = sessions_dir()
+    out = []
+    for name, cid in rows:
+        if name.startswith("Manager"):
+            continue
+        hits = glob.glob(os.path.join(base, "*", "*", cid + ".json")) if base else []
+        try:
+            d = json.load(open(hits[0], encoding="utf-8")) if hits else {}
+        except (OSError, ValueError):
+            continue
+        last = (d.get("lastActivityAt") or 0) / 1000.0
+        if hits and not d.get("isArchived") and last and now - last < IDLE_SECONDS:
+            out.append(name)
+    return out
+
+
+def goal_set(project):
+    return bool(re.search(r'^Goal \(his words\):\s*"[^"]+"', read(os.path.join(project, "muster", "GOAL.md")), re.M))
+
+
 def findings(project, now=None):
     now = now or time.time()
     items = open_items(project)
@@ -485,7 +507,12 @@ def main(argv):
         # item 95: two or more chats idle with no open item to order: the owner gets one card, not single-line news
         still = [(n, secs) for n, secs, f in findings(project) if not f]
         card = ""
-        if not missing and len(still) >= 2 and fresh("card", ",".join(sorted(n for n, _ in still)), "", "\x00never-in-reply"):
+        # item 103: the card is said once per idle stretch (not again when the list of idle chats shifts), and never while a goal is set and a worker is on it
+        stretch = "%016x" % fnv("idle|card|stretch")
+        if len(still) < 2:
+            told.discard(stretch)  # the stretch ended; the next one may speak once
+        elif not missing and not (goal_set(project) and running_workers(crew(project), time.time())) and stretch not in told:
+            told.add(stretch)
             card = card_problem(last_message(data), [n for n, _ in still])
         # item 96: replaced chats still not archived, and crew members with no order and no report in the last day (once a day while unchanged)
         import datetime

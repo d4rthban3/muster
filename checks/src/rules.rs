@@ -369,9 +369,9 @@ fn look_unshown(question: &str, uses: &[Value]) -> bool { (is(&rei(LOOK), questi
 
 /// Group check (item 79): a chat really started this turn (not a card that only proposes one) must be followed by move_sessions into the
 /// project's group and then a list_sessions read-back.
-/// Item 97: what a manager may say to the owner: a lettered question, a yes he must give, "<worker> is waiting for you: type in <chat>", the idle card.
+/// Item 97: what a manager may say to the owner: a lettered question, a yes he must give, the idle card (never "type in <chat>", item 103).
 fn owner_form_ok(t: &str) -> bool {
-    if is(&rei(r"\bThe crew is idle\b"), t) || is(&rei(r"(?s)\bis waiting for you\b.*\btype in\b"), t) { return true; }
+    if is(&rei(r"\bThe crew is idle\b"), t) { return true; }
     if is(&rei(r"\b(I need your yes|needs? your yes|your yes (is needed|to))\b"), t) { return true; }
     let letters = re(r"(?m)^\*\*\*[A-D]\.\*\*\*").find_iter(t).count();
     letters >= 2 || (t.contains('?') && letters >= 1)
@@ -515,7 +515,6 @@ fn recorder_path(root: &str, name: &str) -> String {
 fn manager_reply_ok(t: &str) -> bool {
     if t.chars().count() <= 300 && t.trim().lines().count() <= 3 && is(&rei(r"\bon the board\b"), t) { return true; } // a short pointer to the news (item 60)
     if is(&rei(r"\bThe crew is idle\b"), t) { return true; }
-    if is(&rei(r"(?s)\bis waiting for you\b.*\btype in\b"), t) { return true; }
     if is(&rei(r"\b(I need your yes|needs? your yes|your yes (is needed|to))\b"), t) { return true; }
     let has_q = t.contains('?');
     let letters = re(r"(?m)^\*\*\*[A-D]\.\*\*\*").find_iter(t).count(); // lettered lines are the question form (D-037)
@@ -616,8 +615,12 @@ fn stop(c: &Ctx, data: &Value, manager: bool) {
             block("write each choice letter bold and italic, like ***A.*** red, one line per choice with a blank line between (item 80)");
             return;
         }
+        if is(&rei(r"\bis waiting for you\b|\btype (?:it |your \w+ |anything )?in (?:the |that |this )?[\w .-]*\b(?:chat|window)\b"), text) {
+            block("never send the owner to type in a worker's chat (item 103): carrying his approval is your job; forward his quoted go to the worker that asked, by message, and say nothing to him");
+            return;
+        }
         if is_news(text) && !owner_form_ok(text) && !owner_asked(tpath) {
-            block("never tell the owner PASS, LIVE, DONE, shipped or progress news (item 97): his chat gets only a lettered question, a yes he must give, '<worker> is waiting for you: type in <chat>', or the idle card. When nothing needs him, end this turn with no text at all");
+            block("never tell the owner PASS, LIVE, DONE, shipped or progress news (item 97): his chat gets only a lettered question, a yes he must give, or the idle card. When nothing needs him, end this turn with no text at all");
             return;
         }
         if re(r"(?m)^\*\*\*[A-D]\.\*\*\*").find_iter(text).count() >= 2 && !is(&rei(r"\bmy pick\b"), text) {
@@ -629,7 +632,7 @@ fn stop(c: &Ctx, data: &Value, manager: bool) {
             return;
         }
         if !manager_reply_ok(text) && !owner_asked(tpath) && !(peer_started(tpath) && text.trim().chars().count() <= 300 && text.trim().lines().count() <= 3) { // a short routine reply to another chat's message is not bounced (item 75)
-            block("to the owner the manager says only a question with its choices as lettered lines (***A.*** ...), a yes he must give, '<worker> is waiting for you: type in <chat>', or 'The crew is idle'. Rewrite the reply as one of those, or put the news on the board");
+            block("to the owner the manager says only a question with its choices as lettered lines (***A.*** ...), a yes he must give, or 'The crew is idle'; never send him to type in a worker's chat, relay his answer yourself (item 103). Rewrite the reply as one of those, or put the news on the board");
         }
         return;
     }

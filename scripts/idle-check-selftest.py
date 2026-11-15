@@ -106,6 +106,26 @@ a1 = subprocess.run([sys.executable, CHK, "--project", d], input=json.dumps({"la
 a2 = subprocess.run([sys.executable, CHK, "--project", d], input=json.dumps({"last_assistant_message": "ok", "transcript_path": "/t/c"}), capture_output=True, text=True, env=dict(os.environ, MUSTER_SESSIONS_DIR=sd, MUSTER_STATE_DIR=st2, MUSTER_NO_SWEEP="1")).stdout
 t("idle card: said once, unchanged, it is not asked again", "block" in a1 and a2 == "")
 
+# item 103: the idle card is said once per idle stretch, and never while a goal is set and a worker is on it
+def srun(d, sd, st, msg="ok"):
+    return subprocess.run([sys.executable, CHK, "--project", d], input=json.dumps({"last_assistant_message": msg, "transcript_path": "/t/stretch"}), capture_output=True, text=True,
+                          env=dict(os.environ, MUSTER_SESSIONS_DIR=sd, MUSTER_STATE_DIR=st, MUSTER_NO_SWEEP="1")).stdout
+def setrec(sd, i, ago):
+    json.dump({"isArchived": False, "lastActivityAt": int(time.time() * 1000) - ago * 1000, "postTurnSummary": {}}, open(os.path.join(sd, "a", "b", cid(i) + ".json"), "w"))
+d5, sd5 = cproj([600, 600, 5]); st5 = tempfile.mkdtemp()
+t("stretch: the first turn of an idle stretch gets the card", "item 95" in srun(d5, sd5, st5))
+setrec(sd5, 4, 600)
+t("stretch: a third chat going idle in the same stretch does not bring the card back", srun(d5, sd5, st5) == "")
+setrec(sd5, 2, 5); setrec(sd5, 3, 5); setrec(sd5, 4, 5)
+srun(d5, sd5, st5)
+setrec(sd5, 2, 600); setrec(sd5, 3, 600); setrec(sd5, 4, 600)
+t("stretch: a new idle stretch (work ran in between) gets the card once more", "item 95" in srun(d5, sd5, st5))
+d6, sd6 = cproj([600, 600, 5])
+open(os.path.join(d6, "muster", "GOAL.md"), "w").write('# Goal\nGoal (his words): "ship pinr.io"\nDone when: it is live\nSet list:\n- a\n')
+t("stretch: no card while a goal is set and a worker is on it", srun(d6, sd6, tempfile.mkdtemp()) == "")
+setrec(sd6, 4, 600)
+t("stretch: a goal with every worker idle still gets the card", "item 95" in srun(d6, sd6, tempfile.mkdtemp()))
+
 # item 96: a replaced chat not yet archived, and crew members with no order and no report for a day
 import datetime
 TODAY = datetime.date.today().isoformat()

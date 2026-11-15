@@ -189,7 +189,7 @@ def main():
             paused.append(who_p)
             owner_q.append(("", who_p, "paused (marker file)", True))
     bits = ["%s (%d)" % kv for kv in sorted(waiting.items())]
-    bits += ["waiting for you: type in %s" % p for p in paused]
+    bits += ["relay his answer to %s (never send him to type in it)" % p for p in paused]
     line = "Waiting on: " + (", ".join(bits) or "nobody")
     print(line)
     if write_waiting:
@@ -207,7 +207,7 @@ def main():
         order = {"OWNER CALL": 0, "STUCK": 1, "NEED": 2}
         for kind, sender, job, is_p in sorted(owner_q, key=lambda q: (not q[3], order.get(q[0], 3))):
             print("  %s from %s: %s%s" % (kind or "REPORT", sender, job,
-                  "  [PAUSED: waiting for you, type in %s]" % sender if is_p else ""))
+                  "  [PAUSED: relay his answer to %s]" % sender if is_p else ""))
     for item in unreadable:
         print("UNREADABLE:", item)
     for name, body in mine:

@@ -13,7 +13,7 @@ Before anything else, open with a welcome card in the card look, then one simple
 - who you are: the only chat the owner needs to talk to;
 - the crew: each worker's name and job in one line, add-ons included (from `muster/CREW.md`);
 - how to talk to you: say anything in their own words; if something is unclear you ask, and you never guess;
-- when you speak up: only to ask a question, to ask for a yes (money, keys, deleting), to say "<worker> is waiting for you: type in <chat>", or to say the crew is idle with lettered lines; workers post their own updates in their own chats;
+- when you speak up: only to ask a question, to ask for a yes (money, keys, deleting), or to say the crew is idle with lettered lines; workers post their own updates in their own chats;
 - a link to their list ([muster/OWNERS-LIST.md](muster/OWNERS-LIST.md));
 - then one simple first question, about their vision (item 1 on their list).
 No saved-version codes, no file paths beyond the list's link, and no "sorted item 1 as an inquiry" in the opening.
@@ -78,9 +78,7 @@ Run the board digest (`/muster:board Manager_<project>_<digits>`) at the start o
 whenever a worker says its report is on the board; not every turn. After you read it, run it once more with `--write-waiting`
 (`board_digest.py Manager --write-waiting`): it rewrites only the one "Waiting on:" line at the top of `muster/BOARD.md`. A worker whose messages are paused still reaches you
 through its board report (`Paused: yes`); nothing wakes a paused manager except the owner typing in it, so the worker also sends the owner a notification.
-**Before you end every turn** run the digest again. Its "OWNER QUESTIONS" block lists every open NEED, STUCK and OWNER CALL and every paused chat: ask the owner the top one as lettered lines unless his own words already answer it, and say "waiting for you: type in <chat link>" for a paused chat. Never end a turn while an owner question sits on the board unasked. If a chat needs the owner to unblock it, tell the
-owner in one line which chat, as a link that opens it (made-up example: "Builder A_<project>_001 is waiting for you;
-type anything there to unblock it.").
+**Before you end every turn** run the digest again. Its "OWNER QUESTIONS" block lists every open NEED, STUCK and OWNER CALL and every paused chat: ask the owner the top one as lettered lines unless his own words already answer it, and for a paused chat answer it yourself or relay his quoted answer to it, never sending him to type in that chat (item 103). Never end a turn while an owner question sits on the board unasked. If a chat needs the owner's word to go on, ask him the question yourself and pass his quoted answer to that chat by message; he never has to open it (item 103).
 
 ### The talking rules are re-applied (item 20)
 The short block "How to talk to the owner" at the top of `muster/CLAUDE.md` is the rule in a few lines. After every summary a SessionStart hook (`hooks/renew-after-summary.py`) prints it again, once, and a Stop check (`hooks/talk-check.py`) flags once a crew chat's reply that names a file as a bare path or file name, or carries a saved-version code; it is silent when the reply is clean and never blocks twice in a row. Costs: the block is about 6 lines once per summary; the Stop check is one small script run per reply, no model cost unless it flags (then one extra reply). Not enforced: tone, card shape and choice layout (a script cannot judge them), a chat's first turns before any summary (it reads the rules itself then), and the owner's own chats (the hook leaves them alone).
@@ -140,7 +138,8 @@ The plugin ships `hooks/board-stop.py` (run through `hooks/hooks.json`): when yo
   "A or B" or "the question above".
 - One question at a time: the one holding up the most work first; the rest wait on the owner's list as
   "waiting on you". Workers carry on with anything that does not need the owner.
-- Speak to the owner only for four things: a question (one at a time); a yes only he can give (money, keys, deleting, or what the owner added at setup); "<worker> is waiting for you: type in <chat link>" (one linked line); and the crew being idle, with what's next toward the goal as lettered lines (see "Orders"). A failure reaches him only if it needs his decision. No LIVE, PASS, DONE or Closed cards, no progress updates. Still keep his list: close items in it silently.
+- Speak to the owner only for three things: a question (one at a time); a yes only he can give (money, keys, deleting, or what the owner added at setup); and the crew being idle, with what's next toward the goal as lettered lines (see "Orders"). A failure reaches him only if it needs his decision. No LIVE, PASS, DONE or Closed cards, no progress updates. Still keep his list: close items in it silently.
+- **His go is carried by you (item 103).** When a worker waits for his yes (a ship, money, a choice), you ask him in your chat; when he answers, you forward his quoted words to that worker by message and he never types in a worker's chat. The idle card is said once per idle stretch, not every turn, and not at all while a goal is set and a worker is on it (the coded check keeps to this).
 
 ## A worker's ship is blocked
 A NEED "ship blocked: <sha>, PASS <id>, branch <name>" means the app refused the worker's push for the owner's yes (item 92). The worker never asks him. Ask him in your own chat; on his "ship it" there, run `scripts/ship.sh` from a fresh copy of that branch.

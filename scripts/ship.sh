@@ -38,7 +38,10 @@ if [ -f "$mainroot/muster/BOARD.md" ]; then
 fi
 # a dry run leaves the branch exactly as it was, even if it stops early
 [ $dry = 1 ] && trap 'git reset -q --hard "$orig" 2>/dev/null' EXIT
+# item 104: when origin/main is already inside this branch (it merged main), there is nothing to rebase onto; a rebase would only fail
+if ! git merge-base --is-ancestor origin/main HEAD; then
 git rebase origin/main >/dev/null 2>&1 || { git rebase --abort >/dev/null 2>&1; stop "rebasing $branch on origin/main hit a conflict; fix it by hand and run again"; }
+fi
 # a batch: merge each other passed branch into this one, so one version, one free test and one live proof cover them all
 for w in $with; do
   git rev-parse -q --verify "$w" >/dev/null || stop "--with $w: no such branch"

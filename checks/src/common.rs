@@ -93,9 +93,16 @@ pub fn lines_of(path: &str) -> Vec<Value> {
 }
 pub fn msg_content(d: &Value) -> Value { d.get("message").and_then(|m| m.get("content")).cloned().unwrap_or(Value::String(String::new())) }
 
+/// A crew chat's own first message is kept beside its transcript, so it still knows who it is after a compaction (D-039).
+pub fn remember_first(path: &str, first: &str) {
+    let side = format!("{path}.muster-first");
+    if !path.is_empty() && !std::path::Path::new(&side).exists() { let _ = fs::write(&side, first.chars().take(6000).collect::<String>()); }
+}
+
 pub fn first_message(path: &str) -> String {
+    if let Ok(kept) = fs::read_to_string(format!("{path}.muster-first")) { if !kept.trim().is_empty() { return kept.chars().take(6000).collect(); } }
     for d in lines_of(path) {
-        if s(&d, "type") != "user" { continue; }
+        if s(&d, "type") != "user" || d.get("isCompactSummary").and_then(Value::as_bool) == Some(true) { continue; }
         let t = content_text(&msg_content(&d));
         return t.chars().take(6000).collect();
     }

@@ -73,6 +73,7 @@ def main():
     in_profile = any(p.search(first) for p in h.PROFILE_CREW)
     if not name and not role and not in_profile:
         return 0
+    h.remember_first(path, first)
     pm = next((m for m in (p.search(first) for p in h.PROFILE_CREW) if m), None)
     who = name.group(0) if name else (pm.group(0) if pm else (role.group(1) if role else "a crew chat"))
     cwd = data.get("cwd") or os.getcwd()

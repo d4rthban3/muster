@@ -51,6 +51,17 @@ owner = tr("hello there")
 good = "READY: x [ID builder-x-1]\nWhat: a\nWhere: b; touches: none\nWhy: c\nHow: 3/3 passed\nNeed: nothing\nUsage: n"
 order = "To: B\nJob: j\nOwner's words: \"do it now\"\nOwns: a\nOut: b\nDone: c"
 send = lambda msg, t, to="x": run("PreToolUse", tool_name="SendMessage", tool_input={"to": to, "message": msg}, transcript_path=t)
+def compacted(first):
+    """a transcript the way a compaction leaves it: the chat's own first message is kept beside it, the file opens with the summary"""
+    p = tr("You are " + first)
+    run("PreToolUse", tool_name="Read", tool_input={"file_path": "/home/x/p/a"}, transcript_path=p)  # the first sight keeps the first message
+    with open(p, "w") as f:
+        f.write(json.dumps({"type": "user", "isCompactSummary": True, "message": {"content": "This session is being continued from a previous conversation that ran out of context."}}) + "\n")
+    return p
+
+
+compacted_mgr = compacted("Manager_Muster")
+compacted_b = compacted("Builder A_Muster, agents/builder.md")
 bn = tr("You are Builder A_Muster, agents/builder.md")
 mn = tr("You are Manager_Muster")
 cases = [
@@ -65,6 +76,8 @@ cases = [
     ("item 108: a shell write of crew rules into memory is refused", run("PreToolUse", tool_name="Bash", tool_input={"command": "echo 'the Manager ships, builders send READY' >> ~/.claude/projects/-p/memory/a.md"}, transcript_path=b), True),
     ("item 108: a memory note with no crew rules goes through", run("PreToolUse", tool_name="Write", tool_input={"file_path": "/home/x/.claude/projects/-home-x-Muster/memory/user.md", "content": "The owner likes short answers."}, transcript_path=b), False),
     ("item 108: crew words written outside memory go through", run("PreToolUse", tool_name="Write", tool_input={"file_path": "/home/x/Muster/notes.md", "content": "Builder A sends READY"}, transcript_path=b), False),
+    ("D-039: a manager still edits the crew list after a compaction rewrote its first message", run("PreToolUse", tool_name="Edit", tool_input={"file_path": "/home/x/p/muster/CREW.md", "new_string": "x"}, transcript_path=compacted_mgr), False),
+    ("D-039: a builder is still stopped from the crew list after a compaction", run("PreToolUse", tool_name="Edit", tool_input={"file_path": "/home/x/p/muster/CREW.md", "new_string": "x"}, transcript_path=compacted_b), True),
     ("a reply of 'noted' is refused", send("noted", b), True),
     ("'noted, thanks' is refused", send("noted, thanks", b), True),
     ("'Got it. Thanks and will do!' is refused", send("Got it. Thanks and will do!", b), True),

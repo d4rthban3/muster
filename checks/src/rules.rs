@@ -580,6 +580,7 @@ pub fn run() -> i32 {
     let c = ctx();
     let first = first_message(s(&data, "transcript_path"));
     if !is(&c.crew, &first) && std::env::var("MUSTER_ASSUME_CREW").ok().as_deref() != Some("1") { return 0; }
+    remember_first(s(&data, "transcript_path"), &first);
     let manager = is_manager(&c, &first) || std::env::var("MUSTER_ASSUME_MANAGER").ok().as_deref() == Some("1");
     match s(&data, "hook_event_name") { "PreToolUse" => pretool(&c, &data, manager), "Stop" => stop(&c, &data, manager), _ => {} }
     0

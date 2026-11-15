@@ -38,6 +38,14 @@ HEX = re.compile(r"\b(?=[0-9a-f]*\d)(?=[0-9a-f]*[a-f])[0-9a-f]{7,40}\b")
 
 
 def first_message(path):
+    # D-039: after a compaction the file may open with the summary; the chat's own first message is kept beside it
+    try:
+        with open(path + ".muster-first", encoding="utf-8") as fh:
+            kept = fh.read()
+        if kept.strip():
+            return kept[:6000]
+    except OSError:
+        pass
     try:
         with open(path, encoding="utf-8") as fh:
             for line in fh:
@@ -45,7 +53,7 @@ def first_message(path):
                     d = json.loads(line)
                 except ValueError:
                     continue
-                if d.get("type") != "user":
+                if d.get("type") != "user" or d.get("isCompactSummary"):
                     continue
                 c = (d.get("message") or {}).get("content", "")
                 if isinstance(c, list):

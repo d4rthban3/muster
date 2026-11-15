@@ -39,7 +39,26 @@ PROFILE_CREW = [re.compile(x) for x in (PROFILE.get("crew_names") or []) + (PROF
 PROFILE_MANAGER = (PROFILE.get("manager_names") or [])
 
 
+def remember_first(path, first):
+    """Keep a crew chat's own first message beside its transcript so it still knows who it is after a compaction (D-039)."""
+    side = path + ".muster-first"
+    try:
+        if path and not os.path.exists(side):
+            with open(side, "w", encoding="utf-8") as fh:
+                fh.write(first[:6000])
+    except OSError:
+        pass
+
+
 def first_message(path):
+    # D-039: after a compaction the file may open with the summary; the chat's own first message is kept beside it
+    try:
+        with open(path + ".muster-first", encoding="utf-8") as fh:
+            kept = fh.read()
+        if kept.strip():
+            return kept[:6000]
+    except OSError:
+        pass
     try:
         with open(path, encoding="utf-8") as fh:
             for line in fh:
@@ -47,7 +66,7 @@ def first_message(path):
                     d = json.loads(line)
                 except ValueError:
                     continue
-                if d.get("type") != "user":
+                if d.get("type") != "user" or d.get("isCompactSummary"):
                     continue
                 c = (d.get("message") or {}).get("content", "")
                 if isinstance(c, list):

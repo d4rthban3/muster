@@ -424,12 +424,17 @@ def recipient_is_manager(to, root):
     to = str(to)
     if re.search(r"\bManager", to):
         return True
-    try:
-        for l in open(os.path.join(root, "muster", "CREW.md"), encoding="utf-8"):
-            if to and to in l and l.lstrip("| ").startswith("Manager"):
-                return True
-    except OSError:
-        pass
+    # the crew lists read live every time: Muster's own, and the one the project's profile names ("crew_list", item 94: a renewed manager's id is found there)
+    lists = [os.path.join(root, "muster", "CREW.md")]
+    if PROFILE.get("crew_list"):
+        lists.append(os.path.join(root, PROFILE["crew_list"]))
+    for path in lists:
+        try:
+            for l in open(path, encoding="utf-8"):
+                if to and to in l and (l.lstrip("| ").startswith("Manager") or MANAGER_RE.match(l.lstrip("| "))):
+                    return True
+        except OSError:
+            pass
     return False
 
 

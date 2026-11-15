@@ -310,6 +310,33 @@ cr = lambda *a: subprocess.run([PY, os.path.join(ROOT, "scripts", "check-report.
 add("check-report --profile pinr accepts a PINR report", "" if cr(rf, "--profile", "pinr") == 0 else "BAD", False)
 add("check-report without a profile still wants the ID", "" if cr(rf) == 1 else "BAD", False)
 
+# item 94: a renewed manager is found live in the crew list the project's profile names; a worktree runs the main folder's live copy of a check
+os.makedirs(os.path.join(PROJ, "manager"), exist_ok=True)
+OLDM, NEWM, SITEM = "local_" + "x07-made-up", "local_" + "x08-made-up", "local_" + "x04-made-up"
+open(os.path.join(PROJ, "manager", "CREW-SESSIONS.md"), "w").write("| Manager_PINR_007 | " + OLDM + " | old |\n| Manager_PINR_008 | " + NEWM + " | renewed 14 Nov |\n| Site_PINR_004 | " + SITEM + " | site |\n")
+card94 = "**READY \u00b7 x**\n- a\n- b"
+snd = lambda to: tr("You are PINRai_teacher_003.", [use("SendMessage", to=to, message="m")])
+add("item 94: a report card after a message to the renewed manager's id passes", run("rules-check.py", "Stop", cwd=PROJ, last_assistant_message=card94, transcript_path=snd("" + NEWM + "")), False)
+add("item 94: ...and by his name too", run("rules-check.py", "Stop", cwd=PROJ, last_assistant_message=card94, transcript_path=snd("Manager_PINR_008")), False)
+add("item 94: a message to a site chat's id is not a message to the manager", run("rules-check.py", "Stop", cwd=PROJ, last_assistant_message=card94, transcript_path=snd("" + SITEM + "")), True)
+# the installed hook command: from a worktree it runs the MAIN folder's copy, not the old one carried in the worktree
+if shutil.which("git"):
+    GM = os.path.join(T, "gitmain"); os.makedirs(os.path.join(GM, ".muster-checks"))
+    gg = lambda *a, cwd=GM: subprocess.run(["git", "-c", "user.email=a@b", "-c", "user.name=t", *a], cwd=cwd, capture_output=True, text=True)
+    gg("init", "-q"); open(os.path.join(GM, "x"), "w").write("x"); gg("add", "x"); gg("commit", "-qm", "x")
+    GW = os.path.join(T, "gitwt"); gg("worktree", "add", "-q", GW)
+    os.makedirs(os.path.join(GW, ".muster-checks"), exist_ok=True)
+    open(os.path.join(GM, ".muster-checks", "rules-check.py"), "w").write("print('LIVE-MAIN')\n")
+    open(os.path.join(GW, ".muster-checks", "rules-check.py"), "w").write("print('OLD-IN-WORKTREE')\n")
+    sys.path.insert(0, os.path.join(ROOT, "scripts"))
+    import importlib.util as _u
+    _sp = _u.spec_from_file_location("ic94", os.path.join(ROOT, "scripts", "install-checks.py")); _ic = _u.module_from_spec(_sp); _sp.loader.exec_module(_ic)
+    hk = lambda proj: subprocess.run(["sh", "-c", _ic.cmd("rules-check.py")], capture_output=True, text=True, cwd=proj, env=dict(ENV, CLAUDE_PROJECT_DIR=proj)).stdout.strip()
+    add("item 94: a worktree's hook runs the main folder's live copy, not the old one in the worktree", "" if hk(GW) == "LIVE-MAIN" else "BAD " + hk(GW), False)
+    add("item 94: the main folder's hook runs its own copy", "" if hk(GM) == "LIVE-MAIN" else "BAD " + hk(GM), False)
+    os.makedirs(os.path.join(T, "nogit", ".muster-checks")); open(os.path.join(T, "nogit", ".muster-checks", "rules-check.py"), "w").write("print('OWN')\n")
+    add("item 94: a folder that is not a git folder runs its own copy", "" if hk(os.path.join(T, "nogit")) == "OWN" else "BAD", False)
+
 bad = 0
 for name, out, should_block in cases:
     ok = bool(out) == should_block

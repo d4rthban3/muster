@@ -2,6 +2,7 @@
   "name": "PINR",
   "crew_names": ["\\b[A-Z][A-Za-z]*(?: [A-Za-z]+)*_PINR_\\d{3}\\b", "\\bPINRai_teacher_\\d{3}\\b"],
   "manager_names": ["\\bManager_PINR_\\d{3}\\b"],
+  "crew_list": "manager/CREW-SESSIONS.md",
   "report": {"require_id": false, "require_usage": false},
   "message_form": "text",
   "orders": "free",

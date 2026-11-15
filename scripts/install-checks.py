@@ -34,7 +34,10 @@ MARK = ".muster-checks/"
 
 
 def cmd(name):
-    return 'python3 "$CLAUDE_PROJECT_DIR/.muster-checks/%s"' % name
+    """Item 94: a builder's linked worktree runs the MAIN folder's live copy of the check, never an older copy carried in the worktree; with no main folder
+    (not a git folder, or git too old to say) it runs the project's own copy as before."""
+    return ("sh -c 'r=$(git -C \"$CLAUDE_PROJECT_DIR\" rev-parse --path-format=absolute --git-common-dir 2>/dev/null); m=${r%/.git}; "
+            "[ -f \"$m/.muster-checks/NAME\" ] || m=$CLAUDE_PROJECT_DIR; exec python3 \"$m/.muster-checks/NAME\"'").replace("NAME", name)
 
 
 def install_recorder(proj, dest, prof, live=False):

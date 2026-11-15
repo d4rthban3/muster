@@ -1,8 +1,9 @@
 #!/bin/sh
 # Stop hook: runs talk-check.py only inside a Muster project (muster/CLAUDE.md in this folder or above), so it costs nothing elsewhere.
-d=$(pwd); found=""
+d=$(pwd); wt=""; found=""
 while [ -n "$d" ] && [ "$d" != "/" ]; do
-  [ -d "$d/.muster-checks" ] && exit 0   # the project runs its own installed copy: stand down
+  [ -z "$wt" ] && { [ -f "$d/.muster-checks/talk-check.py" ] || [ -f "$d/.muster-checks/muster-checks" ] || [ -f "$d/.muster-checks/muster-checks.exe" ]; } && exit 0   # the project runs its own installed copy: stand down (not from inside a linked worktree: the copy belongs to the main folder only)
+  [ -f "$d/.git" ] && wt=1
   [ -f "$d/muster/CLAUDE.md" ] && { found=1; break; }
   d=$(dirname "$d")
 done

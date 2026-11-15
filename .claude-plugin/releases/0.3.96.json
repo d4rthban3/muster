@@ -1,0 +1,23 @@
+{
+  "version": "0.3.96",
+  "changed_files": [
+    "bin/SOURCE-STAMP",
+    "bin/linux-arm64/muster-checks",
+    "bin/linux-x86_64/muster-checks",
+    "bin/macos-arm64/muster-checks",
+    "bin/macos-x86_64/muster-checks",
+    "bin/windows-x86_64/muster-checks.exe",
+    "checks/src/common.rs",
+    "checks/src/rules.rs",
+    "directory/skills/manager-details/SKILL.md",
+    "hooks/rules-check.py",
+    "scripts/rules-check-selftest.py",
+    "skills/manager-details/SKILL.md"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Item 114: the manager speaks to the owner after a worker's message only for a new question or a blocker; repeated questions blocked"
+}

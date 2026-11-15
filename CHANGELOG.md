@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.96
+Affects: see .claude-plugin/releases/0.3.96.json.
+Item 114: the manager speaks to the owner after a worker's message only for a new question or a blocker; repeated questions blocked
+
 ## 0.3.95
 Affects: see .claude-plugin/releases/0.3.95.json.
 Compact at 200k (D-041): chats compact in place at 200k

@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.91
+Affects: see .claude-plugin/releases/0.3.91.json.
+Slim it all (D-040, items 106-108): no renewal or handover code, names without numbers, ask before choosing how, no crew rules in a chat's own memory
+
 ## 0.3.90
 Affects: see .claude-plugin/releases/0.3.90.json.
 Compact in place (D-039, item 105): no size renewals; chats compact at 300k and write their open job to the board first

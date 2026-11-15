@@ -1,0 +1,13 @@
+{
+  "version": "0.3.100",
+  "changed_files": [
+    "mods/muster-look/hooks/look.test.tsx",
+    "mods/muster-look/hooks/register.tsx"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Item 116: chips with a clean thin border like the launchpad filters; one unbroken left rule that stops at the question's end"
+}

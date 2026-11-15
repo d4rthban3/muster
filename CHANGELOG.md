@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.100
+Affects: see .claude-plugin/releases/0.3.100.json.
+Item 116: chips with a clean thin border like the launchpad filters; one unbroken left rule that stops at the question's end
+
 ## 0.3.99
 Affects: see .claude-plugin/releases/0.3.99.json.
 Item 116: Muster look mod (smaller chips, mixed-case headings, thin left rule on questions) and a tracked top-level CHECKS.md

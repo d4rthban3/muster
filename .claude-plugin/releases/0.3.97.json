@@ -1,0 +1,13 @@
+{
+  "version": "0.3.97",
+  "changed_files": [
+    "scripts/decide-pinr.py",
+    "scripts/profile-selftest.py"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "PINR rule 21: decide-pinr.py says the founder, never he/him/his"
+}

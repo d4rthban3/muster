@@ -137,15 +137,18 @@ pub fn card_skipped(path: &str, use_id: &str) -> bool {
 }
 
 /// Messages really sent: a SendMessage whose result came back without an error.
-pub fn all_sent_text(path: &str) -> Vec<String> {
-    let mut calls: Vec<(String, String)> = vec![];
+pub fn all_sent_text(path: &str) -> Vec<String> { all_sent_pairs(path).into_iter().map(|(_, t)| t).collect() }
+
+/// The same, with the recipient: (to, text).
+pub fn all_sent_pairs(path: &str) -> Vec<(String, String)> {
+    let mut calls: Vec<(String, (String, String))> = vec![];
     let (mut done, mut failed): (HashSet<String>, HashSet<String>) = (HashSet::new(), HashSet::new());
     for d in lines_of(path) {
         if let Value::Array(a) = msg_content(&d) {
             for b in &a {
                 if !b.is_object() { continue; }
                 if s(&d, "type") == "assistant" && s(b, "type") == "tool_use" && s(b, "name") == "SendMessage" {
-                    calls.push((s(b, "id").to_string(), b.get("input").map(|i| s(i, "message").to_string()).unwrap_or_default()));
+                    calls.push((s(b, "id").to_string(), b.get("input").map(|i| (s(i, "to").to_string(), s(i, "message").to_string())).unwrap_or_default()));
                 } else if s(&d, "type") == "user" && s(b, "type") == "tool_result" {
                     let id = s(b, "tool_use_id").to_string();
                     done.insert(id.clone());

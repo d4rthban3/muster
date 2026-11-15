@@ -242,6 +242,15 @@ fn look_unshown(question: &str, uses: &[Value]) -> bool { (is(&rei(LOOK), questi
 
 /// Group check (item 79): a chat really started this turn (not a card that only proposes one) must be followed by move_sessions into the
 /// project's group and then a list_sessions read-back.
+/// Item 97: what a manager may say to the owner: a lettered question, a yes he must give, "<worker> is waiting for you: type in <chat>", the idle card.
+fn owner_form_ok(t: &str) -> bool {
+    if is(&rei(r"\bThe crew is idle\b"), t) || is(&rei(r"(?s)\bis waiting for you\b.*\btype in\b"), t) { return true; }
+    if is(&rei(r"\b(I need your yes|needs? your yes|your yes (is needed|to))\b"), t) { return true; }
+    let letters = re(r"(?m)^\*\*\*[A-D]\.\*\*\*").find_iter(t).count();
+    letters >= 2 || (t.contains('?') && letters >= 1)
+}
+fn is_news(t: &str) -> bool { is(&re(r"\b(PASS|LIVE|DONE)\b"), t) || is(&rei(r"\b(shipped|passed|merged|released|progress|landed|finished)\b"), t) }
+
 fn group_unfiled(uses: &[Value]) -> bool {
     let starts = |u: &Value| s(u, "name").ends_with("start_session") && !matches!(u.get("input").map(|i| s(i, "initiation")).unwrap_or(""), "offer" | "own_initiative");
     let Some(last) = uses.iter().rposition(|u| starts(u)) else { return false };
@@ -321,6 +330,18 @@ fn helper_problem(inp: &Value, manager: bool) {
     }
 }
 
+/// Item 97: two reports of the same job and first word with nothing changed (only the ID differs).
+fn report_key(m: &str) -> Option<String> {
+    if let Ok(Value::Object(mut o)) = serde_json::from_str::<Value>(m.trim()) { o.remove("id"); return Some(Value::Object(o).to_string()); }
+    let c = caps(&re(&format!(r"(?s)^\s*{FIRST}: (.+?) \[ID [^\]]+\]\s*\n(.*)$")), m)?;
+    Some(format!("{}|{}|{}", &c[1], &c[2], sub(&re(r"\s+"), c[3].trim(), " ")))
+}
+fn dup_report(to: &str, msg: &str, path: &str) -> bool {
+    let Some(k) = report_key(msg) else { return false };
+    all_sent_pairs(path).iter().any(|(t, m)| t == to && report_key(m).as_deref() == Some(k.as_str()))
+}
+const DUP_WHY: &str = "this report (same job and first word) was already sent to this chat with nothing changed; send it again only when something changed (item 97)";
+
 fn send_message(c: &Ctx, data: &Value, inp: &Value, root: &str) {
     let msg = s(inp, "message");
     if is(&social_re(), msg) { return deny("no 'noted' or 'thanks' replies; send a message only when someone must act"); }
@@ -335,6 +356,7 @@ fn send_message(c: &Ctx, data: &Value, inp: &Value, root: &str) {
         if sent().iter().any(|t| serde_json::from_str::<Value>(t.trim()).map(|r| s(&r, "id") == id).unwrap_or(false)) { return deny(&format!("this record's id {id} was already sent; a repeat is dropped")); }
         if kind == "ORDER" { if let Some(why) = goal_problem(root, s(&rec, "job")) { return deny(&why); } }
         if kind == "ORDER" && usage_at_limit(root) { return deny("the week is at 90% or more (scripts/usage.py exits 3): start no new order; finish and park what is running"); }
+        if dup_report(s(inp, "to"), msg, s(data, "transcript_path")) { return deny(DUP_WHY); }
         return;
     }
     if c.orders_free && !is(&re(&format!(r"^\s*{FIRST}\s*:")), msg) { return; }
@@ -349,6 +371,7 @@ fn send_message(c: &Ctx, data: &Value, inp: &Value, root: &str) {
     if let Some(m) = caps(&re(&format!(r"^\s*{FIRST}: .+ \[ID ([^\]]+)\]")), msg) {
         let idtag = format!("[ID {}]", &m[2]);
         if sent().iter().any(|t| t.contains(&idtag)) { return deny(&format!("this report's ID [{}] was already sent; a repeat is dropped", &m[2])); }
+        if dup_report(s(inp, "to"), msg, s(data, "transcript_path")) { return deny(DUP_WHY); }
     }
     if bad_order.is_none() && usage_at_limit(root) { return deny("the week is at 90% or more (scripts/usage.py exits 3): start no new order; finish and park what is running"); }
 }
@@ -419,6 +442,10 @@ fn stop(c: &Ctx, data: &Value, manager: bool) {
         }
         if letters_not_bold_italic(text) {
             block("write each choice letter bold and italic, like ***A.*** red, one line per choice with a blank line between (item 80)");
+            return;
+        }
+        if is_news(text) && !owner_form_ok(text) && !owner_asked(tpath) {
+            block("never tell the owner PASS, LIVE, DONE, shipped or progress news (item 97): his chat gets only a lettered question, a yes he must give, '<worker> is waiting for you: type in <chat>', or the idle card. When nothing needs him, end this turn with no text at all");
             return;
         }
         if text.contains('?') && look_unshown(&question_part(text), &uses) {

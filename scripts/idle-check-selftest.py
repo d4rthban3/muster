@@ -140,4 +140,18 @@ d, sd = sproj([("Manager_Z_001", False), ("Builder A_Z_001", False), ("Builder A
 t("sweep: naming the chat in the reply satisfies it", srun(d, sd, msg="Archiving Builder A_Z_001 now") == "")
 d, sd = sproj([("Manager_Z_001", False), ("Builder A_Z_001", False), ("Builder A_Z_002", False), ("Other_Q_001", False), ("Other_Q_002", False)], BOARD_OK)
 t("sweep: another project's replaced chat is not this crew's", "Other_Q_001" not in srun(d, sd))
+
+# item 97: a turn a worker's message started may end with no text
+def tpath(*msgs):
+    pth = os.path.join(tempfile.mkdtemp(), "t.jsonl")
+    with open(pth, "w") as f:
+        for m in msgs:
+            f.write(json.dumps({"type": "user", "message": {"content": m}}) + "\n")
+    return pth
+def qrun(tp, msg):
+    return subprocess.run([sys.executable, CHK, "--project", tmp], input=json.dumps({"last_assistant_message": msg, "transcript_path": tp}), capture_output=True, text=True,
+                          env=dict(env, MUSTER_STATE_DIR=tempfile.mkdtemp())).stdout
+t("quiet: an empty reply to a worker's message is not asked for a line", qrun(tpath("You are Manager_X_001", "<cross-session-message from=\"b\">DONE: x [ID b-1]</cross-session-message>"), "") == "")
+t("quiet: an empty reply to HIS typed words is still asked", "block" in qrun(tpath("You are Manager_X_001", "<cross-session-message from=\"b\">x</cross-session-message>", "status?"), ""))
+t("quiet: a worker-started turn that wrote text is still checked", "block" in qrun(tpath("You are Manager_X_001", "<cross-session-message from=\"b\">x</cross-session-message>"), "ok"))
 sys.exit(1 if bad else 0)

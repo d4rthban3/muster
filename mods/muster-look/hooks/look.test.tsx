@@ -44,3 +44,17 @@ test('a mixed-case title and a plain one become chips; chips are one line', asyn
   expect(await ui.find({ type: 'Text', text: /engine/ })).toBeFalsy()
   await ui.unmount()
 })
+
+test('the rule is one piece and a card after the question is not part of it', async ($, on) => {
+  on('ui.render', ($, e) => {
+    const { Text } = $.ui.resolve(e)
+    return <Text>engine</Text>
+  })
+  const text = QUESTION + '\n\n**PASS · next job**\nDone.'
+  const ui = await $.ui.mount(MSG(text, 'desktop'))
+  const rule = await ui.find({ type: 'Text', text: /^▏(\n▏)*$/ })
+  expect(rule).toBeTruthy()
+  // the question has a title, two choices: the rule is at least 3 lines and stops there
+  expect((rule?.text ?? '').split('\n').length).toBeLessThan(8)
+  await ui.unmount()
+})

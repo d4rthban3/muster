@@ -23,8 +23,14 @@ export const register: Register = on => {
       </Text>
     )
 
+    let lastChoice = -1
+    parsed.pieces.forEach((p, i) => { if (p.kind === 'choice') lastChoice = i })
+    // Terminal width is not known here: a wrapped line is guessed at 70 columns.
+    const lines = (p: (typeof parsed.pieces)[number]) =>
+      p.kind === 'title' ? 1 : p.kind === 'choice' ? Math.max(1, Math.ceil((p.text.length + 5) / 70)) : p.text.split('\n').reduce((n, l) => n + Math.max(1, Math.ceil(l.length / 70)), 0)
+
     const rows = parsed.pieces.map((p, i) => {
-      const inQ = parsed.isQuestion && i >= parsed.startsAt
+      const inQ = parsed.isQuestion && i >= parsed.startsAt && i <= lastChoice
       if (p.kind === 'md') return <Markdown key={`m${i}`} text={p.text} />
       if (p.kind === 'title') {
         return (
@@ -40,21 +46,26 @@ export const register: Register = on => {
     })
 
     const before = rows.slice(0, parsed.isQuestion ? parsed.startsAt : rows.length)
-    const question = parsed.isQuestion ? rows.slice(parsed.startsAt) : []
+    const question = parsed.isQuestion ? rows.slice(parsed.startsAt, lastChoice + 1) : []
+    const after = parsed.isQuestion ? rows.slice(lastChoice + 1) : []
+    const height = parsed.isQuestion
+      ? parsed.pieces.slice(parsed.startsAt, lastChoice + 1).reduce((n, p) => n + lines(p), 0)
+      : 0
+    // One unbroken rule: a single column of thin bars as tall as the question.
+    const rule = Array.from({ length: height }, () => '\u258F').join('\n')
 
     return (
       <Box flexDirection="column">
         {before}
         {question.length > 0 && (
-          <Box flexDirection="column">
-            {question.map((r, i) => (
-              <Box key={`q${i}`} flexDirection="row">
-                <Text color={YELLOW.text}>{'\u258F'}</Text>
-                <Box paddingLeft={1}>{r}</Box>
-              </Box>
-            ))}
+          <Box flexDirection="row">
+            <Box flexShrink={0}><Text color={YELLOW.text}>{rule}</Text></Box>
+            <Box flexDirection="column" paddingLeft={1}>
+              {question}
+            </Box>
           </Box>
         )}
+        {after}
       </Box>
     )
   })

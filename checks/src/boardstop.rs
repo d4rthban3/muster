@@ -54,7 +54,7 @@ fn item_fp(e: &Entry) -> String {
 }
 
 fn manager_re(profile: &Value) -> fancy_regex::Regex {
-    let mut p = String::from(r"agents[/\\]manager\.md|\bManager_[^_\n]*_\d{3}\b");
+    let mut p = String::from(r"agents[/\\]manager\.md|\bManager_[^_\n]*?(?:_\d{3})?\b");
     for x in pstrings(profile, "manager_names") { p.push_str(&format!("|(?:{x})")); }
     re(&p)
 }

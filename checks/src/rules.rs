@@ -31,7 +31,7 @@ fn manager_names(c: &Ctx) -> Vec<fancy_regex::Regex> { pstrings(&c.profile, "man
 
 fn token_is_manager(c: &Ctx, tok: &str) -> bool {
     if is(&re(r"^agents[/\\]"), tok) { return is(&re(r"agents[/\\]manager\.md$"), tok); }
-    is(&re(r"^Manager_[^_\n]*_\d{3}$"), tok) || manager_names(c).iter().any(|r| is(r, tok))
+    is(&re(r"^Manager_[^_\n]*?(?:_\d{3})?$"), tok) || manager_names(c).iter().any(|r| is(r, tok))
 }
 
 /// The chat's own crew name (or agents/<role>.md) in its starting note, if any.
@@ -125,13 +125,13 @@ pub fn normalise(p: &Path) -> PathBuf {
     }
     out
 }
-// ---- the crew lists: the manager in force, and the handover (items 94, 101) ----
+// ---- the crew lists: the manager in force (items 94, 101) ----
 fn name_num(n: &str) -> Option<(String, u32)> {
-    let m = caps(&re(r"^(.*?)_(\d{3})$"), n)?;
-    Some((m[1].to_string(), m[2].parse().ok()?))
+    let m = caps(&re(r"^(.+?_[^_\s|]+?)(?:_(\d{3}))?$"), n)?; // D-040: a name is <Role>_<project>; old names may still carry a number
+    Some((m[1].to_string(), m.get(2).and_then(|x| x.as_str().parse().ok()).unwrap_or(0)))
 }
 fn is_manager_name(profile: &Value, n: &str) -> bool {
-    is(&re(r"^Manager_[^_\s|]+_\d{3}$"), n) || pstrings(profile, "manager_names").iter().any(|x| is(&re(&format!("^(?:{x})$")), n))
+    is(&re(r"^Manager_[^_\s|]+(?:_\d{3})?$"), n) || pstrings(profile, "manager_names").iter().any(|x| is(&re(&format!("^(?:{x})$")), n))
 }
 /// [(name, chat id, is a manager)] of the running crew rows: Muster's own "Running now" table; a profile's crew list in full.
 fn crew_rows(root: &str, profile: &Value) -> Vec<(String, String, bool)> {
@@ -163,7 +163,7 @@ fn managers_in_force(root: &str, profile: &Value) -> Vec<(String, String)> {
         let Some((pre, n)) = name_num(&name) else { continue };
         if !mgr { continue; }
         match best.iter_mut().find(|b| b.0 == pre) {
-            Some(b) => { if n > b.1 { *b = (pre, n, name, id); } }
+            Some(b) => { if n >= b.1 { *b = (pre, n, name, id); } }
             None => best.push((pre, n, name, id)),
         }
     }
@@ -200,60 +200,6 @@ fn sessions_dir() -> Option<PathBuf> {
     [Path::new(&home).join("Library/Application Support/Claude/claude-code-sessions"), Path::new(&appdata).join("Claude/claude-code-sessions"), Path::new(&home).join(".config/Claude/claude-code-sessions")]
         .into_iter().find(|p| p.is_dir())
 }
-/// The app's session record for a chat id (read-only): base/*/*/<id>.json.
-fn session_record(cid: &str) -> Option<Value> {
-    if cid.is_empty() { return None; }
-    let base = sessions_dir()?;
-    for a in std::fs::read_dir(&base).ok()?.flatten() {
-        if let Ok(rd) = std::fs::read_dir(a.path()) {
-            for b in rd.flatten() {
-                let f = b.path().join(format!("{cid}.json"));
-                if let Ok(t) = std::fs::read_to_string(&f) { if let Ok(v) = serde_json::from_str::<Value>(&t) { return Some(v); } }
-            }
-        }
-    }
-    None
-}
-/// Every message the chat sent: (recipient, text).
-fn sends_all(path: &str) -> Vec<(String, String)> {
-    let mut out = vec![];
-    for d in lines_of(path) {
-        if s(&d, "type") != "assistant" { continue; }
-        if let Value::Array(a) = msg_content(&d) {
-            for b in &a {
-                if s(b, "type") == "tool_use" && (s(b, "name") == "SendMessage" || s(b, "name").ends_with("send_message")) {
-                    if let Some(i) = b.get("input") {
-                        let to = if !s(i, "to").is_empty() { s(i, "to") } else { s(i, "session_id") };
-                        out.push((to.to_string(), s(i, "message").to_string()));
-                    }
-                }
-            }
-        }
-    }
-    out
-}
-struct Handover { new: (String, String), running: bool, untold: Vec<String> }
-/// Item 101: None unless this chat is a manager and the crew list names a newer manager of the same project.
-fn handover(c: &Ctx, first: &str, root: &str, path: &str) -> Option<Handover> {
-    let own = own_token(c, first)?;
-    let (pre, num) = name_num(&own)?;
-    if !is_manager_name(&c.profile, &own) { return None; }
-    let rows = crew_rows(root, &c.profile);
-    let new = rows.iter().filter(|(n, _, m)| *m && name_num(n).map(|(p, k)| p == pre && k > num).unwrap_or(false)).max_by_key(|(n, _, _)| name_num(n).map(|x| x.1).unwrap_or(0))?;
-    let rec = session_record(&new.1);
-    let running = rec.as_ref().map(|r| !r.get("isArchived").and_then(Value::as_bool).unwrap_or(false)).unwrap_or(false);
-    let mut untold = vec![];
-    if running {
-        let sent = sends_all(path);
-        for (name, cid, mgr) in &rows {
-            if *mgr || cid.is_empty() || *cid == new.1 { continue; }
-            if session_record(cid).map(|r| r.get("isArchived").and_then(Value::as_bool).unwrap_or(false)).unwrap_or(false) { continue; }
-            if !sent.iter().any(|(to, t)| (to == cid || to == name) && t.contains(&new.1) && t.contains(&new.0)) { untold.push(name.clone()); }
-        }
-    }
-    Some(Handover { new: (new.0.clone(), new.1.clone()), running, untold })
-}
-
 /// The weekly goal (muster/GOAL.md): an ORDER whose job is not on its set list waits. No goal, or no set list, enforces nothing.
 fn goal_problem(root: &str, job: &str) -> Option<String> {
     let text = std::fs::read_to_string(Path::new(root).join("muster").join("GOAL.md")).ok()?;
@@ -402,7 +348,7 @@ fn pretool(c: &Ctx, data: &Value, manager: bool) {
     if tool.ends_with("start_session") {
         // a started chat's card title is its final name: "Start Engine_PINR_006" would stay (item 69)
         let t = s(inp, "title");
-        if is(&rei(r"^\s*start\s+\S+_\S+_\d{3}\s*$"), t) { return deny(&format!("a started chat's card title is its final name: use the worker's full name without a prefix (not \"{t}\")")); }
+        if is(&rei(r"^\s*start\s+\S+_\S+?(?:_\d{3})?\s*$"), t) { return deny(&format!("a started chat's card title is its final name: use the worker's full name without a prefix (not \"{t}\")")); }
         return;
     }
     if tool == "AskUserQuestion" {
@@ -537,21 +483,8 @@ fn owner_typed_last(path: &str) -> bool {
     typed
 }
 
-/// Item 101: an outgoing manager (the crew list names a newer one) ends silent, owes the owner nothing, and once the new manager runs tells
-/// every running worker its name and id, then archives itself (D-005). True when this stop is the outgoing manager's.
-fn handover_stop(c: &Ctx, data: &Value) -> bool {
-    let path = s(data, "transcript_path");
-    if owner_typed_last(path) { return false; } // his own typed words to this chat are still answered under the usual rules
-    let Some(h) = handover(c, &first_message(path), &main_folder(s(data, "cwd")), path) else { return false };
-    if h.running && !data.get("stop_hook_active").and_then(Value::as_bool).unwrap_or(false) && !bounced_this_turn(path) {
-        let todo = if h.untold.is_empty() { String::new() } else { format!("tell each running worker the new manager's name and id ({}, {}) with SendMessage: {}; then ", h.new.0, h.new.1, h.untold.join(", ")) };
-        block(&format!("handover (item 101): {} runs now, so you are the outgoing manager. {todo}archive yourself (archive_session with session_id \"self\", D-005). Say nothing to the owner; end with no text", h.new.0));
-    }
-    true
-}
 
 fn stop(c: &Ctx, data: &Value, manager: bool) {
-    if manager && handover_stop(c, data) { return; }
     let text = s(data, "last_assistant_message");
     // Founder orders (item 76): NOT subject to the once-per-turn pass. A manager reply that refuses, says it cannot, argues with or
     // reinterprets a task he typed is refused every time; the only way through is doing it, or one short question to him.

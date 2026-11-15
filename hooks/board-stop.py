@@ -34,7 +34,7 @@ def load_profile():
 
 PROFILE = load_profile()
 
-MANAGER_RE = re.compile(r"agents[/\\]manager\.md|\bManager_[^_\n]*_\d{3}\b")
+MANAGER_RE = re.compile(r"agents[/\\]manager\.md|\bManager_[^_\n]*?(?:_\d{3})?\b")
 if PROFILE.get("manager_names"):
     MANAGER_RE = re.compile(MANAGER_RE.pattern + "|" + "|".join("(?:%s)" % x for x in PROFILE["manager_names"]))
 

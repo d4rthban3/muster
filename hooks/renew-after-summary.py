@@ -18,7 +18,7 @@ for _s in (sys.stdout, sys.stderr):  # print on any computer, whatever its conso
 
 CREW = r"(?:Manager|Builder [A-Za-z]|Designer|Design Inspector|Inspector|Sketchpad|AI Socket|Agent Teacher)"
 ROLE_FILE = re.compile(r"agents[/\\](manager|builder|designer|inspector|design-inspector|sketchpad|ai-socket|agent-teacher)\.md")
-CHAT_NAME = re.compile(r"\b%s_[^\s_][^_\n]*_\d{3}\b" % CREW)
+CHAT_NAME = re.compile(r"\b%s_[^\s_][^_\n]*?(?:_\d{3})?\b" % CREW)
 
 
 def load_profile():

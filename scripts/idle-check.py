@@ -8,8 +8,7 @@ Idle card (item 95): when two or more chats are idle with no open item to order 
 to the owner: a bullet line for each, naming it with "since <when>", "why: <reason>" and "unblocked by: <what>", plus the one lettered
 question that unblocks the most (two or more ***A.*** lines, or one with a "?"); said once unchanged, like every news line (item 81).
 
-Crew sweep (item 96), at a manager's first stop of a session and again each day it still holds: (1) every crew chat that a newer number replaced and
-that is not archived (the app's session records: title "<role>_<project>_<NNN>", isArchived), (2) every crew member (the crew list's Running
+Crew sweep (item 96), at a manager's first stop of a session and again each day it still holds: every crew member (the crew list's Running
 now table, or the profile's crew names) with no board entry from it or to it dated within the last day. Each is named once until it changes.
 
 Run as a Stop hook (hooks.json registration comes later) or by hand:  python3 scripts/idle-check.py [--project DIR] [--list]
@@ -189,55 +188,6 @@ def last_message(data):
 
 
 BOARD_LINE = re.compile(r"^(?:###\s+)?(\d{4}-\d{2}-\d{2})\S*\s*\|\s*[^|]+\|\s*(.*?)\s*->\s*(.*?)\s*\|")
-TITLE_NUM = re.compile(r"^(.+)_(\d{3})$")
-
-
-def crew_title_filter(project):
-    """A title belongs to this crew when it names one of the crew list's projects, or matches the profile's crew or manager names."""
-    projects = set()
-    for name, _ in crew(project):
-        m = TITLE_NUM.match(name)
-        if m and "_" in m.group(1):
-            projects.add(m.group(1).rsplit("_", 1)[1])
-    pats = [re.compile("^(?:%s)$" % x) for x in (PROFILE.get("crew_names") or []) + (PROFILE.get("manager_names") or [])]
-    projects.update(re.findall(r"\bManager_([^_\s]+)_\d{3}\b", read(os.path.join(project, "muster", "CREW.md"))))
-
-    def ok(title):
-        m = TITLE_NUM.match(title)
-        if not m or "_" not in m.group(1):
-            return False
-        return m.group(1).rsplit("_", 1)[1] in projects or any(p.search(title) for p in pats)
-    return ok
-
-
-def session_records():
-    """[(title, sessionId, archived)] from the app's session records (read-only); [] where they cannot be read."""
-    base = sessions_dir()
-    out = []
-    for f in glob.glob(os.path.join(base, "*", "*", "local_*.json")) if base else []:
-        try:
-            d = json.load(open(f, encoding="utf-8"))
-        except (OSError, ValueError):
-            continue
-        out.append((d.get("title") or "", d.get("sessionId") or os.path.basename(f)[:-5], bool(d.get("isArchived"))))
-    return out
-
-
-def replaced_unarchived(project):
-    """[(title, newer title)]: a crew chat a newer number replaced that is still not archived."""
-    ok = crew_title_filter(project)
-    recs = [r for r in session_records() if ok(r[0])]
-    newest = {}
-    for t, _, _ in recs:
-        m = TITLE_NUM.match(t)
-        if m and (m.group(1) not in newest or int(m.group(2)) > newest[m.group(1)][0]):
-            newest[m.group(1)] = (int(m.group(2)), t)
-    out = []
-    for t, _, arch in recs:
-        m = TITLE_NUM.match(t)
-        if m and not arch and int(m.group(2)) < newest[m.group(1)][0]:
-            out.append((t, newest[m.group(1)][1]))
-    return out
 
 
 def board_entries(project):
@@ -254,6 +204,21 @@ def board_entries(project):
     return out
 
 
+def session_records():
+    """[(title, sessionId, archived)] from the app's session records (read-only); [] where they cannot be read."""
+    base = sessions_dir()
+    out = []
+    for f in glob.glob(os.path.join(base, "*", "*", "local_*.json")) if base else []:
+        try:
+            d = json.load(open(f, encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        out.append((d.get("title") or "", d.get("sessionId") or os.path.basename(f)[:-5], bool(d.get("isArchived"))))
+    return out
+
+
+
+
 def quiet_members(project, today=None):
     """Crew members (not managers, not archived) with no board entry from or to them dated within the last day."""
     import datetime
@@ -261,7 +226,7 @@ def quiet_members(project, today=None):
     cutoff = (today - datetime.timedelta(days=1)).isoformat()
     recent = [(f + " " + t).lower() for d, f, t in board_entries(project) if d >= cutoff]
     arch = set(t for t, _, a in session_records() if a)
-    mgr = [re.compile(x) for x in (PROFILE.get("manager_names") or [r"\bManager_[^_\s]*_\d{3}\b"])]
+    mgr = [re.compile(x) for x in (PROFILE.get("manager_names") or [r"\bManager_[^_\s]*?(?:_\d{3})?\b"])]
     out = []
     for name, _ in crew(project):
         if name in arch or any(m.search(name) for m in mgr):
@@ -407,49 +372,11 @@ def first_message(path):
     return ""
 
 
-MGR_NAME = re.compile(r"Manager_[^_\s*`|]+_\d{3}")
-
-
-def own_manager_name(first):
-    """This chat's own manager name: the crew name that follows 'Job:', 'You are' or 'I am' in its starting note (a name merely mentioned is not it)."""
-    pats = [MGR_NAME.pattern] + list(PROFILE.get("manager_names") or [])
-    best = None
-    for lead in (r"\bJob:\s*[*`]{0,2}", r"\b(?:you are|i am|i'm)\s+(?:the\s+)?[*`]{0,2}"):
-        for m in re.finditer(lead, first, re.I):
-            for p in pats:
-                c = re.compile("(?:%s)" % p).match(first, m.end())
-                if c and (best is None or m.start() < best[0]):
-                    best = (m.start(), c.group(0))
-    return best[1] if best else None
-
-
-def superseded(project, first):
-    """Item 101: True when the crew list's Running now table (or the profile's crew list) names a manager of the same project with a higher
-    number than this chat's own. Such an outgoing manager gets no idle card and no other owner-facing demand, and may end silent."""
-    own = own_manager_name(first)
-    m = re.match(r"^(.*)_(\d{3})$", own or "")
-    if not m:
-        return False
-    paths = [(os.path.join(project, "muster", "CREW.md"), True)]
-    if PROFILE.get("crew_list"):
-        paths.append((os.path.join(project, PROFILE["crew_list"]), False))
-    for path, own_list in paths:
-        text = read(path)
-        if own_list:
-            sec = re.search(r"## Running now(.*?)(?:\n## |\Z)", text, re.S)
-            text = sec.group(1) if sec else ""
-        for l in text.splitlines():
-            if not l.lstrip().startswith("|"):
-                continue
-            n = re.match(r"^(.*)_(\d{3})$", l.strip().strip("|").split("|")[0].strip().strip("*`"))
-            if n and n.group(1) == m.group(1) and int(n.group(2)) > int(m.group(2)):
-                return True
-    return False
 
 
 def is_manager_chat(data):
     """Installed copy (a project that does not load the plugin): the chat's first message names a manager."""
-    pats = PROFILE.get("manager_names") or [r"\bManager_[^_\s]*_\d{3}\b"]
+    pats = PROFILE.get("manager_names") or [r"\bManager_[^_\s]*?(?:_\d{3})?\b"]
     first = first_message(data.get("transcript_path") or "")
     return any(re.search(p, first) for p in pats)
 
@@ -479,8 +406,6 @@ def main(argv):
     try:
         if INSTALLED and not is_manager_chat(data):
             return 0
-        if superseded(project, first_message(data.get("transcript_path") or "")):
-            return 0  # item 101: a manager a newer one replaced owes the owner nothing; rules-check makes it hand over and archive itself
         msg = last_message(data).lower()
         if not msg.strip() and peer_started(data.get("transcript_path") or ""):
             return 0  # item 97: a turn a worker's message started may end with no text; nothing here demands a line then
@@ -514,12 +439,11 @@ def main(argv):
         elif not missing and not (goal_set(project) and running_workers(crew(project), time.time())) and stretch not in told:
             told.add(stretch)
             card = card_problem(last_message(data), [n for n, _ in still])
-        # item 96: replaced chats still not archived, and crew members with no order and no report in the last day (once a day while unchanged)
+        # item 96: crew members with no order and no report in the last day (once a day while unchanged)
         import datetime
         day = datetime.date.today().isoformat()
         sweep = []
         if not missing and not os.environ.get("MUSTER_NO_SWEEP"):  # the variable is for the older self-tests only
-            sweep += ["%s was replaced by %s and is not archived yet" % x for x in replaced_unarchived(project) if fresh("replaced", x[0], day, x[0])]
             sweep += ["%s has had no order and no report on the board for a day" % n for n in quiet_members(project) if fresh("quiet", n, day, n)]
         if told != told0:
             try:
@@ -530,7 +454,7 @@ def main(argv):
         return 0
     if sweep and not missing and not waiting and not holds and not card:
         print(json.dumps({"decision": "block", "reason":
-            "Crew sweep (item 96): " + " | ".join(sweep) + ". Archive each replaced chat once its work has passed to the newer one (D-005), and give each quiet "
+            "Crew sweep (item 96): " + " | ".join(sweep) + ". Give each quiet "
             "member its next order or find out why it has none; name each in your reply." + NOREPEAT}))
         return 0
     if not missing and not waiting and not holds:

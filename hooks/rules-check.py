@@ -23,8 +23,8 @@ import subprocess
 import sys
 
 ROLE = (r"(?:Manager|Builder [A-Za-z]|Designer|Design Inspector|Inspector|Sketchpad|AI Socket|Agent Teacher)")
-CREW_RE = re.compile(r"agents[/\\](?:manager|builder|designer|inspector|design-inspector|sketchpad|ai-socket|agent-teacher)\.md|\b%s_[^\s_][^_\n]*_\d{3}\b" % ROLE)
-MANAGER_RE = re.compile(r"agents[/\\]manager\.md|\bManager_[^_\n]*_\d{3}\b")
+CREW_RE = re.compile(r"agents[/\\](?:manager|builder|designer|inspector|design-inspector|sketchpad|ai-socket|agent-teacher)\.md|\b%s_[^\s_][^_\n]*?(?:_\d{3})?\b" % ROLE)
+MANAGER_RE = re.compile(r"agents[/\\]manager\.md|\bManager_[^_\n]*?(?:_\d{3})?\b")
 
 
 def load_profile():
@@ -102,7 +102,7 @@ def _token_is_manager(tok):
     """tok is a crew name or an agents/<role>.md path, as CREW_RE matched it."""
     if re.match(r"agents[/\\]", tok):
         return re.search(r"agents[/\\]manager\.md$", tok) is not None
-    return re.fullmatch(r"Manager_[^_\n]*_\d{3}", tok) is not None or any(
+    return re.fullmatch(r"Manager_[^_\n]*?(?:_\d{3})?", tok) is not None or any(
         re.fullmatch(x, tok) for x in PROFILE.get("manager_names", []))
 
 
@@ -452,7 +452,7 @@ def shell_write_targets(cmd):
     return out
 
 
-NAME_NUM = re.compile(r"^(.*?)_(\d{3})$")
+NAME_NUM = re.compile(r"^(.+?_[^_\s|]+?)(?:_(\d{3}))?$")  # D-040: a name is <Role>_<project>; old names may still carry a number
 ID_RE = re.compile(r"local_[^\s|]+")
 
 
@@ -465,7 +465,7 @@ def _crew_lists(root):
 
 
 def _is_manager_name(name):
-    return re.fullmatch(r"Manager_[^_\s|]+_\d{3}", name) is not None or any(re.search("^(?:%s)$" % x, name) for x in PROFILE.get("manager_names", []))
+    return re.fullmatch(r"Manager_[^_\s|]+(?:_\d{3})?", name) is not None or any(re.search("^(?:%s)$" % x, name) for x in PROFILE.get("manager_names", []))
 
 
 def crew_rows(root):
@@ -494,7 +494,7 @@ def managers_in_force(root):
     best = {}
     for name, cid, mgr in crew_rows(root):
         m = NAME_NUM.match(name)
-        if mgr and m and (m.group(1) not in best or int(m.group(2)) > int(NAME_NUM.match(best[m.group(1)][0]).group(2))):
+        if mgr and m and (m.group(1) not in best or int(m.group(2) or 0) >= int(NAME_NUM.match(best[m.group(1)][0]).group(2) or 0)):
             best[m.group(1)] = (name, cid)
     return list(best.values())
 
@@ -566,33 +566,6 @@ def sends_all(path):
     except OSError:
         pass
     return out
-
-
-def handover(first, root, path):
-    """Item 101. None unless this chat is a manager and the crew list names a newer manager of the same project. Else
-    {"new": (name, id), "running": the newer manager's chat is running, "untold": running workers not yet told its name and id}."""
-    own = _own_token(first)
-    m = NAME_NUM.match(own or "")
-    if not m or not _is_manager_name(own):
-        return None
-    newer = [(n, i) for n, i, mgr in crew_rows(root) if mgr and NAME_NUM.match(n) and NAME_NUM.match(n).group(1) == m.group(1) and int(NAME_NUM.match(n).group(2)) > int(m.group(2))]
-    if not newer:
-        return None
-    new = max(newer, key=lambda x: int(NAME_NUM.match(x[0]).group(2)))
-    rec = session_record(new[1])
-    running = bool(rec) and not rec.get("isArchived")
-    untold = []
-    if running:
-        sent = sends_all(path)
-        for name, cid, mgr in crew_rows(root):
-            if mgr or cid == new[1] or not cid:
-                continue
-            r = session_record(cid)
-            if r is not None and r.get("isArchived"):
-                continue
-            if not any(to in (cid, name) and new[1] in t and new[0] in t for to, t in sent):
-                untold.append(name)
-    return {"new": new, "running": running, "untold": untold}
 
 
 def goal_problem(root, job):
@@ -689,7 +662,7 @@ def pretool(data, manager):
         return helper_problem(inp, manager)
     if tool.endswith("start_session"):
         t = str(inp.get("title", ""))
-        if re.match(r"^\s*start\s+\S+_\S+_\d{3}\s*$", t, re.I):
+        if re.match(r"^\s*start\s+\S+_\S+?(?:_\d{3})?\s*$", t, re.I):
             return deny("a started chat's card title is its final name: use the worker's full name without a prefix (not \"%s\")" % t)
         return
     if tool == "AskUserQuestion":
@@ -880,25 +853,7 @@ def owner_typed_last(path):
     return typed
 
 
-def handover_stop(data):
-    """Item 101: an outgoing manager (the crew list names a newer one) ends silent, owes no owner-facing line, and once the new manager runs
-    tells every running worker its name and id, then archives itself (D-005). True when this stop is the outgoing manager's."""
-    path = data.get("transcript_path") or ""
-    if owner_typed_last(path):
-        return False  # his own typed words to this chat are still answered under the usual rules
-    h = handover(first_message(path), main_folder(data.get("cwd")), path)
-    if not h:
-        return False
-    if h["running"] and not data.get("stop_hook_active") and not bounced_this_turn(path):
-        todo = ("tell each running worker the new manager's name and id (%s, %s) with SendMessage: %s; then " % (h["new"][0], h["new"][1], ", ".join(h["untold"]))) if h["untold"] else ""
-        block("handover (item 101): %s runs now, so you are the outgoing manager. %sarchive yourself (archive_session with session_id \"self\", D-005). "
-              "Say nothing to the owner; end with no text" % (h["new"][0], todo))
-    return True
-
-
 def stop(data, manager):
-    if manager and handover_stop(data):
-        return
     text = data.get("last_assistant_message") or ""
     # Founder orders (item 76): NOT subject to the once-per-turn pass; the only way through is doing it, or one short question
     if manager and text and refuses_order(text) and owner_typed_last(data.get("transcript_path") or ""):

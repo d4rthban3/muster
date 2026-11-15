@@ -11,7 +11,7 @@ import re
 import sys
 
 CREW = r"(?:Manager|Builder [A-Za-z]|Designer|Design Inspector|Inspector|Sketchpad|AI Socket|Agent Teacher)"
-CREW_RE = re.compile(r"agents[/\\](?:manager|builder|designer|inspector|design-inspector|sketchpad|ai-socket|agent-teacher)\.md|\b%s_[^\s_][^_\n]*_\d{3}\b" % CREW)
+CREW_RE = re.compile(r"agents[/\\](?:manager|builder|designer|inspector|design-inspector|sketchpad|ai-socket|agent-teacher)\.md|\b%s_[^\s_][^_\n]*?(?:_\d{3})?\b" % CREW)
 NOREPEAT = " Your reply already reached the owner: do not write it again. Do what this asks, then end with at most one new line, or nothing."
 
 

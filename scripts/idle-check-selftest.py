@@ -143,10 +143,6 @@ def srun(d, sd, st=None, msg="ok"):
                           env=dict(os.environ, MUSTER_SESSIONS_DIR=sd, MUSTER_STATE_DIR=st or tempfile.mkdtemp())).stdout
 BOARD_OK = "### %s | ORDER | Manager_Z_001 -> Builder A_Z_001 | j\nStatus: open\n### %s | READY | Builder B_Z_001 -> Inspector_Z_001 | k\nStatus: open\n" % (TODAY, TODAY)
 d, sd = sproj([("Manager_Z_001", False), ("Builder A_Z_001", False), ("Builder A_Z_002", False), ("Builder B_Z_001", False)], BOARD_OK)
-o = srun(d, sd)
-t("sweep: a replaced chat that is not archived is named with its replacement", "Builder A_Z_001 was replaced by Builder A_Z_002" in o and "item 96" in o)
-d, sd = sproj([("Manager_Z_001", False), ("Builder A_Z_001", True), ("Builder A_Z_002", False), ("Builder B_Z_001", False)], BOARD_OK)
-t("sweep: an archived replaced chat is not named", srun(d, sd) == "")
 d, sd = sproj([("Manager_Z_001", False), ("Builder A_Z_001", False), ("Builder B_Z_001", False)], BOARD_OK.replace("Builder B_Z_001", "Builder C_Z_001"))
 o = srun(d, sd)
 t("sweep: a member with no order and no report in a day is named", "Builder B_Z_001 has had no order and no report" in o and "Builder A_Z_001 has had" not in o)
@@ -154,12 +150,10 @@ d, sd = sproj([("Manager_Z_001", False), ("Builder A_Z_001", False), ("Builder B
 t("sweep: an old board names both workers, never the manager", "Builder A_Z_001 has had" in srun(d, sd) and "Manager_Z_001 has had" not in srun(d, sd))
 d, sd = sproj([("Manager_Z_001", False), ("Builder A_Z_001", False), ("Builder B_Z_001", False)], BOARD_OK)
 t("sweep: everyone active and nothing replaced is silent", srun(d, sd) == "")
-st3 = tempfile.mkdtemp(); d, sd = sproj([("Manager_Z_001", False), ("Builder A_Z_001", False), ("Builder A_Z_002", False), ("Builder B_Z_001", False)], BOARD_OK)
+st3 = tempfile.mkdtemp(); d, sd = sproj([("Manager_Z_001", False), ("Builder A_Z_001", False), ("Builder B_Z_001", False)], BOARD_OK.replace("Builder B_Z_001", "Builder C_Z_001"))
 t("sweep: said once, unchanged, it is not said again the same day", "block" in srun(d, sd, st3) and srun(d, sd, st3) == "")
-d, sd = sproj([("Manager_Z_001", False), ("Builder A_Z_001", False), ("Builder A_Z_002", False), ("Builder B_Z_001", False)], BOARD_OK)
-t("sweep: naming the chat in the reply satisfies it", srun(d, sd, msg="Archiving Builder A_Z_001 now") == "")
-d, sd = sproj([("Manager_Z_001", False), ("Builder A_Z_001", False), ("Builder A_Z_002", False), ("Other_Q_001", False), ("Other_Q_002", False)], BOARD_OK)
-t("sweep: another project's replaced chat is not this crew's", "Other_Q_001" not in srun(d, sd))
+d, sd = sproj([("Manager_Z_001", False), ("Builder A_Z_001", False), ("Builder B_Z_001", False)], BOARD_OK.replace("Builder B_Z_001", "Builder C_Z_001"))
+t("sweep: naming the chat in the reply satisfies it", srun(d, sd, msg="Giving Builder B_Z_001 its next order") == "")
 
 # item 97: a turn a worker's message started may end with no text
 def tpath(*msgs):

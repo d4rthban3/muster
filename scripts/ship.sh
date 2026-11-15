@@ -88,7 +88,7 @@ for f in $(git diff --name-only origin/main HEAD -- docs | grep '\.html$'); do
 done
 if [ $dry = 1 ]; then echo "SHIP DRY RUN OK: would push $new; nothing was pushed"; exit 0; fi
 tmp="ship/$new"
-git push -q origin "HEAD:refs/heads/$tmp" || stop "could not push the branch copy $tmp"
+git push -q origin "HEAD:refs/heads/$tmp" || stop "could not push the branch copy $tmp. If the app refused it for the owner's yes, do not ask him: send the manager NEED \"ship blocked: <sha>, PASS <id>, branch <name>\"; he asks the owner in his own chat and runs this script from a fresh copy of the branch"
 if [ $wait = 1 ]; then
   command -v gh >/dev/null || stop "gh is not installed, cannot wait for the free test"
   sha=$(git rev-parse HEAD); echo "== waiting for the free test on $tmp"
@@ -97,7 +97,7 @@ if [ $wait = 1 ]; then
     case "$r" in "$sha	completed	success") break;; "$sha	completed	"*) stop "the free test on $tmp did not pass: $r";; esac; sleep 15; done
   [ "${r%%	*}" = "$sha" ] && case "$r" in *completed*success) ;; *) stop "the free test on $tmp did not finish in time";; esac
 fi
-git push -q origin "HEAD:refs/heads/main" || stop "main refused the push (not a fast-forward, or not allowed); nothing was forced"
+git push -q origin "HEAD:refs/heads/main" || stop "main refused the push (not a fast-forward, or not allowed); nothing was forced. If the app refused it for the owner's yes, do not ask him: send the manager NEED \"ship blocked: <sha>, PASS <id>, branch <name>\""
 echo "== pushed $new to main"
 # the builders' change log a second computer reads (owner's list item 31): one line per ship, only where the project keeps one
 if [ -f "$mainroot/muster/BUILDERS-LOG.md" ]; then

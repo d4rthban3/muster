@@ -32,6 +32,9 @@ For a branch the inspector passed, `scripts/ship.sh` does the version, release f
 ## One batch, not one deploy per piece
 Site work that has passed goes live together: collect the passed branches and release them in one go (`scripts/ship.sh "note" --with <branch> --with <branch>` merges each, takes one version, one free test and one live proof) instead of one deploy per piece. A batch holds only passed branches; if two touch the same files, ship them one after the other.
 
+## When the push is refused for the owner's yes
+If the app's permission check refuses your push or `scripts/ship.sh`, do not ask the owner and do not tell him to type anything in your chat. Send the manager the NEED "ship blocked: <sha>, PASS <id>, branch <name>". The manager asks him in its own chat and, on his "ship it" there, runs `scripts/ship.sh` from a fresh copy of that branch.
+
 ## Do not
 - Deploy engine or data changes.
 - Deploy from a dirty working copy, or without the dry run.

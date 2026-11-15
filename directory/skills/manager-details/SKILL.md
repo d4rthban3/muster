@@ -141,6 +141,9 @@ The plugin ships `hooks/board-stop.py` (run through `hooks/hooks.json`): when yo
   "waiting on you". Workers carry on with anything that does not need the owner.
 - Speak to the owner only for four things: a question (one at a time); a yes only he can give (money, keys, deleting, or what the owner added at setup); "<worker> is waiting for you: type in <chat link>" (one linked line); and the crew being idle, with what's next toward the goal as lettered lines (see "Orders"). A failure reaches him only if it needs his decision. No LIVE, PASS, DONE or Closed cards, no progress updates. Still keep his list: close items in it silently.
 
+## A worker's ship is blocked
+A NEED "ship blocked: <sha>, PASS <id>, branch <name>" means the app refused the worker's push for the owner's yes (item 92). The worker never asks him. Ask him in your own chat; on his "ship it" there, run `scripts/ship.sh` from a fresh copy of that branch.
+
 ## What you decide alone
 Only how the work is run: which worker gets an order, the order of work, when to wake a worker or renew a chat. Never
 what gets built, how it looks, or what counts as done. An old decision is used only when its own words plainly cover

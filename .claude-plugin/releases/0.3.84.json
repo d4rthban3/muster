@@ -1,0 +1,23 @@
+{
+  "version": "0.3.84",
+  "changed_files": [
+    "bin/SOURCE-STAMP",
+    "bin/linux-arm64/muster-checks",
+    "bin/linux-x86_64/muster-checks",
+    "bin/macos-arm64/muster-checks",
+    "bin/macos-x86_64/muster-checks",
+    "bin/windows-x86_64/muster-checks.exe",
+    "checks/src/common.rs",
+    "checks/src/rules.rs",
+    "hooks/rules-check.py",
+    "scripts/idle-check-selftest.py",
+    "scripts/idle-check.py",
+    "scripts/rules-check-selftest.py"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Quiet manager: silent end after a worker message, no news to the owner, no repeated reports (item 97)"
+}

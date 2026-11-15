@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.84
+Affects: see .claude-plugin/releases/0.3.84.json.
+Quiet manager: silent end after a worker message, no news to the owner, no repeated reports (item 97)
+
 ## 0.3.83
 Affects: see .claude-plugin/releases/0.3.83.json.
 Idle report card and daily crew sweep (items 95, 96)

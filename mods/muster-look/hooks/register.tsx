@@ -42,8 +42,11 @@ export const register: Register = on => {
       <Box flexDirection="column">
         {before}
         {question.length > 0 && (
-          <Box flexDirection="column" borderStyle="quote" borderColor={YELLOW.text} paddingLeft={1}>
-            {question}
+          <Box flexDirection="row">
+            <Box width={1} flexShrink={0} backgroundColor={YELLOW.text} />
+            <Box flexDirection="column" paddingLeft={1}>
+              {question}
+            </Box>
           </Box>
         )}
       </Box>

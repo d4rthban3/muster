@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.79
+Affects: see .claude-plugin/releases/0.3.79.json.
+Report check also accepts the app's send_message tool (item 65 follow-up)
+
 ## 0.3.78
 Affects: Manager, Builder, Inspector, Designer.
 Group check (item 79): the manager's stop refuses a started chat with no move_sessions and list_sessions read-back. Report to manager always (item 65): PASS/FAIL copies to the manager are allowed and a worker's report card needs a message to the manager

@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.88
+Affects: see .claude-plugin/releases/0.3.88.json.
+Handover quiet (items 95, 101): idle card once, old manager goes quiet, reports go to the manager in force
+
 ## 0.3.87
 Affects: see .claude-plugin/releases/0.3.87.json.
 Renew line 300k and trimmed start load (item 102): renew at 300k; crew chats start without unused tools

@@ -1,0 +1,22 @@
+{
+  "version": "0.3.88",
+  "changed_files": [
+    ".github/workflows/setup-test.yml",
+    "bin/SOURCE-STAMP",
+    "bin/linux-arm64/muster-checks",
+    "bin/linux-x86_64/muster-checks",
+    "bin/macos-arm64/muster-checks",
+    "bin/macos-x86_64/muster-checks",
+    "bin/windows-x86_64/muster-checks.exe",
+    "checks/src/rules.rs",
+    "hooks/rules-check.py",
+    "scripts/handover-selftest.py",
+    "scripts/idle-check.py"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Handover quiet (items 95, 101): idle card once, old manager goes quiet, reports go to the manager in force"
+}

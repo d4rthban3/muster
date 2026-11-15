@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
-"""Record one founder decision in PINR's decisions log, only from his click or his own words (Muster D-022, items 80 and 86).
+"""Record one founder decision in PINR's decisions log, only from the founder's click or the founder's own words (Muster D-022, items 80 and 86).
 
 This is Muster's decide.py for PINR's layout. install-checks.py --profile pinr copies it to <project>/manager/decide.py.
 Usage (the same flags PINR's recorder always had, plus --item and --manager):
   python3 manager/decide.py --title "..." --question "..." --picked "A. Go live" [--body "..."]
-  python3 manager/decide.py --title "..." --question "..." --said "<his whole line>" [--chose "C"] [--body "..."] [--item N]
-What it takes as his word:
-  --picked          his click, exactly as the app returned it.
+  python3 manager/decide.py --title "..." --question "..." --said "<the founder's whole line>" [--chose "C"] [--body "..."] [--item N]
+What it takes as the founder's word:
+  --picked          the founder's click, exactly as the app returned it.
   --said "c"        a bare typed letter answering a lettered question; it names that lettered choice (--chose may name its option).
-  --said "<line>"   his whole line, and --chose, the option's name, must appear in it; a line that leaves the choice open
+  --said "<line>"   the founder's whole line, and --chose, the option's name, must appear in it; a line that leaves the choice open
                     ("or", "maybe", "either", "whatever looks better") is refused.
-  --said "whatever muster manager tells you to do."   a line that hands the choice to someone he names ("whatever <who> tells
-                    you to do") is recorded as exactly that, a handover to <who>; the manager never picks for him.
-  --item N          optional proof against PINR's founder list: his whole line must be quoted under item N there.
+  --said "whatever muster manager tells you to do."   a line that hands the choice to someone the founder names ("whatever <who> tells
+                    you to do") is recorded as exactly that, a handover to <who>; the manager never picks for the founder.
+  --item N          optional proof against PINR's founder list: the founder's whole line must be quoted under item N there.
 Appends "**N. title (founder, date: "words", to <manager>'s question ...).** body" to PINR's decisions log and prints N.
 The log and the list are named in <project>/.muster-checks/profile.json ("decision_log", "founder_list"). Standard library only.
 """
@@ -45,11 +45,11 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--title", required=True)
     ap.add_argument("--question", required=True)
-    ap.add_argument("--picked", help="his click, exactly as the app returned it")
-    ap.add_argument("--said", help="his whole line, word for word")
-    ap.add_argument("--chose", help="the choice his line names (with --said)")
+    ap.add_argument("--picked", help="the founder's click, exactly as the app returned it")
+    ap.add_argument("--said", help="the founder's whole line, word for word")
+    ap.add_argument("--chose", help="the choice the founder's line names (with --said)")
     ap.add_argument("--body", default="")
-    ap.add_argument("--item", type=int, help="his founder-list item; his whole line must be quoted there")
+    ap.add_argument("--item", type=int, help="the founder's list item; the founder's whole line must be quoted there")
     ap.add_argument("--manager", default="the manager", help="the manager's chat name, for the entry")
     a = ap.parse_args()
     if bool(a.picked) == bool(a.said):
@@ -61,17 +61,17 @@ def main():
         m = LETTER.fullmatch(said)
         d = DELEGATE.match(said)
         if m:
-            how = "his typed letter %s%s" % (m.group(1).upper(), (", " + a.chose) if a.chose else "")
+            how = "the founder's typed letter %s%s" % (m.group(1).upper(), (", " + a.chose) if a.chose else "")
         elif d and not OPEN.search(said):
-            how = "he handed the choice to %s" % d.group(1).strip()
+            how = "the founder handed the choice to %s" % d.group(1).strip()
         else:
             if not a.chose:
-                sys.exit("decide: refused. --said needs --chose, the option his line names")
+                sys.exit("decide: refused. --said needs --chose, the option the founder's line names")
             if HEDGE.search(said):
-                sys.exit("decide: refused. His line leaves the choice open; ask him with lettered choices, your pick marked \"my pick\"")
+                sys.exit("decide: refused. The founder's line leaves the choice open; ask the founder with lettered choices, your pick marked \"my pick\"")
             if norm(a.chose) not in norm(said):
-                sys.exit("decide: refused. His line does not name the choice; ask him with lettered choices")
-            how = "his own words naming %s" % a.chose
+                sys.exit("decide: refused. The founder's line does not name the choice; ask the founder with lettered choices")
+            how = "the founder's own words naming %s" % a.chose
         if a.item is not None:
             try:
                 lines = open(LIST, encoding="utf-8").read().split("\n")
@@ -84,7 +84,7 @@ def main():
             while end < len(lines) and not re.match(r"^(\d+\.\s|#)", lines[end]):
                 end += 1
             if norm(said) not in norm(" ".join(lines[start:end])):
-                sys.exit("decide: refused. His whole line is not quoted under founder-list item %d; write it there first, or ask him." % a.item)
+                sys.exit("decide: refused. The founder's whole line is not quoted under founder-list item %d; write it there first, or ask the founder." % a.item)
     try:
         text = open(LOG, encoding="utf-8").read()
     except OSError as err:

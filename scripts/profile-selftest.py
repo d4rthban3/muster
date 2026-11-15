@@ -269,6 +269,10 @@ add("item 86: a line that does not name the choice is refused", "" if dec("--sai
 add("item 86: a handover line that also hedges is refused", "" if dec("--said", "whatever muster manager tells you to do or maybe not").returncode == 1 else "BAD", False)
 r = dec("--said", "make the header blue", "--chose", "blue")
 add("item 86: a whole clear line naming the choice is recorded", "" if r.returncode == 0 else "BAD " + r.stderr, False)
+import re
+_rec = [l for l in open(RLOG).read().splitlines() if "Recorded as:" in l]
+add("PINR rule 21: every recorded line says 'the founder', never he, him or his", "" if _rec and all("the founder" in l and not re.search(r"\b(he|him|his)\b", l.split("Recorded as:")[1], re.I) for l in _rec) else "BAD " + str(_rec[-2:]), False)
+add("PINR rule 21: decide's own help text never says he, him or his", "" if not re.search(r"\b(he|him|his)\b", subprocess.run([PY, DP, "--help"], capture_output=True, text=True).stdout, re.I) else "BAD", False)
 ic(RP)
 add("item 86: removing the checks puts PINR's own recorder back", "" if open(DP).read() == OLD else "BAD", False)
 # item 90: --live puts small stand-ins in the project that run the checks from the Muster folder, so a Muster change reaches it with no re-install

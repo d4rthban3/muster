@@ -1,0 +1,37 @@
+{
+  "version": "0.3.89",
+  "changed_files": [
+    "agents/manager.md",
+    "bin/SOURCE-STAMP",
+    "bin/linux-arm64/muster-checks",
+    "bin/linux-x86_64/muster-checks",
+    "bin/macos-arm64/muster-checks",
+    "bin/macos-x86_64/muster-checks",
+    "bin/windows-x86_64/muster-checks.exe",
+    "checks/src/boardstop.rs",
+    "checks/src/rules.rs",
+    "directory/agents/manager.md",
+    "directory/skills/manager-details/SKILL.md",
+    "directory/skills/start-the-crew/SKILL.md",
+    "directory/templates/BOARD.md",
+    "hooks/board-stop.py",
+    "hooks/rules-check.py",
+    "pages/manager.md",
+    "scripts/idle-check-selftest.py",
+    "scripts/idle-check.py",
+    "scripts/profile-selftest.py",
+    "scripts/rules-check-selftest.py",
+    "scripts/setup-smoke.sh",
+    "scripts/ship.sh",
+    "skills/board-digest/scripts/board_digest.py",
+    "skills/manager-details/SKILL.md",
+    "skills/start-the-crew/SKILL.md",
+    "templates/BOARD.md"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Approval relay (items 103, 104): the manager carries his yes to the worker, idle card once per idle stretch, ship.sh skips a needless rebase"
+}

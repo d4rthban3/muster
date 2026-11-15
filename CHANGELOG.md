@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.89
+Affects: see .claude-plugin/releases/0.3.89.json.
+Approval relay (items 103, 104): the manager carries his yes to the worker, idle card once per idle stretch, ship.sh skips a needless rebase
+
 ## 0.3.88
 Affects: see .claude-plugin/releases/0.3.88.json.
 Handover quiet (items 95, 101): idle card once, old manager goes quiet, reports go to the manager in force

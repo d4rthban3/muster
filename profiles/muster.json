@@ -1,6 +1,6 @@
 {
   "name": "Muster",
   "message_form": "text",
-  "compact_tokens": 300000,
+  "compact_tokens": 200000,
   "crew_deny": ["Artifact", "mcp__Claude_Browser", "mcp__claude-in-chrome", "mcp__computer-use", "mcp__Claude_Code_iOS_Simulator", "mcp__BlockchainQuery", "mcp__visualize", "mcp__mcp-registry", "mcp__scheduled-tasks", "mcp__ccd_sidebar", "mcp__ccd_window", "mcp__ccd_settings", "mcp__ccd_host", "mcp__ccd_directory", "mcp__ccd_connectors", "mcp__ccd_view"]
 }

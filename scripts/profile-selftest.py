@@ -394,7 +394,7 @@ def _trim(role, folder):
     r = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "crew-plan.py"), "trim", role, folder, "--profile", os.path.join(ROOT, "profiles", "muster.json")], capture_output=True, text=True)
     return r.returncode, r.stdout
 _rc, _ = _trim("Builder A_Muster_002", _wt)
-cases.append(("item 105: a crew copy compacts in place at 300000 tokens", "" if json.load(open(os.path.join(_wt, ".claude", "settings.local.json"))).get("autoCompactWindow") == 300000 else "x", False))
+cases.append(("item 105: a crew copy compacts in place at 200000 tokens", "" if json.load(open(os.path.join(_wt, ".claude", "settings.local.json"))).get("autoCompactWindow") == 200000 else "x", False))
 _deny = json.load(open(os.path.join(_wt, ".claude", "settings.local.json")))["permissions"]["deny"]
 cases.append(("item 102: a builder copy leaves the browser, simulator and blockchain tools out", "" if _rc == 0 and "mcp__Claude_Browser" in _deny and "mcp__BlockchainQuery" in _deny else "x", False))
 _wt2 = os.path.join(T, "wt-trim2"); os.makedirs(_wt2); open(os.path.join(_wt2, ".git"), "w").write("gitdir: x\n")

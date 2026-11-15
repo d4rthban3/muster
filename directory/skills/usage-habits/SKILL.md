@@ -29,7 +29,7 @@ for again each turn. These habits cut that cost; they never change what must be 
 5. **Message only when someone must act**, one bundled note per worker, as a data record; no "received"/"thanks"; never cut a finding.
 6. **Don't spawn helpers, change your own model/effort, or open extra sessions** to save effort; that's the manager's
    and owner's call.
-7. **Compact in place** (D-039): a crew chat's conversation is compacted by the app at about 300 000 tokens and the chat carries on; it does not renew
+7. **Compact in place** (D-039): a crew chat's conversation is compacted by the app at about 200 000 tokens and the chat carries on; it does not renew
    because of a summary or a size. A PreCompact hook first writes the chat's open job, branch, saved version and next step on the board.
 
 ## Do not

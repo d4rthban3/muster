@@ -126,7 +126,7 @@ A new chat reads its own rules page (`muster/rules/<its role>.md`) and the five-
 it. It does not read the whole decisions log; that stays for looking things up.
 
 ## 9. Long chats
-No chat renews by size or by summary: at about 300 000 tokens the app compacts it in place and it carries on (D-039; a PreCompact hook writes its open job, branch, saved version and next step on the board first, and a hook puts the rules back after). A chat is replaced only when the manager or the owner says so; the new chat gets the same name, a starting note (see 8), and the old chat is archived by the manager, automatically, without asking the owner, once the new one is running (never deleted). The owner: "that archive should be automatic so long as the old workers are handed off and ready to be archived." (D-005)
+No chat renews by size or by summary: at about 200 000 tokens the app compacts it in place and it carries on (D-039; a PreCompact hook writes its open job, branch, saved version and next step on the board first, and a hook puts the rules back after). A chat is replaced only when the manager or the owner says so; the new chat gets the same name, a starting note (see 8), and the old chat is archived by the manager, automatically, without asking the owner, once the new one is running (never deleted). The owner: "that archive should be automatic so long as the old workers are handed off and ready to be archived." (D-005)
 
 ## 9b. Pacing
 - Passed site work goes live in one batch, not one deploy per piece (skill `deploy-rules`).

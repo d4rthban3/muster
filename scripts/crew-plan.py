@@ -15,7 +15,7 @@
       Item 102: a crew chat's own copy (a git worktree, never the main folder, never the owner's own chats) gets a
       .claude/settings.local.json that keeps the app's tool lists the crew never uses out of the chat's first call:
       permissions.deny names whole tool servers (browser, phone simulator, blockchain, email and similar). The designer keeps the
-      ones that show a page; autoCompactWindow (the profile's compact_tokens, default 300000) makes the chat compact in place (D-039). Names come from the profile's "crew_deny" (else the built-in list); other settings already in the file stay.
+      ones that show a page; autoCompactWindow (the profile's compact_tokens, default 200000) makes the chat compact in place (D-039). Names come from the profile's "crew_deny" (else the built-in list); other settings already in the file stay.
 """
 import json
 import math
@@ -94,7 +94,7 @@ def trim(role, folder, profile_path=None):
         print("REFUSED: %s is not a crew copy (a git worktree); the main folder and the owner's own chats are never trimmed" % folder)
         sys.exit(1)
     deny = list(CREW_DENY)
-    window = 300000  # D-039 (item 105): a crew chat compacts in place at this many tokens; it never renews because of its size
+    window = 200000  # D-039 (item 105): a crew chat compacts in place at this many tokens; it never renews because of its size
     if profile_path and os.path.isfile(profile_path):
         try:
             prof = json.load(open(profile_path, encoding="utf-8"))

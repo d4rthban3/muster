@@ -1,0 +1,19 @@
+{
+  "version": "0.3.99",
+  "changed_files": [
+    "CHECKS.md",
+    "mods/muster-look/.claude-plugin/plugin.json",
+    "mods/muster-look/hooks/hooks.json",
+    "mods/muster-look/hooks/look.test.tsx",
+    "mods/muster-look/hooks/parse.ts",
+    "mods/muster-look/hooks/register.tsx",
+    "scripts/check-tests.py",
+    "scripts/setup-smoke.sh"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Item 116: Muster look mod (smaller chips, mixed-case headings, thin left rule on questions) and a tracked top-level CHECKS.md"
+}

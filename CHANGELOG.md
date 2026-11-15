@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.99
+Affects: see .claude-plugin/releases/0.3.99.json.
+Item 116: Muster look mod (smaller chips, mixed-case headings, thin left rule on questions) and a tracked top-level CHECKS.md
+
 ## 0.3.98
 Affects: see .claude-plugin/releases/0.3.98.json.
 Item 115: a question from the owner gets an answer; orders from his question are blocked unless they cite his choice

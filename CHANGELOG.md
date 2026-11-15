@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.92
+Affects: see .claude-plugin/releases/0.3.92.json.
+Memory rule check (item 108, D-027): a crew chat cannot write crew rules into its own memory
+
 ## 0.3.91
 Affects: see .claude-plugin/releases/0.3.91.json.
 Slim it all (D-040, items 106-108): no renewal or handover code, names without numbers, ask before choosing how, no crew rules in a chat's own memory

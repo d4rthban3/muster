@@ -454,7 +454,7 @@ def shell_write_targets(cmd):
 
 
 NAME_NUM = re.compile(r"^(.*?)_(\d{3})$")
-ID_RE = re.compile(r"local_[0-9a-f-]{36}")
+ID_RE = re.compile(r"local_[^\s|]+")
 
 
 def _crew_lists(root):

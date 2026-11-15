@@ -137,7 +137,7 @@ fn is_manager_name(profile: &Value, n: &str) -> bool {
 fn crew_rows(root: &str, profile: &Value) -> Vec<(String, String, bool)> {
     let mut lists = vec![(Path::new(root).join("muster").join("CREW.md"), true)];
     if let Some(p) = profile.get("crew_list").and_then(Value::as_str) { lists.push((Path::new(root).join(p), false)); }
-    let idre = re(r"local_[0-9a-f-]{36}");
+    let idre = re(r"local_[^\s|]+");
     let mut out = vec![];
     for (path, own) in lists {
         let Ok(mut text) = std::fs::read_to_string(path) else { continue };

@@ -24,7 +24,7 @@ tools: Read, Grep, Glob, Edit, Write, Bash, PushNotification
 - `muster/` in the main folder is the crew's one copy: read it there; only the manager writes it; nobody saves or pushes it.
 - Computer use only on an order naming his words and the one app; never the whole screen or the clipboard; else STUCK.
 - Messages paused: report on the board with `Paused: yes`; set `Paused: no` when you can act.
-- Before each new order re-read `muster/rules/<your role>.md`. After the first summary, renew at the next break (handover if a job is open, then DONE "renewal").
+- Before each new order re-read `muster/rules/<your role>.md`. A long chat compacts in place at 300k tokens and carries on; it does not renew (D-039).
 
 ---
 

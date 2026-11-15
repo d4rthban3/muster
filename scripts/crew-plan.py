@@ -15,7 +15,7 @@
       Item 102: a crew chat's own copy (a git worktree, never the main folder, never the owner's own chats) gets a
       .claude/settings.local.json that keeps the app's tool lists the crew never uses out of the chat's first call:
       permissions.deny names whole tool servers (browser, phone simulator, blockchain, email and similar). The designer keeps the
-      ones that show a page. Names come from the profile's "crew_deny" (else the built-in list); other settings already in the file stay.
+      ones that show a page; autoCompactWindow (the profile's compact_tokens, default 300000) makes the chat compact in place (D-039). Names come from the profile's "crew_deny" (else the built-in list); other settings already in the file stay.
 """
 import json
 import math
@@ -94,9 +94,12 @@ def trim(role, folder, profile_path=None):
         print("REFUSED: %s is not a crew copy (a git worktree); the main folder and the owner's own chats are never trimmed" % folder)
         sys.exit(1)
     deny = list(CREW_DENY)
+    window = 300000  # D-039 (item 105): a crew chat compacts in place at this many tokens; it never renews because of its size
     if profile_path and os.path.isfile(profile_path):
         try:
-            deny = list(json.load(open(profile_path, encoding="utf-8")).get("crew_deny", deny))
+            prof = json.load(open(profile_path, encoding="utf-8"))
+            deny = list(prof.get("crew_deny", deny))
+            window = int(prof.get("compact_tokens") or window)
         except Exception:
             pass
     if slug(role) == "designer":
@@ -113,8 +116,9 @@ def trim(role, folder, profile_path=None):
     old = [d for d in perms.get("deny", []) if d not in CREW_DENY and d not in deny]
     perms["deny"] = old + deny
     os.makedirs(os.path.dirname(path), exist_ok=True)
+    cur["autoCompactWindow"] = max(100000, min(1000000, window))  # the app accepts 100000 to 1000000
     json.dump(cur, open(path, "w", encoding="utf-8"), indent=2)
-    print("OK: %s now leaves %d tool servers out of the first call" % (path, len(deny)))
+    print("OK: %s now leaves %d tool servers out of the first call and compacts in place at %d tokens" % (path, len(deny), cur["autoCompactWindow"]))
 
 
 def main():

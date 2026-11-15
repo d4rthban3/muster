@@ -319,12 +319,12 @@ add("check-report without a profile still wants the ID", "" if cr(rf) == 1 else 
 # item 99: renewal by size, and the summary hook's crew names come from the project's profile
 def bigt(n): return {"type": "assistant", "message": {"content": [{"type": "text", "text": "x"}], "usage": {"input_tokens": 5, "cache_read_input_tokens": n - 5000, "cache_creation_input_tokens": 4995}}}
 card99 = "**WORKING \u00b7 x**\n- a\n- b"
-add("item 99: a PINR-named worker over 300000 tokens is told to renew", run("rules-check.py", "Stop", cwd=PROJ, last_assistant_message=card99, transcript_path=tr("You are Site_PINR_002. Job: Site_PINR_002, builds the site.", [bigt(600000)])), True)
+add("item 105: a PINR-named worker over 300000 tokens is not told to renew (it compacts in place)", run("rules-check.py", "Stop", cwd=PROJ, last_assistant_message=card99, transcript_path=tr("You are Site_PINR_002. Job: Site_PINR_002, builds the site.", [bigt(600000)])), False)
 add("item 99: a PINR-named worker under the line is silent", run("rules-check.py", "Stop", cwd=PROJ, last_assistant_message=card99, transcript_path=tr("You are Site_PINR_002. Job: Site_PINR_002, builds the site.", [bigt(120000)])), False)
 rs = lambda first, prof=True: subprocess.run([PY, os.path.join(ROOT, "hooks", "renew-after-summary.py")], input=json.dumps({"transcript_path": tr(first)}), capture_output=True, text=True,
                                             env=dict(ENV, **({"MUSTER_PROFILE": os.path.join(ROOT, "profiles", "pinr.json")} if prof else {}))).stdout
-add("item 99: after a summary a PINR-named chat is told to renew (crew names from the profile)", "" if "time to renew" in rs("You are Site_PINR_002. Job: Site_PINR_002, builds the site.") else "BAD", False)
-add("item 99: ...and PINR's manager gets the manager's note", "" if "fresh manager chat" in rs("You are Manager_PINR_008. Job: Manager_PINR_008.") else "BAD", False)
+add("item 99: after a compaction a PINR-named chat is told it was compacted in place (crew names from the profile)", "" if "compacted in place" in rs("You are Site_PINR_002. Job: Site_PINR_002, builds the site.") else "BAD", False)
+add("item 99: ...and PINR's manager gets the manager's note", "" if "compacted in place" in rs("You are Manager_PINR_008. Job: Manager_PINR_008.") else "BAD", False)
 add("item 99: ...without the profile a PINR-named chat is not crew to the hook", "" if rs("You are Site_PINR_002. Job: Site_PINR_002, builds the site.", False) == "" else "BAD", False)
 add("item 99: the owner's own chat is silent for the hook", "" if rs("hello there") == "" else "BAD", False)
 # item 93: the Muster folder runs its own checks live; the plugin's own shell hooks stand down only for a check the folder really installed, and not inside a worktree
@@ -369,6 +369,22 @@ LCS = json.load(open(os.path.join(MP, ".claude", "settings.json"))).get("hooks",
 add("item 99: the install adds the summary hook (SessionStart, compact)", "" if any(g.get("matcher") == "compact" and "renew-after-summary.py" in json.dumps(g) for g in LCS) else "BAD", False)
 add("item 99: with the live stand-in installed the plugin's summary hook stands down in the main folder, not in a worktree", "" if subprocess.run(["sh", os.path.join(LM, "hooks", "renew-after-summary.sh")], input="{}", capture_output=True, text=True, cwd=MP).stdout == "" else "BAD", False)
 
+# item 105 (D-039): a crew chat about to compact in place leaves its job, branch, saved version and next step on the board
+LPC = json.load(open(os.path.join(MP, ".claude", "settings.json"))).get("hooks", {}).get("PreCompact", [])
+add("item 105: the install adds the PreCompact hook", "" if any("precompact-board.py" in json.dumps(g) for g in LPC) else "BAD", False)
+_pc = os.path.join(T, "pcproj"); os.makedirs(os.path.join(_pc, "muster"))
+open(os.path.join(_pc, "muster", "BOARD.md"), "w").write("# Board\n")
+_job = {"type": "user", "message": {"content": '{"v":1,"kind":"ORDER","job":"approval-relay","note":"ship approval-relay next"}'}}
+def _pre(first, extra=()):
+    return subprocess.run([PY, os.path.join(ROOT, "hooks", "precompact-board.py")], input=json.dumps({"transcript_path": tr(first, list(extra)), "cwd": _pc}), capture_output=True, text=True,
+                          env=dict(ENV, MUSTER_PROFILE=os.path.join(ROOT, "profiles", "pinr.json"))).returncode
+_pre("You are Site_PINR_002. Job: Site_PINR_002, builds the site.", [_job])
+_b = open(os.path.join(_pc, "muster", "BOARD.md")).read()
+add("item 105: a crew chat's board entry names the chat, its job and its next step", "" if "Site_PINR_002 -> Manager | compaction" in _b and "approval-relay" in _b and "ship approval-relay next" in _b and "Status: done" in _b else "BAD", False)
+_n = _b.count("compaction")
+add("item 105: the owner's own chat leaves nothing on the board", "" if _pre("hello there") == 0 and open(os.path.join(_pc, "muster", "BOARD.md")).read().count("compaction") == _n else "BAD", False)
+add("item 105: a chat with no board leaves nothing and never blocks", "" if subprocess.run([PY, os.path.join(ROOT, "hooks", "precompact-board.py")], input=json.dumps({"transcript_path": tr("You are Site_PINR_002. Job: Site_PINR_002, builds the site."), "cwd": os.path.join(T, "nope")}), capture_output=True, text=True, env=dict(ENV, MUSTER_PROFILE=os.path.join(ROOT, "profiles", "pinr.json"))).returncode == 0 else "BAD", False)
+
 # item 102: crew-plan.py trim keeps unused tool servers out of a crew copy's first call
 _wt = os.path.join(T, "wt-trim"); os.makedirs(_wt); open(os.path.join(_wt, ".git"), "w").write("gitdir: x\n")
 _main = os.path.join(T, "main-trim"); os.makedirs(os.path.join(_main, ".git"))
@@ -376,6 +392,7 @@ def _trim(role, folder):
     r = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "crew-plan.py"), "trim", role, folder, "--profile", os.path.join(ROOT, "profiles", "muster.json")], capture_output=True, text=True)
     return r.returncode, r.stdout
 _rc, _ = _trim("Builder A_Muster_002", _wt)
+cases.append(("item 105: a crew copy compacts in place at 300000 tokens", "" if json.load(open(os.path.join(_wt, ".claude", "settings.local.json"))).get("autoCompactWindow") == 300000 else "x", False))
 _deny = json.load(open(os.path.join(_wt, ".claude", "settings.local.json")))["permissions"]["deny"]
 cases.append(("item 102: a builder copy leaves the browser, simulator and blockchain tools out", "" if _rc == 0 and "mcp__Claude_Browser" in _deny and "mcp__BlockchainQuery" in _deny else "x", False))
 _wt2 = os.path.join(T, "wt-trim2"); os.makedirs(_wt2); open(os.path.join(_wt2, ".git"), "w").write("gitdir: x\n")

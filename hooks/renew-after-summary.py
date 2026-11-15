@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """SessionStart hook (matcher "compact"): fires once, right after a chat's conversation was summarized.
-Tells a CREW chat to hand over and renew at its next natural break. Silent for any other chat, including the owner's
+Tells a CREW chat it was compacted in place (D-039, item 105): no renewal; the rules come back. Silent for any other chat, including the owner's
 own chats in the same folder: it acts only if the chat's FIRST user message (in the transcript) names a crew definition
 (agents/<role>.md) or a crew chat name (<Role>_<project>_<digits>). It is an event, not a stop, so it cannot loop.
 Reads only the hook's JSON from stdin and that transcript; writes nothing; any error means silence.
@@ -75,16 +75,9 @@ def main():
         is_manager = role.group(1) == "manager"
     else:
         is_manager = bool(re.search(r"You are (?:the )?Manager_", first)) or any(re.search(r"You are (?:the )?(?:%s)" % x, first) for x in PROFILE_MANAGER)
-    if is_manager:
-        msg = ("Muster: your conversation was just summarized, so you need a fresh chat (muster/CLAUDE.md section 9). At your "
-               "next natural break write a short handover to muster/handovers/<your chat name>.md (what is open, the files "
-               "that matter, the next step), then tell the owner in one line that you need a fresh manager chat, linked. "
-               "Do this once.")
-    else:
-        msg = ("Muster: your conversation was just summarized, so it is time to renew (muster/CLAUDE.md section 9). At your "
-               "next natural break, if a job is in progress write a short handover to muster/handovers/<your chat name>.md in "
-               "the main project folder (what is open, the files that matter, the next step); then send the manager "
-               "\"DONE: renewal <your chat name>\". Do this once, then carry on until the manager starts your fresh chat.")
+    # D-039 (item 105): chats compact in place; nobody renews because of a summary or a size
+    msg = ("Muster: your conversation was just compacted in place (D-039); carry on, no renewal. Your open job, branch and saved version were written "
+           "to the board just before it. Re-read your rules page (muster/rules/<your role>.md) and the board entries addressed to you.")
     print(msg)
     try:  # the talking rules fade in a long or summarized chat: put them back, once per summary
         with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "talk-block.txt"), encoding="utf-8") as fh:

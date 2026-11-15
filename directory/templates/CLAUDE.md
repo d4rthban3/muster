@@ -124,7 +124,7 @@ A new chat reads its own rules page (`muster/rules/<its role>.md`) and the five-
 it. It does not read the whole decisions log; that stays for looking things up.
 
 ## 9. Renewal
-After the app first summarizes a chat's conversation (a plugin hook then reminds the chat), the chat renews at its next natural break. If a job is in progress it writes a short handover
+A chat does not renew because its conversation was summarized or grew large: at about 300 000 tokens the app compacts it in place and it carries on (D-039; a PreCompact hook writes its open job, branch, saved version and next step on the board first, and a hook puts the rules back after). A chat renews only when the manager or the owner replaces it. When it does, and a job is in progress, it writes a short handover
 (`muster/handovers/<its name>.md`: what is open, the files that matter, the next step); with no job in progress it
 writes none. Then it sends the manager `DONE: renewal <its name>`.
 The manager starts the fresh chat with the next number and the same model and effort, and archives the old one

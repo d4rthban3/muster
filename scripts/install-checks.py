@@ -30,7 +30,7 @@ ROOT = os.path.dirname(HERE)
 FILES = [("hooks/rules-check.py", "rules-check.py"), ("hooks/board-stop.py", "board-stop.py"),
          ("hooks/talk-check.py", "talk-check.py"), ("scripts/usage.py", "usage.py"),
          ("scripts/worker-queue-check.py", "worker-queue-check.py"), ("scripts/idle-check.py", "idle-check.py"),
-         ("hooks/renew-after-summary.py", "renew-after-summary.py")]
+         ("hooks/renew-after-summary.py", "renew-after-summary.py"), ("hooks/precompact-board.py", "precompact-board.py")]
 MARK = ".muster-checks/"
 
 
@@ -159,6 +159,7 @@ def main():
             os.remove(os.path.join(dest, "profile.json"))
         hooks.setdefault("Stop", []).append({"hooks": [{"type": "command", "command": cmd(n)} for n in ("board-stop.py", "talk-check.py", "rules-check.py", "worker-queue-check.py", "idle-check.py")]})
         hooks.setdefault("SessionStart", []).append({"matcher": "compact", "hooks": [{"type": "command", "command": cmd("renew-after-summary.py")}]})
+        hooks.setdefault("PreCompact", []).append({"hooks": [{"type": "command", "command": cmd("precompact-board.py")}]})
         hooks.setdefault("PreToolUse", []).append({"matcher": "mcp__ccd_session__start_session|AskUserQuestion|Agent|Task|SendMessage|Write|Edit|NotebookEdit|Bash",
                                                    "hooks": [{"type": "command", "command": cmd("rules-check.py")}]})
     os.makedirs(os.path.dirname(sfile), exist_ok=True)

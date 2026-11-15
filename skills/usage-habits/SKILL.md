@@ -29,9 +29,8 @@ for again each turn. These habits cut that cost; they never change what must be 
 5. **Message only when someone must act**, one bundled note per worker, as a data record; no "received"/"thanks"; never cut a finding.
 6. **Don't spawn helpers, change your own model/effort, or open extra sessions** to save effort; that's the manager's
    and owner's call.
-7. **Renew after the app's first summary**: at the next natural break if a job is in progress write `muster/handovers/<your name>.md` (what is
-   open, the files that matter, the next step, anything you did not verify; no job in progress, no handover) and send the
-   manager `DONE: renewal <your name>`. The manager starts the fresh chat and archives this one.
+7. **Compact in place** (D-039): a crew chat's conversation is compacted by the app at about 300 000 tokens and the chat carries on; it does not renew
+   because of a summary or a size. A PreCompact hook first writes the chat's open job, branch, saved version and next step on the board.
 
 ## Do not
 - Change a rule, setting or another role's files to save usage.

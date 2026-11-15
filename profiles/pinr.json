@@ -5,7 +5,7 @@
   "crew_list": "manager/CREW-SESSIONS.md",
   "report": {"require_id": false, "require_usage": false},
   "message_form": "text",
-  "renew_tokens": 300000,
+  "compact_tokens": 300000,
   "orders": "free",
   "record_choice": "decide.py",
   "recorder_script": "scripts/decide-pinr.py",

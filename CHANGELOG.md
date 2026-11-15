@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.86
+Affects: see .claude-plugin/releases/0.3.86.json.
+Always your pick (item 100): the manager's reply check refuses lettered choices with no marked pick
+
 ## 0.3.85
 Affects: see .claude-plugin/releases/0.3.85.json.
 Renew by size: any crew chat over the size line renews; crew names from the profile (item 99)

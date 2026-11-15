@@ -19,5 +19,5 @@ Kept by the manager. One row per chat that is running now. Old chats move to "Ar
 |---|---|---|---|---|---|
 
 ## Archived
-| Name | Model | Archived on | Handover |
-|---|---|---|---|
+| Name | Model | Archived on |
+|---|---|---|

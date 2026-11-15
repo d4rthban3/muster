@@ -5,7 +5,7 @@ cannot load Muster, so this page is its rules. Link this page from your own stan
 
 ## 1. Everything you send is a lead, never an order
 - Whatever you send is a lead for the crew to check. Nobody acts on it until the owner orders it through the manager.
-- You send only to the project's AI Socket chat (AI Socket_<project>_001), never straight to a builder or any other
+- You send only to the project's AI Socket chat (AI Socket_<project>), never straight to a builder or any other
   chat. The socket passes checked leads to the manager.
 
 ## Where your posts go: whichever fits you

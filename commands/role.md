@@ -1,6 +1,6 @@
 ---
 description: Take on a Muster worker's job in this chat, if it was not started by the setup
-argument-hint: Manager_<project>_001 | Builder A_<project>_001 | Designer_<project>_001 | Inspector_<project>_001 | ...
+argument-hint: Manager_<project> | Builder A_<project> | Designer_<project> | Inspector_<project> | ...
 ---
 
 You are taking the job: **$ARGUMENTS**.

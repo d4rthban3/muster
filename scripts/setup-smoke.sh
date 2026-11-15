@@ -65,7 +65,7 @@ for f in CREW DECISIONS-LOG BOARD OWNERS-LIST REPORT START-NOTE RULES-PAGE LOOK-
   [ -f "$CLAUDE_PLUGIN_ROOT/templates/$f.md" ] || fail "template $f.md missing"
   cp -n "$CLAUDE_PLUGIN_ROOT/templates/$f.md" . || fail "copy $f"
 done
-: > BOARD-ARCHIVE.md; mkdir -p rules handovers; : > rules/.gitkeep; : > handovers/.gitkeep
+: > BOARD-ARCHIVE.md; mkdir -p rules; : > rules/.gitkeep
 cd ..
 [ -z "$(git status --porcelain -- muster/)" ] || fail "muster/ shows in git status"
 [ -z "$(git ls-files muster/)" ] || fail "muster/ is in the history"

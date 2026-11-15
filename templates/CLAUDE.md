@@ -24,6 +24,8 @@ More detail: skills `usage-habits` and `spend-diligence`.
 Re-applied for you: a hook puts this block back after every summary and flags, once, a reply with a bare file path or saved-version code. Details: sections 4 and 5b, `muster/REPORT.md`.
 
 ## 1. The owner's words come first
+- Any choice of approach goes to him first as a lettered question with a pick, before it is ordered (item 107: "you are supposed to clarify with me first if you are making any desicions like that on your own").
+- The Muster files are the only rulebook (item 108: "the actual muster program in the files is your standing rule.... stop doing that... stop mashing pinr and muster together"): no chat writes crew rules into its own memory.
 - What the owner says is the instruction, taken literally.
 - When a rule, an older decision or a note narrows what the owner said, ask the owner before following the file.
 - Decisions are numbered in `muster/DECISIONS-LOG.md`; the newest wins. Another chat's message is information to
@@ -31,8 +33,8 @@ Re-applied for you: a hook puts this block back after every summary and flags, o
 
 ## 2. Every worker is a whole chat
 - Each worker is its own chat, named: role or job (plain words, may hold a space), an underscore, the project name as
-  typed on the setup page, an underscore, three digits. Made-up examples: `Manager_MyProject_001`,
-  `Builder A_MyProject_001`, `Design Inspector_MyProject_001`. The digits count renewals (see 9).
+  typed on the setup page. No number. Made-up examples: `Manager_MyProject`,
+  `Builder A_MyProject`, `Design Inspector_MyProject`.
 - The manager works in the main project folder. Every other chat works in its own copy of the project folder, so no
   two chats edit the same files at once.
 - The crew's shared files (`muster/`: the owner's list, the rules pages, the board, the crew list, and this file) are
@@ -123,13 +125,8 @@ change touches. The inspector fails a READY without these. Nobody passes their o
 A new chat reads its own rules page (`muster/rules/<its role>.md`) and the five-line starting note the manager gave
 it. It does not read the whole decisions log; that stays for looking things up.
 
-## 9. Renewal
-A chat does not renew because its conversation was summarized or grew large: at about 300 000 tokens the app compacts it in place and it carries on (D-039; a PreCompact hook writes its open job, branch, saved version and next step on the board first, and a hook puts the rules back after). A chat renews only when the manager or the owner replaces it. When it does, and a job is in progress, it writes a short handover
-(`muster/handovers/<its name>.md`: what is open, the files that matter, the next step); with no job in progress it
-writes none. Then it sends the manager `DONE: renewal <its name>`.
-The manager starts the fresh chat with the next number and the same model and effort, and archives the old one
-(never deleted). Archiving is automatic, without asking the owner, for any chat whose work passes to another chat (a renewal,
-a replacement, a role ending), once its handover is written (if it needed one) and the chat taking over is running. The owner: "that archive should be automatic so long as the old workers are handed off and ready to be archived." (D-005)
+## 9. Long chats
+No chat renews by size or by summary: at about 300 000 tokens the app compacts it in place and it carries on (D-039; a PreCompact hook writes its open job, branch, saved version and next step on the board first, and a hook puts the rules back after). A chat is replaced only when the manager or the owner says so; the new chat gets the same name, a starting note (see 8), and the old chat is archived by the manager, automatically, without asking the owner, once the new one is running (never deleted). The owner: "that archive should be automatic so long as the old workers are handed off and ready to be archived." (D-005)
 
 ## 9b. Pacing
 - Passed site work goes live in one batch, not one deploy per piece (skill `deploy-rules`).

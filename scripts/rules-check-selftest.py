@@ -51,8 +51,14 @@ owner = tr("hello there")
 good = "READY: x [ID builder-x-1]\nWhat: a\nWhere: b; touches: none\nWhy: c\nHow: 3/3 passed\nNeed: nothing\nUsage: n"
 order = "To: B\nJob: j\nOwner's words: \"do it now\"\nOwns: a\nOut: b\nDone: c"
 send = lambda msg, t, to="x": run("PreToolUse", tool_name="SendMessage", tool_input={"to": to, "message": msg}, transcript_path=t)
+bn = tr("You are Builder A_Muster, agents/builder.md")
+mn = tr("You are Manager_Muster")
 cases = [
     ("a good READY goes through", send(good, b), False),
+    ("D-040: a builder named with no number sends a good READY", send(good, bn), False),
+    ("D-040: a builder named with no number is refused 'noted'", send("noted", bn), True),
+    ("D-040: a manager named with no number may send an order that quotes his words", send(order, mn), False),
+    ("D-040: a manager named with no number is refused an order without his words", send(order.replace('"do it now"', "do it now"), mn), True),
     ("a reply of 'noted' is refused", send("noted", b), True),
     ("'noted, thanks' is refused", send("noted, thanks", b), True),
     ("'Got it. Thanks and will do!' is refused", send("Got it. Thanks and will do!", b), True),

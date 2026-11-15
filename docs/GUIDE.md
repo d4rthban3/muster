@@ -19,9 +19,9 @@ You do not need a project folder: Muster makes one for you, in a folder called M
 4. Type a short name for your project in "Project name". Your project's folder and its group in the sidebar get
    this name.
 5. In the next box, write what you are building and your vision, in your own words.
-6. Your crew shows as cards: Manager_<your project>_001, Builder A_<your project>_001, Designer_<your project>_001 and Inspector_<your project>_001 are always there.
-7. Add any add-ons you want: extra builders, Sketchpad_<your project>_001, AI Socket_<your project>_001, Agent Teacher_<your project>_001. When three or more
-   workers build, Design Inspector_<your project>_001 appears on its own.
+6. Your crew shows as cards: Manager_<your project>, Builder A_<your project>, Designer_<your project> and Inspector_<your project> are always there.
+7. Add any add-ons you want: extra builders, Sketchpad_<your project>, AI Socket_<your project>, Agent Teacher_<your project>. When three or more
+   workers build, Design Inspector_<your project> appears on its own.
 8. "What the crew asks you first": spending money, keys or passwords, and deleting anything are always on. Type
    anything else you want to be asked about first, and press Add.
 9. Press Start, then go back to Claude.
@@ -30,7 +30,7 @@ You do not need a project folder: Muster makes one for you, in a folder called M
 If you already have a project folder and open the chat in it, setup asks whether to use that folder or make a new one.
 
 ## 3. Working with your crew
-- Talk only to **Manager_<your project>_001**. In the desktop app it is in the sidebar, in a group named after your project. In a
+- Talk only to **Manager_<your project>**. In the desktop app it is in the sidebar, in a group named after your project. In a
   terminal, the manager is the chat you open in your project's folder with the one line the setup gives you; to look
   in on another worker, type `claude agents --cwd .` there, pick it, and press the left arrow key to go back.
 - Say what you want in your own words. The manager sorts it: an **order** goes straight to a worker; a **question**

@@ -161,7 +161,7 @@ First, before writing anything, run item 3 of step 3b (a `muster/` folder alread
 exclude line of its item 1.
 Copy from `${CLAUDE_PLUGIN_ROOT}/templates/`, **never overwriting a file that already exists**:
 - into `muster/`: `CREW.md`, `DECISIONS-LOG.md`, `BOARD.md`, `OWNERS-LIST.md`, `REPORT.md`, `START-NOTE.md`,
-  `RULES-PAGE.md`, `LOOK-BOOK.md`, `PROTOCOL.md`, `BUILDERS-LOG.md`; create empty `muster/BOARD-ARCHIVE.md`, and the folders `muster/rules/` and `muster/handovers/`
+  `RULES-PAGE.md`, `LOOK-BOOK.md`, `PROTOCOL.md`, `BUILDERS-LOG.md`; create empty `muster/BOARD-ARCHIVE.md`, and the folder `muster/rules/`
   (each with an empty `.gitkeep`, so they are saved).
 - If `crew` has AI Socket: `OUTSIDE-AI-PROTOCOL.md` and `OUTSIDE-AI-SHORT.md` into `muster/ai-socket/`, and an empty
   `muster/inbox/.gitkeep` (where coding agents leave their posts); and, for
@@ -180,7 +180,7 @@ Copy from `${CLAUDE_PLUGIN_ROOT}/templates/`, **never overwriting a file that al
 - `muster/OWNERS-LIST.md`: item 1 under "Open" is `vision`, word for word:
   ```
   1. "<vision, word for word>"
-     Kind: (Manager_<project>_001 sorts it)
+     Kind: (Manager_<project> sorts it)
      Did: (nothing yet)
      Stands: with the manager
      Checked: (not done yet)
@@ -191,7 +191,7 @@ Copy from `${CLAUDE_PLUGIN_ROOT}/templates/`, **never overwriting a file that al
   say so in the file.
 
 ## 3b. Keep the crew's files private
-The crew's files (`muster/`: the owner's list, the decisions log, the rules pages, the board, the handovers) are never
+The crew's files (`muster/`: the owner's list, the decisions log, the rules pages, the board) are never
 saved into the project's history, so no push can ever publish them, even if the repository is made public later. Workers
 read them from the main project folder, never from their own copy, so their copies do not need them.
 1. Add the lines `/muster/` and `/.muster-paused` to `.git/info/exclude` (this computer's own ignore list: it is never saved or pushed). Add it
@@ -207,8 +207,8 @@ read them from the main project folder, never from their own copy, so their copi
 Tell the person in one line that the crew's files stay on this computer only. Save nothing here.
 
 ## 4. Start the chats
-Use skill `start-the-crew` for every role in `crew`. Each chat's name is `<role>_<project name>_001`, the
-project name exactly as typed on the page (made-up example: `Builder A_MyProject_001`). The manager works in the main project folder (no copy); every
+Use skill `start-the-crew` for every role in `crew`. Each chat's name is `<role>_<project name>`, the
+project name exactly as typed on the page (made-up example: `Builder A_MyProject`). The manager works in the main project folder (no copy); every
 other worker (except the manager, and the inspectors, who may work in the main folder or in their own copy) gets its own copy. If the crew has more than three builders, run `scripts/crew-plan.py inspectors <number of builders> --project <project name>` and start that many inspectors, each told which builders it checks (skill `start-the-crew`, "Inspectors scale"). Each gets the model and effort from its definition in `${CLAUDE_PLUGIN_ROOT}/agents/`,
 the same permission mode as this chat (never a looser one), and its starting note, which begins with the line "Your
 five-line starting note, from the manager (or from the setup, for the first crew):". Write the real paths, not the
@@ -225,7 +225,7 @@ Every other worker's note says `Open: nothing yet`, and its First line points at
 - **Trust comes first, before any worker starts.** The app asks the person to trust a folder before a chat can work
   in it. Bring every such box up and have it answered before starting any worker:
   1. Both of the app's trust boxes were answered in step 2c. The copies inherit that trust.
-  2. Start Manager_<project>_001 first (it works in the main folder) and wait until it succeeds. If it is refused for trust all
+  2. Start Manager_<project> first (it works in the main folder) and wait until it succeeds. If it is refused for trust all
      the same, tell the person what to press, wait for them to say they pressed it, and start it again yourself.
   3. Only when the manager is running, start every other worker. If one is still refused for trust, do the same:
      say what to press, wait, start it again yourself.
@@ -238,7 +238,7 @@ Every other worker's note says `Open: nothing yet`, and its First line points at
 - The manager owns `muster/CREW.md` in the main folder: write each started chat into its "Running now" table there.
 
 ## 5. Tell the person
-In plain words, in four lines at most: the crew is running; from now on they talk only to Manager_<project>_001 (in the
+In plain words, in four lines at most: the crew is running; from now on they talk only to Manager_<project> (in the
 desktop app it is in the sidebar, in the group named after this project; in a terminal, the one line from step 4,
 typed in this folder); what setup saved to their project's
 history (the first version, if made in 2b; the crew's files stay on this computer only); and one plain line: "The crew is told never to take over your whole computer." Do not save anything else yourself.

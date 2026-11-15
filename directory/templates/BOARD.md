@@ -17,7 +17,7 @@ When messages are paused, the report goes here instead (never in another file), 
 One header line (date | first word | from -> to | job name), then the six-line report.
 Made-up example:
 ```
-### 2026-01-31 | READY | Builder A_MyProject_001 -> Inspector_MyProject_001 | filter button move
+### 2026-01-31 | READY | Builder A_MyProject -> Inspector_MyProject | filter button move
 Status: open
 READY: filter button move
 What:  moved the filter button to the right of the pills on the home page

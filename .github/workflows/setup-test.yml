@@ -117,4 +117,3 @@ jobs:
           chmod +x "$BIN" || true
           MUSTER_CHECKS_BIN="$BIN" python3 scripts/rules-check-selftest.py
           MUSTER_CHECKS_BIN="$BIN" python3 scripts/profile-selftest.py
-          MUSTER_CHECKS_BIN="$BIN" python3 scripts/handover-selftest.py

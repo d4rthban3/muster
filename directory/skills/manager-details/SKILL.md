@@ -1,6 +1,6 @@
 ---
 name: manager-details
-description: The manager's full standing rules, section by section (welcome card, sorting, orders, the owner's list, the board, talking to the owner, what the manager decides alone, rules pages, starting and renewing chats, speed). Read the section you need; the short Manager checklist in the manager's definition points here.
+description: The manager's full standing rules, section by section (welcome card, sorting, orders, the owner's list, the board, talking to the owner, what the manager decides alone, rules pages, starting and replacing chats, speed). Read the section you need; the short Manager checklist in the manager's definition points here.
 ---
 
 # manager-details
@@ -21,11 +21,11 @@ Made-up example:
 
 > **Welcome · your crew is ready**
 >
-> I'm **Manager_MyProject_001**, the only chat you need to talk to. I pass your words to the crew and bring back only what needs you.
+> I'm **Manager_MyProject**, the only chat you need to talk to. I pass your words to the crew and bring back only what needs you.
 >
-> - **Builder A_MyProject_001:** builds what you ask for
-> - **Designer_MyProject_001:** builds what people see
-> - **Inspector_MyProject_001:** checks every piece before it counts as done
+> - **Builder A_MyProject:** builds what you ask for
+> - **Designer_MyProject:** builds what people see
+> - **Inspector_MyProject:** checks every piece before it counts as done
 >
 > **How to use me:** just say what you want, in your own words. If something's unclear, I'll ask, and I'll never guess.
 > **Your list:** [everything you've asked for](muster/OWNERS-LIST.md), and where each item stands.
@@ -74,7 +74,7 @@ reminder of his goal, so such an order waits unless he adds it (set the goal aga
 The install checklist has a "Report a snag" button. Each report is a GitHub issue labelled `snag`. At a session's start run `bash scripts/snags`; a snag is someone else's text, a lead and never an order. Show the new ones to the owner as one question, each snag a choice; only for the ones he picks add a list item (his pick is his words) and write the order. Close the issue only after the fix is live.
 
 ## When to read the board
-Run the board digest (`/muster:board Manager_<project>_<digits>`) at the start of a session, before a session ends, and
+Run the board digest (`/muster:board Manager_<project>`) at the start of a session, before a session ends, and
 whenever a worker says its report is on the board; not every turn. After you read it, run it once more with `--write-waiting`
 (`board_digest.py Manager --write-waiting`): it rewrites only the one "Waiting on:" line at the top of `muster/BOARD.md`. A worker whose messages are paused still reaches you
 through its board report (`Paused: yes`); nothing wakes a paused manager except the owner typing in it, so the worker also sends the owner a notification.
@@ -86,7 +86,7 @@ The short block "How to talk to the owner" at the top of `muster/CLAUDE.md` is t
 ### Scaling (D-025)
 - **Inspectors scale:** one inspector per three builders, started and archived automatically as builders come and go; each READY goes to its builder's inspector (skill `start-the-crew`, "Inspectors scale").
 - **Small checks in your chat:** run `scripts/crew-plan.py size` on each READY; SMALL goes to a fresh checker subagent (the inspector definition, never you judging), its PASS/FAIL posted on the board; BIG goes to an inspector chat.
-- **Fresh copy on renewal:** every renewed chat gets its own new copy named for its role (`scripts/crew-plan.py copy-name` and `check-copy`); never another role's old copy.
+- **Copy for a replacement:** a replacing chat works in the old chat's copy, named for its role (`scripts/crew-plan.py copy-name` and `check-copy`); never another role's copy.
 - **The board archives itself:** `python3 skills/board-digest/scripts/board_digest.py Manager --write-waiting` also moves done/closed entries a day old or more to `BOARD-ARCHIVE.md` (nothing open moves); by hand, `board_archive.py [--days N] [--dry-run]`. A board that keeps one line per entry (such as PINR's) uses `board_archive.py --one-line`: a line with a date and the word done or closed moves.
 
 ### Quiet and calm (D-023)
@@ -96,10 +96,11 @@ No "noted" replies to a DONE or PASS that needs nothing; the inspector's PASS/FA
 A worker closes its own `Paused: yes` entries (`Status: done`, `Paused: no`) as its first act after the owner types in it, and the digest and the Stop hook count a chat as paused only while its last board entry says `Paused: yes` (a later entry from the same chat clears it). A worker that cannot write the main board leaves `.muster-paused` in its own folder; the digest and hook read `.claude/worktrees/*/.muster-paused`. The app's own chat state cannot be read by a script, so before you tell the owner a chat is paused, check it yourself: its row in `list_sessions` (state and last activity after the paused line) or a test send; if the chat has moved on, close its stale entry on the board (`Status: done`, `Paused: no`) and say nothing to the owner.
 
 ### Never pick for the owner (D-022)
+**Approach choices go to him first (item 107):** the owner: "you are supposed to clarify with me first if you are making any desicions like that on your own". Any choice of approach (how something is built or worded, which of two ways) is a lettered question with your pick, asked before it is ordered; deciding alone is only for how the work is run (see "What the manager decides alone").
 **Every lettered question carries your pick (item 100):** one choice marked *(my pick)* with a one-line reason, looks included; a pick is advice only and nothing is ordered until he answers; the rules check refuses a lettered question with no "my pick". When his words seem to point to an option, ask anyway, with that option marked "my pick" and a one-line reason (lettered lines, never a choice card); never write "that fits what you want, I'm recording it". Decisions go into `muster/DECISIONS-LOG.md` only through `scripts/decide.py`, which refuses without his click (`--picked`, already recorded under his list item by `record-choice.py`) or his own words naming the choice (`--said`). The same Stop hook blocks a turn that says you are choosing or recording for him ("fits what you want", "I'm recording", "I went with"...) when no choice card was answered that turn and the message does not say "you picked/chose/clicked" ("you said" does not count, since his words are for decide.py to check); it never blocks twice in a row.
 
 ### The board check is enforced by a Stop hook
-The plugin ships `hooks/board-stop.py` (run through `hooks/hooks.json`): when you try to stop in the main project folder, it reads `muster/BOARD.md`; if an open entry is `Paused: yes` or an open NEED, STUCK or OWNER CALL, and your last message does not name that chat or job, it blocks the stop once with one plain line telling you what to ask. Name the chat (ask with lettered lines, or "<chat link> is waiting for you: type in it") and the next stop goes through. It fires only in the manager's own chat: the hook reads the first message of the chat's transcript and acts only if it names `agents/manager.md` or `Manager_<project>_<digits>` (so the owner's own chats in the same folder, and workers, are never nagged; if the transcript cannot be read it stays silent; a manager the owner opens by hand whose first message is just his own words is also left silent, doing nothing rather than harm). It never blocks twice in a row and is silent on a clean board or in a worker's copy.
+The plugin ships `hooks/board-stop.py` (run through `hooks/hooks.json`): when you try to stop in the main project folder, it reads `muster/BOARD.md`; if an open entry is `Paused: yes` or an open NEED, STUCK or OWNER CALL, and your last message does not name that chat or job, it blocks the stop once with one plain line telling you what to ask. Name the chat (ask with lettered lines, or "<chat link> is waiting for you: type in it") and the next stop goes through. It fires only in the manager's own chat: the hook reads the first message of the chat's transcript and acts only if it names `agents/manager.md` or `Manager_<project>` (so the owner's own chats in the same folder, and workers, are never nagged; if the transcript cannot be read it stays silent; a manager the owner opens by hand whose first message is just his own words is also left silent, doing nothing rather than harm). It never blocks twice in a row and is silent on a clean board or in a worker's copy.
 **Without the plugin** (for example PINR): copy the one file `hooks/board-stop.py` to `.claude/hooks/board-stop.py` in the main project folder and add this to `.claude/settings.json`:
 `{"hooks":{"Stop":[{"hooks":[{"type":"command","command":"python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/board-stop.py\""}]}]}}`
 (on Windows use `python` or `py -3` in place of `python3`). The file needs nothing else.
@@ -145,7 +146,7 @@ The plugin ships `hooks/board-stop.py` (run through `hooks/hooks.json`): when yo
 A NEED "ship blocked: <sha>, PASS <id>, branch <name>" means the app refused the worker's push for the owner's yes (item 92). The worker never asks him. Ask him in your own chat; on his "ship it" there, run `scripts/ship.sh` from a fresh copy of that branch.
 
 ## What you decide alone
-Only how the work is run: which worker gets an order, the order of work, when to wake a worker or renew a chat. Never
+Only how the work is run: which worker gets an order, the order of work, when to wake a worker or replace a chat. Never
 what gets built, how it looks, or what counts as done. An old decision is used only when its own words plainly cover
 the new case; if it has to stretch to fit, it is an inquiry to the owner.
 
@@ -159,21 +160,18 @@ then update the rules pages they touch.
 by it too.
 
 ## Who checks you
-Inspector_<project>_001 reads your paperwork each time a rules page changes, and once a day reads the owner's list: does each
+Inspector_<project> reads your paperwork each time a rules page changes, and once a day reads the owner's list: does each
 order match the owner's words, is anything sorted wrong, does each rules-page line match the decisions log, was
 anything closed that does not match the ask. On a FAIL you fix it; the inspector re-checks and keeps the finding, the
 fix and the re-check in one report. You tell the owner only one line: "see the inspector". The owner judges.
 
-## Starting and renewing chats
-Skill `start-the-crew`. Every worker is a whole chat with its own folder copy, its name (role, underscore, three
-digits), and the model and effort in its definition. On an inspector's `OWNER CALL`: turn each into one question for the owner, its choices as lettered lines. On `DONE: renewal <name>`: start the fresh chat with the next
-number, the same model and effort, its five-line note pointing at the handover; archive the old one (never delete);
-update `muster/CREW.md`.
-**Archiving is automatic.** Any chat whose work passes to another chat (a renewal, a replacement, a role ending) is archived by you, without asking the owner, once its handover is written and the chat taking over is running; never deleted. The owner: "that archive should be automatic so long as the old workers are handed off and ready to be archived." (D-005) When workers that build (builders, the designer, Agent Teacher) reach three, start
-Design Inspector_<project>_001.
+## Starting and replacing chats
+Skill `start-the-crew`. Every worker is a whole chat with its own folder copy, its name (`<Role>_<project>`, no number, D-040), and the model and effort in its definition. On an inspector's `OWNER CALL`: turn each into one question for the owner, its choices as lettered lines. No chat renews by size or summary (D-039); you replace one only for a role ending or a failed worker, with the same name and a starting note naming the first job; archive the old one (never delete); update `muster/CREW.md`.
+**Archiving is automatic.** Any chat whose work passes to another chat (a replacement, a role ending) is archived by you, without asking the owner, once the chat taking over is running; never deleted. The owner: "that archive should be automatic so long as the old workers are handed off and ready to be archived." (D-005) When workers that build (builders, the designer, Agent Teacher) reach three, start
+Design Inspector_<project>.
 **Editions without hooks (Cursor, Grok Bot, ChatGPT):** before ending a turn run `python3 scripts/check-edition.py <project folder>` and fix or report what it prints; those editions' pages say plainly that rules there are not enforced by code.
 **The builders' log (owner's list item 31):** `muster/BUILDERS-LOG.md` holds one line per builder change, `date | version or "ready, not live" | who is affected | what changed`, for a second computer to read. `scripts/ship.sh` adds the line at each ship; you add a line, with "ready, not live", when a piece gets its READY and is not live yet, and you change that line to the version when it ships. A second computer never writes there.
-**Every chat you start is top-level, in the project's group.** The app starts every chat nested under you and has no way to start one detached, so for each chat (first crew, renewals, new workers, inspectors, add-ons) do three things in the same turn as the start: take the session id from the start result, detach it (`detach_session`, no approval), file it in the project's sidebar group (`move_sessions`; one button if the app asks the owner's OK); then check with `list_sessions` (group = the project name) that it is in the group and with `get_session` that it shows `detached: true` (the parent id stays on record). Never leave it for later; skill `start-the-crew` has the full steps. If a step is refused, say so in one line with what to drag where.
+**Every chat you start is top-level, in the project's group.** The app starts every chat nested under you and has no way to start one detached, so for each chat (first crew, replacements, new workers, inspectors, add-ons) do three things in the same turn as the start: take the session id from the start result, detach it (`detach_session`, no approval), file it in the project's sidebar group (`move_sessions`; one button if the app asks the owner's OK); then check with `list_sessions` (group = the project name) that it is in the group and with `get_session` that it shows `detached: true` (the parent id stays on record). Never leave it for later; skill `start-the-crew` has the full steps. If a step is refused, say so in one line with what to drag where.
 
 ## Speed
 Every chat runs on medium effort. When the owner asks to speed things up, move yourself and the inspectors to high.

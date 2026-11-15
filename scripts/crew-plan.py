@@ -3,15 +3,15 @@
 
   crew-plan.py inspectors <number of builders> [--project NAME]
       How many inspectors the crew needs (one for every three builders, at least one) and which builder's READYs go to which.
-  crew-plan.py copy-name "<Role>_<project>_<N>"
-      The short name of that chat's own copy of the project (made-up example: "Builder A_Shop_002" -> builder-a-002).
-  crew-plan.py check-copy "<Role>_<project>_<N>" <folder>
+  crew-plan.py copy-name "<Role>_<project>"
+      The short name of that chat's own copy of the project (made-up example: "Builder A_Shop" -> builder-a).
+  crew-plan.py check-copy "<Role>_<project>" <folder>
       Exit 1 if the folder is not named for that chat's role (a renewed chat never runs in another role's old copy).
   crew-plan.py size <base> <head> [--repo DIR]
       SMALL or BIG for a piece of work: small = at most 3 files and 60 changed lines, nothing in engine, data, database or
       deploy folders, nothing a visitor sees (site pages, styles, scripts, pictures), no rules or protocol file. Anything else, or
       anything it cannot tell, is BIG. Small pieces are checked in the manager's chat by a fresh checker; big ones go to an inspector chat.
-  crew-plan.py trim "<Role>_<project>_<N>" <folder> [--profile FILE]
+  crew-plan.py trim "<Role>_<project>" <folder> [--profile FILE]
       Item 102: a crew chat's own copy (a git worktree, never the main folder, never the owner's own chats) gets a
       .claude/settings.local.json that keeps the app's tool lists the crew never uses out of the chat's first call:
       permissions.deny names whole tool servers (browser, phone simulator, blockchain, email and similar). The designer keeps the
@@ -36,10 +36,10 @@ def slug(s):
 
 
 def parse_chat(name):
-    m = re.match(r"^(.+?)_(.+)_(\d{3})$", name.strip())
+    m = re.match(r"^([^_]+)_(.+?)(?:_(\d{3}))?$", name.strip())
     if not m:
-        sys.exit("crew-plan: '%s' is not <Role>_<project>_<three digits>" % name)
-    return m.group(1), m.group(2), m.group(3)
+        sys.exit("crew-plan: '%s' is not <Role>_<project>" % name)
+    return m.group(1), m.group(2), m.group(3) or ""
 
 
 def inspectors(n, project):
@@ -128,12 +128,12 @@ def main():
         inspectors(int(a[1]), proj)
     elif len(a) == 2 and a[0] == "copy-name":
         role, _p, n = parse_chat(a[1])
-        print("%s-%s" % (slug(role), n))
+        print("%s-%s" % (slug(role), n) if n else slug(role))
     elif len(a) == 3 and a[0] == "check-copy":
         role, _p, n = parse_chat(a[1])
         want = slug(role)
         base = os.path.basename(os.path.normpath(a[2])).lower()
-        if base.startswith(want + "-"):
+        if base == want or base.startswith(want + "-"):
             print("OK: %s is named for %s" % (a[2], role))
         else:
             print("REFUSED: %s is not named for %s (expected a folder starting '%s-'); a renewed chat gets its own new copy, never another role's old one" % (a[2], role, want))

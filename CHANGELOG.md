@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.80
+Affects: Manager.
+Letters are the question: two or more lettered choice lines count as the manager's question with or without a question mark
+
 ## 0.3.79
 Affects: see .claude-plugin/releases/0.3.79.json.
 Report check also accepts the app's send_message tool (item 65 follow-up)

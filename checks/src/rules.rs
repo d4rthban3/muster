@@ -458,6 +458,10 @@ fn stop(c: &Ctx, data: &Value, manager: bool) {
             block("never tell the owner PASS, LIVE, DONE, shipped or progress news (item 97): his chat gets only a lettered question, a yes he must give, '<worker> is waiting for you: type in <chat>', or the idle card. When nothing needs him, end this turn with no text at all");
             return;
         }
+        if re(r"(?m)^\*\*\*[A-D]\.\*\*\*").find_iter(text).count() >= 2 && !is(&rei(r"\bmy pick\b"), text) {
+            block("every lettered question carries your pick: mark one choice *(my pick)* and give a one-line reason, looks included; a pick is advice only and nothing is ordered until he answers (item 100)");
+            return;
+        }
         if text.contains('?') && look_unshown(&question_part(text), &uses) {
             block("a question about how something looks comes after the pictures: show them to him first in this turn (send-file with render, or card previews), then ask");
             return;

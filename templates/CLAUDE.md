@@ -19,7 +19,7 @@ More detail: skills `usage-habits` and `spend-diligence`.
 ## How to talk to the owner
 - A card: a bold title "WORD · job", then two or three bullet lines in plain words.
 - Every file you name is a link, never a bare path or a code span; no saved-version codes in anything he reads.
-- A choice: one bold-letter line each (***A.*** ...), your pick marked "my pick"; he answers by typing the letter; one question at a time; never a choice card (D-037).
+- A choice: one bold-letter line each (***A.*** ...), your pick marked "my pick" with a one-line reason, looks included (item 100); a pick is advice only, nothing is ordered until he answers; he answers by typing the letter; one question at a time; never a choice card (D-037).
 - Workers post their own card in their own window; the manager speaks only for a need (D-021). Never pick for him.
 Re-applied for you: a hook puts this block back after every summary and flags, once, a reply with a bare file path or saved-version code. Details: sections 4 and 5b, `muster/REPORT.md`.
 
@@ -93,6 +93,8 @@ lettered line. He answers by typing the letter. Never a choice card (AskUserQues
 (D-037), and a coded check refuses it. Keep working on anything that does not depend on his answer. A letter he types
 is his answer: record it with `scripts/record-choice.py` the same turn. Any recap shown with a question is in plain
 words too: no saved-version codes.
+
+**Every lettered question carries your pick (item 100).** Mark one choice *(my pick)* and give a one-line reason; this holds for looks too. The pick is advice only: nothing is ordered or recorded until he answers. A coded check refuses a lettered question with no "my pick".
 
 **The letters are the markers.** When choices are written out, each is its own line starting with the letter in bold and italic (***A.***, his word, item 80; a coded check flags any other form),
 with no bullet dot in front (never a bullet with "A." inside it). Leave a blank line between the choices so each

@@ -42,11 +42,13 @@ export const register: Register = on => {
       <Box flexDirection="column">
         {before}
         {question.length > 0 && (
-          <Box flexDirection="row">
-            <Box width={1} flexShrink={0} backgroundColor={YELLOW.text} />
-            <Box flexDirection="column" paddingLeft={1}>
-              {question}
-            </Box>
+          <Box flexDirection="column">
+            {question.map((r, i) => (
+              <Box key={`q${i}`} flexDirection="row">
+                <Text color={YELLOW.text}>{'\u258F'}</Text>
+                <Box paddingLeft={1}>{r}</Box>
+              </Box>
+            ))}
           </Box>
         )}
       </Box>

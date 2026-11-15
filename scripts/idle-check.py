@@ -385,6 +385,46 @@ def first_message(path):
     return ""
 
 
+MGR_NAME = re.compile(r"Manager_[^_\s*`|]+_\d{3}")
+
+
+def own_manager_name(first):
+    """This chat's own manager name: the crew name that follows 'Job:', 'You are' or 'I am' in its starting note (a name merely mentioned is not it)."""
+    pats = [MGR_NAME.pattern] + list(PROFILE.get("manager_names") or [])
+    best = None
+    for lead in (r"\bJob:\s*[*`]{0,2}", r"\b(?:you are|i am|i'm)\s+(?:the\s+)?[*`]{0,2}"):
+        for m in re.finditer(lead, first, re.I):
+            for p in pats:
+                c = re.compile("(?:%s)" % p).match(first, m.end())
+                if c and (best is None or m.start() < best[0]):
+                    best = (m.start(), c.group(0))
+    return best[1] if best else None
+
+
+def superseded(project, first):
+    """Item 101: True when the crew list's Running now table (or the profile's crew list) names a manager of the same project with a higher
+    number than this chat's own. Such an outgoing manager gets no idle card and no other owner-facing demand, and may end silent."""
+    own = own_manager_name(first)
+    m = re.match(r"^(.*)_(\d{3})$", own or "")
+    if not m:
+        return False
+    paths = [(os.path.join(project, "muster", "CREW.md"), True)]
+    if PROFILE.get("crew_list"):
+        paths.append((os.path.join(project, PROFILE["crew_list"]), False))
+    for path, own_list in paths:
+        text = read(path)
+        if own_list:
+            sec = re.search(r"## Running now(.*?)(?:\n## |\Z)", text, re.S)
+            text = sec.group(1) if sec else ""
+        for l in text.splitlines():
+            if not l.lstrip().startswith("|"):
+                continue
+            n = re.match(r"^(.*)_(\d{3})$", l.strip().strip("|").split("|")[0].strip().strip("*`"))
+            if n and n.group(1) == m.group(1) and int(n.group(2)) > int(m.group(2)):
+                return True
+    return False
+
+
 def is_manager_chat(data):
     """Installed copy (a project that does not load the plugin): the chat's first message names a manager."""
     pats = PROFILE.get("manager_names") or [r"\bManager_[^_\s]*_\d{3}\b"]
@@ -417,6 +457,8 @@ def main(argv):
     try:
         if INSTALLED and not is_manager_chat(data):
             return 0
+        if superseded(project, first_message(data.get("transcript_path") or "")):
+            return 0  # item 101: a manager a newer one replaced owes the owner nothing; rules-check makes it hand over and archive itself
         msg = last_message(data).lower()
         if not msg.strip() and peer_started(data.get("transcript_path") or ""):
             return 0  # item 97: a turn a worker's message started may end with no text; nothing here demands a line then

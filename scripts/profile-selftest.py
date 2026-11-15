@@ -316,6 +316,17 @@ cr = lambda *a: subprocess.run([PY, os.path.join(ROOT, "scripts", "check-report.
 add("check-report --profile pinr accepts a PINR report", "" if cr(rf, "--profile", "pinr") == 0 else "BAD", False)
 add("check-report without a profile still wants the ID", "" if cr(rf) == 1 else "BAD", False)
 
+# item 99: renewal by size, and the summary hook's crew names come from the project's profile
+def bigt(n): return {"type": "assistant", "message": {"content": [{"type": "text", "text": "x"}], "usage": {"input_tokens": 5, "cache_read_input_tokens": n - 5000, "cache_creation_input_tokens": 4995}}}
+card99 = "**WORKING \u00b7 x**\n- a\n- b"
+add("item 99: a PINR-named worker over 200000 tokens is told to renew", run("rules-check.py", "Stop", cwd=PROJ, last_assistant_message=card99, transcript_path=tr("You are Site_PINR_002. Job: Site_PINR_002, builds the site.", [bigt(600000)])), True)
+add("item 99: a PINR-named worker under the line is silent", run("rules-check.py", "Stop", cwd=PROJ, last_assistant_message=card99, transcript_path=tr("You are Site_PINR_002. Job: Site_PINR_002, builds the site.", [bigt(120000)])), False)
+rs = lambda first, prof=True: subprocess.run([PY, os.path.join(ROOT, "hooks", "renew-after-summary.py")], input=json.dumps({"transcript_path": tr(first)}), capture_output=True, text=True,
+                                            env=dict(ENV, **({"MUSTER_PROFILE": os.path.join(ROOT, "profiles", "pinr.json")} if prof else {}))).stdout
+add("item 99: after a summary a PINR-named chat is told to renew (crew names from the profile)", "" if "time to renew" in rs("You are Site_PINR_002. Job: Site_PINR_002, builds the site.") else "BAD", False)
+add("item 99: ...and PINR's manager gets the manager's note", "" if "fresh manager chat" in rs("You are Manager_PINR_008. Job: Manager_PINR_008.") else "BAD", False)
+add("item 99: ...without the profile a PINR-named chat is not crew to the hook", "" if rs("You are Site_PINR_002. Job: Site_PINR_002, builds the site.", False) == "" else "BAD", False)
+add("item 99: the owner's own chat is silent for the hook", "" if rs("hello there") == "" else "BAD", False)
 # item 93: the Muster folder runs its own checks live; the plugin's own shell hooks stand down only for a check the folder really installed, and not inside a worktree
 MP = os.path.join(T, "musterproj")
 os.makedirs(os.path.join(MP, "muster")); open(os.path.join(MP, "muster", "CLAUDE.md"), "w").write("# rules\n")
@@ -353,6 +364,10 @@ if shutil.which("git"):
     add("item 94: the main folder's hook runs its own copy", "" if hk(GM) == "LIVE-MAIN" else "BAD " + hk(GM), False)
     os.makedirs(os.path.join(T, "nogit", ".muster-checks")); open(os.path.join(T, "nogit", ".muster-checks", "rules-check.py"), "w").write("print('OWN')\n")
     add("item 94: a folder that is not a git folder runs its own copy", "" if hk(os.path.join(T, "nogit")) == "OWN" else "BAD", False)
+
+LCS = json.load(open(os.path.join(MP, ".claude", "settings.json"))).get("hooks", {}).get("SessionStart", [])
+add("item 99: the install adds the summary hook (SessionStart, compact)", "" if any(g.get("matcher") == "compact" and "renew-after-summary.py" in json.dumps(g) for g in LCS) else "BAD", False)
+add("item 99: with the live stand-in installed the plugin's summary hook stands down in the main folder, not in a worktree", "" if subprocess.run(["sh", os.path.join(LM, "hooks", "renew-after-summary.sh")], input="{}", capture_output=True, text=True, cwd=MP).stdout == "" else "BAD", False)
 
 bad = 0
 for name, out, should_block in cases:

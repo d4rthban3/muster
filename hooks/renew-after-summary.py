@@ -21,6 +21,24 @@ ROLE_FILE = re.compile(r"agents[/\\](manager|builder|designer|inspector|design-i
 CHAT_NAME = re.compile(r"\b%s_[^\s_][^_\n]*_\d{3}\b" % CREW)
 
 
+def load_profile():
+    """The project's profile (item 99): beside an installed copy (.muster-checks/profile.json), or MUSTER_PROFILE; its chat-name patterns decide who is crew."""
+    here = os.path.dirname(os.path.abspath(__file__))
+    for cand in (os.environ.get("MUSTER_PROFILE"), os.path.join(here, "profile.json")):
+        if cand and os.path.isfile(cand):
+            try:
+                d = json.load(open(cand, encoding="utf-8"))
+                return d if isinstance(d, dict) else {}
+            except (OSError, ValueError):
+                return {}
+    return {}
+
+
+PROFILE = load_profile()
+PROFILE_CREW = [re.compile(x) for x in (PROFILE.get("crew_names") or []) + (PROFILE.get("manager_names") or [])]
+PROFILE_MANAGER = (PROFILE.get("manager_names") or [])
+
+
 def first_message(path):
     try:
         with open(path, encoding="utf-8") as fh:
@@ -48,14 +66,15 @@ def main():
     first = first_message(data.get("transcript_path") or "")
     role = ROLE_FILE.search(first)
     name = CHAT_NAME.search(first)
-    if not role and not name:
+    named_in_profile = any(p.search(first) for p in PROFILE_CREW)
+    if not role and not name and not named_in_profile:
         return 0  # not a crew chat (the owner's own chat, or another project)
     # a role file in the note decides alone; without one, only "You are Manager_..." makes it the manager (a worker's note
     # also names the manager, so a name alone proves nothing)
     if role:
         is_manager = role.group(1) == "manager"
     else:
-        is_manager = bool(re.search(r"You are (?:the )?Manager_", first))
+        is_manager = bool(re.search(r"You are (?:the )?Manager_", first)) or any(re.search(r"You are (?:the )?(?:%s)" % x, first) for x in PROFILE_MANAGER)
     if is_manager:
         msg = ("Muster: your conversation was just summarized, so you need a fresh chat (muster/CLAUDE.md section 9). At your "
                "next natural break write a short handover to muster/handovers/<your chat name>.md (what is open, the files "

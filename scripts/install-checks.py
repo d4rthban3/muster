@@ -8,7 +8,7 @@ would be written and writes nothing.
 --live <Muster folder> puts small stand-ins (scripts/live-standin.py) in <project>/.muster-checks/ and <project>/manager/ instead of copies: each one
 runs the check of its name straight from that Muster folder every time, so a new Muster version reaches the project with no re-install
 (its profile and message form still apply; a missing Muster folder is said plainly, never silently).
-Copies hooks/rules-check.py, hooks/board-stop.py, hooks/talk-check.py, scripts/usage.py, scripts/worker-queue-check.py and scripts/idle-check.py into <project>/.muster-checks/,
+Copies hooks/rules-check.py, hooks/board-stop.py, hooks/talk-check.py, hooks/renew-after-summary.py (SessionStart after a summary; its crew names come from the profile), scripts/usage.py, scripts/worker-queue-check.py and scripts/idle-check.py into <project>/.muster-checks/,
 and adds the hooks to <project>/.claude/settings.json (existing settings and other hooks are kept). Run it again after a
 Muster update to refresh the copies; --remove takes everything it added away. The checks act only in a chat whose first
 message names a crew role (Manager_<project>_001, Builder A_..., agents/<role>.md), so the owner's own chats are never touched.
@@ -29,7 +29,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 FILES = [("hooks/rules-check.py", "rules-check.py"), ("hooks/board-stop.py", "board-stop.py"),
          ("hooks/talk-check.py", "talk-check.py"), ("scripts/usage.py", "usage.py"),
-         ("scripts/worker-queue-check.py", "worker-queue-check.py"), ("scripts/idle-check.py", "idle-check.py")]
+         ("scripts/worker-queue-check.py", "worker-queue-check.py"), ("scripts/idle-check.py", "idle-check.py"),
+         ("hooks/renew-after-summary.py", "renew-after-summary.py")]
 MARK = ".muster-checks/"
 
 
@@ -157,6 +158,7 @@ def main():
             restore_recorder(proj, dest)
             os.remove(os.path.join(dest, "profile.json"))
         hooks.setdefault("Stop", []).append({"hooks": [{"type": "command", "command": cmd(n)} for n in ("board-stop.py", "talk-check.py", "rules-check.py", "worker-queue-check.py", "idle-check.py")]})
+        hooks.setdefault("SessionStart", []).append({"matcher": "compact", "hooks": [{"type": "command", "command": cmd("renew-after-summary.py")}]})
         hooks.setdefault("PreToolUse", []).append({"matcher": "mcp__ccd_session__start_session|AskUserQuestion|Agent|Task|SendMessage|Write|Edit|NotebookEdit|Bash",
                                                    "hooks": [{"type": "command", "command": cmd("rules-check.py")}]})
     os.makedirs(os.path.dirname(sfile), exist_ok=True)

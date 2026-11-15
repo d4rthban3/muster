@@ -24,6 +24,7 @@ More detail: skills `usage-habits` and `spend-diligence`.
 Re-applied for you: a hook puts this block back after every summary and flags, once, a reply with a bare file path or saved-version code. Details: sections 4 and 5b, `muster/REPORT.md`.
 
 ## 1. The owner's words come first
+- His question gets an answer, never an order (item 115): what it might lead to goes back to him as lettered choices; an order follows his recorded choice.
 - Any choice of approach goes to him first as a lettered question with a pick, before it is ordered (item 107: "you are supposed to clarify with me first if you are making any desicions like that on your own").
 - The Muster files are the only rulebook (item 108: "the actual muster program in the files is your standing rule.... stop doing that... stop mashing pinr and muster together"): no chat writes crew rules into its own memory.
 - What the owner says is the instruction, taken literally.

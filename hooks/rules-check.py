@@ -705,6 +705,9 @@ def pretool(data, manager):
             if not ok:
                 return deny("a message between chats is a data record (one JSON object with fixed keys), never sentences; see muster/REPORT.md")
             rec = json.loads(msg)
+            why = question_order_problem(manager, root, msg, rec, data.get("transcript_path") or "")
+            if why:
+                return deny(why)
             note = rec.get("note")
             if note is not None and (not isinstance(note, str) or not note.strip() or len(note) > 400 or any(ord(c) < 32 for c in note)
                                      or NOTE_SECRET.search(note)):
@@ -718,6 +721,9 @@ def pretool(data, manager):
             if dup_report(str(inp.get("to", "")), msg, data.get("transcript_path") or ""):
                 return deny(DUP_WHY)
             return
+        why = question_order_problem(manager, root, msg, None, data.get("transcript_path") or "")
+        if why:
+            return deny(why)
         if ORDERS_FREE and not re.match(r"^\s*%s\s*:" % FIRST, msg):
             return  # this project has no order shape: only a message that claims to be a report is checked
         bad_report = report_problem(msg)
@@ -901,6 +907,81 @@ def news_with_question(text):
         if is_news(ln):
             return True
     return False
+
+
+QUESTION_WORD = re.compile(r"^\s*(what|why|how|when|where|who|which|can|could|would|will|did|does|do|is|are|was|were|should)\b", re.I)
+
+
+def owner_questioned(path):
+    """Item 115: True when this turn was started by his typed words and they are a question: a '?' or a question word first. An instruction
+    ("check the board") is not one. Messages from other chats and app events end his turn; hook feedback and reminders change nothing."""
+    last = ""
+    try:
+        with open(path, encoding="utf-8") as fh:
+            for line in fh:
+                try:
+                    d = json.loads(line)
+                except ValueError:
+                    continue
+                if d.get("type") != "user":
+                    continue
+                c = (d.get("message") or {}).get("content", "")
+                if isinstance(c, list):
+                    if any(isinstance(b, dict) and b.get("type") == "tool_result" for b in c):
+                        continue
+                    c = " ".join(b.get("text", "") for b in c if isinstance(b, dict))
+                c = str(c)
+                if not c.strip():
+                    continue
+                if ENDS_TURN.search(c):
+                    last = ""
+                elif not NEUTRAL.match(c):
+                    last = c
+    except OSError:
+        pass
+    return "?" in last or bool(QUESTION_WORD.match(last))
+
+
+def choice_recorded(root, item):
+    """True when the owner's list (the profile's founder list, else muster/OWNERS-LIST.md) holds a recorded 'Choice (' under that item."""
+    rel = (PROFILE or {}).get("founder_list") or "muster/OWNERS-LIST.md"
+    try:
+        lines = open(os.path.join(root or ".", rel), encoding="utf-8").read().split("\n")
+    except OSError:
+        return False
+    fenced, start = False, None
+    for i, l in enumerate(lines):
+        if l.strip().startswith("```"):
+            fenced = not fenced
+            continue
+        if not fenced and start is None and re.match(r"^%d\.\s" % item, l):
+            start = i
+    if start is None:
+        return False
+    end = start + 1
+    while end < len(lines) and not re.match(r"^(\d+\.\s|#)", lines[end]):
+        end += 1
+    return any(re.match(r"^\s+Choice \(", l) for l in lines[start:end])
+
+
+def question_order_problem(manager, root, msg, rec, path):
+    """Item 115: his question gets an answer, not an order. A manager's order to a worker in a turn his question started is refused unless
+    it cites his recorded choice (owner_words item with a Choice line under it)."""
+    if not manager or not owner_questioned(path):
+        return None
+    if rec is not None:
+        if rec.get("kind") != "ORDER":
+            return None
+        item = (rec.get("owner_words") or {}).get("item")
+    else:
+        if not re.search(r"^\s*(Job|Owner'?s words)\s*:", msg, re.M | re.I):
+            return None
+        m = re.search(r"\bitem\s+(\d+)", msg, re.I)
+        item = int(m.group(1)) if m else None
+    if isinstance(item, int) and choice_recorded(root, item):
+        return None
+    return ("his question gets an answer, not an order (item 115): answer it in plain words; any action it might lead to goes back to him as "
+            "lettered choices with your pick, and an order follows only after his recorded choice (cite that list item, with its Choice line)")
 
 
 def group_unfiled(uses):

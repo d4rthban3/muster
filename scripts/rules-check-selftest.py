@@ -191,6 +191,23 @@ def goal(*a):
     return subprocess.run([sys.executable, GOALPY, *a, "--folder", GD], capture_output=True, text=True)
 def order(job):
     return send_rec(ORD % (job, job), "builder-a", cwd=GD)
+# item 115: his question gets an answer, not an order; an order in a turn his question started cites his recorded choice
+QD = os.path.join(T, "qproj"); os.makedirs(os.path.join(QD, "muster"))
+open(os.path.join(QD, "muster", "OWNERS-LIST.md"), "w").write("## Open\n\n35. \"fix the menu\"\n   Choice (2026-11-08): which one?\n     Options: A. a | B. b\n     Picked: A. a\n\n36. \"why is it waiting\"\n   Kind: question\n")
+def q_order(item, turn, mgr=True):
+    t = tr("You are Manager_Muster_002" if mgr else "You are Builder A_Muster_002, agents/builder.md", turn)
+    o = ORD.replace('"item":35', '"item":%d' % item) % ("menu-fix", "menu-fix")
+    env = dict(os.environ); env.pop("MUSTER_MESSAGE_FORM", None)
+    r = subprocess.run([BIN, "rules"] if BIN else [sys.executable, HOOK], input=json.dumps(dict(hook_event_name="PreToolUse", cwd=QD, tool_name="SendMessage", tool_input={"to": "builder-a", "message": o}, transcript_path=t)), capture_output=True, text=True, env=env)
+    return r.stdout.strip()
+cases += [
+    ("item 115: an order in a turn his question started is refused", q_order(36, [said("why is the engine waiting?")]), True),
+    ("item 115: ...a question word with no question mark counts", q_order(36, [said("why is the engine waiting")]), True),
+    ("item 115: ...unless it cites his recorded choice", q_order(35, [said("why is the engine waiting?")]), False),
+    ("item 115: an instruction he typed is not a question", q_order(36, [said("fix the menu now")]), False),
+    ("item 115: a turn a worker's message started is not his question", q_order(36, [said("why is the engine waiting?"), said("<cross-session-message from=x>PASS</cross-session-message>")]), False),
+    ("item 115: a builder's order-shaped message is not this check's business", q_order(36, [said("why is the engine waiting?")], mgr=False), False),
+]
 cases.append(("GOAL: with no goal set every order goes through", order("weekly-goal"), False))
 goal("set", "--words", "finish muster", "--done", "the crew is live", "--list", "lean-rebuild,weekly-goal", "--parked", "site looks")
 cases += [

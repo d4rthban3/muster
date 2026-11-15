@@ -316,6 +316,39 @@ pub fn news_with_question(text: &str) -> bool {
     text.lines().any(|l| !is(&line, l.trim()) && !l.contains('?') && (is(&up, l) || is(&lo, l)))
 }
 
+/// Item 115: True when this turn was started by his typed words and they are a question: a "?" or a question word first.
+pub fn owner_questioned(path: &str) -> bool {
+    let ends = rei(r"<cross-session-message|<task-notification|<side-sessions-event|<ci-monitor-event|\[SYSTEM NOTIFICATION");
+    let neutral = rei(r"^\s*(<system-reminder|Stop hook feedback)");
+    let mut last = String::new();
+    for d in lines_of(path) {
+        if s(&d, "type") != "user" { continue; }
+        let c = msg_content(&d);
+        if let Value::Array(a) = &c { if a.iter().any(|b| s(b, "type") == "tool_result") { continue; } }
+        let t = content_text(&c);
+        if t.trim().is_empty() { continue; }
+        if is(&ends, &t) { last.clear(); } else if !is(&neutral, &t) { last = t; }
+    }
+    last.contains('?') || is(&rei(r"^\s*(what|why|how|when|where|who|which|can|could|would|will|did|does|do|is|are|was|were|should)\b"), &last)
+}
+
+/// True when the owner's list (path relative to the project) holds a recorded "Choice (" line under that item (item 115).
+pub fn choice_recorded(root: &str, rel: &str, item: i64) -> bool {
+    let Ok(text) = fs::read_to_string(Path::new(if root.is_empty() { "." } else { root }).join(rel)) else { return false };
+    let lines: Vec<&str> = text.split('\n').collect();
+    let (mut fenced, mut start) = (false, None);
+    let head = re(&format!(r"^{item}\.\s"));
+    for (i, l) in lines.iter().enumerate() {
+        if l.trim().starts_with("```") { fenced = !fenced; continue; }
+        if !fenced && start.is_none() && is(&head, l) { start = Some(i); }
+    }
+    let Some(st) = start else { return false };
+    let stop = re(r"^(\d+\.\s|#)");
+    let mut end = st + 1;
+    while end < lines.len() && !is(&stop, lines[end]) { end += 1; }
+    lines[st..end].iter().any(|l| is(&re(r"^\s+Choice \("), l))
+}
+
 pub fn exists(p: &Path) -> bool { p.exists() }
 pub fn read_all<R: Read>(mut r: R) -> String { let mut t = String::new(); let _ = r.read_to_string(&mut t); t }
 

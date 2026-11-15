@@ -343,7 +343,7 @@ fn pretool(c: &Ctx, data: &Value, manager: bool) {
     let empty = Value::Object(Default::default());
     let inp = data.get("tool_input").unwrap_or(&empty);
     let root = main_folder(s(data, "cwd"));
-    if tool == "SendMessage" { return send_message(c, data, inp, &root); }
+    if tool == "SendMessage" { return send_message(c, data, inp, &root, manager); }
     if tool == "Agent" || tool == "Task" { return helper_problem(inp, manager); }
     if tool.ends_with("start_session") {
         // a started chat's card title is its final name: "Start Engine_PINR_006" would stay (item 69)
@@ -432,7 +432,23 @@ fn dup_report(to: &str, msg: &str, path: &str) -> bool {
 }
 const DUP_WHY: &str = "this report (same job and first word) was already sent to this chat with nothing changed; send it again only when something changed (item 97)";
 
-fn send_message(c: &Ctx, data: &Value, inp: &Value, root: &str) {
+/// Item 115: his question gets an answer, not an order. A manager's order to a worker in a turn his question started is refused unless it
+/// cites his recorded choice (owner_words item with a Choice line under it).
+fn question_order_problem(c: &Ctx, manager: bool, root: &str, msg: &str, rec: Option<&Value>, path: &str) -> Option<String> {
+    if !manager || !owner_questioned(path) { return None; }
+    let item: Option<i64> = match rec {
+        Some(r) => { if s(r, "kind") != "ORDER" { return None; } r.get("owner_words").and_then(|o| o.get("item")).and_then(Value::as_i64) }
+        None => {
+            if !is(&rei(r"(?m)^\s*(Job|Owner'?s words)\s*:"), msg) { return None; }
+            caps(&rei(r"\bitem\s+(\d+)"), msg).and_then(|m| m[1].parse().ok())
+        }
+    };
+    let rel = c.profile.get("founder_list").and_then(Value::as_str).unwrap_or("muster/OWNERS-LIST.md");
+    if let Some(i) = item { if choice_recorded(root, rel, i) { return None; } }
+    Some("his question gets an answer, not an order (item 115): answer it in plain words; any action it might lead to goes back to him as lettered choices with your pick, and an order follows only after his recorded choice (cite that list item, with its Choice line)".to_string())
+}
+
+fn send_message(c: &Ctx, data: &Value, inp: &Value, root: &str, manager: bool) {
     let msg = s(inp, "message");
     if is(&social_re(), msg) { return deny("no 'noted' or 'thanks' replies; send a message only when someone must act"); }
     let sent = || all_sent_text(s(data, "transcript_path"));
@@ -442,6 +458,7 @@ fn send_message(c: &Ctx, data: &Value, inp: &Value, root: &str) {
         let things = project_things(s(data, "cwd"), s(&rec0, "sha")); // the worker's own copy at that sha, not the main folder
         if let Err(why) = crate::record::validate(msg, &things) { return deny(&format!("a message between chats is a data record (JSON with fixed keys and set values), never sentences, and this one is wrong: {why}")); }
         let rec: Value = serde_json::from_str(msg.trim()).unwrap_or(Value::Null);
+        if let Some(why) = question_order_problem(c, manager, root, msg, Some(&rec), s(data, "transcript_path")) { return deny(&why); }
         let (id, kind) = (s(&rec, "id"), s(&rec, "kind"));
         if sent().iter().any(|t| serde_json::from_str::<Value>(t.trim()).map(|r| s(&r, "id") == id).unwrap_or(false)) { return deny(&format!("this record's id {id} was already sent; a repeat is dropped")); }
         if kind == "ORDER" { if let Some(why) = goal_problem(root, s(&rec, "job")) { return deny(&why); } }
@@ -449,6 +466,7 @@ fn send_message(c: &Ctx, data: &Value, inp: &Value, root: &str) {
         if dup_report(s(inp, "to"), msg, s(data, "transcript_path")) { return deny(DUP_WHY); }
         return;
     }
+    if let Some(why) = question_order_problem(c, manager, root, msg, None, s(data, "transcript_path")) { return deny(&why); }
     if c.orders_free && !is(&re(&format!(r"^\s*{FIRST}\s*:")), msg) { return; }
     let (bad_report, bad_order) = (report_problem(c, msg), order_problem(msg));
     if let (Some(br), Some(bo)) = (&bad_report, &bad_order) {

@@ -90,6 +90,15 @@ add("1 the same chat's bad report is refused", send("READY: card fix\nWhat: only
 add("1 PINRai_teacher_001 is a crew chat too", send("NEED: x\nWhat: only one line", teacher), True)
 add("D-040: a PINR report from Site_PINR (no number) is checked, and its bad report refused", send("READY: card fix\nWhat: only one line", tr("You are Site_PINR, agents/builder.md")), True)
 add("D-040: crew-plan names the copy of a chat with no number", "" if subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "crew-plan.py"), "copy-name", "Builder A_Shop"], capture_output=True, text=True).stdout.strip() == "builder-a" else "BAD", False)
+_pq = os.path.join(T, "pq"); os.makedirs(os.path.join(_pq, "Founder"))
+open(os.path.join(_pq, "Founder", "FOUNDER-LIST.md"), "w").write("## Open\n\n7. \"fix the menu\"\n   Choice (2026-11-08): which?\n     Picked: A\n\n8. \"why waiting\"\n")
+def _qo(item, turn):
+    t = tr("You are Manager_PINR_002, the go-between", turn)
+    o = "To: Engine_PINR\nJob: menu\nOwner's words: \"fix the menu\" (item %d)\nOwns: a\nOut: b\nDone: c" % item
+    r = subprocess.run([BIN, "rules"] if BIN else [sys.executable, os.path.join(ROOT, "hooks", "rules-check.py")], input=json.dumps(dict(hook_event_name="PreToolUse", cwd=_pq, tool_name="SendMessage", tool_input={"to": "Engine_PINR", "message": o}, transcript_path=t)), capture_output=True, text=True, env=dict(os.environ, MUSTER_PROFILE=os.path.join(ROOT, "profiles", "pinr.json")))
+    return r.stdout
+add("item 115: PINR's manager order in a turn his question started is refused", "" if "item 115" in _qo(8, [{"type": "user", "message": {"content": "why is engine waiting?"}}]) else "BAD", False)
+add("item 115: ...and goes through when it cites a recorded choice", "" if "item 115" not in _qo(7, [{"type": "user", "message": {"content": "why is engine waiting?"}}]) else "BAD", False)
 add("1 the owner's own chat is untouched", send("hello team", tr("hi there")), False)
 add("1 without the profile Site_PINR_002 is not a crew chat (Muster unchanged)", send("NEED: x\nWhat: only one line", site, plain=True), False)
 # 2 report shape

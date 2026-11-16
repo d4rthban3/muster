@@ -53,8 +53,11 @@ if [ $nocli = 0 ]; then
   command -v claude >/dev/null 2>&1 || { restore "$b"; stop "the claude program was not found (backup put back)"; }
   CLAUDE_CONFIG_DIR="$cfg" claude plugin marketplace add "$path" >"$b/add.out" 2>&1 || { cat "$b/add.out"; restore "$b"; stop "claude could not add the marketplace (backup put back)"; }
   CLAUDE_CONFIG_DIR="$cfg" claude plugin list >"$b/list.out" 2>&1
-  if grep -q "@$name" "$b/list.out"; then ok=0; grep -q "Read from: $path" "$b/list.out" && ok=1
-  else CLAUDE_CONFIG_DIR="$cfg" claude plugin marketplace list 2>&1 | grep -q "$path" && ok=1 || ok=0; fi
+  # compare the way Windows prints it too: slashes the same, no case, and only the last two folder names (C:\\Users\\RUNNER~1 vs runneradmin)
+  tail2=$(printf '%s' "$path" | tr '\\' '/' | awk -F/ '{print $(NF-1) "/" $NF}')
+  seen() { tr '\\' '/' | grep -qiF "$tail2"; }
+  if grep -q "@$name" "$b/list.out"; then ok=0; grep "Read from:" "$b/list.out" | seen && ok=1
+  else CLAUDE_CONFIG_DIR="$cfg" claude plugin marketplace list 2>&1 | seen && ok=1 || ok=0; fi
   [ $ok = 1 ] || { cat "$b/list.out"; restore "$b"; stop "the plugins do not read from $path (backup put back)"; }
   grep -q "failed to load" "$b/list.out" && { cat "$b/list.out"; restore "$b"; stop "a plugin failed to load (backup put back)"; }
 fi

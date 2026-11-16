@@ -521,10 +521,10 @@ if command -v claude >/dev/null 2>&1; then
   printf '# hi\n' > "$PL/muster/skills/hello/SKILL.md"
   ( cd "$PL" && git init -q muster && git -C muster add -A && git -C muster -c user.name=t -c user.email=t@localhost commit -q -m x )
   bash "$ROOT/scripts/plugin-live.sh" --path "$PL/muster" --config-dir "$PL/cfg" >"$PL/real.out" 2>&1 || { cat "$PL/real.out"; fail "plugin-live with the real claude program failed"; }
-  ( cd "$PL" && CLAUDE_CONFIG_DIR="$PL/cfg" claude plugin install muster@muster-kit >/dev/null 2>&1; CLAUDE_CONFIG_DIR="$PL/cfg" claude plugin list 2>&1 | grep -q "Read from: $PL/muster" ) || fail "the plugin does not read from the folder"
+  ( cd "$PL" && CLAUDE_CONFIG_DIR="$PL/cfg" claude plugin install muster@muster-kit >/dev/null 2>&1; CLAUDE_CONFIG_DIR="$PL/cfg" claude plugin list 2>&1 | grep 'Read from:' | tr '\\' '/' | grep -qiF 'plive/muster' ) || fail "the plugin does not read from the folder"
   # a chat started from any other folder (the manager's chat starts in the folder above the checkouts) reads it live too: the install is user-wide
   mkdir -p "$PL/home"
-  ( cd "$PL/home" && CLAUDE_CONFIG_DIR="$PL/cfg" claude plugin list 2>&1 | grep -q "Read from: $PL/muster" ) || fail "a chat started from another folder does not read from the folder"
+  ( cd "$PL/home" && CLAUDE_CONFIG_DIR="$PL/cfg" claude plugin list 2>&1 | grep 'Read from:' | tr '\\' '/' | grep -qiF 'plive/muster' ) || fail "a chat started from another folder does not read from the folder"
 else
   echo "   (the claude program is not on this computer: the real-program part was skipped)"
 fi

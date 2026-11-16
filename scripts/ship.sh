@@ -95,7 +95,32 @@ i = c.index("\n## ") + 1
 entry = "## %s\nAffects: %s.\n%s\n\n" % (v, ", ".join(x for x in roles.split(",") if x) or "see .claude-plugin/releases/%s.json" % v, note)
 open("CHANGELOG.md", "w", encoding="utf-8").write(c[:i] + entry + c[i:])
 PY
+# item 118: another plugin of the marketplace (a mod) whose files changed gets its own version raised by one, in its plugin.json and the marketplace file
+$py - <<'PY' || stop "could not raise a mod's version"
+import json, re, subprocess
+mk = json.load(open(".claude-plugin/marketplace.json"))
+for p in mk["plugins"]:
+    src = p.get("source", "")
+    if not src.startswith("./") or src.strip("./") == "":
+        continue
+    folder = src[2:].rstrip("/"); mf = folder + "/.claude-plugin/plugin.json"
+    r = subprocess.run(["git", "show", "origin/main:" + mf], capture_output=True, text=True)
+    old = json.loads(r.stdout)["version"] if r.returncode == 0 and r.stdout.strip() else None
+    changed = subprocess.run(["git", "diff", "--name-only", "origin/main", "HEAD", "--", folder], capture_output=True, text=True).stdout.split()
+    if not changed or old is None or p.get("version") != old:
+        continue
+    a = old.split("."); a[-1] = str(int(a[-1]) + 1); v = ".".join(a)
+    for f, was in ((mf, old), (".claude-plugin/marketplace.json", None)):
+        t = open(f, encoding="utf-8").read()
+        if f == mf:
+            t = t.replace('"version": "%s"' % old, '"version": "%s"' % v, 1)
+        else:  # only this plugin's entry
+            t = re.sub(r'("name": "%s",\s*"version": ")[0-9.]+(")' % re.escape(p["name"]), r"\g<1>%s\g<2>" % v, t, count=1)
+        open(f, "w", encoding="utf-8").write(t)
+    print("== %s changed; its version %s -> %s" % (p["name"], old, v))
+PY
 git add -A .claude-plugin CHANGELOG.md
+[ -d mods ] && git add -A mods
 git commit -q -m "Version $new: $note" || stop "could not save the version commit"
 fi
 bash scripts/version-check.sh || stop "version-check failed"

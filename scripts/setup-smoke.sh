@@ -543,6 +543,40 @@ $PY "$ROOT/scripts/validate-strict.py" --from "$VS/err.txt" --rc 0 >/dev/null 2>
 grep -q 'validate-strict.py' "$ROOT/.github/workflows/setup-test.yml" || fail "CI does not use validate-strict.py"
 grep -q 'validate-strict.py' "$ROOT/scripts/ship.sh" || fail "ship.sh does not use validate-strict.py"
 
+step "a second plugin (a mod) whose files changed but whose version did not: version-check refuses, ship.sh raises it (item 118)"
+MV="$SCRATCH/modver"; mkdir -p "$MV/remote.git" "$MV/work"
+git init -q --bare "$MV/remote.git"
+cd "$MV/work"; git init -q -b main; git remote add origin "$MV/remote.git"
+mkdir -p .claude-plugin/releases scripts mods/look/.claude-plugin
+cp "$ROOT/scripts/ship.sh" "$ROOT/scripts/find-python.sh" "$ROOT/scripts/version-check.sh" "$ROOT/scripts/scan-leaks.sh" scripts/
+printf '{\n  "name": "muster",\n  "version": "1.2.3"\n}\n' > .claude-plugin/plugin.json
+printf '{\n  "name": "look",\n  "version": "0.5.0"\n}\n' > mods/look/.claude-plugin/plugin.json
+printf '{\n  "name": "muster-kit",\n  "plugins": [\n    {\n      "name": "muster",\n      "version": "1.2.3",\n      "source": "./"\n    },\n    {\n      "name": "look",\n      "version": "0.5.0",\n      "source": "./mods/look"\n    }\n  ]\n}\n' > .claude-plugin/marketplace.json
+printf '# Changelog\n\nEach version names who is affected.\n\n## 1.2.3\nold\n' > CHANGELOG.md
+echo one > mods/look/a.txt
+git add -A; git -c user.name=t -c user.email=t@localhost commit -q -m base; git push -q origin main
+export GIT_AUTHOR_NAME=t GIT_AUTHOR_EMAIL=t@localhost GIT_COMMITTER_NAME=t GIT_COMMITTER_EMAIL=t@localhost
+git checkout -q -b builder/mod; echo two > mods/look/a.txt; git add -A; git commit -q -m "mod change"
+# Muster's own version raised by hand, the mod's forgotten
+$PY - <<'PY'
+import re
+for f in (".claude-plugin/plugin.json", ".claude-plugin/marketplace.json"):
+    t = open(f).read(); open(f, "w").write(t.replace('"1.2.3"', '"1.2.4"', 1))
+PY
+git add -A; git commit -q -m "bump muster only"
+if bash scripts/version-check.sh origin/main >"$MV/vc.out" 2>&1; then fail "version-check let a changed mod keep its old version"; fi
+grep -q "look changed" "$MV/vc.out" || fail "version-check did not name the mod: $(cat "$MV/vc.out")"
+git reset -q --hard HEAD~1
+bash scripts/ship.sh "mod change" --roles Builder --no-wait | tail -2 | tee "$MV/real.out"
+grep -q "SHIPPED 1.2.4" "$MV/real.out" || fail "ship did not finish: $(cat "$MV/real.out")"
+git -C "$MV/remote.git" show main:mods/look/.claude-plugin/plugin.json | grep -q '"0.5.1"' || fail "the mod's own version was not raised on the remote"
+git -C "$MV/remote.git" show main:.claude-plugin/marketplace.json | grep -q '"0.5.1"' || fail "the marketplace entry for the mod was not raised"
+git -C "$MV/remote.git" show main:.claude-plugin/marketplace.json | grep -q '"1.2.4"' || fail "Muster's own entry was not raised"
+git fetch -q origin; git checkout -q -b builder/other origin/main; echo x > unrelated.txt; git add -A; git commit -q -m "no mod change"
+bash scripts/ship.sh "no mod change" --roles Builder --no-wait | tail -1 | grep -q "SHIPPED 1.2.5" || fail "ship did not finish a change that leaves the mod alone"
+git -C "$MV/remote.git" show main:mods/look/.claude-plugin/plugin.json | grep -q '"0.5.1"' || fail "an unchanged mod's version moved"
+cd "$FOLDER"
+
 step "the after-compaction hook speaks only in a crew chat, never in the owner's own chat"
 mkdir -p "$SCRATCH/tr" "$SCRATCH/plain"
 printf '{"type":"user","message":{"role":"user","content":"First: read the plugin folder/agents/builder.md. You are Builder A_X_001."}}\n' > "$SCRATCH/tr/builder.jsonl"

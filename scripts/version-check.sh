@@ -14,4 +14,32 @@ old=$(git show "$base:.claude-plugin/plugin.json" 2>/dev/null | python3 -c 'impo
 if [ -n "$(git diff --name-only "$base" HEAD)" ] && [ "$pv" = "$old" ]; then
   echo "STOP: files changed since $base but the version is still $pv; raise it in plugin.json and marketplace.json"; exit 1
 fi
+# item 118: every OTHER plugin in the marketplace (a mod such as muster-look) has its own version; files changed under its folder since the
+# published line with its version unchanged would never reach anyone's "claude plugin update", so that stops here too (ship.sh bumps it).
+python3 - "$base" <<'PY' || exit 1
+import json, subprocess, sys
+base = sys.argv[1]
+def show(rev, path):
+    r = subprocess.run(["git", "show", "%s:%s" % (rev, path)], capture_output=True, text=True)
+    return json.loads(r.stdout) if r.returncode == 0 and r.stdout.strip() else None
+mk = json.load(open(".claude-plugin/marketplace.json"))
+bad = 0
+for p in mk["plugins"]:
+    src = p.get("source", "")
+    if not src.startswith("./") or src.strip("./") == "":
+        continue  # the plugin at the marketplace's own root is checked above
+    folder = src[2:].rstrip("/")
+    mf = folder + "/.claude-plugin/plugin.json"
+    try:
+        own = json.load(open(mf))["version"]
+    except Exception:
+        own = None
+    if own is not None and own != p.get("version"):
+        print("STOP: %s says %s in %s but %s in marketplace.json" % (p["name"], own, mf, p.get("version"))); bad = 1; continue
+    changed = subprocess.run(["git", "diff", "--name-only", base, "HEAD", "--", folder], capture_output=True, text=True).stdout.split()
+    old = (show(base, mf) or {}).get("version")
+    if changed and old is not None and old == p.get("version"):
+        print("STOP: %s changed (%d file(s) under %s) since %s but its version is still %s; raise it in %s and marketplace.json (ship.sh does it)" % (p["name"], len(changed), folder, base, old, mf)); bad = 1
+sys.exit(bad)
+PY
 echo "OK: version $pv (published: ${old:-none})"

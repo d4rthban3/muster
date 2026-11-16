@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.111
+Affects: see .claude-plugin/releases/0.3.111.json.
+plugin-live: keep Muster live in every chat (item 117)
+
 ## 0.3.110
 Affects: see .claude-plugin/releases/0.3.110.json.
 Choice chips: whole perfect circles, centred letter, purple hover fill (item 118)

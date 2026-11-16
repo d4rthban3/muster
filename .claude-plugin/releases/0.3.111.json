@@ -1,0 +1,13 @@
+{
+  "version": "0.3.111",
+  "changed_files": [
+    "scripts/plugin-live.sh",
+    "scripts/setup-smoke.sh"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "plugin-live: keep Muster live in every chat (item 117)"
+}

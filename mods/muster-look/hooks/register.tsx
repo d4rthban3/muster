@@ -3,7 +3,7 @@ import { parse } from './parse'
 import { cutFont, fromBase64, type Cut } from './font'
 import { labelWidth } from './metrics'
 import { panel, registerLook } from './panel'
-import { loadGroup, pickedOn, typedOn, savePick, clearPick } from './group'
+import { loadGroup, pickedOn, typedOn, savePick, clearPick, answerStands, sent } from './group'
 import { svgChip, pillOf, colourOr, YELLOW } from './chip'
 
 
@@ -37,6 +37,7 @@ export const register: Register = (on) => {
       const q = parse(latestQuestion)
       if (m !== null && q !== null && q.pieces.some(p => p.kind === 'choice' && p.letter === m[1].toUpperCase())) {
         await savePick($, latestQuestion, m[1].toUpperCase())
+        sent.add(latestQuestion)
         $.ui.invalidate('ui.render')
       }
     }
@@ -58,6 +59,7 @@ export const register: Register = (on) => {
       if (latestQuestion !== '' && !answered.has(latestQuestion)) {
         answered.add(latestQuestion)
         await savePick($, latestQuestion, d.pick)
+        sent.add(latestQuestion)
         void $.prompt.submit({ text: d.pick })
         $.ui.invalidate('ui.render')
       }
@@ -84,8 +86,16 @@ export const register: Register = (on) => {
     if (parsed === null) return next(e)
     // this group's own look; a group with none gets the defaults
     const opts = await loadGroup($)
-    const picked = parsed.isQuestion ? await pickedOn($, e.props.text) : undefined
-    const typed = parsed.isQuestion ? await typedOn($, e.props.text) : undefined
+    let picked = parsed.isQuestion ? await pickedOn($, e.props.text) : undefined
+    let typed = parsed.isQuestion ? await typedOn($, e.props.text) : undefined
+    // the answer message is gone from the chat (the rewind button): back to unpicked and live again
+    const mark = picked ?? (typed !== undefined ? '=' + typed : undefined)
+    if (mark !== undefined && !(await answerStands($, e.props.text, mark))) {
+      picked = undefined
+      typed = undefined
+      answered.delete(e.props.text)
+      await clearPick($, e.props.text)
+    }
     const QUESTION = pillOf('question', opts)
     const CARD = pillOf('card', opts)
     const CHOICE = pillOf('choice', opts)
@@ -257,6 +267,7 @@ export const register: Register = (on) => {
                 if (words === '' || e.props.text !== latestQuestion || answered.has(e.props.text)) return
                 answered.add(e.props.text)
                 const tag = head !== undefined && head.kind === 'title' ? `${head.word} \u00b7 ${head.job}` : 'the question above'
+                sent.add(e.props.text)
                 void savePick($, e.props.text, '=' + words.slice(0, 300)).then(() => $.ui.invalidate('ui.render'))
                 void $.prompt.submit({ text: `Answer to ${tag}: ${words}` })
               }}

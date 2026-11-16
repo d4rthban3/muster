@@ -99,7 +99,7 @@ test('with nothing set the look is the default', async ($, on) => {
   expect(s).toContain('font-weight="400"')
 })
 
-import { groupId, loadGroup, saveGroup, clearGroup, savePick, pickedOn, clearPick } from './group'
+import { groupId, loadGroup, saveGroup, clearGroup, savePick, pickedOn, clearPick, answerIn, answerStands, sent } from './group'
 
 const CUSTOM = { chipFont: 'Georgia', questionHeadingColor: '#2dd4bf', choiceChipColor: '#ff7ab6', lineTopColor: '#2dd4bf', lineBottomColor: '#ff7ab6' }
 
@@ -370,4 +370,24 @@ test('an undone pick goes back to unpicked, as if never clicked; other questions
   expect(await pickedOn($, 'question one')).toBeUndefined()
   expect(await pickedOn($, 'question two')).toBe('C')
   await clearPick($, 'never asked')
+})
+
+test('a pick follows the chat: the answer message gone (rewind) means unpicked; just sent stays picked', async () => {
+  const Q = '**WAITING · item 9**\nWhich?\n\n***A.*** Red.\n\n***B.*** Blue.'
+  const chat = (...u: string[]) => [{ role: 'user', text: 'go' }, { role: 'assistant', text: Q }, ...u.map(t => ({ role: 'user', text: t }))]
+  expect(answerIn(chat('B'), Q, 'B')).toBe('yes')
+  expect(answerIn(chat(), Q, 'B')).toBe('no')
+  expect(answerIn(chat('A'), Q, 'B')).toBe('no')
+  expect(answerIn(chat('Answer to WAITING · item 9: blue please'), Q, '=blue please')).toBe('yes')
+  expect(answerIn([{ role: 'user', text: 'go' }], Q, 'B')).toBe('unknown')
+  const calls = (msgs: any) => ({ session: { messages: async () => msgs } })
+  // seen in the chat, then rewound out of it: not picked
+  expect(await answerStands(calls(chat('B')), Q, 'B')).toBe(true)
+  expect(await answerStands(calls(chat()), Q, 'B')).toBe(false)
+  // just sent, not in the chat yet: still picked
+  const Q2 = Q + ' two'
+  sent.add(Q2)
+  expect(await answerStands(calls([{ role: 'assistant', text: Q2 }]), Q2, 'B')).toBe(true)
+  // a host with no transcript reading changes nothing
+  expect(await answerStands({}, Q, 'B')).toBe(true)
 })

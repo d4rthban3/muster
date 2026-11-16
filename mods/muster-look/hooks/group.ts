@@ -102,3 +102,38 @@ export async function clearPick($: any, text: string): Promise<void> {
     await kvSet($, 'picks', all)
   } catch { /* a store that refuses keeps nothing */ }
 }
+
+// Does the chat still hold the answer to this question? The question's message is found
+// in the transcript, then a later message of the owner's that is the letter, or the typed
+// "Answer to ..." line. 'unknown' when the question itself is not in the transcript.
+export type Said = { role: string; text: string }
+export function answerIn(msgs: Said[], question: string, mark: string): 'yes' | 'no' | 'unknown' {
+  const q = question.trim()
+  let at = -1
+  msgs.forEach((m, i) => { if (m.role === 'assistant' && m.text.includes(q)) at = i })
+  if (at < 0) return 'unknown'
+  const typed = mark.startsWith('=')
+  for (const m of msgs.slice(at + 1)) {
+    if (m.role !== 'user') continue
+    const t = m.text.trim()
+    if (typed ? t.startsWith('Answer to') && t.includes(mark.slice(1, 40)) : t.replace(/[*.)]/g, '').toUpperCase() === mark) return 'yes'
+  }
+  return 'no'
+}
+// Questions whose answer this run just sent: shown picked until the chat is seen to hold it.
+export const sent = new Set<string>()
+// Questions whose answer was seen in the chat: if it later is not there, it was rewound.
+export const seenIn = new Set<string>()
+export async function answerStands($: any, question: string, mark: string): Promise<boolean> {
+  let msgs: Said[]
+  try {
+    const got = await $.session.messages()
+    if (!Array.isArray(got)) return true
+    msgs = got
+  } catch { return true }
+  const r = answerIn(msgs, question, mark)
+  if (r === 'unknown') return true
+  if (r === 'yes') { seenIn.add(question); sent.delete(question); return true }
+  // not there: fine while it has only just been sent; gone once it was seen, or was never sent now
+  return sent.has(question) && !seenIn.has(question)
+}

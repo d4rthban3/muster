@@ -238,3 +238,28 @@ test('a card heading after the last choice is set apart by a clear gap; choices 
   const without = await gaps(Q2)
   expect(withCard).toBe(without + 1)
 })
+
+test('the picked letter stays lit on its question; the others do not', async ($, on) => {
+  on('ui.render', ($, e) => { const { Text } = $.ui.resolve(e); return <Text>engine</Text> })
+  on('prompt.submit', ($, e) => ({ text: String((e as any).text) }) as any)
+  const Q3 = '**WAITING · item 9**\nWhich colour?\n\n***A.*** Red.\n\n***B.*** Blue.\n\n***C.*** Green.'
+  const lit = async () => {
+    const ui = await $.ui.mount(MSG(Q3, 'desktop'))
+    const n = ((await ui.findAll({ type: 'Svg' })) ?? []).filter((x: any) => String(x.props?.source).includes('fill-opacity="1"')).length
+    const j = JSON.stringify(await ui.findAll({ type: 'Box' }))
+    // a tint on the row itself, not the one inside its hover
+    const tint = (j.match(/"backgroundColor":"#23262e"/g) ?? []).length > (j.match(/"hover":\{"backgroundColor":"#23262e"/g) ?? []).length
+    return { ui, n, tint }
+  }
+  const before = await lit()
+  // live question: each of 3 rows has one hidden hot copy, none tinted
+  expect(before.n).toBe(3)
+  expect(before.tint).toBe(false)
+  await (before.ui as any).post({ pick: 'B' }, { in: 'pickB' })
+  await before.ui.unmount()
+  const after = await lit()
+  // answered: no hidden copies any more, exactly one lit circle and a tinted row
+  expect(after.n).toBe(1)
+  expect(after.tint).toBe(true)
+  await after.ui.unmount()
+})

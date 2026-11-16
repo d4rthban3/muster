@@ -3,7 +3,7 @@ import { parse } from './parse'
 import { cutFont, fromBase64, type Cut } from './font'
 import { labelWidth } from './metrics'
 import { panel, registerLook } from './panel'
-import { loadGroup } from './group'
+import { loadGroup, pickedOn, savePick } from './group'
 import { YELLOW, PURPLE, svgChip, palette, colourOr } from './chip'
 
 
@@ -23,8 +23,17 @@ export const register: Register = (on) => {
   // answered (by a click here, or by typing a reply) is not sent again.
   let latestQuestion = ''
   const answered = new Set<string>()
-  on('prompt.submit', ($, e, next) => {
-    if (latestQuestion !== '') answered.add(latestQuestion)
+  on('prompt.submit', async ($, e, next) => {
+    if (latestQuestion !== '') {
+      answered.add(latestQuestion)
+      // a reply that is just a letter of that question sticks on it
+      const m = /^\s*\**([A-Za-z])[.)]?\**\s*$/.exec(String((e as any).text ?? ''))
+      const q = parse(latestQuestion)
+      if (m !== null && q !== null && q.pieces.some(p => p.kind === 'choice' && p.letter === m[1].toUpperCase())) {
+        await savePick($, latestQuestion, m[1].toUpperCase())
+        $.ui.invalidate('ui.render')
+      }
+    }
     return next(e)
   })
   on('ui.message', { component: 'AssistantMessage' }, async ($, e, next) => {
@@ -32,6 +41,7 @@ export const register: Register = (on) => {
     if (/(^|\/)choice\.tsx$/.test(e.module) && d !== undefined && typeof d.pick === 'string' && /^[A-Z]$/.test(d.pick)) {
       if (latestQuestion !== '' && !answered.has(latestQuestion)) {
         answered.add(latestQuestion)
+        await savePick($, latestQuestion, d.pick)
         void $.prompt.submit({ text: d.pick })
         $.ui.invalidate('ui.render')
       }
@@ -58,6 +68,7 @@ export const register: Register = (on) => {
     if (parsed === null) return next(e)
     // this group's own look; a group with none gets the defaults
     const opts = await loadGroup($)
+    const picked = parsed.isQuestion ? await pickedOn($, e.props.text) : undefined
     const QUESTION = palette(YELLOW, opts.questionHeadingColor)
     const CARD = palette(PURPLE, opts.cardHeadingColor)
     const CHOICE = palette(YELLOW, opts.choiceChipColor)
@@ -95,7 +106,7 @@ export const register: Register = (on) => {
       isTerminal ? (
         <Text>
           <Text color={c.edge}>{'\u258F'}</Text>
-          <Text color={(c as any).label ?? c.text} backgroundColor={c.fill} bold>{` ${label} `}</Text>
+          <Text color={(c as any).label ?? c.text} backgroundColor={hot ? c.edge : c.fill} bold>{` ${label} `}</Text>
           <Text color={c.edge}>{'\u2595'}</Text>
         </Text>
       ) : (
@@ -122,7 +133,7 @@ export const register: Register = (on) => {
       }
       const firstChoice = parsed.pieces[i - 1]?.kind === 'md'
       const row = (
-        <Box key={`c${i}`} gap={2} alignItems="center" position="relative" hover={live && !isTerminal && Client !== undefined ? { backgroundColor: '#23262e' } : undefined}>
+        <Box key={`c${i}`} gap={2} alignItems="center" position="relative" backgroundColor={p.letter === picked && !isTerminal ? '#23262e' : undefined} hover={live && !isTerminal && Client !== undefined ? { backgroundColor: '#23262e' } : undefined}>
           {live && !isTerminal ? (
             <Box position="relative">
               {chip(p.letter, CHOICE, letterTw, 4)}
@@ -130,7 +141,7 @@ export const register: Register = (on) => {
                 {chip(p.letter, CHOICE, letterTw, 4, true)}
               </Box>
             </Box>
-          ) : chip(p.letter, CHOICE, letterTw, 4)}
+          ) : chip(p.letter, CHOICE, letterTw, 4, p.letter === picked)}
           <Markdown key={`cm${i}`} text={p.text} />
           {live && !isTerminal && Client !== undefined && (
             <Box position="absolute" top={0} left={0} right={0} bottom={0}>

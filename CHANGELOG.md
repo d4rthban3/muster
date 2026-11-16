@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.107
+Affects: see .claude-plugin/releases/0.3.107.json.
+Even gaps under the title and above the first choice; left line ends at the last choice (item 118)
+
 ## 0.3.106
 Affects: see .claude-plugin/releases/0.3.106.json.
 Clickable choices: clicking a choice chip or row sends that letter (item 118)

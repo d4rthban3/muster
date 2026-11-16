@@ -1,0 +1,14 @@
+{
+  "version": "0.3.107",
+  "changed_files": [
+    "mods/muster-look/hooks/rail.tsx",
+    "mods/muster-look/hooks/register.tsx",
+    "screenshots/chip-top-gap/chip-top-gap.png"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Even gaps under the title and above the first choice; left line ends at the last choice (item 118)"
+}

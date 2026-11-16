@@ -201,7 +201,7 @@ test('the left line is a region as tall as the rows beside it, one glyph per lai
   void el
 })
 
-test('clicking a choice sends its tagged letter once; an answered question does not send again', async ($, on) => {
+test('clicking a choice sends the option own text once; an answered question does not send again', async ($, on) => {
   const sent: string[] = []
   on('prompt.submit', ($, e) => { sent.push(String((e as any).text)); return { text: String((e as any).text) } as any })
   const ui = await $.ui.mount(MSG(Q2, 'desktop'))
@@ -209,7 +209,8 @@ test('clicking a choice sends its tagged letter once; an answered question does 
   // the answered question has drawn no click areas any more
   expect(await ui.find({ type: 'Client', key: 'pickB' })).toBeFalsy()
   await expect((ui as any).post({ pick: 'B' }, { in: 'pickB' })).rejects.toThrow()
-  expect(sent).toEqual(['Answer to WAITING \u00b7 item 7 (How should the menu look?): A'])
+  // only the option's own text, nothing before or after
+  expect(sent).toEqual(['A. Top right.'])
   await ui.unmount()
 })
 
@@ -377,7 +378,7 @@ test('a card heading after text or a list has a clear gap above it; the first th
   expect(await gaps('**SERVER · reading your allowance**\n- a\n- b')).toBe(0)
 })
 
-test('an old question stays live: every click says which question it answers, old or newest', async ($, on) => {
+test('an old question stays live: a click on an old or the newest question sends that option own text', async ($, on) => {
   const sent: string[] = []
   on('prompt.submit', ($, e) => { sent.push(String((e as any).text)); return { text: String((e as any).text) } as any })
   const OLD = '**WAITING · item 3**\nWhich colour?\n\n***A.*** Red.\n\n***B.*** Blue.'
@@ -392,7 +393,7 @@ test('an old question stays live: every click says which question it answers, ol
   try { await (now as any).post({ pick: 'A', q: hashText(NEW) }, { in: 'pickA' }) } catch (x) { throw new Error('now ' + x) }
   // one press each; a second press on either sends nothing more
   await expect((old as any).post({ pick: 'A', q: hashText(OLD) }, { in: 'pickA' })).rejects.toThrow()
-  expect(sent).toEqual(['Answer to WAITING \u00b7 item 3 (Which colour?): B', 'Answer to WAITING \u00b7 item 4 (Which size?): A'])
+  expect(sent).toEqual(['B. Blue.', 'A. Big.'])
   await old.unmount()
   await now.unmount()
 })
@@ -503,4 +504,13 @@ test('one project is one group: a worktree, a clone and the main folder share a 
   expect((await glassSettings($, groupKey(muster, '/p/worker-copy'))).glassColour1).toBe('#123456')
   expect((await loadGroup($, groupKey('https://github.com/d4rthban3/pinr-private.git', '/p/x'))).questionHeadingColor).toBeUndefined()
   await clearGroup($, k)
+})
+test('what a click sends is the clicked option word for word, and the chat check knows it', async () => {
+  expect(answerLine(Q2, 'A')).toBe('A. Top right.')
+  expect(answerLine(Q2, 'B')).toBe('B. Bottom.')
+  expect(answerLine(Q2, 'blue please')).toBe('blue please')
+  const chat = [{ role: 'assistant', text: Q2 }, { role: 'user', text: 'B. Bottom.' }]
+  expect(answerIn(chat, Q2, 'B')).toBe('yes')
+  expect(answerIn(chat, Q2, 'A')).toBe('no')
+  expect(answerIn([{ role: 'assistant', text: Q2 }, { role: 'user', text: 'blue please' }], Q2, '=blue please')).toBe('yes')
 })

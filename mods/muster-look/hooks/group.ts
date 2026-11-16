@@ -150,7 +150,15 @@ export function answerTag(text: string): string {
   const h = head !== undefined ? `${head.word} \u00b7 ${head.job}` : ''
   return h !== '' ? (first !== '' ? `${h} (${first})` : h) : (first !== '' ? first : 'the question above')
 }
-export const answerLine = (text: string, words: string) => `Answer to ${answerTag(text)}: ${words}`
+// What a click sends: only the clicked option's own text, as the card shows it ("A. Arena only"),
+// nothing before or after. Words the owner typed are sent as typed. (A letter this card has no
+// option for goes as the bare letter.)
+export function optionLine(text: string, letter: string): string {
+  const o = (parse(text)?.pieces ?? []).find(p => p.kind === 'choice' && p.letter === letter) as { text: string } | undefined
+  const t = o?.text.replace(/[*_`]/g, '').replace(/\s+/g, ' ').trim() ?? ''
+  return t !== '' ? `${letter}. ${t}` : letter
+}
+export const answerLine = (text: string, words: string) => (/^[A-Z]$/.test(words) ? optionLine(text, words) : words)
 export type Said = { role: string; text: string }
 export function answerIn(msgs: Said[], question: string, mark: string): 'yes' | 'no' | 'unknown' {
   const q = question.trim()
@@ -161,9 +169,9 @@ export function answerIn(msgs: Said[], question: string, mark: string): 'yes' | 
   for (const m of msgs.slice(at + 1)) {
     if (m.role !== 'user') continue
     const t = m.text.trim()
-    // an answer names its own question; a bare letter (sent by an older version) counts too
-    const line = `Answer to ${answerTag(question)}: `
-    if (typed ? t.startsWith(line) && t.includes(mark.slice(1, 40)) : (t === line + mark || t.replace(/[*.)]/g, '').toUpperCase() === mark)) return 'yes'
+    // the clicked option's own text, or the words he typed; the older "Answer to ..." line and a bare letter count too
+    const old = `Answer to ${answerTag(question)}: `
+    if (typed ? (t.startsWith(mark.slice(1)) || (t.startsWith(old) && t.includes(mark.slice(1, 40)))) : (t === optionLine(question, mark) || t === old + mark || t.replace(/[*.)]/g, '').toUpperCase() === mark)) return 'yes'
   }
   return 'no'
 }

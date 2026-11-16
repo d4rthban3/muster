@@ -1,14 +1,16 @@
 #!/usr/bin/env bash
 # One-command shipping, from a branch whose work the inspector passed.
 # Usage: scripts/ship.sh "one-line note" [--roles Manager,Builder] [--platforms claude-code] [--with branch] [--dry-run] [--no-wait]
-# It: fetches; rebases THIS branch only on origin/main; takes main's version plus one; writes the release file and the
-# CHANGELOG entry from your note; runs version-check, the leak scan and a push look; pushes this branch under a new name
-# (never forced), waits for the free test to go green, pushes to main fast-forward only; waits for the free test on
-# main and the site's rebuild; proves the new content is served (published version, and a changed line of the site). It stops at the first failure and says why. It never
-# force-pushes, never touches another branch, and never pushes anything in muster/.
+# It: fetches; rebases THIS branch only on main; takes main's version plus one; writes the release file and the
+# CHANGELOG entry from your note; runs version-check, the leak scan and a push look. LOCAL FIRST (item 122): the passed, versioned
+# release then lands at once in the owner's own Muster folder on this machine, never waiting on GitHub. Only after that does it
+# publish: pushes this branch under a new name (never forced), waits for the free test (rerunning a job that never got a machine),
+# pushes to main fast-forward only, waits for the test on main and the site's rebuild, and proves the new content is served.
+# Publishing failures never hold back or undo the local folder; the next ship carries whatever is not yet pushed. Before that point it
+# stops at the first failure and says why. It never force-pushes, never touches another branch, and never pushes anything in muster/.
 # --with <branch> (repeatable): ship several passed branches as one release. Batch only branches that do not touch the same files.
 # It refuses unless the crew board (muster/BOARD.md in the main folder, if the project has one) holds an entry headed "| PASS |" naming this exact saved version.
-# Afterwards the main folder (the checkout this branch's worktree belongs to) is fast-forwarded to the new main, never forced; if it
+# The main folder (the checkout this branch's worktree belongs to) is fast-forwarded to the new release, never forced; if it
 # cannot be (another branch, work of its own), it says "MAIN FOLDER NOT UPDATED" and why, and leaves the folder as it is.
 # --dry-run: do everything on this computer, push nothing. --no-wait: push, but do not wait on GitHub (used by the test).
 set -u
@@ -26,6 +28,14 @@ branch=$(git rev-parse --abbrev-ref HEAD)
 [ -z "$(git status --porcelain --untracked-files=no)" ] || stop "uncommitted changes; save them first"
 git fetch -q origin || stop "could not fetch origin"
 orig=$(git rev-parse HEAD)
+# item 122: the owner's own folder may already hold releases GitHub does not have yet (their publishing did not finish). This script
+# marks the last release it landed there (refs/muster/landed); build on it, so this ship carries those releases. Other local work is never carried.
+base=origin/main
+landed=$(git rev-parse -q --verify refs/muster/landed 2>/dev/null)
+if [ -n "$landed" ] && ! git merge-base --is-ancestor "$landed" origin/main && git merge-base --is-ancestor origin/main "$landed" \
+   && git merge-base --is-ancestor "$landed" main 2>/dev/null; then
+  base=$landed; echo "== the main folder holds $(git rev-list --count origin/main.."$landed") commit(s) of releases GitHub does not have yet; this ship carries them"
+fi
 # the inspector's PASS must be on the board for exactly this saved version (D-027): only checked where the project
 # has a crew board; a project without one is not asked for it
 mainroot=$(dirname "$(cd "$(git rev-parse --git-common-dir)" && pwd)")
@@ -39,8 +49,8 @@ fi
 # a dry run leaves the branch exactly as it was, even if it stops early
 [ $dry = 1 ] && trap 'git reset -q --hard "$orig" 2>/dev/null' EXIT
 # item 104: when origin/main is already inside this branch (it merged main), there is nothing to rebase onto; a rebase would only fail
-if ! git merge-base --is-ancestor origin/main HEAD; then
-git rebase origin/main >/dev/null 2>&1 || { git rebase --abort >/dev/null 2>&1; stop "rebasing $branch on origin/main hit a conflict; fix it by hand and run again"; }
+if ! git merge-base --is-ancestor $base HEAD; then
+git rebase $base >/dev/null 2>&1 || { git rebase --abort >/dev/null 2>&1; stop "rebasing $branch on $base hit a conflict; fix it by hand and run again"; }
 fi
 # a batch: merge each other passed branch into this one, so one version, one free test and one live proof cover them all
 for w in $with; do
@@ -49,11 +59,11 @@ for w in $with; do
   echo "== batch: merged $w"
 done
 py=$(sh "$(dirname "$0")/find-python.sh") || stop "no working Python 3"
-ver=$(git show origin/main:.claude-plugin/plugin.json | $py -c 'import json,sys;print(json.load(sys.stdin)["version"])')
+ver=$(git show $base:.claude-plugin/plugin.json | $py -c 'import json,sys;print(json.load(sys.stdin)["version"])')
 new=$($py -c 'import sys;a=sys.argv[1].split(".");a[-1]=str(int(a[-1])+1);print(".".join(a))' "$ver")
 have=$($py -c 'import json;print(json.load(open(".claude-plugin/plugin.json"))["version"])')
-files=$(git diff --name-only origin/main HEAD | paste -sd, -)
-[ -n "$files" ] || stop "nothing differs from origin/main"
+files=$(git diff --name-only $base HEAD | paste -sd, -)
+[ -n "$files" ] || stop "nothing differs from $base"
 echo "== main is $ver; shipping $new ($files)"
 keep=0
 if [ "$have" = "$new" ] && [ -f ".claude-plugin/releases/$new.json" ] && grep -q "^## $new\$" CHANGELOG.md; then keep=1; echo "== the branch already carries version $new, its release file and its changelog entry: keeping them"
@@ -90,46 +100,53 @@ for f in $(git diff --name-only origin/main HEAD -- docs | grep '\.html$'); do
   if [ -n "$l" ]; then proof_file=$f; proof_line=$l; break; fi
 done
 if [ $dry = 1 ]; then echo "SHIP DRY RUN OK: would push $new; nothing was pushed"; exit 0; fi
-tmp="ship/$new"
-git push -q origin "HEAD:refs/heads/$tmp" || stop "could not push the branch copy $tmp. If the app refused it for the owner's yes, do not ask him: send the manager NEED \"ship blocked: <sha>, PASS <id>, branch <name>\"; he asks the owner in his own chat and runs this script from a fresh copy of the branch"
-if [ $wait = 1 ]; then
-  command -v gh >/dev/null || stop "gh is not installed, cannot wait for the free test"
-  sha=$(git rev-parse HEAD); echo "== waiting for the free test on $tmp"; reruns=0
-  for _ in $(seq 1 90); do
-    r=$(gh run list --branch="$tmp" --limit=1 --json=headSha,status,conclusion --jq='.[0]|[.headSha,.status,.conclusion]|@tsv' 2>/dev/null)
-    case "$r" in "$sha	completed	success") break;;
-      "$sha	completed	"*) if msg=$($py scripts/ci-retry.py "$tmp" "$sha" --done "$reruns"); then reruns=$((reruns+1)); echo "== $msg; waiting again"; sleep 20
-                         else stop "the free test on $tmp did not pass: $r ($msg)"; fi;; esac; sleep 15; done
-  [ "${r%%	*}" = "$sha" ] && case "$r" in *completed*success) ;; *) stop "the free test on $tmp did not finish in time";; esac
-fi
-git push -q origin "HEAD:refs/heads/main" || stop "main refused the push (not a fast-forward, or not allowed); nothing was forced. If the app refused it for the owner's yes, do not ask him: send the manager NEED \"ship blocked: <sha>, PASS <id>, branch <name>\""
-echo "== pushed $new to main"
-# the builders' change log a second computer reads (owner's list item 31): one line per ship, only where the project keeps one
-if [ -f "$mainroot/muster/BUILDERS-LOG.md" ]; then
-  printf '%s | %s | %s | %s\n' "$(date +%Y-%m-%d)" "$new" "${roles:-see the release file}" "$note" >> "$mainroot/muster/BUILDERS-LOG.md" \
-    && echo "== added a line to the builders' log"
-fi
-git push -q origin ":refs/heads/$tmp" 2>/dev/null
-if [ $wait = 1 ]; then
-  echo "== waiting for the free test on main and the site rebuild"; reruns=0
-  for _ in $(seq 1 90); do
-    s=$(gh run list --branch=main --limit=4 --json=headSha,status,conclusion --jq='[.[]|select(.headSha=="'"$(git rev-parse HEAD)"'")]|map(.status+"/"+(.conclusion//""))|join(" ")' 2>/dev/null)
-    case "$s" in *in_progress*|*queued*|"") sleep 15;;
-      *failure*|*cancelled*) if msg=$($py scripts/ci-retry.py main "$(git rev-parse HEAD)" --done "$reruns"); then reruns=$((reruns+1)); echo "== $msg; waiting again"; sleep 20
-                             else stop "a run on main failed: $s ($msg)"; fi;; *) break;; esac; done
-  echo "== proving the new content is served (the published version, and a changed line of the site if the site changed)"
-  bash scripts/live-check.sh "$new" $proof_file "$proof_line" || stop "the new content is not being served yet; run scripts/live-check.sh \"$new\" again in a few minutes"
-fi
-# the main folder moves with every release (item 90: PINR reads Muster live from it): fast-forward only, never forced; if it cannot,
-# say so plainly and leave it exactly as it is. A failure here never undoes or hides the ship.
+# ---- LOCAL FIRST: the owner's own folder gets the release now, before anything touches GitHub ----
+# fast-forward only, never forced; if it cannot, say so plainly and leave it exactly as it is. A failure here never undoes or hides the ship.
+sha=$(git rev-parse HEAD)
 mainfolder() {
   # cd into it (not git -C): on Windows this script's paths are bash paths, which only bash itself understands
   if ! (cd "$mainroot" 2>/dev/null && [ "$(git rev-parse --is-inside-work-tree 2>/dev/null)" = true ]); then echo "== MAIN FOLDER NOT UPDATED: $mainroot is not a git folder; left as it is"; return; fi
   cur=$(cd "$mainroot" && git rev-parse --abbrev-ref HEAD 2>/dev/null)
   if [ "$cur" != main ]; then echo "== MAIN FOLDER NOT UPDATED: $mainroot is on '$cur', not main; left as it is (update it by hand)"; return; fi
-  (cd "$mainroot" && git fetch -q origin 2>/dev/null) || { echo "== MAIN FOLDER NOT UPDATED: could not fetch origin in $mainroot; left as it is"; return; }
-  if out=$(cd "$mainroot" && git merge -q --ff-only origin/main 2>&1); then echo "== main folder $mainroot is now at $new"
+  if out=$(cd "$mainroot" && git merge -q --ff-only "$sha" 2>&1); then git update-ref refs/muster/landed "$sha"; echo "== main folder $mainroot is now at $new (local; GitHub is not needed for this)"
   else echo "== MAIN FOLDER NOT UPDATED: $mainroot could not be fast-forwarded to $new (it holds work of its own); left as it is: $(echo "$out" | head -1)"; fi
 }
 mainfolder
+# the builders' change log a second computer reads (owner's list item 31): one line per ship, only where the project keeps one
+if [ -f "$mainroot/muster/BUILDERS-LOG.md" ]; then
+  printf '%s | %s | %s | %s\n' "$(date +%Y-%m-%d)" "$new" "${roles:-see the release file}" "$note" >> "$mainroot/muster/BUILDERS-LOG.md" \
+    && echo "== added a line to the builders' log"
+fi
+# ---- PUBLISHING (for others, after the local folder has it). Its failures are reported, never fatal, never undo the local release. ----
+publish() {
+  stop() { echo "PUBLISHING PENDING: $*"; exit 1; }
+  tmp="ship/$new"
+  git push -q origin "HEAD:refs/heads/$tmp" || stop "could not push the branch copy $tmp. If the app refused it for the owner's yes, do not ask him: send the manager NEED \"ship blocked: <sha>, PASS <id>, branch <name>\"; he asks the owner in his own chat and runs this script again"
+  if [ $wait = 1 ]; then
+    command -v gh >/dev/null || stop "gh is not installed, cannot wait for the free test"
+    echo "== waiting for the free test on $tmp"; reruns=0
+    for _ in $(seq 1 90); do
+      r=$(gh run list --branch="$tmp" --limit=1 --json=headSha,status,conclusion --jq='.[0]|[.headSha,.status,.conclusion]|@tsv' 2>/dev/null)
+      case "$r" in "$sha	completed	success") break;;
+        "$sha	completed	"*) if msg=$($py scripts/ci-retry.py "$tmp" "$sha" --done "$reruns"); then reruns=$((reruns+1)); echo "== $msg; waiting again"; sleep 20
+                           else stop "the free test on $tmp did not pass: $r ($msg)"; fi;; esac; sleep 15; done
+    [ "${r%%	*}" = "$sha" ] && case "$r" in *completed*success) ;; *) stop "the free test on $tmp did not finish in time";; esac
+  fi
+  git push -q origin "HEAD:refs/heads/main" || stop "main refused the push (not a fast-forward, or not allowed); nothing was forced. If the app refused it for the owner's yes, do not ask him: send the manager NEED \"ship blocked: <sha>, PASS <id>, branch <name>\""
+  echo "== pushed $new to main"
+  git push -q origin ":refs/heads/$tmp" 2>/dev/null
+  if [ $wait = 1 ]; then
+    echo "== waiting for the free test on main and the site rebuild"; reruns=0
+    for _ in $(seq 1 90); do
+      s=$(gh run list --branch=main --limit=4 --json=headSha,status,conclusion --jq='[.[]|select(.headSha=="'"$sha"'")]|map(.status+"/"+(.conclusion//""))|join(" ")' 2>/dev/null)
+      case "$s" in *in_progress*|*queued*|"") sleep 15;;
+        *failure*|*cancelled*) if msg=$($py scripts/ci-retry.py main "$sha" --done "$reruns"); then reruns=$((reruns+1)); echo "== $msg; waiting again"; sleep 20
+                               else stop "a run on main failed: $s ($msg)"; fi;; *) break;; esac; done
+    echo "== proving the new content is served (the published version, and a changed line of the site if the site changed)"
+    bash scripts/live-check.sh "$new" $proof_file "$proof_line" || stop "the new content is not being served yet; run scripts/live-check.sh \"$new\" again in a few minutes"
+  fi
+}
+( publish ); prc=$?
+if [ $prc = 0 ]; then echo "== published: GitHub has $new"
+else echo "== The owner's own folder has $new already. GitHub publishing did not finish (see PUBLISHING PENDING above); the next ship carries it."; fi
 echo "SHIPPED $new"

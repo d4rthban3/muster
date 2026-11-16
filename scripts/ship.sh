@@ -94,10 +94,12 @@ tmp="ship/$new"
 git push -q origin "HEAD:refs/heads/$tmp" || stop "could not push the branch copy $tmp. If the app refused it for the owner's yes, do not ask him: send the manager NEED \"ship blocked: <sha>, PASS <id>, branch <name>\"; he asks the owner in his own chat and runs this script from a fresh copy of the branch"
 if [ $wait = 1 ]; then
   command -v gh >/dev/null || stop "gh is not installed, cannot wait for the free test"
-  sha=$(git rev-parse HEAD); echo "== waiting for the free test on $tmp"
-  for _ in $(seq 1 60); do
+  sha=$(git rev-parse HEAD); echo "== waiting for the free test on $tmp"; reruns=0
+  for _ in $(seq 1 90); do
     r=$(gh run list --branch="$tmp" --limit=1 --json=headSha,status,conclusion --jq='.[0]|[.headSha,.status,.conclusion]|@tsv' 2>/dev/null)
-    case "$r" in "$sha	completed	success") break;; "$sha	completed	"*) stop "the free test on $tmp did not pass: $r";; esac; sleep 15; done
+    case "$r" in "$sha	completed	success") break;;
+      "$sha	completed	"*) if msg=$($py scripts/ci-retry.py "$tmp" "$sha" --done "$reruns"); then reruns=$((reruns+1)); echo "== $msg; waiting again"; sleep 20
+                         else stop "the free test on $tmp did not pass: $r ($msg)"; fi;; esac; sleep 15; done
   [ "${r%%	*}" = "$sha" ] && case "$r" in *completed*success) ;; *) stop "the free test on $tmp did not finish in time";; esac
 fi
 git push -q origin "HEAD:refs/heads/main" || stop "main refused the push (not a fast-forward, or not allowed); nothing was forced. If the app refused it for the owner's yes, do not ask him: send the manager NEED \"ship blocked: <sha>, PASS <id>, branch <name>\""
@@ -109,10 +111,12 @@ if [ -f "$mainroot/muster/BUILDERS-LOG.md" ]; then
 fi
 git push -q origin ":refs/heads/$tmp" 2>/dev/null
 if [ $wait = 1 ]; then
-  echo "== waiting for the free test on main and the site rebuild"
-  for _ in $(seq 1 60); do
+  echo "== waiting for the free test on main and the site rebuild"; reruns=0
+  for _ in $(seq 1 90); do
     s=$(gh run list --branch=main --limit=4 --json=headSha,status,conclusion --jq='[.[]|select(.headSha=="'"$(git rev-parse HEAD)"'")]|map(.status+"/"+(.conclusion//""))|join(" ")' 2>/dev/null)
-    case "$s" in *in_progress*|*queued*|"") sleep 15;; *failure*) stop "a run on main failed: $s";; *) break;; esac; done
+    case "$s" in *in_progress*|*queued*|"") sleep 15;;
+      *failure*|*cancelled*) if msg=$($py scripts/ci-retry.py main "$(git rev-parse HEAD)" --done "$reruns"); then reruns=$((reruns+1)); echo "== $msg; waiting again"; sleep 20
+                             else stop "a run on main failed: $s ($msg)"; fi;; *) break;; esac; done
   echo "== proving the new content is served (the published version, and a changed line of the site if the site changed)"
   bash scripts/live-check.sh "$new" $proof_file "$proof_line" || stop "the new content is not being served yet; run scripts/live-check.sh \"$new\" again in a few minutes"
 fi

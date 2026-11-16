@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.123
+Affects: see .claude-plugin/releases/0.3.123.json.
+ask once: waiting questions are not re-asked
+
 ## 0.3.122
 Affects: see .claude-plugin/releases/0.3.122.json.
 click sends only the option text

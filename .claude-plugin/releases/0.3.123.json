@@ -1,0 +1,30 @@
+{
+  "version": "0.3.123",
+  "changed_files": [
+    "agents/manager.md",
+    "bin/SOURCE-STAMP",
+    "bin/linux-arm64/muster-checks",
+    "bin/linux-x86_64/muster-checks",
+    "bin/macos-arm64/muster-checks",
+    "bin/macos-x86_64/muster-checks",
+    "bin/windows-x86_64/muster-checks.exe",
+    "checks/src/rules.rs",
+    "directory/agents/manager.md",
+    "directory/skills/board-digest/SKILL.md",
+    "directory/skills/manager-details/SKILL.md",
+    "hooks/rules-check.py",
+    "pages/manager.md",
+    "scripts/profile-selftest.py",
+    "scripts/rules-check-selftest.py",
+    "scripts/setup-smoke.sh",
+    "skills/board-digest/SKILL.md",
+    "skills/board-digest/scripts/board_digest.py",
+    "skills/manager-details/SKILL.md"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "ask once: waiting questions are not re-asked"
+}

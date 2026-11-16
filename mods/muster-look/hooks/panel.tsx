@@ -1,4 +1,5 @@
 import { YELLOW, HEX, svgChip, pillOf, pillPart, PILLS, type PillName } from './chip'
+import { glassOn, setGlassFlag, applyGlass } from './glass'
 import { groupId, groupName, loadGroup, saveGroup, clearGroup, storeWorks } from './group'
 
 // A small settings panel for the look: /look opens it. A dropdown for the font,
@@ -105,6 +106,7 @@ export function panel(on: any) {
     const v = await current($)
     const gid = await groupId($)
     const kept = await storeWorks($)
+    const frosted = await glassOn($)
     const fontNow = v.chipFont || 'Anthropic Sans'
     const showOther = otherFont || !FONTS.includes(fontNow)
     return (
@@ -133,6 +135,11 @@ export function panel(on: any) {
             onSubmit={(t: string) => { const x = t.replace(/[^A-Za-z0-9 ,-]/g, '').trim(); if (x !== '') void set($, 'chipFont', x) }}
           />
         )}
+        <Box flexDirection="column" borderStyle="round" borderColor={LINE} paddingX={2}>
+          <Box flexDirection="row" gap={1}><Text color={YELLOW.text}>{'\u25CF'}</Text><Text bold>Frosted glass background (whole app)</Text></Box>
+          <Text color={MUTED}>{'A soft moving colour behind the chat, with the app\u2019s own panels frosted over it. Off unless you switch it on. It replaces any other theme while on.'}</Text>
+          <Button key="frost" label={frosted ? 'On \u2013 press to turn off' : 'Off \u2013 press to turn on'} onPress={() => { void (async () => { await setGlassFlag($, !frosted); await applyGlass($, !frosted); $.ui.invalidate('ui.render') })() }} />
+        </Box>
         {GROUPS.map(g => (
           <Box key={g.id} flexDirection="column" borderStyle="round" borderColor={LINE} paddingX={2} paddingY={0}>
             <Box flexDirection="row" justifyContent="space-between" alignItems="center">

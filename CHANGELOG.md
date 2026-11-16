@@ -2,6 +2,14 @@
 
 Each version names which workers it affects.
 
+## 0.3.125
+Affects: see .claude-plugin/releases/0.3.125.json.
+a click on a card drawn while its question was still streaming now sends the finished question text
+
+## 0.3.124
+Affects: see .claude-plugin/releases/0.3.124.json.
+the look is folded into the main plugin (look/ with the click-live fixes); the separate look plugin is removed
+
 ## 0.3.123
 Affects: see .claude-plugin/releases/0.3.123.json.
 ask once: waiting questions are not re-asked

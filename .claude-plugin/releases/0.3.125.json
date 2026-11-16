@@ -1,0 +1,16 @@
+{
+  "version": "0.3.125",
+  "changed_files": [
+    ".claude-plugin/marketplace.json",
+    ".claude-plugin/plugin.json",
+    "look/group.ts",
+    "look/look.test.tsx",
+    "look/register.tsx"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "a click on a card drawn while its question was still streaming now sends the finished question text"
+}

@@ -447,6 +447,37 @@ bash scripts/ship.sh "batch" --with builder/other --dry-run > "$SH/batch.out" 2>
 grep -q "batch: merged builder/other" "$SH/batch.out" && grep -q "other.txt" "$SH/batch.out" && grep -q "batch.txt" "$SH/batch.out" || fail "batch did not carry both pieces: $(cat "$SH/batch.out")"
 if bash scripts/ship.sh "batch" --with builder/nope --dry-run >/dev/null 2>&1; then fail "ship accepted a --with branch that does not exist"; fi
 cd "$FOLDER"
+step "ci-retry.py reruns a free test that failed only because a job never got a machine, never a real failure (item 121)"
+CR="$SCRATCH/ciretry"; mkdir -p "$CR/bin"
+cat > "$CR/bin/gh" <<'GH'
+#!/usr/bin/env bash
+# a stand-in for gh: "run list" and "run view" print the canned JSON in $CR_STATE; "run rerun" is recorded
+case "$1 $2" in
+  "run list") cat "$CR_STATE/list.json";;
+  "run view") cat "$CR_STATE/view.json";;
+  "run rerun") echo "$*" >> "$CR_STATE/reruns.log";;
+esac
+GH
+chmod +x "$CR/bin/gh"; export CR_STATE="$CR"
+cr() { PATH="$CR/bin:$PATH" $PY "$ROOT/scripts/ci-retry.py" "$@"; }
+printf '[{"databaseId":77,"headSha":"abc","status":"completed","conclusion":"failure"}]' > "$CR/list.json"
+printf '{"jobs":[{"name":"rust (macos)","conclusion":"cancelled","steps":[]},{"name":"checks","conclusion":"success","steps":[{"conclusion":"success"}]}]}' > "$CR/view.json"
+cr b abc >"$CR/o1" 2>&1 || fail "a job that never got a machine was not rerun: $(cat "$CR/o1")"
+grep -q "RERAN 77" "$CR/o1" || fail "ci-retry did not say it reran: $(cat "$CR/o1")"
+grep -q "run rerun 77 --failed" "$CR/reruns.log" || fail "gh run rerun --failed was not called"
+printf '{"jobs":[{"name":"shipped-copies","conclusion":"failure","steps":[{"conclusion":"success"},{"conclusion":"failure"}]},{"name":"rust (macos)","conclusion":"cancelled","steps":[]}]}' > "$CR/view.json"
+rm -f "$CR/reruns.log"
+if cr b abc >"$CR/o2" 2>&1; then fail "a real test failure was rerun"; fi
+grep -q "a real failure" "$CR/o2" || fail "ci-retry did not call it a real failure: $(cat "$CR/o2")"
+[ ! -f "$CR/reruns.log" ] || fail "gh run rerun ran for a real failure"
+printf '{"jobs":[{"name":"rust (macos)","conclusion":"cancelled","steps":[]}]}' > "$CR/view.json"
+if cr b abc --done 3 >"$CR/o3" 2>&1; then fail "ci-retry kept rerunning past the limit"; fi
+if cr b zzz >"$CR/o4" 2>&1; then fail "ci-retry reran a run of another version"; fi
+printf '[{"databaseId":77,"headSha":"abc","status":"completed","conclusion":"success"}]' > "$CR/list.json"
+if cr b abc >"$CR/o5" 2>&1; then fail "ci-retry reran a run that passed"; fi
+grep -q 'ci-retry.py' "$ROOT/scripts/ship.sh" || fail "ship.sh does not use ci-retry.py"
+unset CR_STATE
+
 step "the after-compaction hook speaks only in a crew chat, never in the owner's own chat"
 mkdir -p "$SCRATCH/tr" "$SCRATCH/plain"
 printf '{"type":"user","message":{"role":"user","content":"First: read the plugin folder/agents/builder.md. You are Builder A_X_001."}}\n' > "$SCRATCH/tr/builder.jsonl"

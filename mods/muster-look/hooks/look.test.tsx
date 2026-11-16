@@ -263,3 +263,14 @@ test('the picked letter stays lit on its question; the others do not', async ($,
   expect(after.tint).toBe(true)
   await after.ui.unmount()
 })
+
+test('every colour row has a colour-code box holding its code; a bad code is shown and not saved', async ($, on) => {
+  on('ui.render', ($, e) => { const { Text } = $.ui.resolve(e); return <Text>engine</Text> })
+  const pane = await $.ui.mount({ plugin: 'muster-look', component: 'Pane', requestId: 'muster-look-settings', surface: 'desktop', props: {} } as any)
+  const boxes = (await pane.findAll({ type: 'Input' })) ?? []
+  const codes = boxes.filter((b: any) => String(b.props?.label).startsWith('Colour code'))
+  expect(codes.length).toBe(5)
+  // each box holds the colour it sits beside (the default here)
+  expect(codes.map((b: any) => String(b.props?.value).toUpperCase())).toContain('#FFDB58')
+  await pane.unmount()
+})

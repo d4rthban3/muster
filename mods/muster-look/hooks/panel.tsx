@@ -44,6 +44,8 @@ function sampleOf(Svg: any, Box: any, key: string, hex: string, v: Record<string
 }
 
 let otherFont = false
+// a colour code that was typed but is not #rrggbb, shown beside its box and never saved
+const badCode: Record<string, string> = {}
 
 async function open($: any) {
   await $.ui.open({ id: PANE, title: 'Muster look' })
@@ -51,6 +53,7 @@ async function open($: any) {
 
 // Every change is kept for this chat's group alone.
 async function set($: any, key: string, value: string) {
+  delete badCode[key]
   await saveGroup($, key, value)
   $.ui.invalidate('ui.render')
 }
@@ -119,14 +122,19 @@ export function panel(on: any) {
               {Client !== undefined && <Client key={`field-${c.key}`} module="./field.tsx" props={{ id: c.key, hex }} />}
               <Box key={`${c.key}-right`} flexDirection="column">
                 <Input
-                  key={`${c.key}-hex`}
-                  label="Or type #rrggbb "
+                  key={`${c.key}-hex-${hex}`}
+                  label="Colour code "
                   placeholder="#rrggbb"
-                  value=""
+                  value={hex}
                   submitLabel="set"
-                  onSubmit={(t: string) => { const x = t.trim(); if (HEX.test(x)) void set($, c.key, x) }}
+                  onSubmit={(t: string) => {
+                    const x = t.trim()
+                    if (HEX.test(x)) { delete badCode[c.key]; void set($, c.key, x) }
+                    else { badCode[c.key] = x; $.ui.invalidate('ui.render') }
+                  }}
                 />
-                <Button key={`${c.key}-reset`} label="Reset" onPress={() => { void saveGroup($, c.key, null, gid).then(() => $.ui.invalidate('ui.render')) }} />
+                {badCode[c.key] !== undefined && <Text color="#ff6b6b">{`"${badCode[c.key]}" is not a colour code (use #rrggbb, like #2dd4bf). Not saved.`}</Text>}
+                <Button key={`${c.key}-reset`} label="Reset" onPress={() => { delete badCode[c.key]; void saveGroup($, c.key, null, gid).then(() => $.ui.invalidate('ui.render')) }} />
               </Box>
             </Box>
           )

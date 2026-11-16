@@ -14,5 +14,8 @@
     "multi-agent",
     "review",
     "process"
+  ],
+  "dependencies": [
+    "muster-look"
   ]
 }

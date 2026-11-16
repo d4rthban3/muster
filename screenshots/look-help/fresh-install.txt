@@ -1,0 +1,7 @@
+Fresh install check (empty Claude config folder, so nothing from this computer's own setup):
+  claude plugin marketplace add <this repository>
+  claude plugin install muster@muster-kit --scope user
+  -> Successfully installed plugin: muster@muster-kit (scope: user) (+ 1 dependency: muster-look)
+  claude plugin list
+  -> muster-look@muster-kit  Version 0.1.0  Status: enabled
+  -> muster@muster-kit       Version 0.3.102  Status: enabled

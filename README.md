@@ -43,10 +43,9 @@ Step by step: [docs/GUIDE.md](docs/GUIDE.md).
 **Any other AI** (ChatGPT, Grok, Gemini, Cursor's agent...): use [Muster Lite](MUSTER-LITE.md), one prompt you paste in.
 
 ## Change your look
-Muster has an optional look for Claude Code: small rounded chips on crew cards and questions, and a thin line down the left of a
-question that fades from yellow to purple. It is a separate mod in this repository (`mods/muster-look`), so it is not part of
-the Muster install above and it is not in the Muster marketplace yet. To try it, start Claude Code pointed at that folder:
-`claude --plugin-dir <path to mods/muster-look>`.
+Muster has a look for Claude Code: small rounded chips on crew cards and questions, and a thin line down the left of a
+question that fades from yellow to purple. It comes with the normal Muster install, as a second plugin (`muster-look`) that Muster installs for you, so there is nothing
+extra to do. Its files are in `mods/muster-look`.
 
 **Where the settings live.** The mod has six settings. In Claude Code they are rows in the plugin's settings (the same place any
 plugin's options are changed), and Claude Code keeps them in your settings file under the mod's name, `muster-look`. Not checked:

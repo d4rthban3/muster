@@ -374,7 +374,8 @@ test('a card heading after text or a list has a clear gap above it; the first th
   const list = '1. one\n2. two\n3. three\n\n**SERVER · reading your allowance**\n- a\n- b'
   expect(await gaps(list)).toBe(1)
   expect(await gaps('**SERVER · reading your allowance**\n- a\n- b')).toBe(0)
-test('the frosted-background card has three light colours and a picture path; a bad light is refused', async ($, on) => {
+})
+
 test('the frosted-background card has two glow colours and a picture path; a bad light is refused', async ($, on) => {
   on('ui.render', ($, e) => { const { Text } = $.ui.resolve(e); return <Text>engine</Text> })
   const pane = await $.ui.mount({ plugin: 'muster-look', component: 'Pane', requestId: 'muster-look-settings', surface: 'desktop', props: {} } as any)

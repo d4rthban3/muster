@@ -494,6 +494,37 @@ $PY "$ROOT/scripts/install-checks.py" "$IC" >/dev/null && $PY "$ROOT/scripts/ins
 $PY -c "import json,sys;d=json.load(open(sys.argv[1]+'/.claude/settings.json'));assert len(d['hooks']['Stop'])==1 and len(d['hooks']['PreToolUse'])==1 and d['permissions']['allow']==['Bash(ls)']" "$IC" || fail "install-checks doubled or lost settings"
 [ -f "$IC/.muster-checks/rules-check.py" ] || fail "install-checks copied no rules-check.py"
 $PY "$ROOT/scripts/install-checks.py" "$IC" --remove >/dev/null; [ ! -d "$IC/.muster-checks" ] || fail "--remove left the copies"
+step "scripts/plugin-live.sh switches Muster to load live from its folder, keeps a backup, and puts it back"
+PL="$SCRATCH/plive"; mkdir -p "$PL/cfg/plugins" "$PL/muster/.claude-plugin"
+printf '{"name":"muster-kit","owner":{"name":"t"},"plugins":[{"name":"muster","version":"1.0.0","source":"./"}]}\n' > "$PL/muster/.claude-plugin/marketplace.json"
+printf '{"theme":"dark","extraKnownMarketplaces":{"muster-kit":{"source":{"source":"github","repo":"x/muster"},"autoUpdate":true},"other":{"source":{"source":"github","repo":"x/o"}}}}\n' > "$PL/cfg/settings.json"
+printf '{"muster-kit":{"source":{"source":"github","repo":"x/muster"},"installLocation":"/x","lastUpdated":"2026-01-01T00:00:00.000Z"}}\n' > "$PL/cfg/plugins/known_marketplaces.json"
+cp "$PL/cfg/settings.json" "$PL/settings.before"
+bash "$ROOT/scripts/plugin-live.sh" --path "$PL/muster" --config-dir "$PL/cfg" --dry-run | grep -q "DRY RUN OK" || fail "plugin-live dry run did not say so"
+cmp -s "$PL/cfg/settings.json" "$PL/settings.before" || fail "plugin-live dry run changed the settings"
+bash "$ROOT/scripts/plugin-live.sh" --path "$PL/muster" --config-dir "$PL/cfg" --no-cli >"$PL/out.txt" 2>&1 || { cat "$PL/out.txt"; fail "plugin-live --no-cli failed"; }
+$PY - "$PL/cfg/settings.json" "$PL/muster" <<'PY' || fail "plugin-live did not write the directory source and keep the rest"
+import json, sys
+d = json.load(open(sys.argv[1]))
+s = d["extraKnownMarketplaces"]["muster-kit"]["source"]
+assert s == {"source": "directory", "path": sys.argv[2]}, s
+assert d["theme"] == "dark" and d["extraKnownMarketplaces"]["other"]["source"]["repo"] == "x/o"
+PY
+ls -d "$PL"/cfg/muster-live-backup-*/ >/dev/null 2>&1 || fail "plugin-live kept no backup"
+bash "$ROOT/scripts/plugin-live.sh" --config-dir "$PL/cfg" --undo >/dev/null || fail "plugin-live --undo failed"
+cmp -s "$PL/cfg/settings.json" "$PL/settings.before" || fail "plugin-live --undo did not put the settings back"
+if bash "$ROOT/scripts/plugin-live.sh" --path "$PL/nowhere" --config-dir "$PL/cfg" >/dev/null 2>&1; then fail "plugin-live accepted a folder with no marketplace"; fi
+if command -v claude >/dev/null 2>&1; then
+  # the real program: a scratch configuration with its own plugin list must say "Read from" the folder; a failed switch must put everything back
+  mkdir -p "$PL/muster/skills/hello"; printf '{"name":"muster","version":"1.0.0"}\n' > "$PL/muster/.claude-plugin/plugin.json"
+  printf '# hi\n' > "$PL/muster/skills/hello/SKILL.md"
+  ( cd "$PL" && git init -q muster && git -C muster add -A && git -C muster -c user.name=t -c user.email=t@localhost commit -q -m x )
+  bash "$ROOT/scripts/plugin-live.sh" --path "$PL/muster" --config-dir "$PL/cfg" >"$PL/real.out" 2>&1 || { cat "$PL/real.out"; fail "plugin-live with the real claude program failed"; }
+  ( cd "$PL" && CLAUDE_CONFIG_DIR="$PL/cfg" claude plugin install muster@muster-kit >/dev/null 2>&1; CLAUDE_CONFIG_DIR="$PL/cfg" claude plugin list 2>&1 | grep -q "Read from: $PL/muster" ) || fail "the plugin does not read from the folder"
+else
+  echo "   (the claude program is not on this computer: the real-program part was skipped)"
+fi
+
 step "usage meter: status line saves usage, usage.py reads it, pauses near the limit, settings kept"
 UM="$SCRATCH/um"; mkdir -p "$UM"; export_cfg=$(native "$UM")
 printf '{"theme":"dark"}' > "$UM/settings.json"

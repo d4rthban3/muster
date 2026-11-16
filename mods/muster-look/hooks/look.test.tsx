@@ -101,7 +101,7 @@ test('with nothing set the look is the default', async ($, on) => {
   expect(s).toContain('font-weight="400"')
 })
 
-import { groupId, loadGroup, saveGroup, clearGroup, savePick, pickedOn, clearPick, answerIn, answerStands, sent, answerTag, answerLine } from './group'
+import { groupKey, groupId, loadGroup, saveGroup, clearGroup, savePick, pickedOn, clearPick, answerIn, answerStands, sent, answerTag, answerLine } from './group'
 
 const CUSTOM = { chipFont: 'Georgia', questionHeadingColor: '#2dd4bf', choiceChipColor: '#ff7ab6', lineTopColor: '#2dd4bf', lineBottomColor: '#ff7ab6' }
 
@@ -487,4 +487,20 @@ test('the glass background belongs to its group: switch, colours and picture nev
   await setGlassSetting($, 'glassColour1', null, '/proj/a')
   expect((await glassSettings($, '/proj/a')).glassColour1).toBe('#5b4bb8')
   expect((await glassSettings($, '/proj/b')).glassColour1).toBe('#445566')
+})
+test('one project is one group: a worktree, a clone and the main folder share a key; two projects stay apart', async ($) => {
+  const muster = 'https://github.com/d4rthban3/muster.git'
+  expect(groupKey(muster, '/p/Muster')).toBe(groupKey(muster, '/p/Muster/.claude/worktrees/designer-005'))
+  expect(groupKey('git@github.com:d4rthban3/pinr-private.git', '/p/builder-raydium')).toBe(groupKey('https://github.com/d4rthban3/pinr-private', '/p/builder-lists'))
+  expect(groupKey(muster, '/p/Muster')).not.toBe(groupKey('https://github.com/d4rthban3/pinr-private.git', '/p/Muster'))
+  // no remote: the folder itself, as before
+  expect(groupKey(null, '/p/solo')).toBe('/p/solo')
+  // a look set under one chat's key is seen by every chat of that project, glass and chips alike
+  const k = groupKey(muster, '/p/Muster')
+  await saveGroup($, 'questionHeadingColor', '#abcdef', k)
+  await setGlassSetting($, 'glassColour1', '#123456', k)
+  expect((await loadGroup($, groupKey(muster, '/p/worker-copy'))).questionHeadingColor).toBe('#abcdef')
+  expect((await glassSettings($, groupKey(muster, '/p/worker-copy'))).glassColour1).toBe('#123456')
+  expect((await loadGroup($, groupKey('https://github.com/d4rthban3/pinr-private.git', '/p/x'))).questionHeadingColor).toBeUndefined()
+  await clearGroup($, k)
 })

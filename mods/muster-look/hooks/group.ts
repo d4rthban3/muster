@@ -13,13 +13,42 @@ export async function kvGet($: any, k: string): Promise<unknown> { try { return 
 export async function kvSet($: any, k: string, v: unknown): Promise<void> { try { await $.store.set(k, v) } catch { memory.set(k, JSON.parse(JSON.stringify(v))) } }
 export async function kvDel($: any, k: string): Promise<void> { try { await $.store.delete(k) } catch { memory.delete(k) } }
 
-export async function groupId($: any): Promise<string> {
+// A project is one group however many folders hold it: a crew's workers each work in their own
+// copy (a worktree or a clone), all with the same origin remote, so the remote names the group
+// (host/owner/name, lowercase, no ".git"). A project with no remote falls back to its repository
+// folder, else the folder the session started in.
+export function groupKey(remote: string | null | undefined, root: string): string {
+  if (typeof remote === 'string' && remote.trim() !== '') {
+    const r = remote.trim().replace(/^[a-z+]+:\/\//i, '').replace(/^[^@/]+@/, '').replace(':', '/').replace(/\.git$/i, '').replace(/\/+$/, '').toLowerCase()
+    if (r !== '') return 'remote:' + r
+  }
+  return root
+}
+// The key this plugin used before groups followed the remote: the repository's own folder.
+async function ids($: any): Promise<{ id: string; legacy: string }> {
+  let root = ''
+  let remote: string | null = null
   try {
     const repo = await $.session.repo()
-    if (repo && typeof repo.root === 'string' && repo.root !== '') return repo.root
+    if (repo && typeof repo.root === 'string' && repo.root !== '') { root = repo.root; remote = typeof repo.remote === 'string' ? repo.remote : null }
   } catch { /* not a repository */ }
-  try { return String(await $.session.root()) } catch { /* fall through */ }
-  try { return String(await $.session.cwd()) } catch { return 'unknown' }
+  if (root === '') {
+    try { root = String(await $.session.root()) } catch {
+      try { root = String(await $.session.cwd()) } catch { root = 'unknown' }
+    }
+  }
+  return { id: groupKey(remote, root), legacy: root }
+}
+export async function groupId($: any): Promise<string> { return (await ids($)).id }
+// What was kept for this group: under its own key, else (only when the group is this session's) under
+// the folder key it was kept under before, so nothing already set is lost.
+export async function keptFor($: any, prefix: string, id?: string): Promise<Record<string, unknown> | undefined> {
+  let key = id
+  let legacy = ''
+  if (key === undefined) { const i = await ids($); key = i.id; legacy = i.legacy }
+  let raw = await kvGet($, prefix + key)
+  if ((raw === undefined || raw === null) && legacy !== '' && legacy !== key) raw = await kvGet($, prefix + legacy)
+  return raw && typeof raw === 'object' ? (raw as Record<string, unknown>) : undefined
 }
 
 export const groupName = (id: string) => id.split('/').filter(Boolean).pop() ?? id
@@ -27,7 +56,7 @@ export const groupName = (id: string) => id.split('/').filter(Boolean).pop() ?? 
 export async function loadGroup($: any, id?: string): Promise<Record<string, string>> {
   const out: Record<string, string> = {}
   try {
-    const raw = (await kvGet($, 'group:' + (id ?? (await groupId($))))) as Record<string, unknown> | undefined
+    const raw = await keptFor($, 'group:', id)
     if (raw && typeof raw === 'object') {
       for (const k of KEYS) {
         const v = raw[k]
@@ -42,14 +71,19 @@ export async function saveGroup($: any, key: string, value: string | null, id?: 
   if (!KEYS.includes(key)) return
   try {
     const gid = id ?? (await groupId($))
-    const now = await loadGroup($, gid)
+    const now = await loadGroup($, id)
     if (value === null) delete now[key]; else now[key] = value
     await kvSet($, 'group:' + gid, now)
   } catch { /* a store that refuses leaves the look as it was */ }
 }
 
 export async function clearGroup($: any, id?: string): Promise<void> {
-  try { await kvDel($, 'group:' + (id ?? (await groupId($)))) } catch { /* nothing kept */ }
+  try {
+    if (id !== undefined) { await kvDel($, 'group:' + id); return }
+    const i = await ids($)
+    await kvDel($, 'group:' + i.id)
+    if (i.legacy !== i.id) await kvDel($, 'group:' + i.legacy)
+  } catch { /* nothing kept */ }
 }
 
 // True when the plugin's store really keeps values between sessions.

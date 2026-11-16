@@ -1,7 +1,7 @@
 // An opt-in whole-app background: a calm, slow liquid-glass scene (soft coloured light on a
 // deep ground) or the owner's own small picture, with the app's own panels frosted over it.
 // Off unless the owner switches it on in /look; its colours and picture are set there too.
-import { kvGet, kvSet, groupId } from './group'
+import { kvSet, groupId, keptFor } from './group'
 import { HEX } from './chip'
 
 const KEY = 'frostedBackground'
@@ -17,8 +17,8 @@ const MAX_IMAGE = 90000 // bytes: a scene is at most 131,072 characters, and bas
 type Rec = Record<string, string>
 async function recOf($: any, id?: string): Promise<Rec> {
   try {
-    const raw = await kvGet($, 'glass:' + (id ?? (await groupId($))))
-    if (raw && typeof raw === 'object') return { ...(raw as Rec) }
+    const raw = await keptFor($, 'glass:', id)
+    if (raw) return { ...(raw as Rec) }
   } catch { /* nothing kept */ }
   return {}
 }

@@ -119,6 +119,9 @@ export const register: Register = (on, options: any) => {
     const { Box, Text, Markdown, Svg, Client } = ui
     const isTerminal = e.surface === 'terminal'
     // an empty picture h px tall: air in pixels (Box padding counts character cells)
+    const spacerW = (px: number) => (
+      <Svg alt="" width={px} height={1} source={`<svg xmlns="http://www.w3.org/2000/svg" width="${px}" height="1"/>`} />
+    )
     const spacer = (px: number) => (
       <Svg alt="" width={1} height={px} source={`<svg xmlns="http://www.w3.org/2000/svg" width="1" height="${px}"/>`} />
     )
@@ -209,8 +212,14 @@ export const register: Register = (on, options: any) => {
       Math.round(parsed.pieces.slice(parsed.startsAt + 1, lastChoice + 1).reduce((n, p) => n + px(p), 0)),
     )
     const railLine = Client !== undefined ? (
-      <Box flexShrink={0}>
-        <Client key="rail" module="./rail.tsx" props={{ top: TOP, bottom: BOTTOM }} />
+      // The line's region is laid over the column beside it (absolute), so the
+      // glyph rows it draws can never make that column taller: the line ends
+      // where the last choice ends. A 15px-wide empty picture holds its width.
+      <Box flexShrink={0} position="relative">
+        {spacerW(15)}
+        <Box position="absolute" top={0} left={0} right={0} bottom={0} overflow="hidden">
+          <Client key="rail" module="./rail.tsx" props={{ top: TOP, bottom: BOTTOM }} width="100%" height="100%" />
+        </Box>
       </Box>
     ) : null
     const appLine = railLine ?? (

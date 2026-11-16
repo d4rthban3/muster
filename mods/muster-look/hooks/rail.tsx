@@ -14,5 +14,5 @@ export default function Rail(props: any, s: any) {
   const bottom = String(props.bottom)
   const cells = []
   for (let i = 0; i < n; i++) cells.push(<Text key={`r${i}`} color={mix(top, bottom, n === 1 ? 0 : i / (n - 1))}>{'▕'}</Text>)
-  return <Box flexDirection="column">{cells}</Box>
+  return <Box flexDirection="column" overflow="hidden">{cells}</Box>
 }

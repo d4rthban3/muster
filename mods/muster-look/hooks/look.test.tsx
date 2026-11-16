@@ -114,6 +114,9 @@ test('the settings panel has a font dropdown, swatches, a hex box and resets', a
   expect(await ui.find({ type: 'Input' })).toBeTruthy()
   expect(await ui.find({ type: 'Button', label: 'Reset all to default' })).toBeTruthy()
   expect(await ui.find({ type: 'Button', label: 'Use #9b6dff' })).toBeTruthy()
+  // the first colour's picker (colour field and hue bar) is open as soon as the panel opens
+  expect(await ui.find({ type: 'Client', key: 'field-questionHeadingColor' })).toBeTruthy()
+  expect(await ui.find({ type: 'Button', label: 'Pick any colour for Card heading chip' })).toBeTruthy()
   await ui.unmount()
 })
 

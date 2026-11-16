@@ -219,3 +219,9 @@ test('a live choice has a hidden purple circle that its row hover reveals', asyn
   expect(hidden.length).toBe(2)
   await ui.unmount()
 })
+
+test('when the store refuses, the settings page says the look is not saved between sessions', async ($, on) => {
+  const ui = await $.ui.mount({ plugin: 'muster-look', component: 'Pane', requestId: 'muster-look-settings', surface: 'desktop', props: {} } as any)
+  expect(JSON.stringify(await ui.findAll({ type: 'Text' }))).toContain('Not saved between sessions')
+  await ui.unmount()
+})

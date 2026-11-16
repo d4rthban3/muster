@@ -1,5 +1,5 @@
 import { YELLOW, PURPLE, HEX, svgChip, palette } from './chip'
-import { groupId, groupName, loadGroup, saveGroup, clearGroup } from './group'
+import { groupId, groupName, loadGroup, saveGroup, clearGroup, storeWorks } from './group'
 
 // A small settings panel for the look: /look opens it. A dropdown for the font,
 // and for each colour the real item it changes drawn in that colour, a colour
@@ -78,12 +78,14 @@ export function panel(on: any) {
     const { Box, Text, Button, Input, Select, Client, Svg } = $.ui.resolve(e)
     const v = await current($)
     const gid = await groupId($)
+    const kept = await storeWorks($)
     const fontNow = v.chipFont || 'Anthropic Sans'
     const showOther = otherFont || !FONTS.includes(fontNow)
     return (
       <Box flexDirection="column" gap={1}>
         <Text bold>Change your look</Text>
         <Text>{`Changing the look for the group \u201c${groupName(gid)}\u201d only (${gid}). Other groups keep their own.`}</Text>
+        {!kept && <Text color="#ff6b6b">{'Not saved between sessions: this host would not keep the look, so your colours and font last only until Claude Code closes.'}</Text>}
         <Select
           key="font"
           label="Chip font "

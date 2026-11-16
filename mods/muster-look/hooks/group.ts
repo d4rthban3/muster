@@ -50,3 +50,13 @@ export async function saveGroup($: any, key: string, value: string | null, id?: 
 export async function clearGroup($: any, id?: string): Promise<void> {
   try { await kvDel($, 'group:' + (id ?? (await groupId($)))) } catch { /* nothing kept */ }
 }
+
+// True when the plugin's store really keeps values between sessions.
+export async function storeWorks($: any): Promise<boolean> {
+  try {
+    await $.store.set('probe', 1)
+    const ok = (await $.store.get('probe')) === 1
+    await $.store.delete('probe')
+    return ok
+  } catch { return false }
+}

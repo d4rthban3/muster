@@ -1,0 +1,16 @@
+{
+  "version": "0.3.129",
+  "changed_files": [
+    "checks/src/rules.rs",
+    "hooks/rules-check.py",
+    "scripts/rules-check-selftest.py"
+  ],
+  "affected_roles": [
+    "Manager"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "idle-needs-choices: the manager's reply check refuses a bare 'The crew is idle'; the idle card must carry at least two lettered next steps"
+}

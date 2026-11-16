@@ -1017,7 +1017,7 @@ def manager_reply_ok(text):
     if len(t) <= 300 and len(t.strip().splitlines()) <= 3 and re.search(r"\bon the board\b", t, re.I):
         return True  # a short pointer to the news (item 60)
     if re.search(r"\bThe crew is idle\b", t, re.I):
-        return True
+        return len(re.findall(r"^\*\*\*[A-D]\.\*\*\*", t, re.M)) >= 2  # item 124: never a bare idle card; the top next steps ride along as lettered lines
     if re.search(r"\b(I need your yes|needs? your yes|your yes (is needed|to))\b", t, re.I):
         return True
     has_q = "?" in t
@@ -1034,7 +1034,7 @@ def owner_form_ok(t):
     if status_line(t):
         return True
     if re.search(r"\bThe crew is idle\b", t, re.I):
-        return True
+        return len(re.findall(r"^\*\*\*[A-D]\.\*\*\*", t, re.M)) >= 2  # item 124: never a bare idle card; the top next steps ride along as lettered lines
     if re.search(r"\b(I need your yes|needs? your yes|your yes (is needed|to))\b", t, re.I):
         return True
     letters = len(re.findall(r"^\*\*\*[A-D]\.\*\*\*", t, re.M))
@@ -1279,7 +1279,7 @@ def stop(data, manager):
             return block("never send the owner to type in a worker's chat (item 103): carrying his approval is your job; forward his quoted go to the worker that asked, by message, and say nothing to him")
         if is_news(text) and not owner_form_ok(text) and not owner_asked(data.get("transcript_path") or ""):
             return block("never tell the owner PASS, LIVE, DONE, shipped or progress news (item 97): his chat gets only a lettered question, a yes he must give, "
-                         "or the idle card. When nothing needs him, end this turn with no text at all")
+                         "or the idle card with its lettered next steps (item 124). When nothing needs him, end this turn with no text at all")
         if news_with_question(text) and not owner_asked(data.get("transcript_path") or ""):
             return block("news does not ride along with a question (item 114): his chat gets the question alone; the news goes to the board only")
         if question_repeated(data.get("transcript_path") or "", text):
@@ -1288,7 +1288,7 @@ def stop(data, manager):
             return block("a question about how something looks comes after the pictures: show them to him first in this turn (send-file with render, or card previews), then ask")
         if not manager_reply_ok(text) and not owner_asked(data.get("transcript_path") or "") \
                 and not (peer_started(data.get("transcript_path") or "") and short_report(text)):  # a short routine reply to another chat's message is not bounced (item 75)
-            return block("to the owner the manager says only a question with its choices as lettered lines (***A.*** ...), a yes he must give, 'The crew is idle', or the one status line 'Working: <who> on <job>, ...' while the crew works; never send him to type in a worker's chat, relay his answer yourself (item 103). Rewrite the reply as one of those, or put the news on the board")
+            return block("to the owner the manager says only a question with its choices as lettered lines (***A.*** ...), a yes he must give, 'The crew is idle' with \"Here's what's next toward your goal,\" and the top next steps as two or more lettered lines (a bare idle card is refused, item 124), or the one status line 'Working: <who> on <job>, ...' while the crew works; never send him to type in a worker's chat, relay his answer yourself (item 103). Rewrite the reply as one of those, or put the news on the board")
         return
     if asked or re.match(r"\s*Messages paused", text):
         return

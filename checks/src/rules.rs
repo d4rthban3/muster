@@ -323,7 +323,7 @@ fn status_line(t: &str) -> bool {
 }
 fn owner_form_ok(t: &str) -> bool {
     if status_line(t) { return true; }
-    if is(&rei(r"\bThe crew is idle\b"), t) { return true; }
+    if is(&rei(r"\bThe crew is idle\b"), t) { return re(r"(?m)^\*\*\*[A-D]\.\*\*\*").find_iter(t).count() >= 2; } // item 124: never a bare idle card; the top next steps ride along as lettered lines
     if is(&rei(r"\b(I need your yes|needs? your yes|your yes (is needed|to))\b"), t) { return true; }
     let letters = re(r"(?m)^\*\*\*[A-D]\.\*\*\*").find_iter(t).count();
     letters >= 2 || (t.contains('?') && letters >= 1)
@@ -629,7 +629,7 @@ fn recorder_path(root: &str, name: &str) -> String {
 fn manager_reply_ok(t: &str) -> bool {
     if status_line(t) { return true; } // the working status line (item 123)
     if t.chars().count() <= 300 && t.trim().lines().count() <= 3 && is(&rei(r"\bon the board\b"), t) { return true; } // a short pointer to the news (item 60)
-    if is(&rei(r"\bThe crew is idle\b"), t) { return true; }
+    if is(&rei(r"\bThe crew is idle\b"), t) { return re(r"(?m)^\*\*\*[A-D]\.\*\*\*").find_iter(t).count() >= 2; } // item 124: never a bare idle card; the top next steps ride along as lettered lines
     if is(&rei(r"\b(I need your yes|needs? your yes|your yes (is needed|to))\b"), t) { return true; }
     let has_q = t.contains('?');
     let letters = re(r"(?m)^\*\*\*[A-D]\.\*\*\*").find_iter(t).count(); // lettered lines are the question form (D-037)
@@ -691,7 +691,7 @@ fn stop(c: &Ctx, data: &Value, manager: bool) {
             return;
         }
         if is_news(text) && !owner_form_ok(text) && !owner_asked(tpath) {
-            block("never tell the owner PASS, LIVE, DONE, shipped or progress news (item 97): his chat gets only a lettered question, a yes he must give, or the idle card. When nothing needs him, end this turn with no text at all");
+            block("never tell the owner PASS, LIVE, DONE, shipped or progress news (item 97): his chat gets only a lettered question, a yes he must give, or the idle card with its lettered next steps (item 124). When nothing needs him, end this turn with no text at all");
             return;
         }
         if news_with_question(text) && !owner_asked(tpath) {
@@ -715,7 +715,7 @@ fn stop(c: &Ctx, data: &Value, manager: bool) {
             return;
         }
         if !manager_reply_ok(text) && !owner_asked(tpath) && !(peer_started(tpath) && text.trim().chars().count() <= 300 && text.trim().lines().count() <= 3) { // a short routine reply to another chat's message is not bounced (item 75)
-            block("to the owner the manager says only a question with its choices as lettered lines (***A.*** ...), a yes he must give, 'The crew is idle', or the one status line 'Working: <who> on <job>, ...' while the crew works; never send him to type in a worker's chat, relay his answer yourself (item 103). Rewrite the reply as one of those, or put the news on the board");
+            block("to the owner the manager says only a question with its choices as lettered lines (***A.*** ...), a yes he must give, 'The crew is idle' with \"Here's what's next toward your goal,\" and the top next steps as two or more lettered lines (a bare idle card is refused, item 124), or the one status line 'Working: <who> on <job>, ...' while the crew works; never send him to type in a worker's chat, relay his answer yourself (item 103). Rewrite the reply as one of those, or put the news on the board");
         }
         return;
     }

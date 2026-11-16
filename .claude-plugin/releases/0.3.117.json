@@ -1,0 +1,21 @@
+{
+  "version": "0.3.117",
+  "changed_files": [
+    ".claude-plugin/marketplace.json",
+    "mods/muster-look/.claude-plugin/plugin.json",
+    "mods/muster-look/hooks/glass.tsx",
+    "mods/muster-look/hooks/group.ts",
+    "mods/muster-look/hooks/look.test.tsx",
+    "mods/muster-look/hooks/panel.tsx",
+    "mods/muster-look/hooks/register.tsx",
+    "screenshots/look-glass-scene/glass-scene.png",
+    "screenshots/look-glass-settings/glass-settings.png",
+    "screenshots/look-glass-settings/glass-two-glows.png"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Optional glass background: two soft glows, adjustable in the look settings"
+}

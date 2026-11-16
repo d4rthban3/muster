@@ -1,4 +1,5 @@
 import { expect, test } from 'claude-code/testing'
+import { sceneOf } from './glass'
 import Rail from './rail'
 import { parse } from './parse'
 import { isOwnerSubmit } from './register'
@@ -452,4 +453,20 @@ test('two questions side by side: a click answers only its own; identical wordin
   await savePick($, B, 'B')
   expect(await pickedOn($, A)).toBe('A')
   expect(await pickedOn($, B)).toBe('B')
+})
+test('the frosted-background card has two glow colours and a picture path; a bad light is refused', async ($, on) => {
+  on('ui.render', ($, e) => { const { Text } = $.ui.resolve(e); return <Text>engine</Text> })
+  const pane = await $.ui.mount({ plugin: 'muster-look', component: 'Pane', requestId: 'muster-look-settings', surface: 'desktop', props: {} } as any)
+  const lights = ((await pane.findAll({ type: 'Input' })) ?? []).filter((b: any) => b.props?.placeholder === '#rrggbb light')
+  expect(lights.length).toBe(2)
+  const pics = ((await pane.findAll({ type: 'Input' })) ?? []).filter((b: any) => String(b.props?.placeholder).startsWith('path to a small'))
+  expect(pics.length).toBe(1)
+})
+test('the glass scene is calm, small enough, and takes the owner colours or picture', async () => {
+  const s = sceneOf('#112233', '#445566')
+  expect(s.length).toBeLessThan(131072)
+  expect(s).toContain('#112233')
+  expect(s).not.toContain('<script')
+  const p = sceneOf('#112233', '#445566', 'data:image/png;base64,AAAA')
+  expect(p).toContain('data:image/png;base64,AAAA')
 })

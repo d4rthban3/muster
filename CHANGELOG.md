@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.117
+Affects: see .claude-plugin/releases/0.3.117.json.
+Optional glass background: two soft glows, adjustable in the look settings
+
 ## 0.3.116
 Affects: see .claude-plugin/releases/0.3.116.json.
 Heading chips get a clear gap above them after text or a list

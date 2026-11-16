@@ -3,6 +3,7 @@ import { parse } from './parse'
 import { cutFont, fromBase64, type Cut } from './font'
 import { labelWidth } from './metrics'
 import { panel, registerLook } from './panel'
+import { glass, glassOn, applyGlass } from './glass'
 import { loadGroup, pickedOn, typedOn, savePick, hashText, answerLine, clearPick, answerStands, sent } from './group'
 import { svgChip, pillOf, colourOr, YELLOW } from './chip'
 
@@ -21,6 +22,7 @@ export const isOwnerSubmit = (e: any): boolean => e?.origin?.kind === 'composer'
 
 export const register: Register = (on) => {
   panel(on)
+  glass(on)
   let fontBytes: Uint8Array | null = null
   // Clickable choices: only the newest question is live, and one that has been
   // answered (by a click here, or by typing a reply) is not sent again.
@@ -86,6 +88,7 @@ export const register: Register = (on) => {
 
   on('session.start', async ($, e, next) => {
     await registerLook($)
+    if (await glassOn($)) await applyGlass($, true)
     {
       try {
         const { base64 } = (await $.fs.read(APP_FONT, { as: 'bytes' })) as { base64: string }

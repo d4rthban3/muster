@@ -29,6 +29,8 @@ function svgChip(Svg: any, label: string, c: { text: string; label?: string; glo
   // regular weight the chat's body text has.
   const stretch = ` textLength="${tw}" lengthAdjust="spacing"` + (face === '' ? '' : ` stroke="${c.label ?? c.text}" stroke-width="0.3" stroke-linejoin="round"`)
   const w = tw + 24
+  // a single letter (a choice chip) is centred in its pill both ways; longer labels keep their left start
+  const single = Array.from(label).length === 1
   // the pill itself is always 28 tall; pad is clear air above and below it, inside the picture
   const pill = 28
   const ht = pill + pad * 2
@@ -39,7 +41,9 @@ function svgChip(Svg: any, label: string, c: { text: string; label?: string; glo
     `<defs><filter id="g" x="-20%" y="-40%" width="140%" height="180%"><feGaussianBlur stdDeviation="1.2"/></filter></defs>` +
     `<rect x="2.25" y="2.25" width="${w - 4.5}" height="${pill - 4.5}" rx="${(pill - 4.5) / 2}" fill="none" stroke="${c.glow}" stroke-opacity="0.4" stroke-width="1" filter="url(#g)"/>` +
     `<rect x="2.25" y="2.25" width="${w - 4.5}" height="${pill - 4.5}" rx="${(pill - 4.5) / 2}" fill="${c.text}" fill-opacity="0.08" stroke="${c.glow}" stroke-width="0.5"/>` +
-    `<text x="12" y="19" font-family="${family}" font-size="14" font-weight="400" font-style="normal" fill="${c.label ?? c.text}"${stretch}>${esc(label)}</text>` +
+    (single
+      ? `<text x="${w / 2}" y="${pill / 2}" text-anchor="middle" dominant-baseline="central" font-family="${family}" font-size="14" font-weight="400" font-style="normal" fill="${c.label ?? c.text}"${face === '' ? '' : ` stroke="${c.label ?? c.text}" stroke-width="0.3" stroke-linejoin="round"`}>${esc(label)}</text>`
+      : `<text x="12" y="19" font-family="${family}" font-size="14" font-weight="400" font-style="normal" fill="${c.label ?? c.text}"${stretch}>${esc(label)}</text>`) +
     `</g></svg>`
   return <Svg alt={label} width={w} height={ht} source={source} />
 }

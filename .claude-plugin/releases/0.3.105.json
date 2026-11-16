@@ -1,0 +1,15 @@
+{
+  "version": "0.3.105",
+  "changed_files": [
+    "mods/muster-look/hooks/look.test.tsx",
+    "mods/muster-look/hooks/rail.tsx",
+    "mods/muster-look/hooks/register.tsx",
+    "screenshots/chip-balance/chip-balance.png"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Choice chips balanced: one chip width, even row spacing, left line sized to the real rows (item 118)"
+}

@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.119
+Affects: see .claude-plugin/releases/0.3.119.json.
+Glass background settings stay with their own group
+
 ## 0.3.118
 Affects: see .claude-plugin/releases/0.3.118.json.
 Choice clicks answer at once, follow a rewind, and each names its own question

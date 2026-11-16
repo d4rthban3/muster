@@ -3,7 +3,8 @@ import { parse } from './parse'
 import { cutFont, fromBase64, type Cut } from './font'
 import { labelWidth } from './metrics'
 import { panel, registerLook } from './panel'
-import { YELLOW, PURPLE, HEX, svgChip, palette, colourOr } from './chip'
+import { loadGroup } from './group'
+import { YELLOW, PURPLE, svgChip, palette, colourOr } from './chip'
 
 
 // Anthropic Sans is read from the Claude app's own folder at run time, never copied.
@@ -15,15 +16,7 @@ const fontList = (want: unknown) => {
   return name === '' || name === 'Anthropic Sans' ? FONT_TAIL : `${name},${FONT_TAIL}`
 }
 
-export const register: Register = (on, options: any) => {
-  const opts = options ?? {}
-  const QUESTION = palette(YELLOW, opts.questionHeadingColor)
-  const CARD = palette(PURPLE, opts.cardHeadingColor)
-  const CHOICE = palette(YELLOW, opts.choiceChipColor)
-  const TOP = colourOr(opts.lineTopColor, YELLOW.text)
-  const BOTTOM = colourOr(opts.lineBottomColor, '#7c4dff')
-  const FONT = fontList(opts.chipFont)
-  const useAppFont = FONT === FONT_TAIL
+export const register: Register = (on) => {
   panel(on)
   let fontBytes: Uint8Array | null = null
   // Clickable choices: only the newest question is live, and one that has been
@@ -50,7 +43,7 @@ export const register: Register = (on, options: any) => {
 
   on('session.start', async ($, e, next) => {
     await registerLook($)
-    if (useAppFont) {
+    {
       try {
         const { base64 } = (await $.fs.read(APP_FONT, { as: 'bytes' })) as { base64: string }
         fontBytes = fromBase64(base64)
@@ -60,9 +53,18 @@ export const register: Register = (on, options: any) => {
     }
     return next(e)
   })
-  on('ui.render', { component: 'AssistantMessage' }, ($, e, next) => {
+  on('ui.render', { component: 'AssistantMessage' }, async ($, e, next) => {
     const parsed = parse(e.props.text)
     if (parsed === null) return next(e)
+    // this group's own look; a group with none gets the defaults
+    const opts = await loadGroup($)
+    const QUESTION = palette(YELLOW, opts.questionHeadingColor)
+    const CARD = palette(PURPLE, opts.cardHeadingColor)
+    const CHOICE = palette(YELLOW, opts.choiceChipColor)
+    const TOP = colourOr(opts.lineTopColor, YELLOW.text)
+    const BOTTOM = colourOr(opts.lineBottomColor, '#7c4dff')
+    const FONT = fontList(opts.chipFont)
+    const useAppFont = FONT === FONT_TAIL
 
     const ui = $.ui.resolve(e) as any
     if (parsed.isQuestion) latestQuestion = e.props.text
@@ -79,7 +81,7 @@ export const register: Register = (on, options: any) => {
 
     // The letters this message's chips need, cut from the app's font once.
     let cut: Cut | null = null
-    if (fontBytes !== null && !isTerminal) {
+    if (useAppFont && fontBytes !== null && !isTerminal) {
       const letters = Array.from(new Set(Array.from(
         parsed.pieces.map(p => (p.kind === 'title' ? `${p.word} · ${p.job}` : p.kind === 'choice' ? p.letter : '')).join(''),
       ))).sort().join('')

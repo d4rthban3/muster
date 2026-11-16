@@ -1,4 +1,5 @@
 import { YELLOW, PURPLE, HEX, svgChip, palette } from './chip'
+import { groupId, groupName, loadGroup, saveGroup, clearGroup } from './group'
 
 // A small settings panel for the look: /look opens it. A dropdown for the font,
 // and for each colour the real item it changes drawn in that colour, a colour
@@ -48,19 +49,13 @@ async function open($: any) {
   await $.ui.open({ id: PANE, title: 'Muster look' })
 }
 
+// Every change is kept for this chat's group alone.
 async function set($: any, key: string, value: string) {
-  try { await $.config.set({ key: `${PLUGIN}.${key}`, value }) } catch { /* a row the app refuses stays as it was */ }
+  await saveGroup($, key, value)
+  $.ui.invalidate('ui.render')
 }
 
-async function current($: any) {
-  const out: Record<string, string> = {}
-  try {
-    for (const r of await $.config.list()) {
-      if (typeof r.key === 'string' && r.key.startsWith(PLUGIN + '.')) out[r.key.slice(PLUGIN.length + 1)] = String(r.value ?? '')
-    }
-  } catch { /* no list: show defaults */ }
-  return out
-}
+const current = ($: any) => loadGroup($)
 
 export async function registerLook($: any): Promise<void> {
   try { await $.command.register({ name: 'look', description: 'Change the colours and font of the Muster look' }) } catch { /* no commands here */ }
@@ -75,7 +70,6 @@ export function panel(on: any) {
     const d = e.data as { id?: string; hex?: string } | undefined
     if (d !== undefined && typeof d.id === 'string' && typeof d.hex === 'string' && HEX.test(d.hex) && COLOURS.some(c => c.key === d.id)) {
       await set($, d.id, d.hex)
-      $.ui.invalidate('ui.render')
       return {}
     }
     return next(e)
@@ -83,11 +77,13 @@ export function panel(on: any) {
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($: any, e: any) => {
     const { Box, Text, Button, Input, Select, Client, Svg } = $.ui.resolve(e)
     const v = await current($)
+    const gid = await groupId($)
     const fontNow = v.chipFont || 'Anthropic Sans'
     const showOther = otherFont || !FONTS.includes(fontNow)
     return (
       <Box flexDirection="column" gap={1}>
         <Text bold>Change your look</Text>
+        <Text>{`Changing the look for the group \u201c${groupName(gid)}\u201d only (${gid}). Other groups keep their own.`}</Text>
         <Select
           key="font"
           label="Chip font "
@@ -128,15 +124,15 @@ export function panel(on: any) {
                   submitLabel="set"
                   onSubmit={(t: string) => { const x = t.trim(); if (HEX.test(x)) void set($, c.key, x) }}
                 />
-                <Button key={`${c.key}-reset`} label="Reset" onPress={() => { void set($, c.key, c.dflt) }} />
+                <Button key={`${c.key}-reset`} label="Reset" onPress={() => { void saveGroup($, c.key, null, gid).then(() => $.ui.invalidate('ui.render')) }} />
               </Box>
             </Box>
           )
         })}
         <Button
           key="reset-all"
-          label="Reset all to default"
-          onPress={() => { otherFont = false; void set($, 'chipFont', 'Anthropic Sans'); COLOURS.forEach(c => { void set($, c.key, c.dflt) }) }}
+          label="Reset all to default (this group)"
+          onPress={() => { otherFont = false; void clearGroup($, gid).then(() => $.ui.invalidate('ui.render')) }}
         />
       </Box>
     )

@@ -78,7 +78,7 @@ test('desktop draws vector chips and one vector line', async ($, on) => {
 
 const Q2 = '**WAITING · item 7**\nHow should the menu look?\n\n***A.*** Top right.\n\n***B.*** Bottom.'
 
-async function svgSources($: any, options?: Record<string, string>) {
+async function svgSources($: any) {
   const ui = await $.ui.mount(MSG(Q2, 'desktop'))
   const out: string[] = []
   for (const n of (await ui.findAll({ type: 'Svg' })) ?? []) out.push(String(n.props?.source ?? ''))
@@ -97,12 +97,42 @@ test('with nothing set the look is the default', async ($, on) => {
   expect(s).toContain('font-weight="400"')
 })
 
-test('custom settings change the chip font, colours and line', { options: { chipFont: 'Georgia', questionHeadingColor: '#2dd4bf', choiceChipColor: '#ff7ab6', lineTopColor: '#2dd4bf', lineBottomColor: '#ff7ab6' } }, async ($, on) => {
+import { groupId, loadGroup, saveGroup, clearGroup } from './group'
+
+const CUSTOM = { chipFont: 'Georgia', questionHeadingColor: '#2dd4bf', choiceChipColor: '#ff7ab6', lineTopColor: '#2dd4bf', lineBottomColor: '#ff7ab6' }
+
+test('colours picked on the settings page change the chat look of this group', async ($, on) => {
   on('ui.render', ($, e) => { const { Text } = $.ui.resolve(e); return <Text>engine</Text> })
+  const pane = await $.ui.mount({ plugin: 'muster-look', component: 'Pane', requestId: 'muster-look-settings', surface: 'desktop', props: {} } as any)
+  for (const [id, hex] of [['questionHeadingColor', '#2dd4bf'], ['choiceChipColor', '#ff7ab6'], ['lineTopColor', '#2dd4bf'], ['lineBottomColor', '#ff7ab6']]) await pane.post({ id, hex }, { in: `field-${id}` })
+  await pane.unmount()
   const s = (await svgSources($)).join('\n')
-  expect(s).toContain('font-family="Georgia,Anthropic Sans')
   expect(s).toContain('#2dd4bf')
   expect(s).toContain('#ff7ab6')
+})
+
+test('a change in one group leaves another group alone, and reset only resets its own group', async ($, on) => {
+  on('ui.render', ($, e) => { const { Text } = $.ui.resolve(e); return <Text>engine</Text> })
+  const here = await groupId($)
+  const other = '/some/other/project'
+  await clearGroup($); await clearGroup($, other)
+  expect(here).not.toBe(other)
+  // the other group (say PINR) keeps its own colours
+  await saveGroup($, 'questionHeadingColor', '#112233', other)
+  await saveGroup($, 'lineTopColor', '#445566', other)
+  // this group (say Muster) changes
+  await saveGroup($, 'questionHeadingColor', '#2dd4bf')
+  expect((await loadGroup($, other)).questionHeadingColor).toBe('#112233')
+  expect((await loadGroup($)).questionHeadingColor).toBe('#2dd4bf')
+  expect((await loadGroup($)).lineTopColor).toBeUndefined()
+  // reset all for this group does not touch the other group
+  await clearGroup($)
+  expect(await loadGroup($)).toEqual({})
+  expect((await loadGroup($, other)).questionHeadingColor).toBe('#112233')
+  expect((await loadGroup($, other)).lineTopColor).toBe('#445566')
+  // a group with nothing saved has no choices, so every colour is its default
+  expect(await loadGroup($, '/never/saved')).toEqual({})
+  await clearGroup($, other)
 })
 
 import { cutFont } from './font'

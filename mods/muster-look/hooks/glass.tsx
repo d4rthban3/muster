@@ -36,7 +36,7 @@ export async function setGlassSetting($: any, key: string, value: string | null)
   try { if (value === null) await kvDel($, key); else await kvSet($, key, value) } catch { /* kept as it was */ }
 }
 
-export const SCENE_ARGS = { backdrop: { scene: 'liquid', glass: { blur: 24, tint: 'rgba(25,28,36,1)', opacity: 0.5 } } }
+export const SCENE_ARGS = { backdrop: { scene: 'liquid', glass: { blur: 28, tint: 'rgba(25,28,36,1)', opacity: 0.42 } } }
 export async function applyGlass($: any, on: boolean): Promise<void> {
   try {
     if (on) await $.theme.set(SCENE_ARGS)

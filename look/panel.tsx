@@ -19,7 +19,7 @@ const PARTS = ['text', 'border', 'field'] as const
 
 export const COLOURS: { key: string; label: string; short: string; group: string; dflt: string; pill?: PillName; part?: (typeof PARTS)[number] }[] = [
   ...PILL_NAMES.flatMap(p => PARTS.map(part => ({
-    key: PILLS[p.name][part], label: `${p.title}: ${part}`, short: part[0].toUpperCase() + part.slice(1), group: p.name, dflt: pillPart(p.name, part, {}), pill: p.name, part,
+    key: PILLS[p.name]![part], label: `${p.title}: ${part}`, short: part[0]!.toUpperCase() + part.slice(1), group: p.name, dflt: pillPart(p.name, part, {}), pill: p.name, part,
   }))),
   { key: 'lineTopColor', label: 'Line, top', short: 'Top', group: 'line', dflt: '#FFDB58' },
   { key: 'lineBottomColor', label: 'Line, bottom', short: 'Bottom', group: 'line', dflt: '#7c4dff' },
@@ -32,8 +32,8 @@ const GROUPS = [...PILL_NAMES.map(p => ({ id: p.name as string, title: p.title }
 
 // the whole item as it looks with the saved colours
 function previewOf(Svg: any, Box: any, g: { id: string }, v: Record<string, string>) {
-  if (g.id === 'line') return sampleOf(Svg, Box, COLOURS.filter(c => c.group === 'line')[0], v.lineTopColor || '#FFDB58', v)
-  const c = COLOURS.filter(x => x.group === g.id)[0]
+  if (g.id === 'line') return sampleOf(Svg, Box, COLOURS.filter(c => c.group === 'line')[0]!, v.lineTopColor || '#FFDB58', v)
+  const c = COLOURS.filter(x => x.group === g.id)[0]!
   return sampleOf(Svg, Box, c, v[c.key] || c.dflt, v)
 }
 
@@ -108,7 +108,7 @@ export function panel(on: any) {
     const kept = await storeWorks($)
     const frosted = await glassOn($)
     const gs = await glassSettings($)
-    const imgCheck = await imageData($, gs[GLASS_IMAGE])
+    const imgCheck = await imageData($, gs[GLASS_IMAGE]!)
     const fontNow = v.chipFont || 'Anthropic Sans'
     const showOther = otherFont || !FONTS.includes(fontNow)
     return (

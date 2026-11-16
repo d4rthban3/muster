@@ -99,7 +99,7 @@ export function glass(on: any) {
     if ((e.props as any).scene !== 'liquid' || (e.surface !== 'desktop' && e.surface !== 'mobile')) return next(e)
     const { Svg } = $.ui.resolve(e)
     const s = await glassSettings($)
-    const img = await imageData($, s[GLASS_IMAGE])
-    return <Svg source={sceneOf(s.glassColour1, s.glassColour2, img.uri)} alt="A calm, soft liquid-glass background behind the chat" isInteractive />
+    const img = await imageData($, s[GLASS_IMAGE]!)
+    return <Svg source={sceneOf(s.glassColour1!, s.glassColour2!, img.uri)} alt="A calm, soft liquid-glass background behind the chat" isInteractive />
   })
 }

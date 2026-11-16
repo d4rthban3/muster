@@ -41,8 +41,8 @@ export const register: Register = (on) => {
       // a reply that is just a letter of that question sticks on it
       const m = /^\s*\**([A-Za-z])[.)]?\**\s*$/.exec(String((e as any).text ?? ''))
       const q = parse(latestQuestion)
-      if (m !== null && q !== null && q.pieces.some(p => p.kind === 'choice' && p.letter === m[1].toUpperCase())) {
-        await savePick($, latestQuestion, m[1].toUpperCase())
+      if (m !== null && q !== null && q.pieces.some(p => p.kind === 'choice' && p.letter === m[1]!.toUpperCase())) {
+        await savePick($, latestQuestion, m[1]!.toUpperCase())
         sent.add(latestQuestion)
         $.ui.invalidate('ui.render')
       }
@@ -176,7 +176,7 @@ export const register: Register = (on) => {
         parsed.pieces.map(p => (p.kind === 'title' ? `${p.word} · ${p.job}` : p.kind === 'choice' ? p.letter : '')).join(''),
       ))).sort().join('')
       if (!(letters in cuts)) cuts[letters] = cutFont(fontBytes, letters)
-      cut = cuts[letters]
+      cut = cuts[letters] ?? null
     }
 
     // Desktop and the other apps: the one-line rounded bordered chip, as first

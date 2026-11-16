@@ -64,7 +64,7 @@ export function palette(base: typeof YELLOW, want: unknown): typeof YELLOW {
   if (typeof want !== 'string' || !HEX.test(want) || want.toLowerCase() === base.text.toLowerCase()) return base
   const rgb = [1, 3, 5].map(i => parseInt(want.slice(i, i + 2), 16))
   const mix = (k: number) =>
-    '#' + rgb.map((v, i) => Math.round(BACKDROP[i] * (1 - k) + v * k).toString(16).padStart(2, '0')).join('')
+    '#' + rgb.map((v, i) => Math.round(BACKDROP[i]! * (1 - k) + v * k).toString(16).padStart(2, '0')).join('')
   return { text: want, fill: mix(0.2), lift: mix(0.42), edge: mix(0.55), glow: mix(0.95) }
 }
 export const colourOr = (want: unknown, dflt: string) => (typeof want === 'string' && HEX.test(want) ? want : dflt)
@@ -72,7 +72,7 @@ export const colourOr = (want: unknown, dflt: string) => (typeof want === 'strin
 // A colour mixed over the dark page, k of the way from the page to the colour.
 export function mixHex(hex: string, k: number): string {
   const rgb = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16))
-  return '#' + rgb.map((v, i) => Math.round(BACKDROP[i] * (1 - k) + v * k).toString(16).padStart(2, '0')).join('')
+  return '#' + rgb.map((v, i) => Math.round(BACKDROP[i]! * (1 - k) + v * k).toString(16).padStart(2, '0')).join('')
 }
 
 // Each pill has three colours the owner can set apart: its text, its border and its field.

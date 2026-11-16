@@ -18,8 +18,8 @@ const B64 = ['ABCDEFGHIJKLM', 'NOPQRSTUVWXYZ', 'abcdefghijklm', 'nopqrstuvwxyz',
 export function toBase64(b: Uint8Array): string {
   let out = ''
   for (let i = 0; i < b.length; i += 3) {
-    const n = (b[i] << 16) | ((b[i + 1] ?? 0) << 8) | (b[i + 2] ?? 0)
-    out += B64[(n >> 18) & 63] + B64[(n >> 12) & 63]
+    const n = (b[i]! << 16) | ((b[i + 1] ?? 0) << 8) | (b[i + 2] ?? 0)
+    out += B64[(n >> 18) & 63]! + B64[(n >> 12) & 63]!
     out += i + 1 < b.length ? B64[(n >> 6) & 63] : '='
     out += i + 2 < b.length ? B64[n & 63] : '='
   }
@@ -31,10 +31,10 @@ export function fromBase64(s: string): Uint8Array {
   const out = new Uint8Array(Math.floor((clean.length * 3) / 4))
   let o = 0
   for (let i = 0; i < clean.length; i += 4) {
-    const a = B64.indexOf(clean[i])
-    const b = B64.indexOf(clean[i + 1])
-    const c = i + 2 < clean.length ? B64.indexOf(clean[i + 2]) : -1
-    const d = i + 3 < clean.length ? B64.indexOf(clean[i + 3]) : -1
+    const a = B64.indexOf(clean[i]!)
+    const b = B64.indexOf(clean[i + 1]!)
+    const c = i + 2 < clean.length ? B64.indexOf(clean[i + 2]!) : -1
+    const d = i + 3 < clean.length ? B64.indexOf(clean[i + 3]!) : -1
     out[o++] = (a << 2) | (b >> 4)
     if (c >= 0) out[o++] = ((b & 15) << 4) | (c >> 2)
     if (d >= 0) out[o++] = ((c & 3) << 6) | d
@@ -45,7 +45,7 @@ export function fromBase64(s: string): Uint8Array {
 function checksum(b: Uint8Array): number {
   let sum = 0
   for (let i = 0; i < b.length; i += 4) {
-    sum = (sum + (((b[i] << 24) | ((b[i + 1] ?? 0) << 16) | ((b[i + 2] ?? 0) << 8) | (b[i + 3] ?? 0)) >>> 0)) >>> 0
+    sum = (sum + (((b[i]! << 24) | ((b[i + 1] ?? 0) << 16) | ((b[i + 2] ?? 0) << 8) | (b[i + 3] ?? 0)) >>> 0)) >>> 0
   }
   return sum
 }
@@ -65,19 +65,19 @@ function cut(bytes: Uint8Array, text: string): Cut | null {
   const count = u16(d, 4)
   for (let i = 0; i < count; i++) {
     const r = 12 + 16 * i
-    const tag = String.fromCharCode(bytes[r], bytes[r + 1], bytes[r + 2], bytes[r + 3])
+    const tag = String.fromCharCode(bytes[r]!, bytes[r + 1]!, bytes[r + 2]!, bytes[r + 3]!)
     tables[tag] = [u32(d, r + 8), u32(d, r + 12)]
   }
   for (const t of ['head', 'hhea', 'maxp', 'hmtx', 'cmap', 'glyf', 'loca', 'OS/2']) if (!tables[t]) return null
 
-  const head = tables['head'][0]
+  const head = tables['head']![0]
   const upem = u16(d, head + 18)
   const longLoca = u16(d, head + 50) === 1
-  const numGlyphs = u16(d, tables['maxp'][0] + 4)
-  const hMetrics = u16(d, tables['hhea'][0] + 34)
+  const numGlyphs = u16(d, tables['maxp']![0] + 4)
+  const hMetrics = u16(d, tables['hhea']![0] + 34)
 
   // cmap: a Unicode format 12 or format 4 table
-  const cm = tables['cmap'][0]
+  const cm = tables['cmap']![0]
   let sub = -1
   let fmt = 0
   for (let i = 0; i < u16(d, cm + 2); i++) {
@@ -124,8 +124,8 @@ function cut(bytes: Uint8Array, text: string): Cut | null {
     keep.add(g)
   }
 
-  const glyf = tables['glyf'][0]
-  const loca = tables['loca'][0]
+  const glyf = tables['glyf']![0]
+  const loca = tables['loca']![0]
   const range = (g: number): [number, number] =>
     longLoca
       ? [u32(d, loca + 4 * g), u32(d, loca + 4 * g + 4)]
@@ -153,11 +153,11 @@ function cut(bytes: Uint8Array, text: string): Cut | null {
   const n = Math.max(...Array.from(keep)) + 1
   if (n > numGlyphs) return null
 
-  const advOf = (g: number) => u16(d, tables['hmtx'][0] + 4 * Math.min(g, hMetrics - 1))
+  const advOf = (g: number) => u16(d, tables['hmtx']![0] + 4 * Math.min(g, hMetrics - 1))
   const lsbOf = (g: number) =>
     g < hMetrics
-      ? d.getInt16(tables['hmtx'][0] + 4 * g + 2)
-      : d.getInt16(tables['hmtx'][0] + 4 * hMetrics + 2 * (g - hMetrics))
+      ? d.getInt16(tables['hmtx']![0] + 4 * g + 2)
+      : d.getInt16(tables['hmtx']![0] + 4 * hMetrics + 2 * (g - hMetrics))
 
   // new glyf and loca (long form)
   const parts: Uint8Array[] = []
@@ -211,7 +211,7 @@ function cut(bytes: Uint8Array, text: string): Cut | null {
     const gid = gidOf[String.fromCodePoint(cp)]
     cv.setUint16(eo + 2 * i, cp)
     cv.setUint16(so + 2 * i, cp)
-    cv.setUint16(dO + 2 * i, (gid - cp) & 0xffff)
+    cv.setUint16(dO + 2 * i, (gid! - cp) & 0xffff)
     cv.setUint16(ro + 2 * i, 0)
   })
   cv.setUint16(eo + 2 * cps.length, 0xffff)
@@ -219,7 +219,7 @@ function cut(bytes: Uint8Array, text: string): Cut | null {
   cv.setUint16(dO + 2 * cps.length, 1)
   cv.setUint16(ro + 2 * cps.length, 0)
 
-  const slice = (tag: string) => bytes.slice(tables[tag][0], tables[tag][0] + tables[tag][1])
+  const slice = (tag: string) => bytes.slice(tables[tag]![0], tables[tag]![0] + tables[tag]![1])
   const newHead = slice('head')
   new DataView(newHead.buffer).setUint32(8, 0)
   new DataView(newHead.buffer).setUint16(50, 1)
@@ -238,7 +238,7 @@ function cut(bytes: Uint8Array, text: string): Cut | null {
   }
   const tags = Object.keys(out).sort()
   let size = 12 + 16 * tags.length
-  for (const t of tags) size += (out[t].length + 3) & ~3
+  for (const t of tags) size += (out[t]!.length + 3) & ~3
   const file = new Uint8Array(size)
   const fv = new DataView(file.buffer)
   fv.setUint32(0, 0x00010000); fv.setUint16(4, tags.length)
@@ -249,14 +249,14 @@ function cut(bytes: Uint8Array, text: string): Cut | null {
   tags.forEach((t, i) => {
     const r = 12 + 16 * i
     for (let k = 0; k < 4; k++) file[r + k] = t.charCodeAt(k)
-    fv.setUint32(r + 4, checksum(out[t]))
+    fv.setUint32(r + 4, checksum(out[t]!))
     fv.setUint32(r + 8, pos)
-    fv.setUint32(r + 12, out[t].length)
-    file.set(out[t], pos)
-    pos += (out[t].length + 3) & ~3
+    fv.setUint32(r + 12, out[t]!.length)
+    file.set(out[t]!, pos)
+    pos += (out[t]!.length + 3) & ~3
   })
 
   const advance: Record<string, number> = {}
-  for (const ch of chars) advance[ch] = advOf(gidOf[ch]) / upem
+  for (const ch of chars) advance[ch] = advOf(gidOf[ch]!) / upem
   return { dataUri: 'data:font/ttf;base64,' + toBase64(file), advance }
 }

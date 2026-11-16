@@ -146,7 +146,7 @@ export async function clearPick($: any, text: string): Promise<void> {
 export function answerTag(text: string): string {
   const ps = parse(text)?.pieces ?? []
   const head = ps.find(p => p.kind === 'title') as { word: string; job: string } | undefined
-  const first = (ps.find(p => p.kind === 'md') as { text: string } | undefined)?.text.trim().split('\n')[0].replace(/[*_`#]/g, '').trim().slice(0, 60) ?? ''
+  const first = (ps.find(p => p.kind === 'md') as { text: string } | undefined)?.text.trim().split('\n')[0]!.replace(/[*_`#]/g, '').trim().slice(0, 60) ?? ''
   const h = head !== undefined ? `${head.word} \u00b7 ${head.job}` : ''
   return h !== '' ? (first !== '' ? `${h} (${first})` : h) : (first !== '' ? first : 'the question above')
 }

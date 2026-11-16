@@ -20,11 +20,11 @@ function inline(line: string): { lead: string; items: { letter: string; text: st
   if (marks.length < 2) return null
   const items = marks.map((m, i) => {
     const from = (m.index ?? 0) + m[0].length
-    const to = i + 1 < marks.length ? (marks[i + 1].index ?? line.length) : line.length
+    const to = i + 1 < marks.length ? (marks[i + 1]!.index ?? line.length) : line.length
     const text = line.slice(from, to).trim().replace(/[\s,;]*(?:\bor\b)?[\s,;]*$/i, '').trim()
-    return { letter: m[1], text }
+    return { letter: m[1]!, text }
   })
-  return { lead: line.slice(0, marks[0].index ?? 0).trim(), items }
+  return { lead: line.slice(0, marks[0]!.index ?? 0).trim(), items }
 }
 
 export function parse(text: string): Parsed | null {
@@ -43,8 +43,8 @@ export function parse(text: string): Parsed | null {
       if (many.lead !== '') buf.push(many.lead)
       flush()
       for (const it of many.items) pieces.push({ kind: 'choice', letter: it.letter, text: it.text })
-    } else if (t) { flush(); pieces.push({ kind: 'title', word: t[1], job: t[2] }) }
-    else if (c) { flush(); pieces.push({ kind: 'choice', letter: c[1], text: c[2] }) }
+    } else if (t) { flush(); pieces.push({ kind: 'title', word: t[1]!, job: t[2]! }) }
+    else if (c) { flush(); pieces.push({ kind: 'choice', letter: c[1]!, text: c[2]! }) }
     else buf.push(line)
   }
   flush()
@@ -57,8 +57,8 @@ export function parse(text: string): Parsed | null {
     startsAt = firstChoice
     for (let i = firstChoice - 1; i >= 0; i--) {
       startsAt = i
-      if (pieces[i].kind === 'title') break
-      if (pieces[i].kind === 'md' && i < firstChoice - 1) break
+      if (pieces[i]!.kind === 'title') break
+      if (pieces[i]!.kind === 'md' && i < firstChoice - 1) break
     }
   }
   return { pieces, isQuestion, startsAt }

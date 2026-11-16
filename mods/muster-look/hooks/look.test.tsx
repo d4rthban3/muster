@@ -159,3 +159,15 @@ test('the left line is a region as tall as the rows beside it, one glyph per lai
   expect((mk(0) as any).children.length).toBe(1)
   void el
 })
+
+test('clicking a choice sends its letter once; an answered question does not send again', async ($, on) => {
+  const sent: string[] = []
+  on('prompt.submit', ($, e) => { sent.push(String((e as any).text)); return { text: String((e as any).text) } as any })
+  const ui = await $.ui.mount(MSG(Q2, 'desktop'))
+  await (ui as any).post({ pick: 'A' }, { in: 'pickA' })
+  // the answered question has drawn no click areas any more
+  expect(await ui.find({ type: 'Client', key: 'pickB' })).toBeFalsy()
+  await expect((ui as any).post({ pick: 'B' }, { in: 'pickB' })).rejects.toThrow()
+  expect(sent).toEqual(['A'])
+  await ui.unmount()
+})

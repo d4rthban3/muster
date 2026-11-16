@@ -75,6 +75,26 @@ export const register: Register = (on, options: any) => {
   const useAppFont = FONT === FONT_TAIL
   panel(on)
   let fontBytes: Uint8Array | null = null
+  // Clickable choices: only the newest question is live, and one that has been
+  // answered (by a click here, or by typing a reply) is not sent again.
+  let latestQuestion = ''
+  const answered = new Set<string>()
+  on('prompt.submit', ($, e, next) => {
+    if (latestQuestion !== '') answered.add(latestQuestion)
+    return next(e)
+  })
+  on('ui.message', async ($, e, next) => {
+    const d = e.data as { pick?: string } | undefined
+    if (/(^|\/)choice\.tsx$/.test(e.module) && d !== undefined && typeof d.pick === 'string' && /^[A-Z]$/.test(d.pick)) {
+      if (latestQuestion !== '' && !answered.has(latestQuestion)) {
+        answered.add(latestQuestion)
+        void $.prompt.submit({ text: d.pick })
+        $.ui.invalidate('ui.render')
+      }
+      return {}
+    }
+    return next(e)
+  })
   const cuts: Record<string, Cut | null> = {}
 
   on('session.start', async ($, e, next) => {
@@ -94,6 +114,8 @@ export const register: Register = (on, options: any) => {
     if (parsed === null) return next(e)
 
     const ui = $.ui.resolve(e) as any
+    if (parsed.isQuestion) latestQuestion = e.props.text
+    const live = parsed.isQuestion && e.props.text === latestQuestion && !answered.has(e.props.text)
     const { Box, Text, Markdown, Svg, Client } = ui
     const isTerminal = e.surface === 'terminal'
 
@@ -139,9 +161,14 @@ export const register: Register = (on, options: any) => {
         )
       }
       return (
-        <Box key={`c${i}`} gap={2} alignItems="center">
+        <Box key={`c${i}`} gap={2} alignItems="center" position="relative" hover={live && !isTerminal && Client !== undefined ? { backgroundColor: '#23262e' } : undefined}>
           {chip(p.letter, CHOICE, letterTw, 4)}
           <Markdown key={`cm${i}`} text={p.text} />
+          {live && !isTerminal && Client !== undefined && (
+            <Box position="absolute" top={0} left={0} right={0} bottom={0}>
+              <Client key={`pick${p.letter}`} module="./choice.tsx" props={{ letter: p.letter }} width="100%" height="100%" />
+            </Box>
+          )}
         </Box>
       )
     })

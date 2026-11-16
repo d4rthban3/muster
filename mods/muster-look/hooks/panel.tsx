@@ -1,5 +1,5 @@
 import { YELLOW, HEX, svgChip, pillOf, pillPart, PILLS, type PillName } from './chip'
-import { glassOn, setGlassFlag, applyGlass } from './glass'
+import { glassOn, setGlassFlag, applyGlass, glassSettings, setGlassSetting, imageData, GLASS_COLOURS, GLASS_IMAGE } from './glass'
 import { groupId, groupName, loadGroup, saveGroup, clearGroup, storeWorks } from './group'
 
 // A small settings panel for the look: /look opens it. A dropdown for the font,
@@ -107,6 +107,8 @@ export function panel(on: any) {
     const gid = await groupId($)
     const kept = await storeWorks($)
     const frosted = await glassOn($)
+    const gs = await glassSettings($)
+    const imgCheck = await imageData($, gs[GLASS_IMAGE])
     const fontNow = v.chipFont || 'Anthropic Sans'
     const showOther = otherFont || !FONTS.includes(fontNow)
     return (
@@ -139,6 +141,33 @@ export function panel(on: any) {
           <Box flexDirection="row" gap={1}><Text color={YELLOW.text}>{'\u25CF'}</Text><Text bold>Frosted glass background (whole app)</Text></Box>
           <Text color={MUTED}>{'A soft moving colour behind the chat, with the app\u2019s own panels frosted over it. Off unless you switch it on. It replaces any other theme while on.'}</Text>
           <Button key="frost" label={frosted ? 'On \u2013 press to turn off' : 'Off \u2013 press to turn on'} onPress={() => { void (async () => { await setGlassFlag($, !frosted); await applyGlass($, !frosted); $.ui.invalidate('ui.render') })() }} />
+          {GLASS_COLOURS.map(c => (
+            <Box key={c.key} flexDirection="row" gap={2} alignItems="center" marginTop={1}>
+              <Box width={12} flexShrink={0}><Text color={MUTED}>{c.label}</Text></Box>
+              <Box flexDirection="column" width={26} flexShrink={0}>
+                <Input
+                  key={`${c.key}-${gs[c.key]}`}
+                  placeholder="#rrggbb light"
+                  value={gs[c.key]}
+                  submitLabel="set"
+                  onSubmit={(t: string) => { const x = t.trim(); if (HEX.test(x)) { delete badCode[c.key]; void setGlassSetting($, c.key, x).then(() => $.ui.invalidate('ui.render')) } else { badCode[c.key] = x; $.ui.invalidate('ui.render') } }}
+                />
+                {badCode[c.key] !== undefined && <Text color="#ff6b6b">{`"${badCode[c.key]}" is not a colour code. Use #rrggbb. Not saved.`}</Text>}
+                <Button key={`${c.key}-reset`} label="Reset" onPress={() => { delete badCode[c.key]; void setGlassSetting($, c.key, null).then(() => $.ui.invalidate('ui.render')) }} />
+              </Box>
+            </Box>
+          ))}
+          <Box flexDirection="column" marginTop={1}>
+            <Input
+              key={`glass-image-${gs[GLASS_IMAGE]}`}
+              label="Picture "
+              placeholder="path to a small .jpg or .png (under 90 KB); empty for the glass"
+              value={gs[GLASS_IMAGE]}
+              submitLabel="set"
+              onSubmit={(t: string) => { void setGlassSetting($, GLASS_IMAGE, t.trim() === '' ? null : t.trim()).then(() => $.ui.invalidate('ui.render')) }}
+            />
+            {imgCheck.why !== undefined && <Text color="#ff6b6b">{imgCheck.why}</Text>}
+          </Box>
         </Box>
         {GROUPS.map(g => (
           <Box key={g.id} flexDirection="column" borderStyle="round" borderColor={LINE} paddingX={2} paddingY={0}>

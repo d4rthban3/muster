@@ -10,7 +10,7 @@ export const KEYS = ['chipFont', 'questionHeadingColor', 'cardHeadingColor', 'ch
 const memory = new Map<string, unknown>()
 export async function kvGet($: any, k: string): Promise<unknown> { try { return await $.store.get(k) } catch { return memory.get(k) } }
 export async function kvSet($: any, k: string, v: unknown): Promise<void> { try { await $.store.set(k, v) } catch { memory.set(k, JSON.parse(JSON.stringify(v))) } }
-async function kvDel($: any, k: string): Promise<void> { try { await $.store.delete(k) } catch { memory.delete(k) } }
+export async function kvDel($: any, k: string): Promise<void> { try { await $.store.delete(k) } catch { memory.delete(k) } }
 
 export async function groupId($: any): Promise<string> {
   try {

@@ -1,4 +1,5 @@
 import { expect, test } from 'claude-code/testing'
+import { sceneOf } from './glass'
 import Rail from './rail'
 import { parse } from './parse'
 import { isOwnerSubmit } from './register'
@@ -373,4 +374,19 @@ test('a card heading after text or a list has a clear gap above it; the first th
   const list = '1. one\n2. two\n3. three\n\n**SERVER · reading your allowance**\n- a\n- b'
   expect(await gaps(list)).toBe(1)
   expect(await gaps('**SERVER · reading your allowance**\n- a\n- b')).toBe(0)
+test('the frosted-background card has three light colours and a picture path; a bad light is refused', async ($, on) => {
+  on('ui.render', ($, e) => { const { Text } = $.ui.resolve(e); return <Text>engine</Text> })
+  const pane = await $.ui.mount({ plugin: 'muster-look', component: 'Pane', requestId: 'muster-look-settings', surface: 'desktop', props: {} } as any)
+  const lights = ((await pane.findAll({ type: 'Input' })) ?? []).filter((b: any) => b.props?.placeholder === '#rrggbb light')
+  expect(lights.length).toBe(3)
+  const pics = ((await pane.findAll({ type: 'Input' })) ?? []).filter((b: any) => String(b.props?.placeholder).startsWith('path to a small'))
+  expect(pics.length).toBe(1)
+})
+test('the glass scene is calm, small enough, and takes the owner colours or picture', async () => {
+  const s = sceneOf('#112233', '#445566', '#778899')
+  expect(s.length).toBeLessThan(131072)
+  expect(s).toContain('#112233')
+  expect(s).not.toContain('<script')
+  const p = sceneOf('#112233', '#445566', '#778899', 'data:image/png;base64,AAAA')
+  expect(p).toContain('data:image/png;base64,AAAA')
 })

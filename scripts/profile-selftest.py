@@ -169,7 +169,7 @@ def _pg(runner, cmd, cwd=None, trans=None, proj=None):
     return r.stdout
 _runners = [("python", ["sh", os.path.join(_plug, "hooks", "guard-check.sh")])] + ([("program", [BIN, "guard"])] if BIN else [])
 for _rn, _rr in _runners:
-    add("item 117 (project profile, %s): git -C into its main folder with reset is refused" % _rn, "" if _blocked(_pg(_rr, 'git -C "%s" reset --help' % _pp, cwd=os.path.join(T, "elsewhere")), "reset") else "BAD", False)
+    add("item 117 (project profile, %s): git -C into its main folder with reset is refused" % _rn, "" if _blocked(_pg(_rr, 'git -C "%s" reset --help' % _pp.replace("\\", "/"), cwd=os.path.join(T, "elsewhere")), "reset") else "BAD", False)
     add("item 117 (project profile, %s): git reset in its main folder is refused" % _rn, "" if _blocked(_pg(_rr, "git reset --hard"), "reset") else "BAD", False)
     add("item 117 (project profile, %s): ...from a sub-folder too" % _rn, "" if _blocked(_pg(_rr, "git stash", cwd=os.path.join(_pp, "sub"), proj=os.path.join(_pp, "sub")), "stash") else "BAD", False)
     add("item 117 (project profile, %s): git status goes through" % _rn, "" if not _pg(_rr, "git status") else "BAD", False)

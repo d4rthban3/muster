@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.122
+Affects: see .claude-plugin/releases/0.3.122.json.
+click sends only the option text
+
 ## 0.3.121
 Affects: see .claude-plugin/releases/0.3.121.json.
 compact: managers 250K, workers 200K

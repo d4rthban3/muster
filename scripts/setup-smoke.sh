@@ -503,7 +503,8 @@ cp "$PL/cfg/settings.json" "$PL/settings.before"
 bash "$ROOT/scripts/plugin-live.sh" --path "$PL/muster" --config-dir "$PL/cfg" --dry-run | grep -q "DRY RUN OK" || fail "plugin-live dry run did not say so"
 cmp -s "$PL/cfg/settings.json" "$PL/settings.before" || fail "plugin-live dry run changed the settings"
 bash "$ROOT/scripts/plugin-live.sh" --path "$PL/muster" --config-dir "$PL/cfg" --no-cli >"$PL/out.txt" 2>&1 || { cat "$PL/out.txt"; fail "plugin-live --no-cli failed"; }
-$PY - "$PL/cfg/settings.json" "$PL/muster" <<'PY' || fail "plugin-live did not write the directory source and keep the rest"
+PLM="$PL/muster"; command -v cygpath >/dev/null 2>&1 && PLM=$(cygpath -m "$PLM")
+$PY - "$PL/cfg/settings.json" "$PLM" <<'PY' || fail "plugin-live did not write the directory source and keep the rest"
 import json, sys
 d = json.load(open(sys.argv[1]))
 s = d["extraKnownMarketplaces"]["muster-kit"]["source"]

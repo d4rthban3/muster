@@ -23,6 +23,8 @@ py=$(sh "$here/scripts/find-python.sh") || stop "no working Python 3"
 if [ -z "$path" ]; then
   common=$(git -C "$here" rev-parse --path-format=absolute --git-common-dir 2>/dev/null) && path=${common%/.git} || path=$here
 fi
+# on Windows (Git Bash) Python needs C:/ style paths, not /tmp style ones
+if command -v cygpath >/dev/null 2>&1; then path=$(cygpath -m "$path" 2>/dev/null || echo "$path"); cfg=$(cygpath -m "$cfg" 2>/dev/null || echo "$cfg"); fi
 settings="$cfg/settings.json"; known="$cfg/plugins/known_marketplaces.json"
 restore() { # $1 = backup folder
   [ -f "$1/settings.json" ] && cp "$1/settings.json" "$settings"

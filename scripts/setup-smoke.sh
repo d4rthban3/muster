@@ -430,17 +430,18 @@ if bash scripts/ship.sh "batch" --with builder/nope --dry-run >/dev/null 2>&1; t
 cd "$FOLDER"
 step "ci-retry.py reruns a free test that failed only because a job never got a machine, never a real failure (item 121)"
 CR="$SCRATCH/ciretry"; mkdir -p "$CR/bin"
-cat > "$CR/bin/gh" <<'GH'
-#!/usr/bin/env bash
-# a stand-in for gh: "run list" and "run view" print the canned JSON in $CR_STATE; "run rerun" is recorded
-case "$1 $2" in
-  "run list") cat "$CR_STATE/list.json";;
-  "run view") cat "$CR_STATE/view.json";;
-  "run rerun") echo "$*" >> "$CR_STATE/reruns.log";;
-esac
+cat > "$CR/gh.py" <<'GH'
+# a stand-in for gh: "run list" and "run view" print the canned JSON in CR_STATE; "run rerun" is recorded
+import os, sys
+st = os.environ["CR_STATE"]
+k = " ".join(sys.argv[1:3])
+if k == "run list": sys.stdout.write(open(st + "/list.json").read())
+elif k == "run view": sys.stdout.write(open(st + "/view.json").read())
+elif k == "run rerun": open(st + "/reruns.log", "a").write(" ".join(sys.argv[1:]) + "\n")
 GH
-chmod +x "$CR/bin/gh"; export CR_STATE="$CR"
-cr() { PATH="$CR/bin:$PATH" $PY "$ROOT/scripts/ci-retry.py" "$@"; }
+CR=$(cygpath -m "$CR" 2>/dev/null || echo "$CR")
+export CR_STATE="$CR" CI_RETRY_GH="$CR/gh.py"
+cr() { $PY "$ROOT/scripts/ci-retry.py" "$@"; }
 printf '[{"databaseId":77,"headSha":"abc","status":"completed","conclusion":"failure"}]' > "$CR/list.json"
 printf '{"jobs":[{"name":"rust (macos)","conclusion":"cancelled","steps":[]},{"name":"checks","conclusion":"success","steps":[{"conclusion":"success"}]}]}' > "$CR/view.json"
 cr b abc >"$CR/o1" 2>&1 || fail "a job that never got a machine was not rerun: $(cat "$CR/o1")"
@@ -457,7 +458,7 @@ if cr b zzz >"$CR/o4" 2>&1; then fail "ci-retry reran a run of another version";
 printf '[{"databaseId":77,"headSha":"abc","status":"completed","conclusion":"success"}]' > "$CR/list.json"
 if cr b abc >"$CR/o5" 2>&1; then fail "ci-retry reran a run that passed"; fi
 grep -q 'ci-retry.py' "$ROOT/scripts/ship.sh" || fail "ship.sh does not use ci-retry.py"
-unset CR_STATE
+unset CR_STATE CI_RETRY_GH
 
 step "the after-compaction hook speaks only in a crew chat, never in the owner's own chat"
 mkdir -p "$SCRATCH/tr" "$SCRATCH/plain"

@@ -7,13 +7,17 @@ Looks at the newest finished, not-successful run of <sha> on <branch>. Exit 0 an
 fewer than M (default 3) reruns were already done (N); exit 1 with the reason otherwise (a real failure, nothing to rerun, or out of tries)."""
 import json
 import subprocess
+import os
 import sys
 
 BAD = ("failure", "cancelled", "timed_out", "startup_failure")
 
 
 def gh(*a):
-    r = subprocess.run(["gh", *a], capture_output=True, text=True)
+    # CI_RETRY_GH: the smoke test points this at a Python stand-in (a bash one cannot start on Windows)
+    stand_in = os.environ.get("CI_RETRY_GH")
+    cmd = [sys.executable, stand_in] if stand_in else ["gh"]
+    r = subprocess.run([*cmd, *a], capture_output=True, text=True)
     return r.returncode, r.stdout
 
 

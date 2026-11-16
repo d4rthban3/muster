@@ -117,10 +117,11 @@ OUTA=$(DG); echo "$OUTA" | grep -q "^WAITING ON HIS ANSWER" || fail "no waiting-
 echo "$OUTA" | sed -n '/^OWNER QUESTIONS/,/^$/p' | grep -q "demo" && fail "an asked question is still listed to ask again: $OUTA"
 echo "$OUTA" | sed -n '/^OWNER QUESTIONS/,/^$/p' | grep -q "other" || fail "the unasked question vanished: $OUTA"
 DG --mark-asked demo >/dev/null; [ "$(grep -c "^Asked: " "$FOLDER/muster/BOARD.md")" = 1 ] || fail "marking twice added a second Asked line"
-$PY -c "import sys;p=sys.argv[1];t=open(p).read();open(p,'w').write(t.replace('which first?','which first, or later?',1))" "$FOLDER/muster/BOARD.md"
+BP=$(cygpath -m "$FOLDER/muster/BOARD.md" 2>/dev/null || echo "$FOLDER/muster/BOARD.md")
+$PY -c "import sys;p=sys.argv[1];t=open(p).read();open(p,'w').write(t.replace('which first?','which first, or later?',1))" "$BP"
 DG | sed -n '/^OWNER QUESTIONS/,/^$/p' | grep -q "demo" || fail "a changed question was not brought back"
 DG --mark-asked demo >/dev/null
-$PY -c "import sys;p=sys.argv[1];t=open(p).read();open(p,'w').write(t.replace('Status: open','Status: done',1))" "$FOLDER/muster/BOARD.md"
+$PY -c "import sys;p=sys.argv[1];t=open(p).read();open(p,'w').write(t.replace('Status: open','Status: done',1))" "$BP"
 DG | grep -q "WAITING ON HIS ANSWER" && fail "an answered (done) question is still listed as waiting"
 DG --mark-asked nosuchjob | grep -q "NOT MARKED" || fail "marking an unknown job did not say so"
 

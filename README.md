@@ -42,6 +42,40 @@ Step by step: [docs/GUIDE.md](docs/GUIDE.md).
 
 **Any other AI** (ChatGPT, Grok, Gemini, Cursor's agent...): use [Muster Lite](MUSTER-LITE.md), one prompt you paste in.
 
+## Change your look
+Muster has an optional look for Claude Code: small rounded chips on crew cards and questions, and a thin line down the left of a
+question that fades from yellow to purple. It is a separate mod in this repository (`mods/muster-look`), so it is not part of
+the Muster install above and it is not in the Muster marketplace yet. To try it, start Claude Code pointed at that folder:
+`claude --plugin-dir <path to mods/muster-look>`.
+
+**Where the settings live.** The mod has six settings. In Claude Code they are rows in the plugin's settings (the same place any
+plugin's options are changed), and Claude Code keeps them in your settings file under the mod's name, `muster-look`. Not checked:
+the exact menu wording in the desktop app.
+
+| Setting | What it changes | Format | Default |
+|---|---|---|---|
+| `chipFont` | The font of the words inside the chips (desktop app) | a font name, such as `Georgia` | `Anthropic Sans` |
+| `questionHeadingColor` | The heading chip above a question | colour as `#rrggbb` | `#FFDB58` (yellow) |
+| `cardHeadingColor` | The heading chip on every other card | colour as `#rrggbb` | `#9b6dff` (purple) |
+| `choiceChipColor` | The A, B and C chips | colour as `#rrggbb` | `#FFDB58` (yellow) |
+| `lineTopColor` | The top of the left line | colour as `#rrggbb` | `#FFDB58` (yellow) |
+| `lineBottomColor` | The bottom of the left line | colour as `#rrggbb` | `#7c4dff` (purple) |
+
+For a chip colour, Muster works out the soft fill, the thin border and the glow from the one colour you give. A value that is not
+`#` plus six letters or digits is ignored and the default is used. **To go back to the default,** clear the setting or type the
+default from the table; with nothing set, you get the default look.
+
+**The font.** `Anthropic Sans` is read, at the moment a chip is drawn, from the Claude app's own folder on macOS
+(`/Applications/Claude.app`). Nothing is copied out of the app or shipped with Muster. If that file is not there (another
+system, or the app moved), the chips use your system's own sans font instead. A font you name is used if your computer has it,
+and otherwise the same fallback applies. In a terminal the chips are drawn with plain bars and the font setting does nothing.
+
+**Other chat AIs and platforms (no mod).** The mod only runs inside Claude Code. Everything else that runs Muster cannot draw
+chips or a line, so nothing above carries over as a picture. What carries over is the names and colours, as a style block in
+[templates/agents-md.md](templates/agents-md.md), which setup writes into your project as `AGENTS.md`. An agent that reads that
+file can use the same colours and font when it makes anything visual for you, and you override them by editing the hex values
+in that block. Not checked: whether any particular platform (Cursor, Codex, Gemini CLI, ChatGPT, Grok) reads or follows the block.
+
 ## Who runs what
 | App | How it works with Muster |
 |---|---|

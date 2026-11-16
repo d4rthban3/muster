@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.116
+Affects: see .claude-plugin/releases/0.3.116.json.
+Heading chips get a clear gap above them after text or a list
+
 ## 0.3.115
 Affects: see .claude-plugin/releases/0.3.115.json.
 One-line questions: every letter gets its own clickable circle

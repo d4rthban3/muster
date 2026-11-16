@@ -39,21 +39,35 @@ async function ids($: any): Promise<{ id: string; legacy: string }> {
   }
   return { id: groupKey(remote, root), legacy: root }
 }
-// The project's name for the owner's words: the origin remote's last part as written (so every clone and
-// worktree of one project says the same name), else the repository's folder name.
+// The project's name for the owner's words is the name typed at setup, which every crew chat carries as the
+// suffix of its name (Manager_Muster, Builder A_PINR). The project's muster/CREW.md lists those chats.
+export function nameFromCrew(text: string): string {
+  const m = /^\|\s*(?:Manager|Builder|Designer|Inspector|Design Inspector)(?: [A-Z])?_([^|_]+?)(?:_\d{3})?\s*\|/m.exec(text)
+  return m === null ? '' : m[1]!.trim()
+}
+// With no crew file: the git origin remote's last part as written, else the repository's folder name.
 export function nameFromRemote(remote: string | null | undefined): string {
   if (typeof remote !== 'string') return ''
   const r = remote.trim().replace(/\.git$/i, '').replace(/\/+$/, '')
   return r.split(/[/:]/).pop() ?? ''
 }
 export async function pickName($: any): Promise<string> {
-  try {
-    const repo = await $.session.repo()
-    const n = nameFromRemote(repo && typeof repo.remote === 'string' ? repo.remote : null)
-    if (n !== '') return n
-    if (repo && typeof repo.root === 'string' && repo.root !== '') return projectName(repo.root)
-  } catch { /* not a repository */ }
-  try { return projectName(String(await $.session.root())) } catch { return '' }
+  let repo: any = null
+  try { repo = await $.session.repo() } catch { /* not a repository */ }
+  const roots: string[] = []
+  if (repo && typeof repo.root === 'string' && repo.root !== '') roots.push(repo.root)
+  try { roots.push(String(await $.session.root())) } catch { /* none */ }
+  try { roots.push(String(await $.session.cwd())) } catch { /* none */ }
+  for (const r of roots) {
+    try {
+      const n = nameFromCrew(String(await $.fs.read(r.replace(/\/+$/, '') + '/muster/CREW.md')))
+      if (n !== '') return n
+    } catch { /* no crew file here */ }
+  }
+  const n = nameFromRemote(repo && typeof repo.remote === 'string' ? repo.remote : null)
+  if (n !== '') return n
+  if (repo && typeof repo.root === 'string' && repo.root !== '') return projectName(repo.root)
+  return roots[0] !== undefined ? projectName(roots[0]) : ''
 }
 export async function groupId($: any): Promise<string> { return (await ids($)).id }
 // What was kept for this group: under its own key, else (only when the group is this session's) under

@@ -3,7 +3,7 @@ import { sceneOf, glassOn, setGlassFlag, glassSettings, setGlassSetting } from '
 import Rail from './rail'
 import { parse } from './parse'
 import { isOwnerSubmit } from './register'
-import { hashText, nameFromRemote, projectName, rename, optionLine } from './group'
+import { hashText, nameFromCrew, nameFromRemote, projectName, rename, optionLine } from './group'
 import { migrateLook } from './migrate'
 
 const MSG = (text: string, surface: 'terminal' | 'desktop') => ({
@@ -625,6 +625,14 @@ test('a click fills the option in the owner voice: the card (my pick) reads (<pr
   expect(projectName('/home/dev/PINRroot/Muster')).toBe('Muster')
   expect(projectName('/home/dev/PINRroot/Muster/.claude/worktrees/designer-005')).toBe('Muster')
   expect(projectName('/home/dev/PINR/')).toBe('PINR')
+  const CREW_M = '## Running now\n| Name | Model |\n|---|---|\n| Manager_Muster | claude-opus-5-5 |\n| Builder A_Muster | x |'
+  const CREW_P = '| Name | Model |\n|---|---|\n| Manager_PINR | claude-opus-5-5 |\n| Builder A_PINR_001 | x |'
+  expect(nameFromCrew(CREW_M)).toBe('Muster')
+  expect(nameFromCrew(CREW_P)).toBe('PINR')
+  expect(nameFromCrew('| Builder A_PINR_001 | x |')).toBe('PINR')
+  expect(nameFromCrew('no crew here')).toBe('')
+  expect(rename('A. Do it *(my pick)*'.replace(/\*/g, ''), nameFromCrew(CREW_M))).toBe('A. Do it (Muster pick)')
+  expect(rename('A. Do it (my pick)', nameFromCrew(CREW_P))).toBe('A. Do it (PINR pick)')
   expect(nameFromRemote('https://github.com/acme/PINR.git')).toBe('PINR')
   expect(nameFromRemote('git@github.com:acme/Muster.git')).toBe('Muster')
   expect(nameFromRemote(null)).toBe('')

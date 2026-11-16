@@ -1,4 +1,4 @@
-import { YELLOW, PURPLE, HEX, svgChip, palette } from './chip'
+import { YELLOW, HEX, svgChip, pillOf, pillPart, PILLS, type PillName } from './chip'
 import { groupId, groupName, loadGroup, saveGroup, clearGroup, storeWorks } from './group'
 
 // A small settings panel for the look: /look opens it. A dropdown for the font,
@@ -9,10 +9,17 @@ const PANE = 'muster-look-settings'
 
 export const FONTS = ['Anthropic Sans', 'System sans', 'Helvetica Neue', 'Avenir Next', 'Georgia', 'Menlo']
 
-export const COLOURS: { key: string; label: string; dflt: string }[] = [
-  { key: 'questionHeadingColor', label: 'Question heading chip', dflt: '#FFDB58' },
-  { key: 'cardHeadingColor', label: 'Card heading chip', dflt: '#9b6dff' },
-  { key: 'choiceChipColor', label: 'A, B and C chips', dflt: '#FFDB58' },
+const PILL_NAMES: { name: PillName; title: string }[] = [
+  { name: 'question', title: 'Question heading chip' },
+  { name: 'card', title: 'Card heading chip' },
+  { name: 'choice', title: 'A, B and C chips' },
+]
+const PARTS = ['text', 'border', 'field'] as const
+
+export const COLOURS: { key: string; label: string; dflt: string; pill?: PillName; part?: (typeof PARTS)[number] }[] = [
+  ...PILL_NAMES.flatMap(p => PARTS.map(part => ({
+    key: PILLS[p.name][part], label: `${p.title}: ${part}`, dflt: pillPart(p.name, part, {}), pill: p.name, part,
+  }))),
   { key: 'lineTopColor', label: 'Line, top', dflt: '#FFDB58' },
   { key: 'lineBottomColor', label: 'Line, bottom', dflt: '#7c4dff' },
 ]
@@ -20,16 +27,20 @@ export const COLOURS: { key: string; label: string; dflt: string }[] = [
 const SAMPLE_FONT = 'Anthropic Sans,Styrene B,system-ui,-apple-system,Segoe UI,sans-serif'
 
 // The real item a colour changes, drawn the way the chat draws it, in that colour.
-function sampleOf(Svg: any, Box: any, key: string, hex: string, v: Record<string, string>) {
-  const chip = (label: string, base: typeof YELLOW) => svgChip(Svg, label, palette(base, hex), SAMPLE_FONT, null)
-  if (key === 'questionHeadingColor') return chip('WAITING \u00b7 item 7', YELLOW)
-  if (key === 'cardHeadingColor') return chip('DONE \u00b7 item 7', PURPLE)
-  if (key === 'choiceChipColor') {
-    return (
-      <Box flexDirection="row" gap={1}>
-        {['A', 'B', 'C'].map(l => <Box key={l}>{chip(l, YELLOW)}</Box>)}
-      </Box>
-    )
+function sampleOf(Svg: any, Box: any, c: (typeof COLOURS)[number], hex: string, v: Record<string, string>) {
+  const key = c.key
+  if (c.pill !== undefined) {
+    // the real pill, drawn with this colour in place of the saved one
+    const w = { ...v, [key]: hex }
+    const one = (label: string) => svgChip(Svg, label, pillOf(c.pill as PillName, w), SAMPLE_FONT, null)
+    if (c.pill === 'choice') {
+      return (
+        <Box flexDirection="row" gap={1}>
+          {['A', 'B', 'C'].map(l => <Box key={l}>{one(l)}</Box>)}
+        </Box>
+      )
+    }
+    return one(c.pill === 'question' ? 'WAITING \u00b7 item 7' : 'DONE \u00b7 item 7')
   }
   const top = key === 'lineTopColor' ? hex : (HEX.test(v.lineTopColor || '') ? v.lineTopColor : YELLOW.text)
   const bottom = key === 'lineBottomColor' ? hex : (HEX.test(v.lineBottomColor || '') ? v.lineBottomColor : '#7c4dff')
@@ -109,7 +120,7 @@ export function panel(on: any) {
           />
         )}
         {COLOURS.map(c => {
-          const hex = v[c.key] || c.dflt
+          const hex = v[c.key] || (c.pill !== undefined && c.part !== undefined ? pillPart(c.pill, c.part, v) : c.dflt)
           return (
             <Box key={c.key} flexDirection="row" gap={2} alignItems="center">
               <Box key={`${c.key}-left`} flexDirection="column" width={34} flexShrink={0}>
@@ -117,7 +128,7 @@ export function panel(on: any) {
                   <Text bold>{c.label}</Text>
                   <Text>{hex}</Text>
                 </Box>
-                <Box key={`${c.key}-sample`} flexDirection="row">{sampleOf(Svg, Box, c.key, hex, v)}</Box>
+                <Box key={`${c.key}-sample`} flexDirection="row">{sampleOf(Svg, Box, c, hex, v)}</Box>
               </Box>
               <Box key={`${c.key}-right`} flexDirection="column" width={36} flexShrink={0}>
                 <Input

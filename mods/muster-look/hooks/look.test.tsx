@@ -269,8 +269,22 @@ test('every colour row has a colour-code box holding its code; a bad code is sho
   const pane = await $.ui.mount({ plugin: 'muster-look', component: 'Pane', requestId: 'muster-look-settings', surface: 'desktop', props: {} } as any)
   const boxes = (await pane.findAll({ type: 'Input' })) ?? []
   const codes = boxes.filter((b: any) => String(b.props?.label).startsWith('Colour code'))
-  expect(codes.length).toBe(5)
+  expect(codes.length).toBe(11)
   // each box holds the colour it sits beside (the default here)
   expect(codes.map((b: any) => String(b.props?.value).toUpperCase())).toContain('#FFDB58')
   await pane.unmount()
+})
+
+test('each pill has its own text, border and field colour, drawn in the chat', async ($, on) => {
+  on('ui.render', ($, e) => { const { Text } = $.ui.resolve(e); return <Text>engine</Text> })
+  const pane = await $.ui.mount({ plugin: 'muster-look', component: 'Pane', requestId: 'muster-look-settings', surface: 'desktop', props: {} } as any)
+  const texts = JSON.stringify(await pane.findAll({ type: 'Client' }))
+  for (const k of ['questionBorderColor', 'questionFieldColor', 'cardBorderColor', 'cardFieldColor', 'choiceBorderColor', 'choiceFieldColor']) expect(texts).toContain(`field-${k}`)
+  await pane.post({ id: 'choiceBorderColor', hex: '#ff0000' }, { in: 'field-choiceBorderColor' })
+  await pane.post({ id: 'choiceFieldColor', hex: '#003300' }, { in: 'field-choiceFieldColor' })
+  await pane.unmount()
+  const s = (await svgSources($)).join('\n')
+  // the circles: border red, field solid dark green; the heading chip keeps its own colours
+  expect(s).toContain('stroke="#ff0000"')
+  expect(s).toContain('fill="#003300" fill-opacity="1"')
 })

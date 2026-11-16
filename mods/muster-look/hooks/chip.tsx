@@ -13,7 +13,7 @@ const esc = (t: string) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replac
 // The purple a choice's circle fills with while the pointer is over its row; the letter turns white on it.
 export const HOT = '#7c4dff'
 export const HOT_EDGE = '#a98bff'
-export function svgChip(Svg: any, label: string, c: { text: string; label?: string; glow: string; lift: string }, font: string, cut: Cut | null, minTw = 0, pad = 0, hot = false) {
+export function svgChip(Svg: any, label: string, c: { text: string; label?: string; glow: string; lift: string; field?: string }, font: string, cut: Cut | null, minTw = 0, pad = 0, hot = false) {
   // The pill is as wide as the same words in body text (measured widths of the
   // app's regular-weight text). The letters keep their own shape: the label is
   // only ever spaced to that width, never stretched.
@@ -43,7 +43,7 @@ export function svgChip(Svg: any, label: string, c: { text: string; label?: stri
     `<g transform="translate(0 ${pad})">` +
     `<defs><filter id="g" x="-20%" y="-40%" width="140%" height="180%"><feGaussianBlur stdDeviation="1.2"/></filter></defs>` +
     `<rect x="${bx}" y="2.25" width="${bw}" height="${pill - 4.5}" rx="${(pill - 4.5) / 2}" fill="none" stroke="${hot ? HOT_EDGE : c.glow}" stroke-opacity="0.4" stroke-width="1" filter="url(#g)"/>` +
-    `<rect x="${bx}" y="2.25" width="${bw}" height="${pill - 4.5}" rx="${(pill - 4.5) / 2}" fill="${hot ? HOT : c.text}" fill-opacity="${hot ? 1 : 0.08}" stroke="${hot ? HOT_EDGE : c.glow}" stroke-width="${hot ? 1 : 0.5}"/>` +
+    `<rect x="${bx}" y="2.25" width="${bw}" height="${pill - 4.5}" rx="${(pill - 4.5) / 2}" fill="${hot ? HOT : (c.field ?? c.text)}" fill-opacity="${hot || c.field !== undefined ? 1 : 0.08}" stroke="${hot ? HOT_EDGE : c.glow}" stroke-width="${hot ? 1 : 0.5}"/>` +
     (single
       ? `<text x="${w / 2}" y="${pill / 2}" text-anchor="middle" dominant-baseline="central" font-family="${family}" font-size="14" font-weight="400" font-style="normal" fill="${hot ? '#ffffff' : (c.label ?? c.text)}"${face === '' ? '' : ` stroke="${c.label ?? c.text}" stroke-width="0.3" stroke-linejoin="round"`}>${esc(label)}</text>`
       : `<text x="12" y="19" font-family="${family}" font-size="14" font-weight="400" font-style="normal" fill="${hot ? '#ffffff' : (c.label ?? c.text)}"${stretch}>${esc(label)}</text>`) +
@@ -64,3 +64,35 @@ export function palette(base: typeof YELLOW, want: unknown): typeof YELLOW {
   return { text: want, fill: mix(0.2), lift: mix(0.42), edge: mix(0.55), glow: mix(0.95) }
 }
 export const colourOr = (want: unknown, dflt: string) => (typeof want === 'string' && HEX.test(want) ? want : dflt)
+
+// A colour mixed over the dark page, k of the way from the page to the colour.
+export function mixHex(hex: string, k: number): string {
+  const rgb = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16))
+  return '#' + rgb.map((v, i) => Math.round(BACKDROP[i] * (1 - k) + v * k).toString(16).padStart(2, '0')).join('')
+}
+
+// Each pill has three colours the owner can set apart: its text, its border and its field.
+// Text is the pill's own colour (the border and field follow it until they are set).
+export const PILLS = {
+  question: { base: YELLOW, text: 'questionHeadingColor', border: 'questionBorderColor', field: 'questionFieldColor' },
+  card: { base: PURPLE, text: 'cardHeadingColor', border: 'cardBorderColor', field: 'cardFieldColor' },
+  choice: { base: YELLOW, text: 'choiceChipColor', border: 'choiceBorderColor', field: 'choiceFieldColor' },
+} as const
+export type PillName = keyof typeof PILLS
+
+export function pillOf(name: PillName, v: Record<string, string | undefined>) {
+  const d = PILLS[name]
+  const c = palette(d.base, v[d.text]) as typeof YELLOW & { field?: string }
+  const border = colourOr(v[d.border], '')
+  const field = colourOr(v[d.field], '')
+  return { ...c, glow: border !== '' ? border : c.glow, field: field !== '' ? field : undefined }
+}
+
+// The code each part shows in the settings: what is set, else what is drawn now.
+export function pillPart(name: PillName, part: 'text' | 'border' | 'field', v: Record<string, string | undefined>): string {
+  const d = PILLS[name]
+  const c = pillOf(name, v)
+  if (part === 'text') return colourOr(v[d.text], d.base.text)
+  if (part === 'border') return c.glow
+  return c.field ?? mixHex(c.text, 0.08)
+}

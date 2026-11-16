@@ -4,7 +4,7 @@
 // store file under the Claude Code configuration folder; a group with no entry
 // uses the defaults.
 const HEX = /^#[0-9a-fA-F]{6}$/
-export const KEYS = ['chipFont', 'questionHeadingColor', 'cardHeadingColor', 'choiceChipColor', 'lineTopColor', 'lineBottomColor']
+export const KEYS = ['chipFont', 'questionHeadingColor', 'cardHeadingColor', 'choiceChipColor', 'lineTopColor', 'lineBottomColor', 'questionBorderColor', 'questionFieldColor', 'cardBorderColor', 'cardFieldColor', 'choiceBorderColor', 'choiceFieldColor']
 
 // A host with no store keeps the choices for the session only (and the test kit has none).
 const memory = new Map<string, unknown>()

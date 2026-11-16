@@ -4,7 +4,7 @@ import { cutFont, fromBase64, type Cut } from './font'
 import { labelWidth } from './metrics'
 import { panel, registerLook } from './panel'
 import { loadGroup, pickedOn, savePick } from './group'
-import { YELLOW, PURPLE, svgChip, palette, colourOr } from './chip'
+import { svgChip, pillOf, colourOr, YELLOW } from './chip'
 
 
 // Anthropic Sans is read from the Claude app's own folder at run time, never copied.
@@ -69,9 +69,9 @@ export const register: Register = (on) => {
     // this group's own look; a group with none gets the defaults
     const opts = await loadGroup($)
     const picked = parsed.isQuestion ? await pickedOn($, e.props.text) : undefined
-    const QUESTION = palette(YELLOW, opts.questionHeadingColor)
-    const CARD = palette(PURPLE, opts.cardHeadingColor)
-    const CHOICE = palette(YELLOW, opts.choiceChipColor)
+    const QUESTION = pillOf('question', opts)
+    const CARD = pillOf('card', opts)
+    const CHOICE = pillOf('choice', opts)
     const TOP = colourOr(opts.lineTopColor, YELLOW.text)
     const BOTTOM = colourOr(opts.lineBottomColor, '#7c4dff')
     const FONT = fontList(opts.chipFont)

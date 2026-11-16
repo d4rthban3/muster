@@ -1,5 +1,6 @@
 import { expect, test } from 'claude-code/testing'
 import Rail from './rail'
+import { isOwnerSubmit } from './register'
 
 const MSG = (text: string, surface: 'terminal' | 'desktop') => ({
   plugin: 'muster-look',
@@ -312,12 +313,9 @@ test('a live question has a text box; what is typed is sent with its heading and
   await ui.unmount()
 })
 
-test('a message that is not the owner typing does not kill the live question', async ($, on) => {
-  on('prompt.submit', ($, e) => ({ text: String((e as any).text) }) as any)
-  const ui = await $.ui.mount(MSG(Q2, 'desktop'))
-  expect(await ui.find({ type: 'Client', key: 'pickA' })).toBeTruthy()
-  // a plugin's own prompt (origin is not the composer) goes by
-  await $.prompt.submit({ text: 'status from a peer' })
-  expect(await ui.find({ type: 'Client', key: 'pickA' })).toBeTruthy()
-  await ui.unmount()
+test('only the owner typing answers a question; peers, plugins and notifications do not', () => {
+  for (const kind of ['peer', 'peer-send-message', 'plugin', 'task-notification', 'scheduled-trigger', 'projects-relay', 'coordinator', 'channel']) expect(isOwnerSubmit({ origin: { kind } })).toBe(false)
+  expect(isOwnerSubmit({})).toBe(false)
+  expect(isOwnerSubmit({ origin: { kind: 'composer' } })).toBe(true)
+  expect(isOwnerSubmit({ origin: { kind: 'bridge' } })).toBe(true)
 })

@@ -16,6 +16,9 @@ const fontList = (want: unknown) => {
   return name === '' || name === 'Anthropic Sans' ? FONT_TAIL : `${name},${FONT_TAIL}`
 }
 
+// true only for the owner's own typing (the composer, or the phone/web bridge)
+export const isOwnerSubmit = (e: any): boolean => e?.origin?.kind === 'composer' || e?.origin?.kind === 'bridge'
+
 export const register: Register = (on) => {
   panel(on)
   let fontBytes: Uint8Array | null = null
@@ -26,8 +29,7 @@ export const register: Register = (on) => {
   on('prompt.submit', async ($, e, next) => {
     // only the owner's own typing answers a question; a peer's message, a
     // notification, a scheduled prompt or another plugin's submit leaves it live
-    const kind = (e as any).origin?.kind
-    const owner = kind === 'composer' || kind === 'bridge'
+    const owner = isOwnerSubmit(e)
     if (owner && latestQuestion !== '') {
       answered.add(latestQuestion)
       // a reply that is just a letter of that question sticks on it

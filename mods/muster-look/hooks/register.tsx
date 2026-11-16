@@ -135,14 +135,14 @@ export const register: Register = (on) => {
       const row = (
         <Box key={`c${i}`} gap={2} alignItems="center" position="relative" backgroundColor={p.letter === picked && !isTerminal ? '#23262e' : undefined} hover={live && !isTerminal && Client !== undefined ? { backgroundColor: '#23262e' } : undefined}>
           {live && !isTerminal ? (
-            <Box position="relative">
+            <Box position="relative" flexShrink={0}>
               {chip(p.letter, CHOICE, letterTw, 4)}
               <Box position="absolute" top={0} left={0} display="none" hover={{ display: 'flex' }}>
                 {chip(p.letter, CHOICE, letterTw, 4, true)}
               </Box>
             </Box>
-          ) : chip(p.letter, CHOICE, letterTw, 4, p.letter === picked)}
-          <Markdown key={`cm${i}`} text={p.text} />
+          ) : <Box flexShrink={0}>{chip(p.letter, CHOICE, letterTw, 4, p.letter === picked)}</Box>}
+          <Box key={`cb${i}`} flexShrink={1} flexGrow={1}><Markdown key={`cm${i}`} text={p.text} /></Box>
           {live && !isTerminal && Client !== undefined && (
             <Box position="absolute" top={0} left={0} right={0} bottom={0}>
               <Client key={`pick${p.letter}`} module="./choice.tsx" props={{ letter: p.letter }} width="100%" height="100%" />

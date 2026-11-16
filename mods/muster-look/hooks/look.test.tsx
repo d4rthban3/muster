@@ -288,3 +288,17 @@ test('each pill has its own text, border and field colour, drawn in the chat', a
   expect(s).toContain('stroke="#ff0000"')
   expect(s).toContain('fill="#003300" fill-opacity="1"')
 })
+
+test('every A/B/C circle is one size and cannot be squeezed by a long, wrapping choice', async ($, on) => {
+  on('ui.render', ($, e) => { const { Text } = $.ui.resolve(e); return <Text>engine</Text> })
+  const long = 'This choice is a very long one that goes on and on and on so that it has to wrap onto a second and a third line in the chat'
+  const text = `**WAITING · item 7**\nPick one.\n\n***A.*** Short\n\n***B.*** ${long}\n\n***C.*** Also short\n\n***D.*** ${long} ${long}`
+  const ui = await $.ui.mount(MSG(text, 'desktop'))
+  const svgs = ((await ui.findAll({ type: 'Svg' })) ?? []).filter((x: any) => String(x.props?.alt ?? '').length === 1)
+  const sizes = new Set(svgs.map((x: any) => `${x.props.width}x${x.props.height}`))
+  expect(svgs.length).toBeGreaterThanOrEqual(4)
+  expect(sizes.size).toBe(1)
+  const tree = JSON.stringify(await ui.findAll({ type: 'Box' }))
+  expect((tree.match(/"flexShrink":0/g) ?? []).length).toBeGreaterThanOrEqual(4)
+  await ui.unmount()
+})

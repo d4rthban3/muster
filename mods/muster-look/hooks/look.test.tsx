@@ -113,6 +113,30 @@ test('the settings panel has a font dropdown, swatches, a hex box and resets', a
   expect(await ui.find({ type: 'Select' })).toBeTruthy()
   expect(await ui.find({ type: 'Input' })).toBeTruthy()
   expect(await ui.find({ type: 'Button', label: 'Reset all to default' })).toBeTruthy()
-  expect(await ui.find({ type: 'Button', label: '#9b6dff' })).toBeTruthy()
+  expect(await ui.find({ type: 'Button', label: 'Use #9b6dff' })).toBeTruthy()
   await ui.unmount()
+})
+
+import { hexToHsv, hsvToHex } from './color'
+import Field from './field'
+
+test('colour helpers round-trip and the field posts the picked colour', async () => {
+  expect(hsvToHex(hexToHsv('#9b6dff').h, hexToHsv('#9b6dff').s, hexToHsv('#9b6dff').v).toLowerCase()).toBe('#9b6dff')
+  let pointer: any = null
+  const posts: any[] = []
+  let state: any
+  const surface: any = {
+    elements: { Box: (p: any) => p, Text: (p: any) => p },
+    get state() { return state },
+    setState: (n: any) => { state = n },
+    onPointer: (fn: any) => { pointer = fn },
+    post: (d: any) => posts.push(d),
+  }
+  ;(globalThis as any).h = (t: any, p: any, ...c: any[]) => ({ t, p, c })
+  Field({ id: 'lineTopColor', hex: '#ff0000' }, surface)
+  pointer({ type: 'down', x: 31, y: 6, button: 'left' })
+  pointer({ type: 'up', x: 0, y: 6, button: 'left' })
+  expect(posts.length).toBe(1)
+  expect(posts[0].id).toBe('lineTopColor')
+  expect(posts[0].hex).toBe('#ff0000')
 })

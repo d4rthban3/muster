@@ -13,7 +13,7 @@
     },
     {
       "name": "muster-look",
-      "version": "0.2.14",
+      "version": "0.2.17",
       "source": "./mods/muster-look",
       "description": "Optional look for Claude Code: chips on crew cards and questions, a thin yellow-to-purple left line, Anthropic Sans labels. Installed with Muster; colours and font are settings."
     }

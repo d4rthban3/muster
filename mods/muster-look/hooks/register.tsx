@@ -3,7 +3,7 @@ import { parse } from './parse'
 import { cutFont, fromBase64, type Cut } from './font'
 import { labelWidth } from './metrics'
 import { panel, registerLook } from './panel'
-import { loadGroup, pickedOn, typedOn, savePick } from './group'
+import { loadGroup, pickedOn, typedOn, savePick, clearPick } from './group'
 import { svgChip, pillOf, colourOr, YELLOW } from './chip'
 
 
@@ -39,6 +39,16 @@ export const register: Register = (on) => {
         await savePick($, latestQuestion, m[1].toUpperCase())
         $.ui.invalidate('ui.render')
       }
+    }
+    return next(e)
+  })
+  // The owner took an edit back (chat:undo): the newest question goes back to unpicked
+  // and live again, as if never clicked. (The one undo the mod API reports.)
+  on('prompt.change', { origin: { kind: 'undo' } }, async ($, e, next) => {
+    if (latestQuestion !== '') {
+      answered.delete(latestQuestion)
+      await clearPick($, latestQuestion)
+      $.ui.invalidate('ui.render')
     }
     return next(e)
   })

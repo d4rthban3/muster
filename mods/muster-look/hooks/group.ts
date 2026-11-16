@@ -91,3 +91,14 @@ export async function savePick($: any, text: string, letter: string): Promise<vo
     await kvSet($, 'picks', all)
   } catch { /* a store that refuses keeps nothing */ }
 }
+
+// An undone pick: the question goes back to unpicked, as if never clicked.
+export async function clearPick($: any, text: string): Promise<void> {
+  try {
+    const all = await loadPicks($)
+    const k = hashText(text)
+    if (!(k in all)) return
+    delete all[k]
+    await kvSet($, 'picks', all)
+  } catch { /* a store that refuses keeps nothing */ }
+}

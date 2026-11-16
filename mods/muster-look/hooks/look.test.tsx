@@ -99,7 +99,7 @@ test('with nothing set the look is the default', async ($, on) => {
   expect(s).toContain('font-weight="400"')
 })
 
-import { groupId, loadGroup, saveGroup, clearGroup } from './group'
+import { groupId, loadGroup, saveGroup, clearGroup, savePick, pickedOn, clearPick } from './group'
 
 const CUSTOM = { chipFont: 'Georgia', questionHeadingColor: '#2dd4bf', choiceChipColor: '#ff7ab6', lineTopColor: '#2dd4bf', lineBottomColor: '#ff7ab6' }
 
@@ -360,4 +360,14 @@ test('the one-line form draws one clickable circle per letter', async ($, on) =>
   const svgs = ((await ui.findAll({ type: 'Svg' })) ?? []).filter((x: any) => String(x.props?.alt ?? '').length === 1)
   expect(new Set(svgs.map((x: any) => x.props.alt))).toEqual(new Set(['A', 'B']))
   await ui.unmount()
+})
+
+test('an undone pick goes back to unpicked, as if never clicked; other questions keep theirs', async ($) => {
+  await savePick($, 'question one', 'B')
+  await savePick($, 'question two', 'C')
+  expect(await pickedOn($, 'question one')).toBe('B')
+  await clearPick($, 'question one')
+  expect(await pickedOn($, 'question one')).toBeUndefined()
+  expect(await pickedOn($, 'question two')).toBe('C')
+  await clearPick($, 'never asked')
 })

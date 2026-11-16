@@ -14,6 +14,7 @@ Before anything else, open with a welcome card in the card look, then one simple
 - the crew: each worker's name and job in one line, add-ons included (from `muster/CREW.md`);
 - how to talk to you: say anything in their own words; if something is unclear you ask, and you never guess;
 - when you speak up: only to ask a question, to ask for a yes (money, keys, deleting), or to say the crew is idle with lettered lines; workers post their own updates in their own chats;
+- one line: the colours and font of cards can be changed, and you will show how if they ask;
 - a link to their list ([muster/OWNERS-LIST.md](muster/OWNERS-LIST.md));
 - then one simple first question, about their vision (item 1 on their list).
 No saved-version codes, no file paths beyond the list's link, and no "sorted item 1 as an inquiry" in the opening.

@@ -710,8 +710,9 @@ fn stop(c: &Ctx, data: &Value, manager: bool) {
     }
 }
 
-/// The profile of the project this chat works in: the file named in MUSTER_PROFILE, else .muster-checks/profile.json in the chat's
-/// folder or any folder above it.
+/// The profiles of the project this chat works in, joined: the file named in MUSTER_PROFILE, and in the chat's folder or any folder
+/// above it both .muster-checks/profile.json and the profile a live stand-in (.muster-checks/live.json) points to. The first guard
+/// found wins; crew names from all are kept.
 fn project_profile(data: &Value) -> Value {
     let mut cands: Vec<std::path::PathBuf> = vec![];
     if let Ok(p) = std::env::var("MUSTER_PROFILE") { if !p.is_empty() { cands.push(p.into()); } }
@@ -720,15 +721,27 @@ fn project_profile(data: &Value) -> Value {
     });
     let mut d = std::path::PathBuf::from(start);
     loop {
-        cands.push(d.join(".muster-checks").join("profile.json"));
+        let mc = d.join(".muster-checks");
+        if let Some(lj) = std::fs::read_to_string(mc.join("live.json")).ok().and_then(|t| serde_json::from_str::<Value>(&t).ok()) {
+            if let (Some(m), Some(p)) = (lj.get("muster").and_then(Value::as_str), lj.get("profile").and_then(Value::as_str)) {
+                if !m.is_empty() && !p.is_empty() { cands.push(std::path::Path::new(m).join(p)); }
+            }
+        }
+        cands.push(mc.join("profile.json"));
         match d.parent() { Some(p) if p != d => d = p.to_path_buf(), _ => break }
     }
+    let mut guard: Option<Value> = None;
+    let mut names: Vec<Value> = vec![];
     for c in cands {
-        if c.is_file() {
-            return std::fs::read_to_string(&c).ok().and_then(|t| serde_json::from_str::<Value>(&t).ok()).filter(Value::is_object).unwrap_or(Value::Object(Default::default()));
-        }
+        if !c.is_file() { continue; }
+        let Some(j) = std::fs::read_to_string(&c).ok().and_then(|t| serde_json::from_str::<Value>(&t).ok()).filter(Value::is_object) else { continue };
+        if guard.is_none() { if let Some(g) = j.get("guard").filter(|g| g.is_object()) { guard = Some(g.clone()); } }
+        for n in j.get("crew_names").and_then(Value::as_array).cloned().unwrap_or_default() { if !names.contains(&n) { names.push(n); } }
     }
-    Value::Object(Default::default())
+    let mut out = serde_json::Map::new();
+    if let Some(g) = guard { out.insert("guard".into(), g); }
+    out.insert("crew_names".into(), Value::Array(names));
+    Value::Object(out)
 }
 
 /// Item 117 on its own: the guard in a project's own profile blocks even where the project runs its own older installed copy.

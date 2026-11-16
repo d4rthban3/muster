@@ -1263,25 +1263,39 @@ def stood_down(data):
 
 
 def project_profile(data):
-    """The profile of the project this chat works in: the file named in MUSTER_PROFILE, else .muster-checks/profile.json in the chat's
-    folder or any folder above it (a crew copy under the main folder finds the main folder's)."""
+    """The profiles of the project this chat works in, joined: the file named in MUSTER_PROFILE, and in the chat's folder or any
+    folder above it both .muster-checks/profile.json and the profile a live stand-in (.muster-checks/live.json) points to. The
+    first guard found wins; crew names from all are kept."""
     cands = [os.environ.get("MUSTER_PROFILE")]
     d = os.path.abspath(os.environ.get("CLAUDE_PROJECT_DIR") or data.get("cwd") or os.getcwd())
     while True:
-        cands.append(os.path.join(d, ".muster-checks", "profile.json"))
+        mc = os.path.join(d, ".muster-checks")
+        try:
+            with open(os.path.join(mc, "live.json"), encoding="utf-8") as fh:
+                lj = json.load(fh)
+            if isinstance(lj, dict) and lj.get("muster") and lj.get("profile"):
+                cands.append(os.path.join(str(lj["muster"]), str(lj["profile"])))
+        except (OSError, ValueError):
+            pass
+        cands.append(os.path.join(mc, "profile.json"))
         parent = os.path.dirname(d)
         if parent == d:
             break
         d = parent
+    out = {}
     for cand in cands:
         if cand and os.path.isfile(cand):
             try:
                 with open(cand, encoding="utf-8") as fh:
                     j = json.load(fh)
-                return j if isinstance(j, dict) else {}
             except (OSError, ValueError):
-                return {}
-    return {}
+                continue
+            if not isinstance(j, dict):
+                continue
+            if isinstance(j.get("guard"), dict) and "guard" not in out:
+                out["guard"] = j["guard"]
+            out["crew_names"] = (out.get("crew_names") or []) + [x for x in (j.get("crew_names") or []) if x not in (out.get("crew_names") or [])]
+    return out
 
 
 def guard_main():

@@ -175,6 +175,14 @@ for _rn, _rr in _runners:
     add("item 117 (project profile, %s): git status goes through" % _rn, "" if not _pg(_rr, "git status") else "BAD", False)
     add("item 117 (project profile, %s): a chat that is not a crew chat is untouched" % _rn, "" if not _pg(_rr, "git reset --hard", trans=tr("hello there")) else "BAD", False)
 add("item 117 (project profile): a project profile with no guard refuses nothing", (lambda: "" if not (json.dump({"name": "P", "crew_names": ["\\bManager_P_\\d{3}\\b"]}, open(os.path.join(_pp, ".muster-checks", "profile.json"), "w")) or _pg(_runners[0][1], "git reset --hard")) else "BAD")(), False)
+# ...and the guard may sit in the profile a live stand-in points to (live.json -> <Muster folder>/<profile>), not only in the project's own file
+_lm = os.path.join(T, "livemuster"); os.makedirs(os.path.join(_lm, "profiles"))
+json.dump({"name": "P", "guard": {"protected_folders": [_pp]}}, open(os.path.join(_lm, "profiles", "g.json"), "w"))
+json.dump({"muster": _lm, "profile": "profiles/g.json"}, open(os.path.join(_pp, ".muster-checks", "live.json"), "w"))
+for _rn, _rr in _runners:
+    add("item 117 (live.json profile, %s): a guard in the profile the stand-in points to is refused" % _rn, "" if _blocked(_pg(_rr, "git reset --hard"), "reset") else "BAD", False)
+    add("item 117 (live.json profile, %s): ...and git status goes through" % _rn, "" if not _pg(_rr, "git status") else "BAD", False)
+os.remove(os.path.join(_pp, ".muster-checks", "live.json"))
 add("1 the owner's own chat is untouched", send("hello team", tr("hi there")), False)
 add("1 without the profile Site_PINR_002 is not a crew chat (Muster unchanged)", send("NEED: x\nWhat: only one line", site, plain=True), False)
 # 2 report shape

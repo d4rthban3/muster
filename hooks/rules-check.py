@@ -365,6 +365,19 @@ LETTER_LINE = re.compile(r"^\s*(?:\*{1,3}|_)?\(?([A-D])[.)]\*{0,3}\s", re.M)
 GOOD_LETTER_LINE = re.compile(r"^\s*\*\*\*[A-D]\.\*\*\*\s")
 
 
+TITLE_LINE = re.compile(r"^\s*\*\*[^*\n]+\s[\u00b7.]\s[^*\n]+\*\*\s*$")
+
+
+def title_above_choices(text):
+    """True when a bold 'WORD \u00b7 job' heading line stands above the first lettered choice line (item 120)."""
+    for l in text.splitlines():
+        if re.match(r"^\*\*\*[A-D]\.\*\*\*", l):
+            return False
+        if TITLE_LINE.match(l):
+            return True
+    return False
+
+
 def letters_not_bold_italic(text):
     """True when the reply writes two or more lettered choice lines and any of them is not ***A.*** (bold and italic) (item 80)."""
     lines = [l for l in text.splitlines() if LETTER_LINE.match(l)]
@@ -1218,6 +1231,8 @@ def stop(data, manager):
             return block("write each choice letter bold and italic, like ***A.*** red, one line per choice with a blank line between (item 80)")
         if len(re.findall(r"^\*\*\*[A-D]\.\*\*\*", text, re.M)) >= 2 and not re.search(r"\bmy pick\b", text, re.I):
             return block("every lettered question carries your pick: mark one choice *(my pick)* and give a one-line reason, looks included; a pick is advice only and nothing is ordered until he answers (item 100)")
+        if len(re.findall(r"^\*\*\*[A-D]\.\*\*\*", text, re.M)) >= 2 and not title_above_choices(text):
+            return block("a question to the owner opens with a bold heading line 'WORD \u00b7 job' (like **ASK \u00b7 score-audit**) above the lettered choices, so it draws as a card (item 120)")
         if re.search(r"\bis waiting for you\b|\btype (?:it |your \w+ |anything )?in (?:the |that |this )?[\w .-]*\b(?:chat|window)\b", text, re.I):
             return block("never send the owner to type in a worker's chat (item 103): carrying his approval is your job; forward his quoted go to the worker that asked, by message, and say nothing to him")
         if is_news(text) and not owner_form_ok(text) and not owner_asked(data.get("transcript_path") or ""):

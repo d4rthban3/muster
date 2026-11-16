@@ -445,6 +445,17 @@ fn guard_problem(tool: &str, inp: &Value, cwd: &str, conf: &Value) -> Option<Str
     }
 }
 
+/// True when a bold 'WORD . job' heading line stands above the first lettered choice line (item 120).
+fn title_above_choices(text: &str) -> bool {
+    let letter = re(r"^\*\*\*[A-D]\.\*\*\*");
+    let title = re(r"^\s*\*\*[^*\n]+\s[\u{b7}.]\s[^*\n]+\*\*\s*$");
+    for l in text.lines() {
+        if is(&letter, l) { return false; }
+        if is(&title, l) { return true; }
+    }
+    false
+}
+
 fn pretool(c: &Ctx, data: &Value, manager: bool) {
     let tool = s(data, "tool_name");
     let empty = Value::Object(Default::default());
@@ -686,6 +697,10 @@ fn stop(c: &Ctx, data: &Value, manager: bool) {
         }
         if re(r"(?m)^\*\*\*[A-D]\.\*\*\*").find_iter(text).count() >= 2 && !is(&rei(r"\bmy pick\b"), text) {
             block("every lettered question carries your pick: mark one choice *(my pick)* and give a one-line reason, looks included; a pick is advice only and nothing is ordered until he answers (item 100)");
+            return;
+        }
+        if re(r"(?m)^\*\*\*[A-D]\.\*\*\*").find_iter(text).count() >= 2 && !title_above_choices(text) {
+            block("a question to the owner opens with a bold heading line 'WORD \u{b7} job' (like **ASK \u{b7} score-audit**) above the lettered choices, so it draws as a card (item 120)");
             return;
         }
         if text.contains('?') && look_unshown(&question_part(text), &uses) {

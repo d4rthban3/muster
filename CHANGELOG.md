@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.114
+Affects: see .claude-plugin/releases/0.3.114.json.
+Look fixes: choice gap, even circles, picked choice stays, colour code box left, pill colours, cleaner look page, own-answer box, dead clicks
+
 ## 0.3.113
 Affects: see .claude-plugin/releases/0.3.113.json.
 no-next-step-box: Muster chats ask only with Muster choices (item 119)

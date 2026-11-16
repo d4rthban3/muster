@@ -1,0 +1,29 @@
+{
+  "version": "0.3.114",
+  "changed_files": [
+    ".claude-plugin/marketplace.json",
+    "mods/muster-look/.claude-plugin/plugin.json",
+    "mods/muster-look/hooks/chip.tsx",
+    "mods/muster-look/hooks/field.tsx",
+    "mods/muster-look/hooks/group.ts",
+    "mods/muster-look/hooks/look.test.tsx",
+    "mods/muster-look/hooks/panel.tsx",
+    "mods/muster-look/hooks/register.tsx",
+    "screenshots/choice-card-gap/gap.png",
+    "screenshots/choice-even/even.png",
+    "screenshots/choice-stick/stick-final.png",
+    "screenshots/choice-stick/stick.png",
+    "screenshots/choice-text/choice-text.png",
+    "screenshots/hex-left/hex-left.png",
+    "screenshots/look-clean/clean.png",
+    "screenshots/look-glass/glass.png",
+    "screenshots/look-hex/hex.png",
+    "screenshots/pill-parts/parts.png"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Look fixes: choice gap, even circles, picked choice stays, colour code box left, pill colours, cleaner look page, own-answer box, dead clicks"
+}

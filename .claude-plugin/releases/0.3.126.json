@@ -1,0 +1,17 @@
+{
+  "version": "0.3.126",
+  "changed_files": [
+    "checks/src/rules.rs",
+    "hooks/rules-check.py",
+    "scripts/rules-check-selftest.py",
+    "skills/manager-details/SKILL.md"
+  ],
+  "affected_roles": [
+    "Manager"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "working-status-line: while the crew works and nothing needs the owner, the manager may end with one status line naming who works on what"
+}

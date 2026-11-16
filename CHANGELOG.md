@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.126
+Affects: Manager.
+working-status-line: while the crew works and nothing needs the owner, the manager may end with one status line naming who works on what
+
 ## 0.3.125
 Affects: see .claude-plugin/releases/0.3.125.json.
 a click on a card drawn while its question was still streaming now sends the finished question text

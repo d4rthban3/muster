@@ -1004,8 +1004,16 @@ def recorder_path(root):
     return RECORDER
 
 
+def status_line(t):
+    """Item 123: while the crew works and nothing needs the owner, ONE status line is allowed: "Working: Engine on rug-archive-seed, Site on launch-signs-show"."""
+    t = t.strip()
+    return len(t.splitlines()) == 1 and len(t) <= 300 and re.match(r"Working: \S.* on \S", t) is not None
+
+
 def manager_reply_ok(text):
     t = LINK.sub(lambda m: m.group(0), text)
+    if status_line(t):
+        return True
     if len(t) <= 300 and len(t.strip().splitlines()) <= 3 and re.search(r"\bon the board\b", t, re.I):
         return True  # a short pointer to the news (item 60)
     if re.search(r"\bThe crew is idle\b", t, re.I):
@@ -1022,7 +1030,9 @@ NEWS_LO = re.compile(r"\b(shipped|passed|merged|released|progress|landed|finishe
 
 
 def owner_form_ok(t):
-    """The forms a manager may use to the owner (item 97): a lettered question, a yes he must give, the idle card (never "type in <chat>", item 103)."""
+    """The forms a manager may use to the owner (item 97): a lettered question, a yes he must give, the idle card, the one working status line (never "type in <chat>", item 103)."""
+    if status_line(t):
+        return True
     if re.search(r"\bThe crew is idle\b", t, re.I):
         return True
     if re.search(r"\b(I need your yes|needs? your yes|your yes (is needed|to))\b", t, re.I):
@@ -1278,7 +1288,7 @@ def stop(data, manager):
             return block("a question about how something looks comes after the pictures: show them to him first in this turn (send-file with render, or card previews), then ask")
         if not manager_reply_ok(text) and not owner_asked(data.get("transcript_path") or "") \
                 and not (peer_started(data.get("transcript_path") or "") and short_report(text)):  # a short routine reply to another chat's message is not bounced (item 75)
-            return block("to the owner the manager says only a question with its choices as lettered lines (***A.*** ...), a yes he must give, or 'The crew is idle'; never send him to type in a worker's chat, relay his answer yourself (item 103). Rewrite the reply as one of those, or put the news on the board")
+            return block("to the owner the manager says only a question with its choices as lettered lines (***A.*** ...), a yes he must give, 'The crew is idle', or the one status line 'Working: <who> on <job>, ...' while the crew works; never send him to type in a worker's chat, relay his answer yourself (item 103). Rewrite the reply as one of those, or put the news on the board")
         return
     if asked or re.match(r"\s*Messages paused", text):
         return

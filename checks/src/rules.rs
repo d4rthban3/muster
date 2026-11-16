@@ -316,7 +316,13 @@ fn look_unshown(question: &str, uses: &[Value]) -> bool { (is(&rei(LOOK), questi
 /// Group check (item 79): a chat really started this turn (not a card that only proposes one) must be followed by move_sessions into the
 /// project's group and then a list_sessions read-back.
 /// Item 97: what a manager may say to the owner: a lettered question, a yes he must give, the idle card (never "type in <chat>", item 103).
+/// Item 123: while the crew works and nothing needs the owner, ONE status line is allowed: "Working: Engine on rug-archive-seed, Site on launch-signs-show".
+fn status_line(t: &str) -> bool {
+    let t = t.trim();
+    t.lines().count() == 1 && t.chars().count() <= 300 && is(&re(r"^Working: \S.* on \S"), t)
+}
 fn owner_form_ok(t: &str) -> bool {
+    if status_line(t) { return true; }
     if is(&rei(r"\bThe crew is idle\b"), t) { return true; }
     if is(&rei(r"\b(I need your yes|needs? your yes|your yes (is needed|to))\b"), t) { return true; }
     let letters = re(r"(?m)^\*\*\*[A-D]\.\*\*\*").find_iter(t).count();
@@ -621,6 +627,7 @@ fn recorder_path(root: &str, name: &str) -> String {
 }
 
 fn manager_reply_ok(t: &str) -> bool {
+    if status_line(t) { return true; } // the working status line (item 123)
     if t.chars().count() <= 300 && t.trim().lines().count() <= 3 && is(&rei(r"\bon the board\b"), t) { return true; } // a short pointer to the news (item 60)
     if is(&rei(r"\bThe crew is idle\b"), t) { return true; }
     if is(&rei(r"\b(I need your yes|needs? your yes|your yes (is needed|to))\b"), t) { return true; }
@@ -708,7 +715,7 @@ fn stop(c: &Ctx, data: &Value, manager: bool) {
             return;
         }
         if !manager_reply_ok(text) && !owner_asked(tpath) && !(peer_started(tpath) && text.trim().chars().count() <= 300 && text.trim().lines().count() <= 3) { // a short routine reply to another chat's message is not bounced (item 75)
-            block("to the owner the manager says only a question with its choices as lettered lines (***A.*** ...), a yes he must give, or 'The crew is idle'; never send him to type in a worker's chat, relay his answer yourself (item 103). Rewrite the reply as one of those, or put the news on the board");
+            block("to the owner the manager says only a question with its choices as lettered lines (***A.*** ...), a yes he must give, 'The crew is idle', or the one status line 'Working: <who> on <job>, ...' while the crew works; never send him to type in a worker's chat, relay his answer yourself (item 103). Rewrite the reply as one of those, or put the news on the board");
         }
         return;
     }

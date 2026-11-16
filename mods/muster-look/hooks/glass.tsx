@@ -70,17 +70,27 @@ export async function imageData($: any, path: string): Promise<{ uri?: string; w
   } catch { return { why: 'That file could not be read.' } }
 }
 
-// Calm: two soft glows, one rising from the bottom-left corner and one from the top-right, on a deep ground.
+// Calm: two soft glows, one rising from the bottom-left corner and one from the top-right, on a deep
+// ground. Smooth like liquid glass: each glow falls off along an eased (gaussian-like) curve with many
+// stops, so there are no steps or rings; a very fine grain is laid over it so 8-bit colour cannot
+// band; and a glow drifts by moving a finished picture slowly (a glide, never a redraw of the gradient).
+const FALL = [1, 0.97, 0.9, 0.79, 0.66, 0.52, 0.39, 0.27, 0.18, 0.11, 0.06, 0.03, 0.01, 0]
 const HEAD = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice">`
-const glow = (id: string, cx: number, cy: number, c: string, dur: number) =>
-  `<radialGradient id="${id}" gradientUnits="userSpaceOnUse" cx="${cx}" cy="${cy}" r="900"><stop offset="0" stop-color="${c}" stop-opacity="0.5"/><stop offset="0.5" stop-color="${c}" stop-opacity="0.16"/><stop offset="1" stop-color="${c}" stop-opacity="0"/><animate attributeName="r" values="900;980;900" dur="${dur}s" repeatCount="indefinite"/></radialGradient>`
+const GRAIN = `<filter id="n" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" seed="7" stitchTiles="stitch"/><feColorMatrix type="matrix" values="0 0 0 0 0.5  0 0 0 0 0.5  0 0 0 0 0.5  0 0 0 0.9 -0.2"/></filter>`
+const glow = (id: string, c: string) =>
+  `<radialGradient id="${id}" cx="0.5" cy="0.5" r="0.5">${FALL.map((f, i) => `<stop offset="${(i / (FALL.length - 1)).toFixed(3)}" stop-color="${c}" stop-opacity="${(f * 0.5).toFixed(3)}"/>`).join('')}</radialGradient>`
+// a glow is a big disc that glides slowly back and forth, eased at both ends
+const drift = (id: string, cx: number, cy: number, dx: number, dy: number, dur: number) =>
+  `<rect x="${cx - 1100}" y="${cy - 1100}" width="2200" height="2200" fill="url(#${id})"><animateTransform attributeName="transform" type="translate" values="0 0;${dx} ${dy};0 0" dur="${dur}s" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.45 0 0.55 1;0.45 0 0.55 1" repeatCount="indefinite"/></rect>`
 export function sceneOf(c1: string, c2: string, uri?: string): string {
   if (uri !== undefined) {
     return HEAD + `<rect width="1600" height="1000" fill="#12141b"/><image href="${uri}" x="0" y="0" width="1600" height="1000" preserveAspectRatio="xMidYMid slice"/><rect width="1600" height="1000" fill="#12141b" fill-opacity="0.35"/></svg>`
   }
   return (
-    HEAD + `<defs>${glow('a', 0, 1000, c1, 60)}${glow('b', 1600, 0, c2, 75)}</defs>` +
-    `<rect width="1600" height="1000" fill="#12141b"/><rect width="1600" height="1000" fill="url(#a)"/><rect width="1600" height="1000" fill="url(#b)"/></svg>`
+    HEAD + `<defs>${glow('a', c1)}${glow('b', c2)}${GRAIN}</defs>` +
+    `<rect width="1600" height="1000" fill="#12141b"/>` +
+    drift('a', 0, 1000, 60, -40, 90) + drift('b', 1600, 0, -60, 40, 110) +
+    `<rect width="1600" height="1000" filter="url(#n)" opacity="0.05"/></svg>`
   )
 }
 

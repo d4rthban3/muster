@@ -304,6 +304,25 @@ test('every A/B/C circle is one size and cannot be squeezed by a long, wrapping 
   await ui.unmount()
 })
 
+test('a choice of four or more lines keeps its circle full size and centred on its own text block', async ($, on) => {
+  on('ui.render', ($, e) => { const { Text } = $.ui.resolve(e); return <Text>engine</Text> })
+  const four = 'Engine sweeps every open, keyless or free-key live trade source for Solana, Base and BNB. That means the ones above plus anything else a fresh search finds, recorded on one build-or-buy page. It then runs the best ones side by side for a timed window (lag, which launchpads each covers, gaps, limits, terms), reports to you, and builds the winner as the main ribbon feed, with Helius kept as backup. My pick.'
+  const text = `**WAITING · item 7**\nWhich plan?\n\n***A.*** ${four}\n\n***B.*** The same sweep and test, but it builds nothing until you have seen them.`
+  for (const surface of ['desktop'] as const) {
+    const ui = await $.ui.mount(MSG(text, surface))
+    const svgs = ((await ui.findAll({ type: 'Svg' })) ?? []).filter((x: any) => String(x.props?.alt ?? '').length === 1)
+    expect(svgs.length).toBe(4) // a live circle is drawn twice: at rest and purple on hover
+    // the 4-line choice's circle is the very same size as the 1-line one's
+    expect(new Set(svgs.map((x: any) => `${x.props.width}x${x.props.height}`)).size).toBe(1)
+    // every choice row centres its circle on its text, and the circle's box cannot shrink
+    const rows = ((await ui.findAll({ type: 'Box' })) ?? []).filter((b: any) => b.props?.gap === 2 && b.props?.alignItems === 'center')
+    expect(rows.length).toBe(2)
+    const tree = JSON.stringify(rows)
+    expect((tree.match(/"flexShrink":0/g) ?? []).length).toBeGreaterThanOrEqual(2)
+    await ui.unmount()
+  }
+})
+
 test('a live question has a text box; what is typed is sent with its heading and sticks on the card', async ($, on) => {
   on('ui.render', ($, e) => { const { Text } = $.ui.resolve(e); return <Text>engine</Text> })
   const boxes = async (ui: any) => ((await ui.findAll({ type: 'Input' })) ?? []).filter((x: any) => x.props?.placeholder === 'Or type your own answer')

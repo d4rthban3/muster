@@ -1,13 +1,12 @@
+import { YELLOW, PURPLE, HEX, svgChip, palette } from './chip'
+
 // A small settings panel for the look: /look opens it. A dropdown for the font,
-// and for each of the six colours a row of swatches, a box for your own #rrggbb
-// and a reset. Every change is written as the plugin's own setting.
+// and for each colour the real item it changes drawn in that colour, a colour
+// picker, a box for your own #rrggbb and a reset. Every change is written as the plugin's own setting.
 const PLUGIN = 'muster-look'
 const PANE = 'muster-look-settings'
-const HEX = /^#[0-9a-fA-F]{6}$/
 
 export const FONTS = ['Anthropic Sans', 'System sans', 'Helvetica Neue', 'Avenir Next', 'Georgia', 'Menlo']
-
-const SWATCHES = ['#FFDB58', '#ff9f43', '#ff7ab6', '#9b6dff', '#7c4dff', '#5aa9ff', '#2dd4bf', '#7ddc8a', '#e8e6e1']
 
 export const COLOURS: { key: string; label: string; dflt: string }[] = [
   { key: 'questionHeadingColor', label: 'Question heading chip', dflt: '#FFDB58' },
@@ -17,8 +16,33 @@ export const COLOURS: { key: string; label: string; dflt: string }[] = [
   { key: 'lineBottomColor', label: 'Line, bottom', dflt: '#7c4dff' },
 ]
 
+const SAMPLE_FONT = 'Anthropic Sans,Styrene B,system-ui,-apple-system,Segoe UI,sans-serif'
+
+// The real item a colour changes, drawn the way the chat draws it, in that colour.
+function sampleOf(Svg: any, Box: any, key: string, hex: string, v: Record<string, string>) {
+  const chip = (label: string, base: typeof YELLOW) => svgChip(Svg, label, palette(base, hex), SAMPLE_FONT, null)
+  if (key === 'questionHeadingColor') return chip('WAITING \u00b7 item 7', YELLOW)
+  if (key === 'cardHeadingColor') return chip('DONE \u00b7 item 7', PURPLE)
+  if (key === 'choiceChipColor') {
+    return (
+      <Box flexDirection="row" gap={1}>
+        {['A', 'B', 'C'].map(l => <Box key={l}>{chip(l, YELLOW)}</Box>)}
+      </Box>
+    )
+  }
+  const top = key === 'lineTopColor' ? hex : (HEX.test(v.lineTopColor || '') ? v.lineTopColor : YELLOW.text)
+  const bottom = key === 'lineBottomColor' ? hex : (HEX.test(v.lineBottomColor || '') ? v.lineBottomColor : '#7c4dff')
+  const end = key === 'lineTopColor' ? 'top' : 'bottom'
+  const mark = end === 'top' ? 'y="2"' : 'y="58"'
+  const source =
+    `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="64" viewBox="0 0 40 64"><defs><linearGradient id="f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${top}"/><stop offset="1" stop-color="${bottom}"/></linearGradient></defs>` +
+    `<rect x="12" y="2" width="2" height="60" fill="url(#f)" shape-rendering="crispEdges"/>` +
+    `<circle cx="13" cy="${end === 'top' ? 3 : 61}" r="3.5" fill="${hex}"/></svg>`
+  void mark
+  return <Svg alt={`The line, ${end} end`} width={40} height={64} source={source} />
+}
+
 let otherFont = false
-let openKey = COLOURS[0].key
 
 async function open($: any) {
   await $.ui.open({ id: PANE, title: 'Muster look' })
@@ -57,7 +81,7 @@ export function panel(on: any) {
     return next(e)
   })
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($: any, e: any) => {
-    const { Box, Text, Button, Input, Select, Client } = $.ui.resolve(e)
+    const { Box, Text, Button, Input, Select, Client, Svg } = $.ui.resolve(e)
     const v = await current($)
     const fontNow = v.chipFont || 'Anthropic Sans'
     const showOther = otherFont || !FONTS.includes(fontNow)
@@ -85,34 +109,25 @@ export function panel(on: any) {
         )}
         {COLOURS.map(c => {
           const hex = v[c.key] || c.dflt
-          const isOpen = openKey === c.key
           return (
-            <Box key={c.key} flexDirection="column">
+            <Box key={c.key} flexDirection="column" gap={1}>
               <Box flexDirection="row" gap={1}>
-                <Text>{c.label}</Text>
-                <Text color={hex} backgroundColor="#191c24">{` Sample ${hex} `}</Text>
+                <Text bold>{c.label}</Text>
+                <Text>{hex}</Text>
               </Box>
+              <Box key={`${c.key}-sample`} flexDirection="row">{sampleOf(Svg, Box, c.key, hex, v)}</Box>
+              {Client !== undefined && <Client key={`field-${c.key}`} module="./field.tsx" props={{ id: c.key, hex }} />}
               <Box flexDirection="row" gap={1}>
-                {SWATCHES.map(sw => (
-                  <Button key={`${c.key}-${sw}`} label={`Use ${sw}`} onPress={() => { void set($, c.key, sw) }}>
-                    <Text color={sw} backgroundColor={sw}>{'    '}</Text>
-                  </Button>
-                ))}
+                <Input
+                  key={`${c.key}-hex`}
+                  label="Or type #rrggbb "
+                  placeholder="#rrggbb"
+                  value=""
+                  submitLabel="set"
+                  onSubmit={(t: string) => { const x = t.trim(); if (HEX.test(x)) void set($, c.key, x) }}
+                />
                 <Button key={`${c.key}-reset`} label="Reset" onPress={() => { void set($, c.key, c.dflt) }} />
               </Box>
-              {isOpen && Client !== undefined ? (
-                <Client key={`field-${c.key}`} module="./field.tsx" props={{ id: c.key, hex }} />
-              ) : (
-                <Button key={`${c.key}-open`} label={`Pick any colour for ${c.label}`} onPress={() => { openKey = c.key; $.ui.invalidate('ui.render') }} />
-              )}
-              <Input
-                key={`${c.key}-hex`}
-                label="Or type #rrggbb "
-                placeholder="#rrggbb"
-                value=""
-                submitLabel="set"
-                onSubmit={(t: string) => { const x = t.trim(); if (HEX.test(x)) void set($, c.key, x) }}
-              />
             </Box>
           )
         })}

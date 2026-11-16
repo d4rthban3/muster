@@ -29,7 +29,6 @@ export default function Field(props: any, s: any) {
     return <Text> </Text>
   }
   const ref = s.state.ref
-  const now = hsvToHex(ref.h, ref.s, ref.v)
   const cx = Math.round(ref.s * (COLS - 1))
   const cy = Math.round((1 - ref.v) * (ROWS - 1))
   const hx = Math.round((ref.h / 359.9) * (COLS - 1))
@@ -50,7 +49,6 @@ export default function Field(props: any, s: any) {
     <Box flexDirection="column">
       {rows}
       <Box key="bar" flexDirection="row">{bar}</Box>
-      <Text color={now} backgroundColor="#191c24">{` Sample chip ${now} `}</Text>
     </Box>
   )
 }

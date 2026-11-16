@@ -116,10 +116,17 @@ test('the settings panel has a font dropdown, swatches, a hex box and resets', a
   expect(await ui.find({ type: 'Select' })).toBeTruthy()
   expect(await ui.find({ type: 'Input' })).toBeTruthy()
   expect(await ui.find({ type: 'Button', label: 'Reset all to default' })).toBeTruthy()
-  expect(await ui.find({ type: 'Button', label: 'Use #9b6dff' })).toBeTruthy()
-  // the first colour's picker (colour field and hue bar) is open as soon as the panel opens
-  expect(await ui.find({ type: 'Client', key: 'field-questionHeadingColor' })).toBeTruthy()
-  expect(await ui.find({ type: 'Button', label: 'Pick any colour for Card heading chip' })).toBeTruthy()
+  const clients = JSON.stringify(await ui.findAll({ type: 'Client' }))
+  for (const k of ['questionHeadingColor', 'cardHeadingColor', 'choiceChipColor', 'lineTopColor', 'lineBottomColor']) expect(clients).toContain(`field-${k}`)
+  const buttons = JSON.stringify(await ui.findAll({ type: 'Button' }))
+  expect(buttons).not.toContain('Use #')
+  expect(buttons).not.toContain('Pick any colour')
+  // each colour's sample is the real item drawn: the chips, the A B C circles and the line
+  const pics = JSON.stringify(await ui.findAll({ type: 'Svg' }))
+  expect(pics).toContain('WAITING')
+  expect(pics).toContain('DONE')
+  expect(pics).toContain('The line, top end')
+  expect(pics).toContain('The line, bottom end')
   await ui.unmount()
 })
 

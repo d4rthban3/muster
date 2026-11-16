@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.101
+Affects: see .claude-plugin/releases/0.3.101.json.
+Blocking hooks: guard against git reset/stash in protected folders, key leaks, and pushes to non-allowed public repos (item 117)
+
 ## 0.3.100
 Affects: see .claude-plugin/releases/0.3.100.json.
 Item 116: chips with a clean thin border like the launchpad filters; one unbroken left rule that stops at the question's end

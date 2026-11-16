@@ -118,6 +118,10 @@ export const register: Register = (on, options: any) => {
     const live = parsed.isQuestion && e.props.text === latestQuestion && !answered.has(e.props.text)
     const { Box, Text, Markdown, Svg, Client } = ui
     const isTerminal = e.surface === 'terminal'
+    // an empty picture h px tall: air in pixels (Box padding counts character cells)
+    const spacer = (px: number) => (
+      <Svg alt="" width={1} height={px} source={`<svg xmlns="http://www.w3.org/2000/svg" width="1" height="${px}"/>`} />
+    )
 
     // The letters this message's chips need, cut from the app's font once.
     let cut: Cut | null = null
@@ -160,7 +164,8 @@ export const register: Register = (on, options: any) => {
           <Box key={`t${i}`}>{chip(`${p.word} · ${p.job}`, inQ ? QUESTION : CARD)}</Box>
         )
       }
-      return (
+      const firstChoice = parsed.pieces[i - 1]?.kind === 'md'
+      const row = (
         <Box key={`c${i}`} gap={2} alignItems="center" position="relative" hover={live && !isTerminal && Client !== undefined ? { backgroundColor: '#23262e' } : undefined}>
           {chip(p.letter, CHOICE, letterTw, 4)}
           <Markdown key={`cm${i}`} text={p.text} />
@@ -171,6 +176,9 @@ export const register: Register = (on, options: any) => {
           )}
         </Box>
       )
+      // the first choice under body text gets 4px more above it (its own 4 + these 4 =
+      // the 8px between choice rows)
+      return firstChoice && !isTerminal ? <Box key={`cw${i}`} flexDirection="column">{spacer(4)}{row}</Box> : row
     })
 
     const before = rows.slice(0, parsed.isQuestion ? parsed.startsAt : rows.length)
@@ -233,6 +241,7 @@ export const register: Register = (on, options: any) => {
             <Box flexDirection="row">
               {appLine}
               <Box flexDirection="column" paddingLeft={1}>
+                {spacer(8)}
                 {question.slice(1)}
               </Box>
             </Box>

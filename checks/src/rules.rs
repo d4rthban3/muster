@@ -782,7 +782,11 @@ pub fn run() -> i32 {
     let Some(data) = read_stdin() else { return 0 };
     if stood_down(&data, "rules-check.py") { return 0; }
     let c = ctx();
-    let first = first_message(s(&data, "transcript_path"));
+    let mut first = first_message(s(&data, "transcript_path"));
+    if !is(&c.crew, &first) { // a compaction rewrote the first message and no .muster-first was kept: the summary may say who the chat is
+        let summ = compact_summary(s(&data, "transcript_path"));
+        if !summ.is_empty() && own_token(&c, &summ).is_some() { first = summ; }
+    }
     if !is(&c.crew, &first) && std::env::var("MUSTER_ASSUME_CREW").ok().as_deref() != Some("1") { return 0; }
     remember_first(s(&data, "transcript_path"), &first);
     let manager = is_manager(&c, &first) || std::env::var("MUSTER_ASSUME_MANAGER").ok().as_deref() == Some("1");

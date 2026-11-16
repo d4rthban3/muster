@@ -110,6 +110,16 @@ pub fn first_message(path: &str) -> String {
     String::new()
 }
 
+/// The compaction summary's text: when no .muster-first file was kept, it is the one place left that names the chat.
+pub fn compact_summary(path: &str) -> String {
+    for d in lines_of(path) {
+        if s(&d, "type") == "user" && d.get("isCompactSummary").and_then(Value::as_bool) == Some(true) {
+            return content_text(&msg_content(&d)).chars().take(6000).collect();
+        }
+    }
+    String::new()
+}
+
 /// tool_use blocks of the current turn: everything after the last user message that holds text.
 pub fn turn_blocks(path: &str) -> Vec<Value> {
     let mut uses: Vec<Value> = vec![];

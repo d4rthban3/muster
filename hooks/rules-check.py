@@ -173,6 +173,36 @@ def first_message(path):
     return ""
 
 
+def compact_summary(path):
+    """The compaction summary's text (item 113/box-check-pinr): when no .muster-first file was kept, it is the one place left that names the chat."""
+    try:
+        with open(path, encoding="utf-8") as fh:
+            for line in fh:
+                try:
+                    d = json.loads(line)
+                except ValueError:
+                    continue
+                if d.get("type") == "user" and d.get("isCompactSummary"):
+                    c = (d.get("message") or {}).get("content", "")
+                    if isinstance(c, list):
+                        c = " ".join(b.get("text", "") for b in c if isinstance(b, dict) and b.get("type") == "text")
+                    return str(c)[:6000]
+    except OSError:
+        pass
+    return ""
+
+
+def first_or_summary(path, crew=None):
+    """The chat's first message; but when that names no crew chat (a compaction rewrote it and no .muster-first was kept), the compaction
+    summary if it says who the chat is ('I am Builder A_X', 'Job: ...')."""
+    first = first_message(path)
+    if not (crew or CREW_RE).search(first):
+        summ = compact_summary(path)
+        if summ and _own_token(summ) is not None:
+            return summ
+    return first
+
+
 def turn_blocks(path):
     """(tool_use blocks, results text) of the current turn: everything after the last real user message."""
     uses, texts = [], []
@@ -1335,7 +1365,7 @@ def guard_main():
     crew = CREW_RE
     if prof.get("crew_names"):
         crew = re.compile(CREW_RE.pattern + "|" + "|".join("(?:%s)" % x for x in prof["crew_names"]))
-    if not crew.search(first_message(data.get("transcript_path") or "")) and os.environ.get("MUSTER_ASSUME_CREW") != "1":
+    if not crew.search(first_or_summary(data.get("transcript_path") or "", crew)) and os.environ.get("MUSTER_ASSUME_CREW") != "1":
         return 0
     why = guard_problem(data.get("tool_name", ""), data.get("tool_input") or {}, data.get("cwd") or "", conf)
     if why:
@@ -1353,7 +1383,7 @@ def main():
     if stood_down(data):
         return 0
     path = data.get("transcript_path") or ""
-    first = first_message(path)
+    first = first_or_summary(path)
     if not CREW_RE.search(first) and os.environ.get("MUSTER_ASSUME_CREW") != "1":
         return 0
     remember_first(path, first)

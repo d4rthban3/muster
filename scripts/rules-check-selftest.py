@@ -73,6 +73,18 @@ def tool_first(first):
     return p
 
 
+def summary_only(summary):
+    """a compacted chat with NO .muster-first kept: the file opens with the summary, then a first line that names no crew chat"""
+    p = os.path.join(T, "so%d.jsonl" % next(_tn))
+    with open(p, "w") as f:
+        f.write(json.dumps({"type": "user", "isCompactSummary": True, "message": {"content": summary}}) + "\n")
+        f.write(json.dumps({"type": "user", "message": {"content": [{"type": "text", "text": "carry on"}]}}) + "\n")
+    return p
+
+
+sum_b = summary_only("Summary: I am Builder A_Muster (chat Builder A_Muster_006); I build what the manager orders.")
+sum_m = summary_only("Summary: You are Manager_Muster_001, the go-between.")
+sum_o = summary_only("Summary: the owner asked about the report that Builder A_Muster sent to the inspector.")
 tool_first_b = tool_first("You are Builder A_Muster_002, agents/builder.md")
 tool_first_o = tool_first("hello there")
 compacted_mgr = compacted("Manager_Muster")
@@ -105,6 +117,10 @@ cases = [
     ("item 120: a crew chat whose first transcript line holds only tool results is still known as crew (stopped from the crew list)", run("PreToolUse", tool_name="Edit", tool_input={"file_path": "/home/x/p/muster/CREW.md", "new_string": "x"}, transcript_path=tool_first_b), True),
     ("item 120: ...and its own first message is what gets kept beside the transcript", "" if open(tool_first_b + ".muster-first").read().startswith("You are Builder A_Muster_002") else "BAD", False),
     ("item 120: the owner's own chat with such a first line is still not crew", run("PreToolUse", tool_name="Edit", tool_input={"file_path": "/home/x/p/muster/CREW.md", "new_string": "x"}, transcript_path=tool_first_o), False),
+    ("item box-check-pinr: with no kept first message, the summary still says this chat is a builder, so it is stopped from the crew list", run("PreToolUse", tool_name="Edit", tool_input={"file_path": "/home/x/p/muster/CREW.md", "new_string": "x"}, transcript_path=sum_b), True),
+    ("item box-check-pinr: ...and a manager named only in the summary may edit the crew list", run("PreToolUse", tool_name="Edit", tool_input={"file_path": "/home/x/p/muster/CREW.md", "new_string": "x"}, transcript_path=sum_m), False),
+    ("item box-check-pinr: ...and a summary that merely mentions a crew name does not make the owner's chat crew", run("PreToolUse", tool_name="Edit", tool_input={"file_path": "/home/x/p/muster/CREW.md", "new_string": "x"}, transcript_path=sum_o), False),
+    ("item box-check-pinr: a summary-only builder's wrap-up question is refused (item 119)", run("PreToolUse", tool_name="mcp__ccd_turn__wrap_up", tool_input={"recap": "done", "ask": "Ship it?"}, transcript_path=sum_b), True),
     ("D-039: a builder is still stopped from the crew list after a compaction", run("PreToolUse", tool_name="Edit", tool_input={"file_path": "/home/x/p/muster/CREW.md", "new_string": "x"}, transcript_path=compacted_b), True),
     ("item 114: a question already put to him is not asked again", run("Stop", last_assistant_message=Q, transcript_path=tr(mgr_first, [asst(Q), usr("<cross-session-message from=x>PASS</cross-session-message>")])), True),
     ("item 114: the same question after he typed something is allowed", run("Stop", last_assistant_message=Q, transcript_path=tr(mgr_first, [asst(Q), usr("hello"), usr("<cross-session-message from=x>PASS</cross-session-message>")])), False),

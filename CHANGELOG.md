@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.106
+Affects: see .claude-plugin/releases/0.3.106.json.
+Clickable choices: clicking a choice chip or row sends that letter (item 118)
+
 ## 0.3.105
 Affects: see .claude-plugin/releases/0.3.105.json.
 Choice chips balanced: one chip width, even row spacing, left line sized to the real rows (item 118)

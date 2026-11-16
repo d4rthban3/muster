@@ -1,0 +1,14 @@
+{
+  "version": "0.3.106",
+  "changed_files": [
+    "mods/muster-look/hooks/choice.tsx",
+    "mods/muster-look/hooks/look.test.tsx",
+    "mods/muster-look/hooks/register.tsx"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Clickable choices: clicking a choice chip or row sends that letter (item 118)"
+}

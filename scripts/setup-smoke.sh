@@ -438,6 +438,22 @@ git -C "$MF" checkout -q main; echo "mine" >> "$MF/.claude-plugin/plugin.json"
 ( cd "$SH/wt-live"; git fetch -q origin; git reset -q --hard origin/main; echo third > third.txt; git add -A; git commit -q -m "third"
   bash scripts/ship.sh "third live" --roles Builder --no-wait > "$SH/mf3.out" 2>&1; grep -q "MAIN FOLDER NOT UPDATED: .*fast-forwarded" "$SH/mf3.out" || { cat "$SH/mf3.out"; fail "ship did not say the main folder could not be fast-forwarded"; }; grep -q "SHIPPED 1.2.8" "$SH/mf3.out" || fail "the ship itself was affected" )
 grep -q "^mine$" "$MF/.claude-plugin/plugin.json" || fail "ship overwrote work in the main folder"
+# item 122, local first: GitHub refusing every push never holds back the owner's own folder; the next ship carries what is not pushed
+git -C "$MF" checkout -q -- .claude-plugin/plugin.json; git -C "$MF" fetch -q origin; git -C "$MF" merge -q --ff-only origin/main
+printf '#!/bin/sh\necho "GitHub is down" >&2\nexit 1\n' > "$SH/remote.git/hooks/pre-receive"; chmod +x "$SH/remote.git/hooks/pre-receive"
+( cd "$SH/wt-live"; git fetch -q origin; git reset -q --hard origin/main; echo fourth > fourth.txt; git add -A; git commit -q -m "fourth"
+  bash scripts/ship.sh "local first" --roles Builder --no-wait > "$SH/lf.out" 2>&1 || { cat "$SH/lf.out"; fail "ship failed because GitHub refused the push"; }
+  grep -q "main folder .* is now at 1.2.9" "$SH/lf.out" || { cat "$SH/lf.out"; fail "the main folder did not get the release while GitHub refused"; }
+  grep -q "PUBLISHING PENDING" "$SH/lf.out" || fail "ship did not say publishing is pending"
+  grep -q "SHIPPED 1.2.9" "$SH/lf.out" || fail "ship did not finish locally" )
+git -C "$MF" show HEAD:.claude-plugin/plugin.json | grep -q '"1.2.9"' || fail "the main folder is not at the locally shipped version"
+git -C "$SH/remote.git" show main:.claude-plugin/plugin.json | grep -q '"1.2.8"' || fail "GitHub moved although it refused the push"
+rm "$SH/remote.git/hooks/pre-receive"
+( cd "$SH/wt-live"; git reset -q --hard main; echo fifth > fifth.txt; git add -A; git commit -q -m "fifth"
+  bash scripts/ship.sh "carries it" --roles Builder --no-wait > "$SH/lf2.out" 2>&1 || { cat "$SH/lf2.out"; fail "the next ship failed"; }
+  grep -q "SHIPPED 1.2.10" "$SH/lf2.out" || { cat "$SH/lf2.out"; fail "the next ship was not 1.2.10"; } )
+git -C "$SH/remote.git" show main:.claude-plugin/releases/1.2.9.json >/dev/null 2>&1 || fail "the next ship did not carry the release GitHub had not got"
+git -C "$SH/remote.git" show main:.claude-plugin/plugin.json | grep -q '"1.2.10"' || fail "GitHub did not get the next release"
 rm -rf muster
 [ "$(grep -c '^## 1.2.5' CHANGELOG.md)" = 1 ] || fail "the changelog entry was doubled"
 grep -q "my own note" .claude-plugin/releases/1.2.5.json || fail "the branch's own release file was overwritten"

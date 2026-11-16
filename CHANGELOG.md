@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.115
+Affects: see .claude-plugin/releases/0.3.115.json.
+One-line questions: every letter gets its own clickable circle
+
 ## 0.3.114
 Affects: see .claude-plugin/releases/0.3.114.json.
 Look fixes: choice gap, even circles, picked choice stays, colour code box left, pill colours, cleaner look page, own-answer box, dead clicks

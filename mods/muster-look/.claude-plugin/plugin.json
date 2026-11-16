@@ -9,8 +9,16 @@
     "chipFont": {
       "type": "string",
       "title": "Chip font",
-      "description": "Font for the chip labels on desktop. Falls back to the system sans if the machine lacks it.",
-      "default": "Anthropic Sans"
+      "description": "Font for the chip labels on desktop. Anthropic Sans is read from the Claude app on macOS; the others are fonts your computer has, and System sans is its own.",
+      "default": "Anthropic Sans",
+      "options": [
+        "Anthropic Sans",
+        "System sans",
+        "Helvetica Neue",
+        "Avenir Next",
+        "Georgia",
+        "Menlo"
+      ]
     },
     "questionHeadingColor": {
       "type": "string",

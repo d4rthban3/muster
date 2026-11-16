@@ -2,6 +2,7 @@ import type { Register } from 'claude-code'
 import { parse } from './parse'
 import { cutFont, fromBase64, type Cut } from './font'
 import { labelWidth } from './metrics'
+import { panel, registerLook } from './panel'
 
 // Muster's colours, taken from the owner's reference chips: a low tint of the
 // chip's own hue, a thin brighter border in it, text in it. Dark first.
@@ -57,6 +58,7 @@ function palette(base: typeof YELLOW, want: unknown): typeof YELLOW {
 }
 const colourOr = (want: unknown, dflt: string) => (typeof want === 'string' && HEX.test(want) ? want : dflt)
 const fontList = (want: unknown) => {
+  if (want === 'System sans') return 'system-ui,-apple-system,Segoe UI,sans-serif'
   const name = typeof want === 'string' ? want.replace(/[^A-Za-z0-9 ,-]/g, '').trim() : ''
   return name === '' || name === 'Anthropic Sans' ? FONT_TAIL : `${name},${FONT_TAIL}`
 }
@@ -70,10 +72,12 @@ export const register: Register = (on, options: any) => {
   const BOTTOM = colourOr(opts.lineBottomColor, '#7c4dff')
   const FONT = fontList(opts.chipFont)
   const useAppFont = FONT === FONT_TAIL
+  panel(on)
   let fontBytes: Uint8Array | null = null
   const cuts: Record<string, Cut | null> = {}
 
   on('session.start', async ($, e, next) => {
+    await registerLook($)
     if (useAppFont) {
       try {
         const { base64 } = (await $.fs.read(APP_FONT, { as: 'bytes' })) as { base64: string }

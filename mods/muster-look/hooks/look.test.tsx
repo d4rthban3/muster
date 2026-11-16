@@ -107,3 +107,12 @@ import { cutFont } from './font'
 test('a file that is not a font gives no cut, so the chip falls back', async ($, on) => {
   expect(cutFont(new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]), 'AB')).toBeNull()
 })
+
+test('the settings panel has a font dropdown, swatches, a hex box and resets', async ($, on) => {
+  const ui = await $.ui.mount({ plugin: 'muster-look', component: 'Pane', requestId: 'muster-look-settings', surface: 'desktop', props: {} } as any)
+  expect(await ui.find({ type: 'Select' })).toBeTruthy()
+  expect(await ui.find({ type: 'Input' })).toBeTruthy()
+  expect(await ui.find({ type: 'Button', label: 'Reset all to default' })).toBeTruthy()
+  expect(await ui.find({ type: 'Button', label: '#9b6dff' })).toBeTruthy()
+  await ui.unmount()
+})

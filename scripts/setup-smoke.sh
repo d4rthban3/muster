@@ -377,6 +377,18 @@ if LIVE_CHECK_TRIES=1 bash "$ROOT/scripts/live-check.sh" "$LV" docs/index.html "
 
 step "scripts/ship.sh on a scratch repository (dry run, then a real push to a scratch remote)"
 SH="$SCRATCH/ship"; mkdir -p "$SH/remote.git" "$SH/work"
+# ship-installs-plugins: a stand-in claude, so no test ever updates a real install; it records what it was asked and fails for muster-look
+cat > "$SCRATCH/claude-stub.py" <<'STUB'
+import os, sys
+a = sys.argv[1:]
+if a[:1] == ["--version"]: print("0.0-test")
+elif a[:2] == ["plugin", "update"]:
+    open(os.environ["STUB_LOG"], "a").write(a[2] + "\n")
+    if a[2].startswith("muster-look"): print("not installed"); sys.exit(1)
+    print("updated " + a[2])
+elif a[:2] == ["plugin", "list"]: print("muster@muster-kit\n  Version: test")
+STUB
+export STUB_LOG="$SCRATCH/stub.log"; : > "$STUB_LOG"; export MUSTER_CLAUDE="$PY $(cygpath -m "$SCRATCH/claude-stub.py" 2>/dev/null || echo "$SCRATCH/claude-stub.py")"
 git init -q --bare "$SH/remote.git"
 cd "$SH/work"; git init -q -b main; git remote add origin "$SH/remote.git"
 mkdir -p .claude-plugin/releases scripts
@@ -396,6 +408,10 @@ grep -q "SHIP DRY RUN OK: would push 1.2.4" "$SH/dry.out" || fail "ship dry run 
 bash scripts/ship.sh "second try" --roles Builder --dry-run >"$SH/dry2.out" 2>&1 || { cat "$SH/dry2.out"; fail "second dry run failed"; }; [ "$(git rev-parse HEAD)" = "$BEFORE" ] || fail "a second dry run changed the branch"
 bash scripts/ship.sh "demo change" --roles Builder --no-wait | tail -2 | tee "$SH/real.out"
 grep -q "SHIPPED 1.2.4" "$SH/real.out" || fail "ship did not finish: $(cat "$SH/real.out")"
+grep -q "muster@muster-kit" "$STUB_LOG" && grep -q "muster-look@muster-kit" "$STUB_LOG" || fail "ship did not try to update both plugins"
+$PY - "$STUB_LOG" <<'PYC' || fail "the plugin update did not run once per plugin after the first ship"
+import sys; l = open(sys.argv[1]).read().split(); sys.exit(0 if l[:2] == ["muster@muster-kit", "muster-look@muster-kit"] else 1)
+PYC
 git -C "$SH/remote.git" show main:.claude-plugin/plugin.json | grep -q '"1.2.4"' || fail "main on the remote lacks 1.2.4"
 git -C "$SH/remote.git" show main:.claude-plugin/releases/1.2.4.json | grep -q "demo change" || fail "no release file on the remote"
 git -C "$SH/remote.git" show main:CHANGELOG.md | grep -q "^## 1.2.4" || fail "no changelog entry on the remote"

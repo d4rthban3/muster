@@ -121,6 +121,16 @@ if [ -f "$mainroot/muster/BUILDERS-LOG.md" ]; then
   printf '%s | %s | %s | %s\n' "$(date +%Y-%m-%d)" "$new" "${roles:-see the release file}" "$note" >> "$mainroot/muster/BUILDERS-LOG.md" \
     && echo "== added a line to the builders' log"
 fi
+# ship-installs-plugins: the owner's installed copies follow the release at once. An update that fails is logged and never fails the ship.
+# (MUSTER_CLAUDE names the claude program; the tests point it at a stand-in so a test never touches a real install.)
+cl=${MUSTER_CLAUDE:-claude}
+if $cl --version >/dev/null 2>&1; then
+  for pl in muster@muster-kit muster-look@muster-kit; do
+    out=$($cl plugin update "$pl" 2>&1) && echo "== plugin update $pl: $(echo "$out" | tail -1)" \
+      || echo "== plugin update $pl did not work (the ship goes on): $(echo "$out" | tail -1)"
+  done
+  echo "== installed plugin versions: $($cl plugin list 2>&1 | grep -A2 -E 'muster' | tr -s ' \n' ' ' | cut -c1-300)"
+else echo "== claude is not installed here; no plugin update"; fi
 # ---- PUBLISHING (for others, after the local folder has it). Its failures are reported, never fatal, never undo the local release. ----
 publish() {
   stop() { echo "PUBLISHING PENDING: $*"; exit 1; }

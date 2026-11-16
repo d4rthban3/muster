@@ -83,7 +83,7 @@ export const register: Register = (on, options: any) => {
     if (latestQuestion !== '') answered.add(latestQuestion)
     return next(e)
   })
-  on('ui.message', async ($, e, next) => {
+  on('ui.message', { component: 'AssistantMessage' }, async ($, e, next) => {
     const d = e.data as { pick?: string } | undefined
     if (/(^|\/)choice\.tsx$/.test(e.module) && d !== undefined && typeof d.pick === 'string' && /^[A-Z]$/.test(d.pick)) {
       if (latestQuestion !== '' && !answered.has(latestQuestion)) {

@@ -6,6 +6,7 @@
   "report": {"require_id": false, "require_usage": false},
   "message_form": "text",
   "compact_tokens": 200000,
+  "compact_tokens_manager": 250000,
   "orders": "free",
   "record_choice": "decide.py",
   "recorder_script": "scripts/decide-pinr.py",

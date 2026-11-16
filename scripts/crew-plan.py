@@ -7,6 +7,9 @@
       The short name of that chat's own copy of the project (made-up example: "Builder A_Shop" -> builder-a).
   crew-plan.py check-copy "<Role>_<project>" <folder>
       Exit 1 if the folder is not named for that chat's role (a renewed chat never runs in another role's old copy).
+  crew-plan.py pin-compact "<Role>_<project>" <folder> [--profile FILE]
+      Item 113: writes only autoCompactWindow into <folder>/.claude/settings.local.json (any folder, the manager's main folder too):
+      the profile's compact_tokens_manager (250000) for a manager, compact_tokens (200000) for every other role. Nothing else changes.
   crew-plan.py size <base> <head> [--repo DIR]
       SMALL or BIG for a piece of work: small = at most 3 files and 60 changed lines, nothing in engine, data, database or
       deploy folders, nothing a visitor sees (site pages, styles, scripts, pictures), no rules or protocol file. Anything else, or
@@ -87,6 +90,37 @@ CREW_DENY = ["Artifact", "mcp__Claude_Browser", "mcp__claude-in-chrome", "mcp__c
 DESIGNER_KEEPS = ["mcp__Claude_Browser", "mcp__claude-in-chrome", "mcp__computer-use", "mcp__Claude_Code_iOS_Simulator", "mcp__visualize", "Artifact"]
 
 
+def window_for(role, profile_path=None):
+    """Item 113: a manager chat compacts at the profile's compact_tokens_manager (250000); every other crew chat at compact_tokens (200000)."""
+    window = 200000
+    if profile_path and os.path.isfile(profile_path):
+        try:
+            prof = json.load(open(profile_path, encoding="utf-8"))
+            window = int(prof.get("compact_tokens") or window)
+            if slug(role) == "manager":
+                window = int(prof.get("compact_tokens_manager") or window)
+        except Exception:
+            pass
+    return max(100000, min(1000000, window))  # the app accepts 100000 to 1000000
+
+
+def pin_compact(role, folder, profile_path=None):
+    """Write only autoCompactWindow into <folder>/.claude/settings.local.json (any folder, the manager's main folder too);
+    every other setting stays, and no tool list is touched."""
+    path = os.path.join(os.path.abspath(folder), ".claude", "settings.local.json")
+    cur = {}
+    if os.path.isfile(path):
+        try:
+            cur = json.load(open(path, encoding="utf-8"))
+        except Exception:
+            print("REFUSED: %s is not readable JSON; left as it is" % path)
+            sys.exit(1)
+    cur["autoCompactWindow"] = window_for(role, profile_path)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    json.dump(cur, open(path, "w", encoding="utf-8"), indent=2)
+    print("OK: %s compacts %s in place at %d tokens (nothing else changed)" % (path, role, cur["autoCompactWindow"]))
+
+
 def trim(role, folder, profile_path=None):
     folder = os.path.abspath(folder)
     git = os.path.join(folder, ".git")
@@ -94,12 +128,11 @@ def trim(role, folder, profile_path=None):
         print("REFUSED: %s is not a crew copy (a git worktree); the main folder and the owner's own chats are never trimmed" % folder)
         sys.exit(1)
     deny = list(CREW_DENY)
-    window = 200000  # D-039 (item 105): a crew chat compacts in place at this many tokens; it never renews because of its size
+    window = window_for(role, profile_path)  # D-039 (item 105, 113): a crew chat compacts in place at this many tokens; it never renews because of its size
     if profile_path and os.path.isfile(profile_path):
         try:
             prof = json.load(open(profile_path, encoding="utf-8"))
             deny = list(prof.get("crew_deny", deny))
-            window = int(prof.get("compact_tokens") or window)
         except Exception:
             pass
     if slug(role) == "designer":
@@ -141,6 +174,9 @@ def main():
     elif len(a) >= 3 and a[0] == "trim":
         role, _p, _n = parse_chat(a[1])
         trim(role, a[2], a[a.index("--profile") + 1] if "--profile" in a else None)
+    elif len(a) >= 3 and a[0] == "pin-compact":
+        role, _p, _n = parse_chat(a[1])
+        pin_compact(role, a[2], a[a.index("--profile") + 1] if "--profile" in a else None)
     elif len(a) >= 3 and a[0] == "size":
         size(a[1], a[2], a[a.index("--repo") + 1] if "--repo" in a else ".")
     else:

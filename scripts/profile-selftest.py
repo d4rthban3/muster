@@ -492,6 +492,16 @@ def _trim(role, folder):
     return r.returncode, r.stdout
 _rc, _ = _trim("Builder A_Muster_002", _wt)
 cases.append(("item 105: a crew copy compacts in place at 200000 tokens", "" if json.load(open(os.path.join(_wt, ".claude", "settings.local.json"))).get("autoCompactWindow") == 200000 else "x", False))
+_wm = os.path.join(T, "wt-mgr"); os.makedirs(_wm); open(os.path.join(_wm, ".git"), "w").write("gitdir: x\n")
+_trim("Manager_Muster_001", _wm)
+cases.append(("item 113: a manager copy compacts in place at 250000 tokens", "" if json.load(open(os.path.join(_wm, ".claude", "settings.local.json"))).get("autoCompactWindow") == 250000 else "x", False))
+_pm = os.path.join(T, "pin-main"); os.makedirs(os.path.join(_pm, ".claude")); open(os.path.join(_pm, ".claude", "settings.local.json"), "w").write('{"model": "x"}')
+def _pin(role, folder, prof):
+    return subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "crew-plan.py"), "pin-compact", role, folder, "--profile", os.path.join(ROOT, "profiles", prof)], capture_output=True, text=True)
+_pin("Manager_PINR_001", _pm, "pinr.json"); _pj = json.load(open(os.path.join(_pm, ".claude", "settings.local.json")))
+cases.append(("item 113: pin-compact sets a manager's main folder to 250000 and keeps its other settings", "" if _pj.get("autoCompactWindow") == 250000 and _pj.get("model") == "x" else "x", False))
+_pw = os.path.join(T, "pin-worker"); os.makedirs(_pw); _pin("Builder A_PINR_003", _pw, "pinr.json")
+cases.append(("item 113: pin-compact pins a worker folder to 200000", "" if json.load(open(os.path.join(_pw, ".claude", "settings.local.json"))).get("autoCompactWindow") == 200000 and "permissions" not in json.load(open(os.path.join(_pw, ".claude", "settings.local.json"))) else "x", False))
 _deny = json.load(open(os.path.join(_wt, ".claude", "settings.local.json")))["permissions"]["deny"]
 cases.append(("item 102: a builder copy leaves the browser, simulator and blockchain tools out", "" if _rc == 0 and "mcp__Claude_Browser" in _deny and "mcp__BlockchainQuery" in _deny else "x", False))
 _wt2 = os.path.join(T, "wt-trim2"); os.makedirs(_wt2); open(os.path.join(_wt2, ".git"), "w").write("gitdir: x\n")

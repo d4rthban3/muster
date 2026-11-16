@@ -134,8 +134,13 @@ export const register: Register = (on) => {
       const inQ = parsed.isQuestion && i >= parsed.startsAt && i <= lastChoice
       if (p.kind === 'md') return <Markdown key={`m${i}`} text={p.text} />
       if (p.kind === 'title') {
+        // a card heading right after text or a list gets clear air above it, so it reads as a new card
+        const gapAbove = !inQ && parsed.pieces[i - 1]?.kind === 'md'
         return (
-          <Box key={`t${i}`}>{chip(`${p.word} · ${p.job}`, inQ ? QUESTION : CARD)}</Box>
+          <Box key={`t${i}`} flexDirection="column">
+            {gapAbove && (isTerminal ? <Text key="tgap"> </Text> : spacer(14))}
+            {chip(`${p.word} · ${p.job}`, inQ ? QUESTION : CARD)}
+          </Box>
         )
       }
       const firstChoice = parsed.pieces[i - 1]?.kind === 'md'

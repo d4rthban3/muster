@@ -361,3 +361,16 @@ test('the one-line form draws one clickable circle per letter', async ($, on) =>
   expect(new Set(svgs.map((x: any) => x.props.alt))).toEqual(new Set(['A', 'B']))
   await ui.unmount()
 })
+
+test('a card heading after text or a list has a clear gap above it; the first thing in a message does not', async ($, on) => {
+  on('ui.render', ($, e) => { const { Text } = $.ui.resolve(e); return <Text>engine</Text> })
+  const gaps = async (text: string) => {
+    const ui = await $.ui.mount(MSG(text, 'desktop'))
+    const n = ((await ui.findAll({ type: 'Svg' })) ?? []).filter((x: any) => String(x.props?.source).includes('height="14"') && String(x.props?.source).includes('width="1"')).length
+    await ui.unmount()
+    return n
+  }
+  const list = '1. one\n2. two\n3. three\n\n**SERVER · reading your allowance**\n- a\n- b'
+  expect(await gaps(list)).toBe(1)
+  expect(await gaps('**SERVER · reading your allowance**\n- a\n- b')).toBe(0)
+})

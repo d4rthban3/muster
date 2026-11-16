@@ -138,6 +138,7 @@ test('colour helpers round-trip and the field posts the picked colour', async ()
     onPointer: (fn: any) => { pointer = fn },
     post: (d: any) => posts.push(d),
   }
+  const oldH = (globalThis as any).h
   ;(globalThis as any).h = (t: any, p: any, ...c: any[]) => ({ t, p, c })
   Field({ id: 'lineTopColor', hex: '#ff0000' }, surface)
   pointer({ type: 'down', x: 31, y: 6, button: 'left' })
@@ -145,6 +146,7 @@ test('colour helpers round-trip and the field posts the picked colour', async ()
   expect(posts.length).toBe(1)
   expect(posts[0].id).toBe('lineTopColor')
   expect(posts[0].hex).toBe('#ff0000')
+  ;(globalThis as any).h = oldH
 })
 
 test('the left line is a region as tall as the rows beside it, one glyph per laid-out row', async () => {

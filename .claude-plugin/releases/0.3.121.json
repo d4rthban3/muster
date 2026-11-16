@@ -1,0 +1,15 @@
+{
+  "version": "0.3.121",
+  "changed_files": [
+    "profiles/muster.json",
+    "profiles/pinr.json",
+    "scripts/crew-plan.py",
+    "scripts/profile-selftest.py"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "compact: managers 250K, workers 200K"
+}

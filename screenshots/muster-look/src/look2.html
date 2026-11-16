@@ -1,0 +1,29 @@
+<!doctype html><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><style>
+@font-face{font-family:"DM Sans";src:url("../../../docs/fonts/dm-sans.woff2");font-weight:100 1000}
+@font-face{font-family:Manrope;src:url("../../../docs/fonts/manrope.woff2");font-weight:200 800}
+:root{--bg:#f4eeff;--card:#fff;--text:#191C24;--mut:#4d5262;--line:#ded5f7;--acc:#FFDB58;--acc-t:#191C24;--pur:#5A3AE8;--code:#efe9fd}
+@media (prefers-color-scheme:dark){:root{--bg:#191C24;--card:#21252f;--text:#f4eeff;--mut:#b4b9c6;--line:rgba(244,238,255,.16);--pur:#8f78ff;--code:#13151b}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.55 "DM Sans",sans-serif;padding:20px 22px}
+h4{font:700 12px/1 Manrope;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin:22px 0 8px}
+.title{font:800 20px/1.2 Manrope;margin:0 0 14px}.title small{font:600 13px DM Sans;color:var(--mut);display:block;margin-top:4px}
+.you{margin:10px 0 18px;padding:10px 14px;border-radius:14px;background:var(--card);border:1px solid var(--line);width:fit-content;max-width:90%}
+ul{margin:6px 0;padding-left:20px}li{margin:3px 0}
+.role{font:700 12px Manrope;letter-spacing:.05em;color:var(--pur)}
+pre{background:var(--code);border-radius:10px;padding:12px;font:13px/1.5 ui-monospace,Menlo,monospace;white-space:pre-wrap;margin:6px 0 0;color:var(--text)}
+.fb{opacity:.95;border-top:1px dashed var(--line);margin-top:26px;padding-top:6px}
+.talk{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}.talk .hd{background:var(--pur);color:#fff;font:800 14px Manrope;padding:9px 16px;display:flex;justify-content:space-between}.talk .bd{padding:6px 16px 10px}
+.ask{background:var(--acc);color:var(--acc-t);border-radius:18px;padding:16px;box-shadow:0 6px 18px rgba(25,28,36,.25)}.ask .hd{font:800 14px Manrope;margin-bottom:6px}
+.opt{display:flex;gap:12px;align-items:center;background:rgba(255,255,255,.55);border-radius:12px;padding:10px 12px;margin:8px 0}.opt i{font:800 16px Manrope;background:var(--acc-t);color:var(--acc);border-radius:50%;width:30px;height:30px;display:grid;place-items:center;font-style:normal;flex:none}.pick{font-weight:700;font-size:13px}</style><p class=title>Look 2 · Cards<small>Every crew message is a card with a purple title bar; questions are a bold yellow card with letter buttons.</small></p>
+<h4>A crew chat talking</h4><div class=talk><div class=hd><span>READY · phone menu A</span><span>Designer</span></div><div class=bd><ul><li>Every page has a Menu button at the top right.</li><li>Scan clean; 5 phone pictures checked.</li><li>Inspector has it.</li></ul></div></div>
+<h4>A question waiting for you</h4><div class=ask><div class=hd>WAITING FOR YOU · ITEM 7</div><p>How should the menu look on a phone?</p><div class=opt><i>A</i><span>Button at the top right. <span class=pick>my pick</span></span></div><div class=opt><i>B</i><span>Fixed button at the bottom right.</span></div></div>
+<h4>Same text in a plain chat bot (markdown only)</h4><pre>**READY · phone menu A**
+- Every page has a Menu button at the top right.
+- Scan clean; 5 phone pictures checked.
+- Inspector has it.
+
+**WAITING · item 7**
+How should the menu look on a phone?
+
+***A.*** Button at the top right. *(my pick)*
+
+***B.*** Fixed button at the bottom right.</pre>

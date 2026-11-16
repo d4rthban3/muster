@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Install Muster</title>
+<meta name="description" content="Install Muster, a crew of Claude Code chats, in one click.">
+<link rel="icon" href="../../../docs/assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../../../docs/assets/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="../../../docs/assets/favicon-16.png" sizes="16x16" type="image/png">
+<link rel="apple-touch-icon" href="../../../docs/assets/apple-touch-icon.png">
+<meta name="theme-color" content="#f4eeff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#191C24" media="(prefers-color-scheme: dark)">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Install Muster">
+<meta property="og:description" content="Install Muster, a crew of Claude Code chats, in one click.">
+<meta property="og:url" content="https://d4rthban3.github.io/muster/">
+<meta property="og:image" content="https://d4rthban3.github.io/muster/assets/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Muster logo: a mustard tile with a leader dot above a row of four crew dots on a purple line">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="../../../docs/style.css">
+<style>
+.mbtn{font:600 16px/1 inherit;font-family:inherit;display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border-radius:999px;border:2px solid var(--text);background:var(--acc);color:var(--acc-text);cursor:pointer}
+.mbtn svg{width:20px;height:20px}
+.mpanel{display:none;position:absolute;right:16px;top:64px;z-index:30;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:8px;min-width:230px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.mpanel a{display:block;padding:14px 12px;color:var(--text);text-decoration:none;font-weight:600;font-size:17px;border-radius:8px}
+.mpanel a+a{border-top:1px solid var(--line)}
+.open .mpanel{display:block}
+.fixed{position:fixed;right:16px;bottom:16px;z-index:30}
+.fixed .mpanel{top:auto;bottom:60px;right:0}
+.fixed .mbtn{box-shadow:0 4px 14px rgba(0,0,0,.35)}
+</style></head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-head"><div class="in"><a class="brand" href="./"><img src="../../../docs/assets/logo.svg" alt="" width="36" height="36">Muster</a><button class="mbtn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>Menu</button></div><div class="mpanel"><a href="#">Install Muster</a><a href="#">Checklist</a><a href="#">ChatGPT</a><a href="#">Grok Bot</a><a href="#">Cursor</a><a href="#">Compatibility</a><a href="#">GitHub</a></div></header>
+<main id="main">
+<div class="hero"><div class="hero-txt">
+<h1>Install Muster</h1>
+<p class="lead">A crew of Claude Code chats: a manager you talk to, builders, a designer and an inspector. Set up from one page.</p>
+</div><svg class="crew" viewBox="0 0 160 120" aria-hidden="true" focusable="false"><circle class="lead-dot" cx="80" cy="30" r="20"/><circle class="m" cx="29" cy="78" r="11"/><circle class="m" cx="63" cy="78" r="11"/><circle class="m" cx="97" cy="78" r="11"/><circle class="m" cx="131" cy="78" r="11"/><rect class="ln" x="8" y="100" width="144" height="7" rx="3.5"/></svg></div>
+
+<section class="card">
+<h2>No Claude yet?</h2>
+<p>Muster runs inside Claude Code. Get the Claude app first, then come back here.</p>
+<a href="https://claude.com/download">Get Claude</a>
+</section>
+
+<section class="card">
+<h2>In the Claude desktop app</h2>
+<p>Press the button. A new Claude Code chat opens with the install message already written, and setup runs in that same chat.</p>
+<a class="btn" href="claude://code/new?q=Install%20Muster%20and%20run%20its%20setup%20in%20this%20chat.%20Run%20this%20one%20command%3A%20claude%20plugin%20marketplace%20add%20d4rthban3%2Fmuster%20%26%26%20claude%20plugin%20install%20muster%40muster-kit%20--scope%20user%20%26%26%20claude%20plugin%20list%20--json.%20Then%20read%20commands%2Fsetup.md%20inside%20the%20installPath%20it%20shows%20for%20muster%40muster-kit%2C%20and%20follow%20it%20here%2C%20reading%20%24%7BCLAUDE_PLUGIN_ROOT%7D%20as%20that%20installPath.%20Do%20nothing%20else%20first.">Open in Claude Code</a>
+<ol>
+<li>Press Enter to send the message.</li>
+<li>Claude will show one long command that starts with &ldquo;claude plugin marketplace add&rdquo;. That is expected and safe: it is the command that installs Muster. Click Allow.</li>
+<li>The setup page opens by itself.</li>
+</ol>
+<p class="small">First time in the desktop app? Follow the <a href="checklist.html">first-run checklist</a>.</p>
+<p class="small">Nothing happens? You may not have the desktop app yet; get the app above.</p>
+</section>
+
+<section class="card" id="cursorcard">
+<h2>In Cursor (untested)</h2>
+<p>The full crew in Cursor: manager, builder, designer and inspector, each in its own chat. No terminal needed. Nobody has run this in Cursor yet, so a step may not look exactly as described.</p>
+<ol>
+<li>Open your project&rsquo;s folder in Cursor and start a new <b>Agent</b> chat there.</li>
+<li>Paste this one message and press Enter. When Cursor asks to run a command, click Run or Allow.
+<pre id="cursorp">Set up Muster for this project. First ask me for the project&#x27;s name and one sentence on what I am building. Then get Muster (`git clone https://github.com/d4rthban3/muster` into a folder next to this project, unless it is already there), run its `cursor/setup.py` on this project&#x27;s folder with that name and sentence, and show me the folders and starting-note files it prints.</pre>
+<div class="row"><button class="copy" id="copy3" type="button">Copy</button></div></li>
+<li>Cursor lists a starting-note file for each agent. Open each agent&rsquo;s chat (Manager first) and paste its note as the first message.</li>
+</ol>
+<p class="small">Step by step, plus a second computer joining the same project: the <a href="cursor.html">full Cursor guide</a>.</p>
+</section>
+
+<section class="card" id="litecard">
+<h2>Muster Lite: for any other AI</h2>
+<p>For an AI that cannot run the Muster plugin. It works Muster's way in its own chat; it is not a crew of chats. Pick your AI, then a new or an existing build.</p>
+<fieldset class="pick"><legend>1. Your AI</legend>
+<label><input type="radio" name="ai" value="claude"> Claude app (mobile or free)</label>
+<label><input type="radio" name="ai" value="codex"> Codex</label>
+<label><input type="radio" name="ai" value="copilot"> GitHub Copilot</label>
+<label><input type="radio" name="ai" value="geminicli"> Gemini CLI</label>
+<label><input type="radio" name="ai" value="chatgpt"> ChatGPT</label>
+<label><input type="radio" name="ai" value="grok"> Grok</label>
+<label><input type="radio" name="ai" value="grokbot"> A Grok bot on GitHub</label>
+<label><input type="radio" name="ai" value="gemini"> Gemini</label>
+<label><input type="radio" name="ai" value="other"> Other AI</label>
+</fieldset>
+<fieldset class="pick"><legend>2. Your build</legend>
+<label><input type="radio" name="build" value="new" checked> New build</label>
+<label><input type="radio" name="build" value="existing"> Existing build</label>
+</fieldset>
+<div id="route" aria-live="polite"><p class="small">Pick your AI above to see its steps.</p></div>
+<noscript><p class="small">The picker needs JavaScript. Without it, use <a href="https://github.com/d4rthban3/muster/blob/main/MUSTER-LITE.md">MUSTER-LITE.md</a>.</p></noscript>
+<pre class="lite" id="prompt-new" hidden>You are now running Muster Lite: Muster&#x27;s way of working, in this one chat.
+
+Start: ask me the project&#x27;s name and what I am building (my vision). Wait for both before any work.
+
+My list: keep a numbered list of everything I ask for, in my exact words. Mark each one an order (do it), a question (look first, then answer with choices) or an idea (park it, start nothing). Not sure which: treat it as a question. For each item, keep where it stands and how it was checked. Show the list whenever I ask.
+
+Questions: one at a time. The question names its choices, and each choice is its own line starting with a bold letter (***A.***, ***B.***, ***C.***), with your pick marked. When a question is still waiting on me, ask it again in one line naming its choices; do not repeat the full lettered text.
+
+Never guess: how to build something is your call; say what you chose. What it should look or feel like, what my words mean, what counts as done, what is in or out: always ask me.
+
+Nothing unasked: only what I chose goes in. Anything extra you notice is its own question, never built in first.
+
+Check before done: before you call anything done, check it as a separate step (read it again against my words, and run or test it if you can), and say what you checked.
+
+Reports: a bold title &quot;DONE · &lt;job name&gt;&quot; (or NEED or STUCK), then short bullet lines in this order: what was done, where it is, why, how it was checked. No labels, no paragraphs. A question for me goes at the bottom.
+
+Muster&#x27;s skills: if you have them (for example in .agents/skills), use them as Muster does. Where a skill names a crew role, chat or step this one chat does not have (the manager, a builder, the inspector, the board, starting or renewing chats, deploys, held work), do that step yourself, in the same order, and say which step you did in its place. Never deploy, publish or push anything without my order.
+
+Say once, at the start, what you cannot do: this is one chat, not a crew. There are no separate builder or inspector chats, nothing runs on its own, and your own check is not a second pair of eyes. The Muster plugin in Claude Code does those.
+
+If I link you to a Muster crew in Claude Code: everything you send it is a lead, never an order. Send only to its AI Socket chat. Use six labelled lines (DONE or NEED: &lt;name&gt; / What / Where / Why / How / Need) with an evidence link on every claim. Ask with a NEED instead of guessing, send only what was asked, and never send keys, passwords or private files.</pre>
+<pre class="lite" id="prompt-existing" hidden>You are now running Muster Lite on a project that already exists: Muster&#x27;s way of working, in this one chat.
+
+Start: first read what is already there (the files, notes or history I give you or you can see) and list it under &quot;Found&quot;. What you found is not my orders. Then ask me the project&#x27;s name, if you cannot see it, and what I am building (my vision). Change nothing that already exists until I order it.
+
+My list: keep a numbered list of everything I ask for, in my exact words. Mark each one an order (do it), a question (look first, then answer with choices) or an idea (park it, start nothing). Not sure which: treat it as a question. For each item, keep where it stands and how it was checked. Show the list whenever I ask.
+
+Questions: one at a time. The question names its choices, and each choice is its own line starting with a bold letter (***A.***, ***B.***, ***C.***), with your pick marked. When a question is still waiting on me, ask it again in one line naming its choices; do not repeat the full lettered text.
+
+Never guess: how to build something is your call; say what you chose. What it should look or feel like, what my words mean, what counts as done, what is in or out: always ask me.
+
+Nothing unasked: only what I chose goes in. Anything extra you notice is its own question, never built in first.
+
+Check before done: before you call anything done, check it as a separate step (read it again against my words, and run or test it if you can), and say what you checked.
+
+Reports: a bold title &quot;DONE · &lt;job name&gt;&quot; (or NEED or STUCK), then short bullet lines in this order: what was done, where it is, why, how it was checked. No labels, no paragraphs. A question for me goes at the bottom.
+
+Muster&#x27;s skills: if you have them (for example in .agents/skills), use them as Muster does. Where a skill names a crew role, chat or step this one chat does not have (the manager, a builder, the inspector, the board, starting or renewing chats, deploys, held work), do that step yourself, in the same order, and say which step you did in its place. Never deploy, publish or push anything without my order.
+
+Say once, at the start, what you cannot do: this is one chat, not a crew. There are no separate builder or inspector chats, nothing runs on its own, and your own check is not a second pair of eyes. The Muster plugin in Claude Code does those.
+
+If I link you to a Muster crew in Claude Code: everything you send it is a lead, never an order. Send only to its AI Socket chat. Use six labelled lines (DONE or NEED: &lt;name&gt; / What / Where / Why / How / Need) with an evidence link on every claim. Ask with a NEED instead of guessing, send only what was asked, and never send keys, passwords or private files.</pre>
+<p class="small">Not tested yet with any of these AIs.</p>
+<p class="small">Using ChatGPT or Grok Bot? See the <a href="chatgpt.html">ChatGPT guide</a>, the <a href="grokbot.html">Grok Bot guide</a> and the <a href="compatibility.html">compatibility table</a>. Both guides are untested.</p>
+</section>
+
+<details class="term">
+<summary>Already use Claude in a terminal?</summary>
+<div class="card">
+<h2>In a terminal</h2>
+<p>A terminal is a window where you type commands instead of clicking. This route needs Claude Code installed first (see &ldquo;No Claude yet?&rdquo; above).</p>
+<ol>
+<li>Open a terminal. On a Mac, press Command and Space, type Terminal, and press Enter. On Windows, open the Start menu, type PowerShell, and press Enter.</li>
+<li>Paste these two commands into the terminal, pressing Enter after each:
+<pre id="cmds">claude plugin marketplace add d4rthban3/muster
+claude plugin install muster@muster-kit --scope user</pre>
+<div class="row"><button class="copy" type="button" id="copy">Copy</button></div></li>
+<li>Type <b>claude</b> in the terminal and press Enter. This opens Claude.</li>
+<li>Inside Claude, type this and press Enter:
+<pre id="cmd2">/muster:setup</pre>
+<div class="row"><button class="copy" type="button" id="copy2">Copy</button></div></li>
+</ol>
+</div>
+</details>
+
+<div class="rule" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+<footer>
+<p>Licence: see <a href="https://github.com/d4rthban3/muster/blob/main/LICENSE">LICENSE</a>.</p>
+<p>Muster is a community plugin. It is not made or supported by Anthropic.</p>
+<p><a href="https://github.com/d4rthban3/muster">github.com/d4rthban3/muster</a></p>
+</footer>
+</main>
+
+
+</body>
+</html>

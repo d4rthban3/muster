@@ -1,0 +1,30 @@
+<!doctype html><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><style>
+@font-face{font-family:"DM Sans";src:url("../../../docs/fonts/dm-sans.woff2");font-weight:100 1000}
+@font-face{font-family:Manrope;src:url("../../../docs/fonts/manrope.woff2");font-weight:200 800}
+:root{--bg:#f4eeff;--card:#fff;--text:#191C24;--mut:#4d5262;--line:#ded5f7;--acc:#FFDB58;--acc-t:#191C24;--pur:#5A3AE8;--code:#efe9fd}
+@media (prefers-color-scheme:dark){:root{--bg:#191C24;--card:#21252f;--text:#f4eeff;--mut:#b4b9c6;--line:rgba(244,238,255,.16);--pur:#8f78ff;--code:#13151b}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.55 "DM Sans",sans-serif;padding:20px 22px}
+h4{font:700 12px/1 Manrope;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin:22px 0 8px}
+.title{font:800 20px/1.2 Manrope;margin:0 0 14px}.title small{font:600 13px DM Sans;color:var(--mut);display:block;margin-top:4px}
+.you{margin:10px 0 18px;padding:10px 14px;border-radius:14px;background:var(--card);border:1px solid var(--line);width:fit-content;max-width:90%}
+ul{margin:6px 0;padding-left:20px}li{margin:3px 0}
+.role{font:700 12px Manrope;letter-spacing:.05em;color:var(--pur)}
+pre{background:var(--code);border-radius:10px;padding:12px;font:13px/1.5 ui-monospace,Menlo,monospace;white-space:pre-wrap;margin:6px 0 0;color:var(--text)}
+.fb{opacity:.95;border-top:1px dashed var(--line);margin-top:26px;padding-top:6px}
+.talk{border-left:4px solid var(--pur);padding:2px 0 2px 14px}.talk b.h{font:800 16px Manrope;display:block}
+.ask{border:2px solid var(--acc);border-radius:16px;padding:14px 16px;background:var(--card)}.ask .tag{display:inline-block;background:var(--acc);color:var(--acc-t);font:800 12px Manrope;letter-spacing:.06em;padding:4px 10px;border-radius:999px;margin-bottom:8px}
+.opt{display:flex;gap:12px;margin:10px 0}.opt i{font:800 16px Manrope;color:var(--acc-t);background:var(--acc);border-radius:8px;min-width:30px;height:30px;display:grid;place-items:center;font-style:normal}
+.pick{color:var(--pur);font-weight:700;font-size:13px}</style><p class=title>Look 1 · Margin rule<small>Crew talk stays plain text with a purple rule; only questions get a yellow card.</small></p>
+<h4>A crew chat talking</h4><div class=talk><b class=h>READY · phone menu A</b><ul><li>Every page has a Menu button at the top right.</li><li>Scan clean; 5 phone pictures checked.</li><li>Inspector has it.</li></ul></div>
+<h4>A question waiting for you</h4><div class=ask><span class=tag>WAITING FOR YOU · ITEM 7</span><p>How should the menu look on a phone?</p><div class=opt><i>A</i><span>Button at the top right. <span class=pick>my pick</span></span></div><div class=opt><i>B</i><span>Fixed button at the bottom right.</span></div></div>
+<h4>Same text in a plain chat bot (markdown only)</h4><pre>**READY · phone menu A**
+- Every page has a Menu button at the top right.
+- Scan clean; 5 phone pictures checked.
+- Inspector has it.
+
+**WAITING · item 7**
+How should the menu look on a phone?
+
+***A.*** Button at the top right. *(my pick)*
+
+***B.*** Fixed button at the bottom right.</pre>

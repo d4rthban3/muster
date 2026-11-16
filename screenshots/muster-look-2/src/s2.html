@@ -1,0 +1,29 @@
+<!doctype html><meta charset=utf-8><style>:root{--chipfg:#fff}@media (prefers-color-scheme:dark){:root{--chipfg:#141413}}
+:root{--bg:#faf9f5;--panel:#f0eee6;--text:#1f1e1d;--mut:#6b6a65;--line:#e3e0d5;--user:#e9e6dc;--acc:#5A3AE8;--yel:#b98a00;--tint:rgba(90,58,232,.07);--tbg:#fbfbfb;--tfg:#222;--tmut:#777;--tacc:#5A3AE8}
+@media (prefers-color-scheme:dark){:root{--bg:#262624;--panel:#30302e;--text:#faf9f5;--mut:#a7a59d;--line:#3d3d3a;--user:#393937;--acc:#8f78ff;--yel:#FFDB58;--tint:rgba(255,219,88,.08);--tbg:#141413;--tfg:#e6e6e6;--tmut:#8a8a8a;--tacc:#FFDB58}}
+*{box-sizing:border-box}body{margin:0;padding:18px;background:var(--panel);font:15px/1.6 -apple-system,"Helvetica Neue",sans-serif;color:var(--text)}
+h5{font:600 12px -apple-system,"Helvetica Neue",Arial,sans-serif;letter-spacing:.05em;text-transform:uppercase;color:var(--mut);margin:0 0 8px}h5.n{margin-top:18px}
+.win{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.u{background:var(--user);border-radius:10px;padding:8px 12px;width:fit-content;margin-bottom:12px}
+p{margin:6px 0}ul{margin:6px 0;padding-left:22px}
+.term{background:var(--tbg);color:var(--tfg);border-radius:8px;padding:12px 14px;font:13px/1.55 ui-monospace,Menlo,monospace;white-space:pre-wrap;border:1px solid var(--line)}
+.term .d{color:var(--tmut)}
+.sub{font:13px -apple-system,"Helvetica Neue",Arial,sans-serif;color:var(--mut);margin:0 0 12px}
+.q{border-left:2px solid var(--yel);padding-left:12px;margin:10px 0}.let{color:var(--acc);font-weight:700;font-style:italic}.tl{color:var(--tacc);font-weight:bold}.tr{color:var(--tacc)}</style><h5 style="font-size:15px;text-transform:none;letter-spacing:0;color:var(--text)">Option 2 · Chips and a thin rule</h5><p class=sub>Chips as in option 1, plus a 2 px yellow rule down the left of a question; in the terminal the rule is one thin bar character.</p>
+<h5>Desktop chat (the app's own look)</h5><div class=win><div class=u>Tell me where the phone menu stands.</div><p><span class="pill pp">READY · phone menu A</span></p><ul><li>Every page has a Menu button at the top right.</li><li>Scan clean; 5 phone pictures checked.</li></ul><div class=q><p><span class="pill py">WAITING · item 7</span></p><p>How should the menu look on a phone?</p><p><span class="pill py pl">A</span> Button at the top right. <i>(my pick)</i></p><p><span class="pill py pl">B</span> Fixed button at the bottom right.</p></div></div>
+<h5 class=n>Terminal</h5><div class=term><span class=d>●</span> <span class=tp>READY · phone menu A</span>
+  - Every page has a Menu button at the top right.
+  - Scan clean; 5 phone pictures checked.
+
+<span class=tr>▎</span><span class=d>●</span> <span class=tw> WAITING · item 7 </span>
+<span class=tr>▎</span>  How should the menu look on a phone?
+<span class=tr>▎</span>
+<span class=tr>▎</span>  <span class=tl>A.</span> Button at the top right. (my pick)
+<span class=tr>▎</span>  <span class=tl>B.</span> Fixed button at the bottom right.</div><style>
+:root{--cy:#9a7300;--cyf:rgba(255,200,0,.14);--cyb:rgba(154,115,0,.55);--cp:#5A3AE8;--cpf:rgba(90,58,232,.10);--cpb:rgba(90,58,232,.5)}
+@media (prefers-color-scheme:dark){:root{--cy:#FFDB58;--cyf:rgba(255,219,88,.13);--cyb:rgba(255,219,88,.55);--cp:#a995ff;--cpf:rgba(143,120,255,.15);--cpb:rgba(169,149,255,.55)}}
+.pill{display:inline-block;border-radius:10px;padding:1px 10px;font:600 13px/1.5 -apple-system,"Helvetica Neue",Arial,sans-serif;font-style:normal;border:1px solid;vertical-align:1px}
+.py{color:var(--cy);background:var(--cyf);border-color:var(--cyb)}.pp{color:var(--cp);background:var(--cpf);border-color:var(--cpb)}
+.pl{min-width:28px;text-align:center;margin-right:4px}
+.q{background:none}
+</style><style>.tw{color:var(--cy);background:var(--cyf);outline:1px solid var(--cyb);font-weight:bold}.tp{color:var(--cp);font-weight:bold}</style><style>.tl{color:var(--cy)!important}</style>

@@ -495,6 +495,20 @@ if cr b abc >"$CR/o5" 2>&1; then fail "ci-retry reran a run that passed"; fi
 grep -q 'ci-retry.py' "$ROOT/scripts/ship.sh" || fail "ship.sh does not use ci-retry.py"
 unset CR_STATE CI_RETRY_GH
 
+step "validate-strict.py accepts only the one known Backdrop warning (strict-backdrop)"
+VS="$SCRATCH/vs"; mkdir -p "$VS"
+printf 'Validating hooks: x\n\n\xe2\x9a\xa0 Found 1 warning:\n\n  \xe2\x9d\xaf modules.../look/register.tsx: on ui.render{component=Backdrop}: no component is named Backdrop, so it never runs\n\n  \xe2\x9d\xaf info line\n\n\xe2\x9c\x98 Validation failed (--strict treats warnings as errors)\n' > "$VS/ok.txt"
+$PY "$ROOT/scripts/validate-strict.py" --from "$VS/ok.txt" --rc 1 >/dev/null 2>&1 || fail "the known Backdrop warning alone was not accepted"
+sed 's/component=Backdrop}: no component is named Backdrop/component=Pane}: no component is named Pane/' "$VS/ok.txt" > "$VS/other.txt"
+if $PY "$ROOT/scripts/validate-strict.py" --from "$VS/other.txt" --rc 1 >/dev/null 2>&1; then fail "another warning was accepted"; fi
+printf 'x\n\xe2\x9a\xa0 Found 2 warnings:\n\n  \xe2\x9d\xaf a: on ui.render{component=Backdrop}: no component is named Backdrop, so it never runs\n  \xe2\x9d\xaf b: something else\n\n\xe2\x9c\x98 Validation failed\n' > "$VS/two.txt"
+if $PY "$ROOT/scripts/validate-strict.py" --from "$VS/two.txt" --rc 1 >/dev/null 2>&1; then fail "Backdrop plus another warning was accepted"; fi
+printf '\xe2\x9c\x98 Found 1 error:\n  \xe2\x9d\xaf bad\n\xe2\x9c\x98 Validation failed\n' > "$VS/err.txt"
+if $PY "$ROOT/scripts/validate-strict.py" --from "$VS/err.txt" --rc 1 >/dev/null 2>&1; then fail "an error was accepted"; fi
+$PY "$ROOT/scripts/validate-strict.py" --from "$VS/err.txt" --rc 0 >/dev/null 2>&1 || fail "a passing validator was refused"
+grep -q 'validate-strict.py' "$ROOT/.github/workflows/setup-test.yml" || fail "CI does not use validate-strict.py"
+grep -q 'validate-strict.py' "$ROOT/scripts/ship.sh" || fail "ship.sh does not use validate-strict.py"
+
 step "the after-compaction hook speaks only in a crew chat, never in the owner's own chat"
 mkdir -p "$SCRATCH/tr" "$SCRATCH/plain"
 printf '{"type":"user","message":{"role":"user","content":"First: read the plugin folder/agents/builder.md. You are Builder A_X_001."}}\n' > "$SCRATCH/tr/builder.jsonl"

@@ -88,6 +88,10 @@ git add -A .claude-plugin CHANGELOG.md
 git commit -q -m "Version $new: $note" || stop "could not save the version commit"
 fi
 bash scripts/version-check.sh || stop "version-check failed"
+# strict-backdrop: the plugin check as CI runs it (only the known Backdrop warning is accepted); skipped where claude is not installed
+if [ -f scripts/validate-strict.py ] && command -v claude >/dev/null 2>&1; then
+  $py scripts/validate-strict.py . | tail -1 | grep -q '^VALIDATE OK' || { $py scripts/validate-strict.py . | tail -8; stop "claude plugin validate --strict failed on something other than the known Backdrop warning"; }
+fi
 bash scripts/scan-leaks.sh >/dev/null 2>&1 || { bash scripts/scan-leaks.sh 2>&1 | tail -5; stop "the leak scan failed"; }
 n=$(git rev-list --count origin/main..HEAD)
 echo "== the push carries $n commit(s):"; git log --format='  %h %s' origin/main..HEAD

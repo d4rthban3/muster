@@ -1,0 +1,15 @@
+{
+  "version": "0.3.130",
+  "changed_files": [
+    ".claude-plugin/marketplace.json",
+    ".claude-plugin/plugin.json",
+    "look/parse.ts",
+    "look/register.tsx"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "working-badge: a reply line starting Working: shows a Working badge, and one starting The crew is idle shows an Idle badge, in the ORDER title badge colour; the rest of the line stays plain text"
+}

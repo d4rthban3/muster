@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.130
+Affects: see .claude-plugin/releases/0.3.130.json.
+working-badge: a reply line starting Working: shows a Working badge, and one starting The crew is idle shows an Idle badge, in the ORDER title badge colour; the rest of the line stays plain text
+
 ## 0.3.129
 Affects: Manager.
 idle-needs-choices: the manager's reply check refuses a bare 'The crew is idle'; the idle card must carry at least two lettered next steps

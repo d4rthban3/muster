@@ -162,7 +162,7 @@ export const register: Register = (on) => {
     let cut: Cut | null = null
     if (useAppFont && fontBytes !== null && !isTerminal) {
       const letters = Array.from(new Set(Array.from(
-        parsed.pieces.map(p => (p.kind === 'title' ? `${p.word} · ${p.job}` : p.kind === 'choice' ? p.letter : '')).join(''),
+        parsed.pieces.map(p => (p.kind === 'title' ? `${p.word} · ${p.job}` : p.kind === 'choice' ? p.letter : p.kind === 'status' ? p.badge : '')).join(''),
       ))).sort().join('')
       if (!(letters in cuts)) cuts[letters] = cutFont(fontBytes, letters)
       cut = cuts[letters] ?? null
@@ -185,7 +185,7 @@ export const register: Register = (on) => {
     parsed.pieces.forEach((p, i) => { if (p.kind === 'choice') lastChoice = i })
     // Terminal width is not known here: a wrapped line is guessed at 70 columns.
     const lines = (p: (typeof parsed.pieces)[number]) =>
-      p.kind === 'title' ? 1 : p.kind === 'choice' ? Math.max(1, Math.ceil((p.text.length + 5) / 70)) : p.text.split('\n').reduce((n, l) => n + Math.max(1, Math.ceil(l.length / 70)), 0)
+      p.kind === 'title' || p.kind === 'status' ? 1 : p.kind === 'choice' ? Math.max(1, Math.ceil((p.text.length + 5) / 70)) : p.text.split('\n').reduce((n, l) => n + Math.max(1, Math.ceil(l.length / 70)), 0)
 
     // Every choice chip is as wide as the widest letter, so all the choice text
     // starts at one x; each gets 4px of air above and below inside its own
@@ -194,6 +194,15 @@ export const register: Register = (on) => {
     const rows = parsed.pieces.map((p, i) => {
       const inQ = parsed.isQuestion && i >= parsed.startsAt && i <= lastChoice
       if (p.kind === 'md') return <Markdown key={`m${i}`} text={p.text} />
+      if (p.kind === 'status') {
+        // the badge is the ORDER title badge's colour (the card purple); the rest of the line is plain text
+        return (
+          <Box key={`s${i}`} gap={2} alignItems="center">
+            <Box flexShrink={0}>{chip(p.badge, CARD)}</Box>
+            {p.rest !== '' && <Box flexShrink={1} flexGrow={1}><Markdown key={`sm${i}`} text={p.rest} /></Box>}
+          </Box>
+        )
+      }
       if (p.kind === 'title') {
         // a card heading right after text or a list gets clear air above it, so it reads as a new card
         const gapAbove = !inQ && parsed.pieces[i - 1]?.kind === 'md'
@@ -244,6 +253,7 @@ export const register: Register = (on) => {
     // short rather than long so it never runs into the next card.
     const px = (p: (typeof parsed.pieces)[number]) => {
       if (p.kind === 'title') return 0
+      if (p.kind === 'status') return 28
       const wrap = (n: number) => Math.max(1, Math.ceil(n / 80))
       if (p.kind === 'choice') return Math.max(28, wrap(p.text.length + 5) * 18.5)
       return p.text.split('\n').reduce((n, l) => n + wrap(l.length) * 18.5, 0)

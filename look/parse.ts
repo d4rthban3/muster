@@ -4,10 +4,14 @@ export type Piece =
   | { kind: 'md'; text: string }
   | { kind: 'title'; word: string; job: string }
   | { kind: 'choice'; letter: string; text: string }
+  | { kind: 'status'; badge: 'Working' | 'Idle'; rest: string }
 
 export type Parsed = { pieces: Piece[]; isQuestion: boolean; startsAt: number }
 
 const TITLE = /^\*\*([A-Za-z][A-Za-z_ ]{1,24}) · (.{1,80}?)\*\*\s*$/
+// A status line: "Working: ..." gets a Working badge, "The crew is idle ..." an Idle badge; the rest stays plain text.
+const WORKING = /^Working:\s*(.*)$/
+const IDLE = /^The crew is idle[\s.,;:\u2014-]*(.*)$/
 const CHOICE = /^\*\*\*([A-Z])\.\*\*\*\s*(.*)$/
 
 const MARK = /(?:^|\s)\*\*\*([A-Z])\.\*\*\*\s*/g
@@ -38,12 +42,16 @@ export function parse(text: string): Parsed | null {
   for (const line of text.split('\n')) {
     const t = TITLE.exec(line)
     const c = CHOICE.exec(line)
+    const w = t ? null : WORKING.exec(line)
+    const idle = t || w ? null : IDLE.exec(line)
     const many = t ? null : inline(line)
     if (many) {
       if (many.lead !== '') buf.push(many.lead)
       flush()
       for (const it of many.items) pieces.push({ kind: 'choice', letter: it.letter, text: it.text })
-    } else if (t) { flush(); pieces.push({ kind: 'title', word: t[1]!, job: t[2]! }) }
+    } else if (w) { flush(); pieces.push({ kind: 'status', badge: 'Working', rest: w[1]! }) }
+    else if (idle) { flush(); pieces.push({ kind: 'status', badge: 'Idle', rest: idle[1]! }) }
+    else if (t) { flush(); pieces.push({ kind: 'title', word: t[1]!, job: t[2]! }) }
     else if (c) { flush(); pieces.push({ kind: 'choice', letter: c[1]!, text: c[2]! }) }
     else buf.push(line)
   }
@@ -58,7 +66,7 @@ export function parse(text: string): Parsed | null {
     for (let i = firstChoice - 1; i >= 0; i--) {
       startsAt = i
       if (pieces[i]!.kind === 'title') break
-      if (pieces[i]!.kind === 'md' && i < firstChoice - 1) break
+      if ((pieces[i]!.kind === 'md' || pieces[i]!.kind === 'status') && i < firstChoice - 1) break
     }
   }
   return { pieces, isQuestion, startsAt }

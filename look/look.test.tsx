@@ -602,3 +602,21 @@ test('a press on a choice row lights it at once, posts its letter, and lets go o
   expect(lit()).toBeUndefined()
   ;(globalThis as any).h = oldH
 })
+
+test('a Working: line and a The crew is idle line get a badge; the rest stays plain', async ($, on) => {
+  const w = parse('Working: Builder A on idle-needs-choices')!
+  expect(w.pieces).toEqual([{ kind: 'status', badge: 'Working', rest: 'Builder A on idle-needs-choices' }])
+  const i = parse('The crew is idle. Nothing needs you.')!
+  expect(i.pieces).toEqual([{ kind: 'status', badge: 'Idle', rest: 'Nothing needs you.' }])
+  expect(parse('The crew is idle')!.pieces).toEqual([{ kind: 'status', badge: 'Idle', rest: '' }])
+  expect(parse('We were Working: nothing')).toBe(null)
+  expect(parse('Working on it')).toBe(null)
+  on('ui.render', ($, e) => {
+    const { Text } = $.ui.resolve(e)
+    return <Text>engine</Text>
+  })
+  const ui = await $.ui.mount(MSG('Done.\n\nWorking: Builder A on the badge', 'terminal'))
+  expect(await ui.find({ type: 'Text', text: /Working/ })).toBeTruthy()
+  expect(await ui.find({ type: 'Markdown', text: 'Builder A on the badge' })).toBeTruthy()
+  await ui.unmount()
+})

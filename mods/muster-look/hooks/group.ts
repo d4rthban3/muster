@@ -1,3 +1,4 @@
+import { parse } from './parse'
 // The look is kept per group. A group is a project: its git repository's main
 // folder (so a project's worktrees share one look), or else the folder the
 // session started in. Each group's choices are one entry in this plugin's own
@@ -92,17 +93,6 @@ export async function savePick($: any, text: string, letter: string): Promise<vo
   } catch { /* a store that refuses keeps nothing */ }
 }
 
-// Is this question the newest thing the assistant said? Then a bare letter answers it clearly.
-export async function isNewest($: any, text: string, latest: string): Promise<boolean> {
-  try {
-    const msgs = await $.session.messages()
-    if (Array.isArray(msgs)) {
-      for (let i = msgs.length - 1; i >= 0; i--) if (msgs[i].role === 'assistant') return String(msgs[i].text).includes(text.trim())
-    }
-  } catch { /* no transcript to read */ }
-  return text === latest
-}
-
 // An undone pick: the question goes back to unpicked, as if never clicked.
 export async function clearPick($: any, text: string): Promise<void> {
   try {
@@ -117,6 +107,16 @@ export async function clearPick($: any, text: string): Promise<void> {
 // Does the chat still hold the answer to this question? The question's message is found
 // in the transcript, then a later message of the owner's that is the letter, or the typed
 // "Answer to ..." line. 'unknown' when the question itself is not in the transcript.
+// What a click or typed answer calls its own question: the heading and the question's first line,
+// so no answer can be read as the answer to another question.
+export function answerTag(text: string): string {
+  const ps = parse(text)?.pieces ?? []
+  const head = ps.find(p => p.kind === 'title') as { word: string; job: string } | undefined
+  const first = (ps.find(p => p.kind === 'md') as { text: string } | undefined)?.text.trim().split('\n')[0].replace(/[*_`#]/g, '').trim().slice(0, 60) ?? ''
+  const h = head !== undefined ? `${head.word} \u00b7 ${head.job}` : ''
+  return h !== '' ? (first !== '' ? `${h} (${first})` : h) : (first !== '' ? first : 'the question above')
+}
+export const answerLine = (text: string, words: string) => `Answer to ${answerTag(text)}: ${words}`
 export type Said = { role: string; text: string }
 export function answerIn(msgs: Said[], question: string, mark: string): 'yes' | 'no' | 'unknown' {
   const q = question.trim()
@@ -127,8 +127,9 @@ export function answerIn(msgs: Said[], question: string, mark: string): 'yes' | 
   for (const m of msgs.slice(at + 1)) {
     if (m.role !== 'user') continue
     const t = m.text.trim()
-    // a letter is the bare letter (newest question) or "Answer to <heading>: B" (an older one)
-    if (typed ? t.startsWith('Answer to') && t.includes(mark.slice(1, 40)) : (t.replace(/[*.)]/g, '').toUpperCase() === mark || (t.startsWith('Answer to') && t.endsWith(': ' + mark)))) return 'yes'
+    // an answer names its own question; a bare letter (sent by an older version) counts too
+    const line = `Answer to ${answerTag(question)}: `
+    if (typed ? t.startsWith(line) && t.includes(mark.slice(1, 40)) : (t === line + mark || t.replace(/[*.)]/g, '').toUpperCase() === mark)) return 'yes'
   }
   return 'no'
 }

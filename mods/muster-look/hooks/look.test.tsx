@@ -100,7 +100,7 @@ test('with nothing set the look is the default', async ($, on) => {
   expect(s).toContain('font-weight="400"')
 })
 
-import { groupId, loadGroup, saveGroup, clearGroup, savePick, pickedOn, clearPick, answerIn, answerStands, sent } from './group'
+import { groupId, loadGroup, saveGroup, clearGroup, savePick, pickedOn, clearPick, answerIn, answerStands, sent, answerTag, answerLine } from './group'
 
 const CUSTOM = { chipFont: 'Georgia', questionHeadingColor: '#2dd4bf', choiceChipColor: '#ff7ab6', lineTopColor: '#2dd4bf', lineBottomColor: '#ff7ab6' }
 
@@ -200,7 +200,7 @@ test('the left line is a region as tall as the rows beside it, one glyph per lai
   void el
 })
 
-test('clicking a choice sends its letter once; an answered question does not send again', async ($, on) => {
+test('clicking a choice sends its tagged letter once; an answered question does not send again', async ($, on) => {
   const sent: string[] = []
   on('prompt.submit', ($, e) => { sent.push(String((e as any).text)); return { text: String((e as any).text) } as any })
   const ui = await $.ui.mount(MSG(Q2, 'desktop'))
@@ -208,7 +208,7 @@ test('clicking a choice sends its letter once; an answered question does not sen
   // the answered question has drawn no click areas any more
   expect(await ui.find({ type: 'Client', key: 'pickB' })).toBeFalsy()
   await expect((ui as any).post({ pick: 'B' }, { in: 'pickB' })).rejects.toThrow()
-  expect(sent).toEqual(['A'])
+  expect(sent).toEqual(['Answer to WAITING \u00b7 item 7 (How should the menu look?): A'])
   await ui.unmount()
 })
 
@@ -376,7 +376,7 @@ test('a card heading after text or a list has a clear gap above it; the first th
   expect(await gaps('**SERVER · reading your allowance**\n- a\n- b')).toBe(0)
 })
 
-test('an old question stays live: its click says which question it answers; the newest sends the bare letter', async ($, on) => {
+test('an old question stays live: every click says which question it answers, old or newest', async ($, on) => {
   const sent: string[] = []
   on('prompt.submit', ($, e) => { sent.push(String((e as any).text)); return { text: String((e as any).text) } as any })
   const OLD = '**WAITING · item 3**\nWhich colour?\n\n***A.*** Red.\n\n***B.*** Blue.'
@@ -391,7 +391,7 @@ test('an old question stays live: its click says which question it answers; the 
   try { await (now as any).post({ pick: 'A', q: hashText(NEW) }, { in: 'pickA' }) } catch (x) { throw new Error('now ' + x) }
   // one press each; a second press on either sends nothing more
   await expect((old as any).post({ pick: 'A', q: hashText(OLD) }, { in: 'pickA' })).rejects.toThrow()
-  expect(sent).toEqual(['Answer to WAITING · item 3: B', 'A'])
+  expect(sent).toEqual(['Answer to WAITING \u00b7 item 3 (Which colour?): B', 'Answer to WAITING \u00b7 item 4 (Which size?): A'])
   await old.unmount()
   await now.unmount()
 })
@@ -412,7 +412,7 @@ test('a pick follows the chat: the answer message gone (rewind) means unpicked; 
   expect(answerIn(chat('B'), Q, 'B')).toBe('yes')
   expect(answerIn(chat(), Q, 'B')).toBe('no')
   expect(answerIn(chat('A'), Q, 'B')).toBe('no')
-  expect(answerIn(chat('Answer to WAITING · item 9: blue please'), Q, '=blue please')).toBe('yes')
+  expect(answerIn(chat('Answer to WAITING · item 9 (Which?): blue please'), Q, '=blue please')).toBe('yes')
   expect(answerIn([{ role: 'user', text: 'go' }], Q, 'B')).toBe('unknown')
   const calls = (msgs: any) => ({ session: { messages: async () => msgs } })
   // seen in the chat, then rewound out of it: not picked
@@ -429,9 +429,27 @@ test('a pick follows the chat: the answer message gone (rewind) means unpicked; 
 test('an older question answered with "Answer to <heading>: B" counts as answered in the chat', async () => {
   const msgs = [
     { role: 'assistant', text: '**WAITING · item 3**\nWhich colour?\n\n***A.*** Red.\n\n***B.*** Blue.' },
-    { role: 'user', text: 'Answer to WAITING · item 3: B' },
+    { role: 'user', text: 'Answer to WAITING · item 3 (Which colour?): B' },
     { role: 'assistant', text: 'ok' },
   ]
   expect(answerIn(msgs, msgs[0].text, 'B')).toBe('yes')
   expect(answerIn(msgs, msgs[0].text, 'A')).toBe('no')
+})
+
+test('two questions side by side: a click answers only its own; identical wording is told apart by the chat', async ($, on) => {
+  const A = '**WAITING · item 5**\nWhich colour?\n\n***A.*** Red.\n\n***B.*** Blue.'
+  const B = '**WAITING · item 5**\nWhich size?\n\n***A.*** Big.\n\n***B.*** Small.'
+  // same heading, same letters: the line names the question, so each answer belongs to one
+  expect(answerTag(A)).not.toBe(answerTag(B))
+  const chat = [{ role: 'assistant', text: A }, { role: 'assistant', text: B }, { role: 'user', text: answerLine(A, 'B') }]
+  expect(answerIn(chat, A, 'B')).toBe('yes')
+  expect(answerIn(chat, B, 'B')).toBe('no')
+  // the same question asked again after it was answered is open again
+  const again = [{ role: 'assistant', text: A }, { role: 'user', text: answerLine(A, 'B') }, { role: 'assistant', text: A }]
+  expect(answerIn(again, A, 'B')).toBe('no')
+  // picks are kept apart per question
+  await savePick($, A, 'A')
+  await savePick($, B, 'B')
+  expect(await pickedOn($, A)).toBe('A')
+  expect(await pickedOn($, B)).toBe('B')
 })

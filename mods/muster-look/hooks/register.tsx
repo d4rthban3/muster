@@ -3,7 +3,7 @@ import { parse } from './parse'
 import { cutFont, fromBase64, type Cut } from './font'
 import { labelWidth } from './metrics'
 import { panel, registerLook } from './panel'
-import { loadGroup, pickedOn, typedOn, savePick, hashText, isNewest, clearPick, answerStands, sent } from './group'
+import { loadGroup, pickedOn, typedOn, savePick, hashText, answerLine, clearPick, answerStands, sent } from './group'
 import { svgChip, pillOf, colourOr, YELLOW } from './chip'
 
 
@@ -71,9 +71,8 @@ export const register: Register = (on) => {
         pending.set(text, d.pick)
         // light the letter first: nothing is awaited before this redraw
         $.ui.invalidate('ui.render')
-        const head = parse(text)?.pieces.find(p => p.kind === 'title') as { word: string; job: string } | undefined
-        const tagged = head !== undefined && !(await isNewest($, text, latestQuestion))
-        const said = tagged ? `Answer to ${head.word} \u00b7 ${head.job}: ${d.pick}` : d.pick
+        // every click names its own question, so it can never be read as the answer to another
+        const said = answerLine(text, d.pick)
         ours.add(said)
         sent.add(text)
         void $.prompt.submit({ text: said })
@@ -287,13 +286,11 @@ export const register: Register = (on) => {
               submitLabel="send"
               onSubmit={(t: string) => {
                 const words = String(t).trim()
-                const head = parsed.pieces[parsed.startsAt]
                 if (words === '' || e.props.text !== latestQuestion || answered.has(e.props.text)) return
                 answered.add(e.props.text)
-                const tag = head !== undefined && head.kind === 'title' ? `${head.word} \u00b7 ${head.job}` : 'the question above'
                 sent.add(e.props.text)
                 void savePick($, e.props.text, '=' + words.slice(0, 300)).then(() => $.ui.invalidate('ui.render'))
-                void $.prompt.submit({ text: `Answer to ${tag}: ${words}` })
+                void $.prompt.submit({ text: answerLine(e.props.text, words) })
               }}
             />
           </Box>

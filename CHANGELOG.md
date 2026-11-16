@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.103
+Affects: see .claude-plugin/releases/0.3.103.json.
+Look mod comes with the normal Muster install; Change your look help and portable style block (item 118)
+
 ## 0.3.102
 Affects: see .claude-plugin/releases/0.3.102.json.
 Muster look mod: Pump-style chips in Anthropic Sans, yellow-to-purple left line, user font and colour settings (item 116)

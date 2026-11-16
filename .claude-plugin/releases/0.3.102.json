@@ -1,0 +1,17 @@
+{
+  "version": "0.3.102",
+  "changed_files": [
+    "mods/muster-look/.claude-plugin/plugin.json",
+    "mods/muster-look/hooks/font.ts",
+    "mods/muster-look/hooks/look.test.tsx",
+    "mods/muster-look/hooks/metrics.ts",
+    "mods/muster-look/hooks/register.tsx",
+    "screenshots/chip-stretch/chip-vs-body.png"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Muster look mod: Pump-style chips in Anthropic Sans, yellow-to-purple left line, user font and colour settings (item 116)"
+}

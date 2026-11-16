@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.102
+Affects: see .claude-plugin/releases/0.3.102.json.
+Muster look mod: Pump-style chips in Anthropic Sans, yellow-to-purple left line, user font and colour settings (item 116)
+
 ## 0.3.101
 Affects: see .claude-plugin/releases/0.3.101.json.
 Blocking hooks: guard against git reset/stash in protected folders, key leaks, and pushes to non-allowed public repos (item 117)

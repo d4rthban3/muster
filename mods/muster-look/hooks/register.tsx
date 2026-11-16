@@ -13,12 +13,12 @@ const PURPLE = { label: '#a995ff', text: '#9b6dff', fill: '#2b2748', edge: '#5b3
 // is drawn as a small vector pill: thin brighter border, lifted fill, a soft
 // glow, 28px tall. The label is spaced to its measured width, never stretched.
 const esc = (t: string) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-function svgChip(Svg: any, label: string, c: { text: string; label?: string; glow: string; lift: string }, font: string, cut: Cut | null) {
+function svgChip(Svg: any, label: string, c: { text: string; label?: string; glow: string; lift: string }, font: string, cut: Cut | null, minTw = 0, pad = 0) {
   // The pill is as wide as the same words in body text (measured widths of the
   // app's regular-weight text). The letters keep their own shape: the label is
   // only ever spaced to that width, never stretched.
   const measured = labelWidth(label, 14)
-  const tw = Math.ceil(measured ?? label.length * 6.6)
+  const tw = Math.max(minTw, Math.ceil(measured ?? label.length * 6.6))
   let face = ''
   let family = font
   if (cut !== null && Array.from(label).every(ch => cut.advance[ch] !== undefined)) {
@@ -29,15 +29,16 @@ function svgChip(Svg: any, label: string, c: { text: string; label?: string; glo
   // regular weight the chat's body text has.
   const stretch = ` textLength="${tw}" lengthAdjust="spacing"` + (face === '' ? '' : ` stroke="${c.label ?? c.text}" stroke-width="0.3" stroke-linejoin="round"`)
   const w = tw + 24
-  const ht = 28
+  const ht = 28 + pad * 2
   const source =
     `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${ht}" viewBox="0 0 ${w} ${ht}" preserveAspectRatio="xMinYMid meet">` +
     face +
+    `<g transform="translate(0 ${pad})">` +
     `<defs><filter id="g" x="-20%" y="-40%" width="140%" height="180%"><feGaussianBlur stdDeviation="1.2"/></filter></defs>` +
     `<rect x="2.25" y="2.25" width="${w - 4.5}" height="${ht - 4.5}" rx="${(ht - 4.5) / 2}" fill="none" stroke="${c.glow}" stroke-opacity="0.4" stroke-width="1" filter="url(#g)"/>` +
     `<rect x="2.25" y="2.25" width="${w - 4.5}" height="${ht - 4.5}" rx="${(ht - 4.5) / 2}" fill="${c.text}" fill-opacity="0.08" stroke="${c.glow}" stroke-width="0.5"/>` +
     `<text x="12" y="19" font-family="${family}" font-size="14" font-weight="400" font-style="normal" fill="${c.label ?? c.text}"${stretch}>${esc(label)}</text>` +
-    `</svg>`
+    `</g></svg>`
   return <Svg alt={label} width={w} height={ht} source={source} />
 }
 
@@ -93,7 +94,7 @@ export const register: Register = (on, options: any) => {
     if (parsed === null) return next(e)
 
     const ui = $.ui.resolve(e) as any
-    const { Box, Text, Markdown, Svg } = ui
+    const { Box, Text, Markdown, Svg, Client } = ui
     const isTerminal = e.surface === 'terminal'
 
     // The letters this message's chips need, cut from the app's font once.
@@ -108,7 +109,7 @@ export const register: Register = (on, options: any) => {
 
     // Desktop and the other apps: the one-line rounded bordered chip, as first
     // built. Terminal: one line with thin bars at each end.
-    const chip = (label: string, c: typeof YELLOW) =>
+    const chip = (label: string, c: typeof YELLOW, minTw = 0, pad = 0) =>
       isTerminal ? (
         <Text>
           <Text color={c.edge}>{'\u258F'}</Text>
@@ -116,7 +117,7 @@ export const register: Register = (on, options: any) => {
           <Text color={c.edge}>{'\u2595'}</Text>
         </Text>
       ) : (
-        svgChip(Svg, label, c, FONT, cut)
+        svgChip(Svg, label, c, FONT, cut, minTw, pad)
       )
 
     let lastChoice = -1
@@ -125,6 +126,10 @@ export const register: Register = (on, options: any) => {
     const lines = (p: (typeof parsed.pieces)[number]) =>
       p.kind === 'title' ? 1 : p.kind === 'choice' ? Math.max(1, Math.ceil((p.text.length + 5) / 70)) : p.text.split('\n').reduce((n, l) => n + Math.max(1, Math.ceil(l.length / 70)), 0)
 
+    // Every choice chip is as wide as the widest letter, so all the choice text
+    // starts at one x; each gets 4px of air above and below inside its own
+    // picture, so the rows are even and a little looser. Sizes are unchanged.
+    const letterTw = Math.max(0, ...parsed.pieces.map(p => (p.kind === 'choice' ? Math.ceil(labelWidth(p.letter, 14) ?? 9) : 0)))
     const rows = parsed.pieces.map((p, i) => {
       const inQ = parsed.isQuestion && i >= parsed.startsAt && i <= lastChoice
       if (p.kind === 'md') return <Markdown key={`m${i}`} text={p.text} />
@@ -134,8 +139,8 @@ export const register: Register = (on, options: any) => {
         )
       }
       return (
-        <Box key={`c${i}`} gap={1} alignItems="center">
-          {chip(p.letter, CHOICE)}
+        <Box key={`c${i}`} gap={2} alignItems="center">
+          {chip(p.letter, CHOICE, letterTw, 4)}
           <Markdown key={`cm${i}`} text={p.text} />
         </Box>
       )
@@ -168,7 +173,12 @@ export const register: Register = (on, options: any) => {
       14,
       Math.round(parsed.pieces.slice(parsed.startsAt + 1, lastChoice + 1).reduce((n, p) => n + px(p), 0)),
     )
-    const appLine = (
+    const railLine = Client !== undefined ? (
+      <Box flexShrink={0}>
+        <Client key="rail" module="./rail.tsx" props={{ top: TOP, bottom: BOTTOM }} />
+      </Box>
+    ) : null
+    const appLine = railLine ?? (
       <Box flexShrink={0} alignSelf="flex-start">
         <Svg
           alt="line"

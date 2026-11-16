@@ -1,4 +1,5 @@
 import { expect, test } from 'claude-code/testing'
+import Rail from './rail'
 
 const MSG = (text: string, surface: 'terminal' | 'desktop') => ({
   plugin: 'muster-look',
@@ -81,6 +82,8 @@ async function svgSources($: any, options?: Record<string, string>) {
   const ui = await $.ui.mount(MSG(Q2, 'desktop'))
   const out: string[] = []
   for (const n of (await ui.findAll({ type: 'Svg' })) ?? []) out.push(String(n.props?.source ?? ''))
+  // the line is drawn by a surface module that is handed its two colours
+  for (const n of (await ui.findAll({ type: 'Client' })) ?? []) out.push(JSON.stringify(n.props?.props ?? {}))
   await ui.unmount()
   return out
 }
@@ -142,4 +145,15 @@ test('colour helpers round-trip and the field posts the picked colour', async ()
   expect(posts.length).toBe(1)
   expect(posts[0].id).toBe('lineTopColor')
   expect(posts[0].hex).toBe('#ff0000')
+})
+
+test('the left line is a region as tall as the rows beside it, one glyph per laid-out row', async () => {
+  const el = (t: any) => t
+  const mk = (rows: number) => Rail({ top: '#FFDB58', bottom: '#7c4dff' }, { rows, elements: { Box: (p: any) => p, Text: (p: any) => p } })
+  const tall: any = mk(9)
+  expect(tall.children.length).toBe(9)
+  expect(tall.children[0].color).toBe('#ffdb58')
+  expect(tall.children[8].color).toBe('#7c4dff')
+  expect((mk(0) as any).children.length).toBe(1)
+  void el
 })

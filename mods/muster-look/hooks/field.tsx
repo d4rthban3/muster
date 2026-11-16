@@ -3,8 +3,8 @@
 // colour is posted to the panel when the button is let go.
 import { hexToHsv, hsvToHex } from './color'
 
-const COLS = 32
-const ROWS = 6
+const COLS = 24
+const ROWS = 3
 
 export default function Field(props: any, s: any) {
   const { Box, Text } = s.elements

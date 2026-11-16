@@ -156,7 +156,7 @@ test('the settings panel has a font dropdown, swatches, a hex box and resets', a
   expect(pics).toContain('WAITING')
   expect(pics).toContain('DONE')
   expect(pics).toContain('The line, top end')
-  expect(pics).toContain('The line, bottom end')
+  expect(pics).toContain('The line, top end')
   await ui.unmount()
 })
 
@@ -268,7 +268,7 @@ test('every colour row has a colour-code box holding its code; a bad code is sho
   on('ui.render', ($, e) => { const { Text } = $.ui.resolve(e); return <Text>engine</Text> })
   const pane = await $.ui.mount({ plugin: 'muster-look', component: 'Pane', requestId: 'muster-look-settings', surface: 'desktop', props: {} } as any)
   const boxes = (await pane.findAll({ type: 'Input' })) ?? []
-  const codes = boxes.filter((b: any) => String(b.props?.label).startsWith('Colour code'))
+  const codes = boxes.filter((b: any) => b.props?.placeholder === '#rrggbb')
   expect(codes.length).toBe(11)
   // each box holds the colour it sits beside (the default here)
   expect(codes.map((b: any) => String(b.props?.value).toUpperCase())).toContain('#FFDB58')

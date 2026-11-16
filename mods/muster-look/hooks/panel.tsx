@@ -16,13 +16,25 @@ const PILL_NAMES: { name: PillName; title: string }[] = [
 ]
 const PARTS = ['text', 'border', 'field'] as const
 
-export const COLOURS: { key: string; label: string; dflt: string; pill?: PillName; part?: (typeof PARTS)[number] }[] = [
+export const COLOURS: { key: string; label: string; short: string; group: string; dflt: string; pill?: PillName; part?: (typeof PARTS)[number] }[] = [
   ...PILL_NAMES.flatMap(p => PARTS.map(part => ({
-    key: PILLS[p.name][part], label: `${p.title}: ${part}`, dflt: pillPart(p.name, part, {}), pill: p.name, part,
+    key: PILLS[p.name][part], label: `${p.title}: ${part}`, short: part[0].toUpperCase() + part.slice(1), group: p.name, dflt: pillPart(p.name, part, {}), pill: p.name, part,
   }))),
-  { key: 'lineTopColor', label: 'Line, top', dflt: '#FFDB58' },
-  { key: 'lineBottomColor', label: 'Line, bottom', dflt: '#7c4dff' },
+  { key: 'lineTopColor', label: 'Line, top', short: 'Top', group: 'line', dflt: '#FFDB58' },
+  { key: 'lineBottomColor', label: 'Line, bottom', short: 'Bottom', group: 'line', dflt: '#7c4dff' },
 ]
+
+// quiet colours, the same as the Muster site and pinr.io: hairline borders, muted words, one yellow dot
+const LINE = '#3a3f4b'
+const MUTED = '#b4b9c6'
+const GROUPS = [...PILL_NAMES.map(p => ({ id: p.name as string, title: p.title })), { id: 'line', title: 'The line beside the chat' }]
+
+// the whole item as it looks with the saved colours
+function previewOf(Svg: any, Box: any, g: { id: string }, v: Record<string, string>) {
+  if (g.id === 'line') return sampleOf(Svg, Box, COLOURS.filter(c => c.group === 'line')[0], v.lineTopColor || '#FFDB58', v)
+  const c = COLOURS.filter(x => x.group === g.id)[0]
+  return sampleOf(Svg, Box, c, v[c.key] || c.dflt, v)
+}
 
 const SAMPLE_FONT = 'Anthropic Sans,Styrene B,system-ui,-apple-system,Segoe UI,sans-serif'
 
@@ -97,8 +109,10 @@ export function panel(on: any) {
     const showOther = otherFont || !FONTS.includes(fontNow)
     return (
       <Box flexDirection="column" gap={1}>
-        <Text bold>Change your look</Text>
-        <Text>{`Changing the look for the group \u201c${groupName(gid)}\u201d only (${gid}). Other groups keep their own.`}</Text>
+        <Box flexDirection="column">
+          <Text bold>Change your look</Text>
+          <Text color={MUTED}>{`For the group \u201c${groupName(gid)}\u201d only (${gid}). Other groups keep their own.`}</Text>
+        </Box>
         {!kept && <Text color="#ff6b6b">{'Not saved between sessions: this host would not keep the look, so your colours and font last only until Claude Code closes.'}</Text>}
         <Select
           key="font"
@@ -119,37 +133,41 @@ export function panel(on: any) {
             onSubmit={(t: string) => { const x = t.replace(/[^A-Za-z0-9 ,-]/g, '').trim(); if (x !== '') void set($, 'chipFont', x) }}
           />
         )}
-        {COLOURS.map(c => {
-          const hex = v[c.key] || (c.pill !== undefined && c.part !== undefined ? pillPart(c.pill, c.part, v) : c.dflt)
-          return (
-            <Box key={c.key} flexDirection="row" gap={2} alignItems="center">
-              <Box key={`${c.key}-left`} flexDirection="column" width={34} flexShrink={0}>
-                <Box flexDirection="row" gap={1}>
-                  <Text bold>{c.label}</Text>
-                  <Text>{hex}</Text>
-                </Box>
-                <Box key={`${c.key}-sample`} flexDirection="row">{sampleOf(Svg, Box, c, hex, v)}</Box>
+        {GROUPS.map(g => (
+          <Box key={g.id} flexDirection="column" borderStyle="round" borderColor={LINE} paddingX={2} paddingY={0}>
+            <Box flexDirection="row" justifyContent="space-between" alignItems="center">
+              <Box flexDirection="row" gap={1}>
+                <Text color={YELLOW.text}>{'\u25CF'}</Text>
+                <Text bold>{g.title}</Text>
               </Box>
-              <Box key={`${c.key}-right`} flexDirection="column" width={36} flexShrink={0}>
-                <Input
-                  key={`${c.key}-hex-${hex}`}
-                  label="Colour code "
-                  placeholder="#rrggbb"
-                  value={hex}
-                  submitLabel="set"
-                  onSubmit={(t: string) => {
-                    const x = t.trim()
-                    if (HEX.test(x)) { delete badCode[c.key]; void set($, c.key, x) }
-                    else { badCode[c.key] = x; $.ui.invalidate('ui.render') }
-                  }}
-                />
-                {badCode[c.key] !== undefined && <Text color="#ff6b6b">{`"${badCode[c.key]}" is not a colour code. Use #rrggbb. Not saved.`}</Text>}
-                <Button key={`${c.key}-reset`} label="Reset" onPress={() => { delete badCode[c.key]; void saveGroup($, c.key, null, gid).then(() => $.ui.invalidate('ui.render')) }} />
-              </Box>
-              {Client !== undefined && <Client key={`field-${c.key}`} module="./field.tsx" props={{ id: c.key, hex }} />}
+              <Box flexDirection="row" gap={1}>{previewOf(Svg, Box, g, v)}</Box>
             </Box>
-          )
-        })}
+            {COLOURS.filter(c => c.group === g.id).map(c => {
+              const hex = v[c.key] || (c.pill !== undefined && c.part !== undefined ? pillPart(c.pill, c.part, v) : c.dflt)
+              return (
+                <Box key={c.key} flexDirection="row" gap={2} alignItems="center" marginTop={1}>
+                  <Box key={`${c.key}-name`} width={12} flexShrink={0}><Text color={MUTED}>{c.short}</Text></Box>
+                  <Box key={`${c.key}-right`} flexDirection="column" width={26} flexShrink={0}>
+                    <Input
+                      key={`${c.key}-hex-${hex}`}
+                      placeholder="#rrggbb"
+                      value={hex}
+                      submitLabel="set"
+                      onSubmit={(t: string) => {
+                        const x = t.trim()
+                        if (HEX.test(x)) { delete badCode[c.key]; void set($, c.key, x) }
+                        else { badCode[c.key] = x; $.ui.invalidate('ui.render') }
+                      }}
+                    />
+                    {badCode[c.key] !== undefined && <Text color="#ff6b6b">{`"${badCode[c.key]}" is not a colour code. Use #rrggbb. Not saved.`}</Text>}
+                    <Button key={`${c.key}-reset`} label="Reset" onPress={() => { delete badCode[c.key]; void saveGroup($, c.key, null, gid).then(() => $.ui.invalidate('ui.render')) }} />
+                  </Box>
+                  {Client !== undefined && <Client key={`field-${c.key}`} module="./field.tsx" props={{ id: c.key, hex }} />}
+                </Box>
+              )
+            })}
+          </Box>
+        ))}
         <Button
           key="reset-all"
           label="Reset all to default (this group)"

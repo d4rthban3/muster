@@ -3,7 +3,7 @@ import { sceneOf, glassOn, setGlassFlag, glassSettings, setGlassSetting } from '
 import Rail from './rail'
 import { parse } from './parse'
 import { isOwnerSubmit } from './register'
-import { hashText, mainFromCommonDir, nameFromCrew, nameFromRemote, projectName, rename, optionLine } from './group'
+import { hashText, mainFromCommonDir, nameFromCrew, rename, optionLine } from './group'
 import { migrateLook } from './migrate'
 
 const MSG = (text: string, surface: 'terminal' | 'desktop') => ({
@@ -573,7 +573,7 @@ test('a click on a card drawn while the question was still streaming fills the w
   const a = await $.ui.mount(MSG(half, 'desktop'))
   const b = await $.ui.mount(MSG(Q, 'desktop'))
   await (a as any).post({ pick: 'A', q: hashText(half), t: half }, { in: 'pickA' })
-  expect(filled).toEqual(["replace:A. Let GitHub's check accept that one known glass warning and stay strict about everything else (my pick)"])
+  expect(filled).toEqual(["replace:A. Let GitHub's check accept that one known glass warning and stay strict about everything else"])
   void early
   await a.unmount(); await b.unmount()
 })
@@ -622,9 +622,6 @@ test('a Working: line and a The crew is idle line get a badge; the rest stays pl
 })
 
 test('a click fills the option in the owner voice: the card (my pick) reads (<project> pick); the typed line still lights the pick', async ($, on) => {
-  expect(projectName('/home/dev/PINRroot/Muster')).toBe('Muster')
-  expect(projectName('/home/dev/PINRroot/Muster/.claude/worktrees/designer-005')).toBe('Muster')
-  expect(projectName('/home/dev/PINR/')).toBe('PINR')
   const CREW_M = '## Running now\n| Name | Model |\n|---|---|\n| Manager_Muster | claude-opus-5-5 |\n| Builder A_Muster | x |'
   const CREW_P = '| Name | Model |\n|---|---|\n| Manager_PINR | claude-opus-5-5 |\n| Builder A_PINR_001 | x |'
   expect(nameFromCrew(CREW_M)).toBe('Muster')
@@ -638,20 +635,20 @@ test('a click fills the option in the owner voice: the card (my pick) reads (<pr
   expect(mainFromCommonDir('/work/bare.git')).toBe('')
   expect(rename('A. Do it *(my pick)*'.replace(/\*/g, ''), nameFromCrew(CREW_M))).toBe('A. Do it (Muster pick)')
   expect(rename('A. Do it (my pick)', nameFromCrew(CREW_P))).toBe('A. Do it (PINR pick)')
-  expect(nameFromRemote('https://github.com/acme/PINR.git')).toBe('PINR')
-  expect(nameFromRemote('git@github.com:acme/Muster.git')).toBe('Muster')
-  expect(nameFromRemote(null)).toBe('')
   expect(rename('A. Do it (my pick)', 'PINR')).toBe('A. Do it (PINR pick)')
   expect(rename('B. Not this', 'PINR')).toBe('B. Not this')
-  expect(rename('A. Do it (my pick)', '')).toBe('A. Do it (my pick)')
+  expect(rename('A. Do it (my pick)', '')).toBe('A. Do it')
+  expect(rename('B. Not this', '')).toBe('B. Not this')
   const Q = '**ASK · x**\nOne?\n\n***A.*** Do it *(my pick)*\n\n***B.*** Not this'
   expect(optionLine(Q, 'A', 'Muster')).toBe('A. Do it (Muster pick)')
   expect(optionLine(Q, 'B', 'Muster')).toBe('B. Not this')
-  // the test host has no session root, so a click there falls back to the card's own words
+  expect(optionLine(Q, 'A', '')).toBe('A. Do it')
+  expect(optionLine(Q, 'A')).toBe('A. Do it (my pick)')
+  // no project name can be read (the test host has none): a click fills the text with the marker left out
   const filled: string[] = []
   on('prompt.fill', async ($, e, next) => { filled.push(String((e as any).text)); return next(e) })
   const a = await $.ui.mount(MSG(Q, 'desktop'))
   await (a as any).post({ pick: 'A', q: hashText(Q), t: Q }, { in: 'pickA' })
-  expect(filled).toEqual(['A. Do it (my pick)'])
+  expect(filled).toEqual(['A. Do it'])
   await a.unmount()
 })

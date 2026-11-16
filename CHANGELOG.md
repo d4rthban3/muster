@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.133
+Affects: see .claude-plugin/releases/0.3.133.json.
+pick-fallback: when no project name can be read, a click fills the option text with the (my pick) marker left out; never a folder or remote name
+
 ## 0.3.132
 Affects: see .claude-plugin/releases/0.3.132.json.
 badge-position: the Working and Idle badges sit where a card's title badge sits, on their own line with clear air above, and the rest of the line is laid out below like card text

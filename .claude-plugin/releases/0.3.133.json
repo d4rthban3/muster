@@ -1,0 +1,14 @@
+{
+  "version": "0.3.133",
+  "changed_files": [
+    ".claude-plugin/marketplace.json",
+    ".claude-plugin/plugin.json",
+    "look/group.ts"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "pick-fallback: when no project name can be read, a click fills the option text with the (my pick) marker left out, never a folder or remote name"
+}

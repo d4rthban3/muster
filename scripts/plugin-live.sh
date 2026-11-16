@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Item 90: make Claude Code load Muster and its mod (muster-look) LIVE from the Muster folder, not from the versioned copy in its
+# Item 90: make Claude Code load Muster (the look is part of it) LIVE from the Muster folder, not from the versioned copy in its
 # plugin cache. A marketplace added from a local directory is "read in place": its relative-path plugins load from the folder itself
 # at every session start (and on /reload-plugins), whatever their version says (Claude Code docs, plugins/loading.md "In-place and
 # copied plugins" and "Versions and updates"; `claude plugin list` then prints "Read from: <folder>").

@@ -44,11 +44,11 @@ Step by step: [docs/GUIDE.md](docs/GUIDE.md).
 
 ## Change your look
 Muster has a look for Claude Code: small rounded chips on crew cards and questions, and a thin line down the left of a
-question that fades from yellow to purple. It comes with the normal Muster install, as a second plugin (`muster-look`) that Muster installs for you, so there is nothing
-extra to do. Its files are in `mods/muster-look`.
+question that fades from yellow to purple. It is part of the one Muster plugin (it used to be a second plugin, `muster-look`, which is gone), so there is nothing
+extra to install. Its files are in `look/`.
 
 **Where the settings live.** The mod has six settings. In Claude Code they are rows in the plugin's settings (the same place any
-plugin's options are changed), and Claude Code keeps them in your settings file under the mod's name, `muster-look`. Not checked:
+plugin's options are changed), and Claude Code keeps them in your settings file under the plugin's name, `muster`. Not checked:
 the exact menu wording in the desktop app.
 
 | Setting | What it changes | Format | Default |

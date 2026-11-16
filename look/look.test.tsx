@@ -4,9 +4,10 @@ import Rail from './rail'
 import { parse } from './parse'
 import { isOwnerSubmit } from './register'
 import { hashText } from './group'
+import { migrateLook } from './migrate'
 
 const MSG = (text: string, surface: 'terminal' | 'desktop') => ({
-  plugin: 'muster-look',
+  plugin: 'muster',
   component: 'AssistantMessage',
   surface,
   props: { text, isFirstOfReply: true },
@@ -107,7 +108,7 @@ const CUSTOM = { chipFont: 'Georgia', questionHeadingColor: '#2dd4bf', choiceChi
 
 test('colours picked on the settings page change the chat look of this group', async ($, on) => {
   on('ui.render', ($, e) => { const { Text } = $.ui.resolve(e); return <Text>engine</Text> })
-  const pane = await $.ui.mount({ plugin: 'muster-look', component: 'Pane', requestId: 'muster-look-settings', surface: 'desktop', props: {} } as any)
+  const pane = await $.ui.mount({ plugin: 'muster', component: 'Pane', requestId: 'muster-look-settings', surface: 'desktop', props: {} } as any)
   for (const [id, hex] of [['questionHeadingColor', '#2dd4bf'], ['choiceChipColor', '#ff7ab6'], ['lineTopColor', '#2dd4bf'], ['lineBottomColor', '#ff7ab6']]) await pane.post({ id, hex }, { in: `field-${id}` })
   await pane.unmount()
   const s = (await svgSources($)).join('\n')
@@ -146,7 +147,7 @@ test('a file that is not a font gives no cut, so the chip falls back', async ($,
 })
 
 test('the settings panel has a font dropdown, swatches, a hex box and resets', async ($, on) => {
-  const ui = await $.ui.mount({ plugin: 'muster-look', component: 'Pane', requestId: 'muster-look-settings', surface: 'desktop', props: {} } as any)
+  const ui = await $.ui.mount({ plugin: 'muster', component: 'Pane', requestId: 'muster-look-settings', surface: 'desktop', props: {} } as any)
   expect(await ui.find({ type: 'Select' })).toBeTruthy()
   expect(await ui.find({ type: 'Input' })).toBeTruthy()
   expect(await ui.find({ type: 'Button', label: 'Reset all to default' })).toBeTruthy()
@@ -226,7 +227,7 @@ test('a live choice has a hidden purple circle that its row hover reveals', asyn
 })
 
 test('when the store refuses, the settings page says the look is not saved between sessions', async ($, on) => {
-  const ui = await $.ui.mount({ plugin: 'muster-look', component: 'Pane', requestId: 'muster-look-settings', surface: 'desktop', props: {} } as any)
+  const ui = await $.ui.mount({ plugin: 'muster', component: 'Pane', requestId: 'muster-look-settings', surface: 'desktop', props: {} } as any)
   expect(JSON.stringify(await ui.findAll({ type: 'Text' }))).toContain('Not saved between sessions')
   await ui.unmount()
 })
@@ -271,7 +272,7 @@ test('the picked letter stays lit on its question; the others do not', async ($,
 
 test('every colour row has a colour-code box holding its code; a bad code is shown and not saved', async ($, on) => {
   on('ui.render', ($, e) => { const { Text } = $.ui.resolve(e); return <Text>engine</Text> })
-  const pane = await $.ui.mount({ plugin: 'muster-look', component: 'Pane', requestId: 'muster-look-settings', surface: 'desktop', props: {} } as any)
+  const pane = await $.ui.mount({ plugin: 'muster', component: 'Pane', requestId: 'muster-look-settings', surface: 'desktop', props: {} } as any)
   const boxes = (await pane.findAll({ type: 'Input' })) ?? []
   const codes = boxes.filter((b: any) => b.props?.placeholder === '#rrggbb')
   expect(codes.length).toBe(11)
@@ -282,7 +283,7 @@ test('every colour row has a colour-code box holding its code; a bad code is sho
 
 test('each pill has its own text, border and field colour, drawn in the chat', async ($, on) => {
   on('ui.render', ($, e) => { const { Text } = $.ui.resolve(e); return <Text>engine</Text> })
-  const pane = await $.ui.mount({ plugin: 'muster-look', component: 'Pane', requestId: 'muster-look-settings', surface: 'desktop', props: {} } as any)
+  const pane = await $.ui.mount({ plugin: 'muster', component: 'Pane', requestId: 'muster-look-settings', surface: 'desktop', props: {} } as any)
   const texts = JSON.stringify(await pane.findAll({ type: 'Client' }))
   for (const k of ['questionBorderColor', 'questionFieldColor', 'cardBorderColor', 'cardFieldColor', 'choiceBorderColor', 'choiceFieldColor']) expect(texts).toContain(`field-${k}`)
   await pane.post({ id: 'choiceBorderColor', hex: '#ff0000' }, { in: 'field-choiceBorderColor' })
@@ -457,7 +458,7 @@ test('two questions side by side: a click answers only its own; identical wordin
 })
 test('the frosted-background card has two glow colours and a picture path; a bad light is refused', async ($, on) => {
   on('ui.render', ($, e) => { const { Text } = $.ui.resolve(e); return <Text>engine</Text> })
-  const pane = await $.ui.mount({ plugin: 'muster-look', component: 'Pane', requestId: 'muster-look-settings', surface: 'desktop', props: {} } as any)
+  const pane = await $.ui.mount({ plugin: 'muster', component: 'Pane', requestId: 'muster-look-settings', surface: 'desktop', props: {} } as any)
   const lights = ((await pane.findAll({ type: 'Input' })) ?? []).filter((b: any) => b.props?.placeholder === '#rrggbb light')
   expect(lights.length).toBe(2)
   const pics = ((await pane.findAll({ type: 'Input' })) ?? []).filter((b: any) => String(b.props?.placeholder).startsWith('path to a small'))
@@ -550,4 +551,31 @@ test('a click the chat refuses is un-lit so it can be clicked again', async ($, 
   await (ui as any).post({ pick: 'A' }, { in: 'pickA' })
   expect(sent).toEqual(['A. Top right.', 'A. Top right.'])
   await ui.unmount()
+})
+
+test('the look’s saved data from the old muster-look plugin is copied across once, and never over newer values', async ($) => {
+  const fake: any = {
+    store: { m: new Map<string, unknown>([['group:keep', { chipFont: 'mine' }], ['picks', { b: 'B' }]]),
+      get(k: string) { return Promise.resolve(this.m.get(k)) }, set(k: string, v: unknown) { this.m.set(k, v); return Promise.resolve() } },
+    env: { get: (n: string) => Promise.resolve(n === 'CLAUDE_CONFIG_DIR' ? '/cfg' : undefined) },
+    fs: {
+      list: () => Promise.resolve([
+        { name: 'muster-look_muster-kit-abc.json', kind: 'file', mtimeMs: 5 },
+        { name: 'muster_muster-kit-abc.json', kind: 'file', mtimeMs: 9 },
+      ]),
+      read: (p: string) => Promise.resolve(p === '/cfg/plugins/store/muster-look_muster-kit-abc.json'
+        ? JSON.stringify({ 'group:keep': { chipFont: 'old' }, 'group:new': { chipFont: 'x' }, 'glass:new': { on: true }, picks: { a: 'A', b: 'A' } })
+        : '{}'),
+    },
+  }
+  expect(await migrateLook(fake)).toBe(2)
+  expect(fake.store.m.get('group:keep')).toEqual({ chipFont: 'mine' })
+  expect(fake.store.m.get('group:new')).toEqual({ chipFont: 'x' })
+  expect(fake.store.m.get('glass:new')).toEqual({ on: true })
+  expect(fake.store.m.get('picks')).toEqual({ a: 'A', b: 'B' })
+  // a second run does nothing
+  fake.store.m.delete('group:new')
+  expect(await migrateLook(fake)).toBe(0)
+  expect(fake.store.m.has('group:new')).toBe(false)
+  void $
 })

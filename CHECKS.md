@@ -11,4 +11,4 @@ One line per test command: `<folder> | <command> | <expected count>`.
 . | python3 scripts/idle-check-selftest.py | all pass
 . | python3 scripts/worker-queue-check-selftest.py | all pass
 checks | cargo test | all pass
-mods/muster-look | claude plugin test . (covers hooks/look.test.tsx) | 2 of 2 pass
+look | claude plugin test . (covers look/look.test.tsx) | 2 of 2 pass

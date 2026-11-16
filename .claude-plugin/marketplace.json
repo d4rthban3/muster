@@ -7,15 +7,9 @@
   "plugins": [
     {
       "name": "muster",
-      "version": "0.3.123",
+      "version": "0.3.124",
       "source": "./",
       "description": "Crew roles, a numbered decisions log, a board with a digest script, the two checks before READY, and habits for spend and usage."
-    },
-    {
-      "name": "muster-look",
-      "version": "0.2.25",
-      "source": "./mods/muster-look",
-      "description": "Optional look for Claude Code: chips on crew cards and questions, a thin yellow-to-purple left line, Anthropic Sans labels. Installed with Muster; colours and font are settings."
     }
   ]
 }

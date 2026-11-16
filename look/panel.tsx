@@ -5,7 +5,7 @@ import { groupId, groupName, loadGroup, saveGroup, clearGroup, storeWorks } from
 // A small settings panel for the look: /look opens it. A dropdown for the font,
 // and for each colour the real item it changes drawn in that colour, a colour
 // picker, a box for your own #rrggbb and a reset. Every change is written as the plugin's own setting.
-const PLUGIN = 'muster-look'
+const PLUGIN = 'muster'
 const PANE = 'muster-look-settings'
 
 export const FONTS = ['Anthropic Sans', 'System sans', 'Helvetica Neue', 'Avenir Next', 'Georgia', 'Menlo']

@@ -5,6 +5,7 @@ import { labelWidth } from './metrics'
 import { panel, registerLook } from './panel'
 import { glass, glassOn, applyGlass } from './glass'
 import { loadGroup, pickedOn, typedOn, savePick, hashText, answerLine, clearPick, answerStands, sent } from './group'
+import { migrateLook } from './migrate'
 import { svgChip, pillOf, colourOr, YELLOW } from './chip'
 
 
@@ -114,6 +115,7 @@ export const register: Register = (on) => {
   const cuts: Record<string, Cut | null> = {}
 
   on('session.start', async ($, e, next) => {
+    await migrateLook($)
     await registerLook($)
     if (await glassOn($)) await applyGlass($, true)
     {

@@ -514,3 +514,40 @@ test('what a click sends is the clicked option word for word, and the chat check
   expect(answerIn(chat, Q2, 'A')).toBe('no')
   expect(answerIn([{ role: 'assistant', text: Q2 }, { role: 'user', text: 'blue please' }], Q2, '=blue please')).toBe('yes')
 })
+
+test('a click after a reload still reaches the chat: the card carries its own question text', async ($, on) => {
+  const sent: string[] = []
+  on('prompt.submit', ($, e) => { sent.push(String((e as any).text)); return { text: String((e as any).text) } as any })
+  const Z = '**ASK · recheck-desk-owner**\nWhich desk?\n\n***A.*** Front desk.\n\n***B.*** Back desk.'
+  const ui = await $.ui.mount(MSG(Z, 'desktop'))
+  // a post whose question the plugin does not remember (state reset by a reload), but carries its text
+  const NEVER = '**ASK · other**\nWhich floor?\n\n***A.*** Up.\n\n***B.*** Down.'
+  await (ui as any).post({ pick: 'B', q: hashText(NEVER), t: NEVER }, { in: 'pickB' })
+  expect(sent).toEqual(['B. Down.'])
+  await ui.unmount()
+})
+
+test('a click that cannot be matched is told so and sends nothing', async ($, on) => {
+  const sent: string[] = []
+  on('prompt.submit', ($, e) => { sent.push(String((e as any).text)); return { text: String((e as any).text) } as any })
+  const ui = await $.ui.mount(MSG(Q2, 'desktop'))
+  await (ui as any).post({ pick: 'A', q: 'nonsense', t: '' }, { in: 'pickA' })
+  expect(sent).toEqual([])
+  await ui.unmount()
+})
+
+test('a click the chat refuses is un-lit so it can be clicked again', async ($, on) => {
+  const sent: string[] = []
+  let busy = true
+  on('prompt.submit', ($, e) => {
+    sent.push(String((e as any).text))
+    return (busy ? { drop: 'busy' } : { text: String((e as any).text) }) as any
+  })
+  const ui = await $.ui.mount(MSG(Q2, 'desktop'))
+  await (ui as any).post({ pick: 'A' }, { in: 'pickA' })
+  await new Promise(r => setTimeout(r, 50))
+  busy = false
+  await (ui as any).post({ pick: 'A' }, { in: 'pickA' })
+  expect(sent).toEqual(['A. Top right.', 'A. Top right.'])
+  await ui.unmount()
+})

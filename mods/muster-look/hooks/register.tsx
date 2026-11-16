@@ -67,8 +67,17 @@ export const register: Register = (on) => {
   on('ui.message', { component: 'AssistantMessage' }, async ($, e, next) => {
     const d = e.data as { pick?: string; q?: string } | undefined
     if (/(^|\/)choice\.tsx$/.test(e.module) && d !== undefined && typeof d.pick === 'string' && /^[A-Z]$/.test(d.pick)) {
-      const text = typeof d.q === 'string' ? known.get(d.q) : latestQuestion
-      if (text !== undefined && text !== '' && !answered.has(text)) {
+      // the card carries its own question text (bounded), so a click works after a reload or an older card
+      const sentText = typeof (d as { t?: string }).t === 'string' ? (d as { t?: string }).t : undefined
+      const text =
+        typeof d.q === 'string'
+          ? (known.get(d.q) ?? (sentText !== undefined && hashText(sentText) === d.q ? sentText : undefined))
+          : latestQuestion
+      if (text === undefined || text === '') {
+        $.ui.toast('That click could not be matched to its question. Type the answer instead.')
+      } else if (answered.has(text)) {
+        $.ui.toast(pending.has(text) ? 'Already sent; waiting for the chat to take it.' : 'That question is already answered.')
+      } else {
         answered.add(text)
         pending.set(text, d.pick)
         // light the letter first: nothing is awaited before this redraw
@@ -77,7 +86,25 @@ export const register: Register = (on) => {
         const said = answerLine(text, d.pick)
         ours.add(said)
         sent.add(text)
-        void $.prompt.submit({ text: said })
+        $.ui.toast('Sent ' + said.slice(0, 60))
+        // if the chat refuses or fails to take it, un-light the pick so it can be clicked again
+        const undo = async (why: string) => {
+          answered.delete(text)
+          pending.delete(text)
+          sent.delete(text)
+          ours.delete(said)
+          await clearPick($, text)
+          $.ui.invalidate('ui.render')
+          $.ui.toast('Not sent (' + why + '). Click again.')
+        }
+        void $.prompt.submit({ text: said }).then(
+          async r => {
+            if (r !== undefined && typeof (r as { drop?: string }).drop === 'string') await undo((r as { drop: string }).drop)
+          },
+          async () => {
+            await undo('the chat did not take it')
+          },
+        )
         await savePick($, text, d.pick)
       }
       return {}
@@ -198,7 +225,7 @@ export const register: Register = (on) => {
           <Box key={`cb${i}`} flexShrink={1} flexGrow={1}><Markdown key={`cm${i}`} text={p.text} /></Box>
           {live && !isTerminal && Client !== undefined && (
             <Box position="absolute" top={0} left={0} right={0} bottom={0}>
-              <Client key={`pick${p.letter}`} module="./choice.tsx" props={{ letter: p.letter, q: hashText(e.props.text) }} width="100%" height="100%" />
+              <Client key={`pick${p.letter}`} module="./choice.tsx" props={{ letter: p.letter, q: hashText(e.props.text), t: e.props.text.length <= 4000 ? e.props.text : '' }} width="100%" height="100%" />
             </Box>
           )}
         </Box>

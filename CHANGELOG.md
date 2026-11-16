@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.113
+Affects: see .claude-plugin/releases/0.3.113.json.
+no-next-step-box: Muster chats ask only with Muster choices (item 119)
+
 ## 0.3.112
 Affects: see .claude-plugin/releases/0.3.112.json.
 look-settings: per-group colour pickers with live samples (item 118)

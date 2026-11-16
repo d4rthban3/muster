@@ -1,0 +1,39 @@
+{
+  "version": "0.3.113",
+  "changed_files": [
+    "agents/agent-teacher.md",
+    "agents/ai-socket.md",
+    "agents/builder.md",
+    "agents/design-inspector.md",
+    "agents/designer.md",
+    "agents/inspector.md",
+    "agents/manager.md",
+    "agents/sketchpad.md",
+    "bin/SOURCE-STAMP",
+    "bin/linux-arm64/muster-checks",
+    "bin/linux-x86_64/muster-checks",
+    "bin/macos-arm64/muster-checks",
+    "bin/macos-x86_64/muster-checks",
+    "bin/windows-x86_64/muster-checks.exe",
+    "checks/src/rules.rs",
+    "directory/agents/agent-teacher.md",
+    "directory/agents/ai-socket.md",
+    "directory/agents/builder.md",
+    "directory/agents/design-inspector.md",
+    "directory/agents/designer.md",
+    "directory/agents/inspector.md",
+    "directory/agents/manager.md",
+    "directory/agents/sketchpad.md",
+    "hooks/hooks.json",
+    "hooks/rules-check.py",
+    "pages/shared.md",
+    "scripts/install-checks.py",
+    "scripts/rules-check-selftest.py"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "no-next-step-box: Muster chats ask only with Muster choices (item 119)"
+}

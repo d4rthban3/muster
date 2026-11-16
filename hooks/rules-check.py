@@ -837,6 +837,10 @@ def pretool(data, manager):
         if re.match(r"^\s*start\s+\S+_\S+?(?:_\d{3})?\s*$", t, re.I):
             return deny("a started chat's card title is its final name: use the worker's full name without a prefix (not \"%s\")" % t)
         return
+    if tool.endswith("__wrap_up"):  # item 119: the app's next-step box is not used; questions go only through Muster's clickable choices
+        if str(inp.get("ask", "")).strip() or inp.get("actions"):
+            return deny("no question or buttons in the app's wrap-up call (item 119): leave ask and actions out, so no grey next-step box is drawn; put any question to the owner in the chat as lettered choices (***A.*** ... with a blank line between, your pick marked \"my pick\")")
+        return
     if tool == "AskUserQuestion":
         if manager:  # item 80, D-037: a card locks the chat until he answers
             return deny("no choice card (it locks the chat until he answers): write the question in the chat as lettered lines, ***A.*** ... one per line with a blank line between, your pick marked \"my pick\"; he answers by typing a letter. Keep working on anything that does not depend on his answer")

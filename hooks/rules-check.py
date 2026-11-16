@@ -678,10 +678,158 @@ MEMORY_DIR = re.compile(r"/\.claude/projects/[^/]+/memory/")
 CREW_RULE_WORDS = re.compile(r"\b[Mm]uster\b|\bcrew\b|rules page|\bD-0\d\d\b|\bitem \d{2,3}\b|\b(?:Manager|Builder|Inspector|Designer)[ _]|\b(?:READY|STUCK)\b")
 MEMORY_WHY = "the Muster files are the only rulebook (item 108): do not write crew rules into your own memory; if a rule is missing or wrong, send the manager a NEED"
 
+# ---- blocking guards (item 117): a project's own config ("guard" in its profile) says which folders are protected and which public repos it may push to
+SECRET_SHAPES = re.compile(
+    r"AKIA[0-9A-Z]{16}|\bgh[pousr]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{40,}|\bxox[abprs]-[A-Za-z0-9-]{10,}|\b[sr]k_live_[A-Za-z0-9]{16,}"
+    r"|\bsk-ant-[A-Za-z0-9_-]{20,}|\bsk-(?:proj-)?[A-Za-z0-9_-]{32,}|\bAIza[0-9A-Za-z_-]{35}|-----BEGIN (?:[A-Z]+ )?PRIVATE KEY-----")
+ENV_LINE = re.compile(r"^[ \t]*(?:export[ \t]+)?[A-Za-z][A-Za-z0-9_]*(?:KEY|SECRET|TOKEN|PASSWORD|PASSWD|PRIVATE)[A-Za-z0-9_]*[ \t]*=[ \t]*[\"']?([^\s\"'#]{8,})", re.M)
+PLACEHOLDER = re.compile(r"^(?:<.*>|\$.*|\{\{.*|%.*%|\.{3,}|\*{3,}|x{3,}.*|X{3,}.*|your[-_ ].*|my[-_ ].*|changeme.*|change[-_]me.*|replace.*|example.*|placeholder.*|dummy.*|redacted.*|secret|password|token|none|null|todo|test.*|(.)\1{5,})$", re.I)
+SECRET_WHY = "a key or secret value is about to be written into %s (item 117): keep it in an ignored .env file, never in a tracked file, a commit message or a message; a placeholder like <your-key> or a .env.example is fine"
+
+
+def secret_in(text):
+    """The first key-shaped or .env-style secret in the text, or None. Placeholders and examples never count."""
+    m = SECRET_SHAPES.search(text)
+    if m:
+        return m.group(0)[:6] + "..."
+    for mm in ENV_LINE.finditer(text):
+        if not PLACEHOLDER.match(mm.group(1)):
+            return mm.group(0).split("=")[0].strip() + "=..."
+    return None
+
+
+def guard_conf():
+    g = PROFILE.get("guard")
+    return g if isinstance(g, dict) else None
+
+
+def under(path, folder):
+    path, folder = path.replace("\\", "/").rstrip("/"), folder.replace("\\", "/").rstrip("/")
+    return path == folder or path.startswith(folder + "/")
+
+
+def in_protected(path, conf):
+    """Inside a protected main folder, but not in a crew copy under its .claude/worktrees (those are the crew's own to change)."""
+    p = os.path.normpath(path).replace("\\", "/")
+    for f in conf.get("protected_folders") or []:
+        if under(p, f) and not under(p, f.rstrip("/") + "/.claude/worktrees"):
+            return True
+    return False
+
+
+def repo_of(url):
+    m = re.search(r"github\.com[:/]([^/\s]+)/([^/\s]+?)(?:\.git)?/?$", url.strip())
+    return (m.group(1), m.group(2)) if m else None
+
+
+def repo_public(owner, name):
+    """True/False from the GitHub CLI; None when it cannot be told (offline, no gh): then nothing is refused."""
+    forced = os.environ.get("MUSTER_GUARD_PUBLIC")  # the self-tests say which repos count as public, with no network
+    if forced is not None:
+        return name in [x.strip() for x in forced.split(",") if x.strip()]
+    try:
+        r = subprocess.run(["gh", "repo", "view", "%s/%s" % (owner, name), "--json", "isPrivate", "-q", ".isPrivate"], capture_output=True, text=True, timeout=8)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    out = r.stdout.strip()
+    return {"false": True, "true": False}.get(out)
+
+
+def git_words(seg):
+    import shlex
+    try:
+        return shlex.split(seg)
+    except ValueError:
+        return seg.split()
+
+
+def guard_shell(cmd, cwd, conf):
+    cur = cwd or os.getcwd()
+    for seg in re.split(r"&&|\|\||[;&|\n]", cmd):
+        w = git_words(seg)
+        if not w:
+            continue
+        if w[0] == "cd" and len(w) > 1:
+            cur = os.path.normpath(os.path.join(cur, os.path.expanduser(w[1])))
+            continue
+        i = 0
+        while i < len(w) and (w[i] in ("sudo", "command", "env") or "=" in w[i].split("/")[0]):
+            i += 1
+        if i >= len(w) or os.path.basename(w[i]) != "git":
+            continue
+        a = w[i + 1:]
+        where = cur
+        while a and a[0].startswith("-"):
+            if a[0] == "-C" and len(a) > 1:
+                where = os.path.normpath(os.path.join(cur, os.path.expanduser(a[1])))
+                a = a[2:]
+            else:
+                a = a[1:]
+        if not a:
+            continue
+        sub, rest = a[0], a[1:]
+        if conf.get("protected_folders") and in_protected(where, conf):
+            bad = (sub == "reset" or (sub == "stash" and not (rest and rest[0] in ("list", "show")))
+                   or (sub == "checkout" and any(r in (".", "-f", "--force") for r in rest))
+                   or (sub == "restore" and any(r == "." for r in rest)))
+            if bad:
+                return "git %s is not run in a protected main folder (item 117): it can throw away other chats' unsaved work; do it in your own copy, or ask the manager" % sub
+        if sub == "push":
+            pos = [r for r in rest if not r.startswith("-")]
+            remote = pos[0] if pos else "origin"
+            url = remote
+            if not re.search(r"github\.com", remote):
+                try:
+                    url = subprocess.run(["git", "-C", where, "remote", "get-url", remote], capture_output=True, text=True, timeout=5).stdout.strip()
+                except (OSError, subprocess.SubprocessError):
+                    url = ""
+            rp = repo_of(url)
+            if rp:
+                named = [x for x in conf.get("public_repos") or [] if isinstance(x, dict) and x.get("name") == rp[1]]
+                if named:
+                    return "a push to %s goes only through its scanner (item 117): run %s" % (rp[1], named[0].get("scanner") or "the project's scanner")
+                if rp[1] not in (conf.get("push_allowed") or []) and repo_public(*rp):
+                    return "%s is a public repo and this project does not allow pushing to it (item 117): ask the manager" % rp[1]
+    return None
+
+
+def guard_problem(tool, inp, cwd, conf):
+    """Item 117: the blocking hooks. Returns the one-line reason to refuse, or None."""
+    if tool == "Bash":
+        cmd = str(inp.get("command", ""))
+        why = guard_shell(cmd, cwd, conf)
+        if why:
+            return why
+        if re.search(r"\bgit\s+(?:-C\s+\S+\s+)?commit\b", cmd) and secret_in(cmd):
+            return SECRET_WHY % "a commit message"
+        return None
+    if tool == "SendMessage":
+        return SECRET_WHY % "a message" if secret_in(str(inp.get("message", ""))) else None
+    if tool in ("Write", "Edit", "MultiEdit", "NotebookEdit"):
+        path = str(inp.get("file_path", ""))
+        body = " ".join(str(inp.get(k, "")) for k in ("content", "new_string", "new_source"))
+        if re.search(r"\.env\.(?:example|sample|template|dist)$", path):
+            return None
+        if secret_in(body):
+            folder = os.path.dirname(path) or "."
+            try:
+                ignored = subprocess.run(["git", "-C", folder, "check-ignore", "-q", path], capture_output=True, timeout=5).returncode == 0
+            except (OSError, subprocess.SubprocessError):
+                ignored = False
+            if not ignored:
+                return SECRET_WHY % "a tracked file"
+    return None
+
+
 def pretool(data, manager):
     tool = data.get("tool_name", "")
     inp = data.get("tool_input") or {}
     root = main_folder(data.get("cwd"))
+    conf = guard_conf()
+    if conf is not None:
+        why = guard_problem(tool, inp, data.get("cwd") or "", conf)
+        if why:
+            return deny(why)
     if tool in ("Agent", "Task"):
         return helper_problem(inp, manager)
     if tool.endswith("start_session"):

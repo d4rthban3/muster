@@ -99,6 +99,57 @@ def _qo(item, turn):
     return r.stdout
 add("item 115: PINR's manager order in a turn his question started is refused", "" if "item 115" in _qo(8, [{"type": "user", "message": {"content": "why is engine waiting?"}}]) else "BAD", False)
 add("item 115: ...and goes through when it cites a recorded choice", "" if "item 115" not in _qo(7, [{"type": "user", "message": {"content": "why is engine waiting?"}}]) else "BAD", False)
+# item 117: blocking guards, from the project's own "guard" config; nothing is hard-coded to a project
+_gd = os.path.join(T, "guard"); os.makedirs(_gd)
+_gp = os.path.join(_gd, "profile.json")
+_prot = os.path.join(_gd, "main")
+os.makedirs(os.path.join(_prot, ".claude", "worktrees", "copy"))
+json.dump({"name": "G", "crew_names": ["\\bBuilder A_G\\b"], "guard": {"protected_folders": [_prot], "public_repos": [{"name": "pub-view", "scanner": "bash scan.sh"}], "push_allowed": ["own"]}}, open(_gp, "w"))
+for _d, _u in ((_prot, "https://github.com/acme/pub-view.git"), (os.path.join(_gd, "other"), "https://github.com/acme/leaky.git"), (os.path.join(_gd, "own"), "git@github.com:acme/own.git")):
+    os.makedirs(_d, exist_ok=True)
+    subprocess.run(["git", "init", "-q", _d], capture_output=True)
+    subprocess.run(["git", "-C", _d, "remote", "add", "origin", _u], capture_output=True)
+_gt = tr("You are Builder A_G, agents/builder.md")
+def _g(tool, cwd=None, **inp):
+    env = dict(ENV, MUSTER_PROFILE=_gp, MUSTER_GUARD_PUBLIC="pub-view,leaky,own")
+    r = subprocess.run([BIN, "rules"] if BIN else [sys.executable, os.path.join(ROOT, "hooks", "rules-check.py")], input=json.dumps(dict(hook_event_name="PreToolUse", cwd=cwd or _prot, tool_name=tool, tool_input=inp, transcript_path=_gt)), capture_output=True, text=True, env=env)
+    return r.stdout
+_blocked = lambda out, word: "item 117" in out and word in out
+_K = "AK" + "IA" + "ABCDEFGHIJKLMNOP"
+_E = "STRIPE_API_" + "KEY=" + "abcd1234efgh5678"
+for _n, _cmd, _cwd, _word, _want in [
+    ("git reset in the protected main folder", "git reset --hard HEAD~1", None, "reset", True),
+    ("git checkout . in the protected main folder", "git checkout .", None, "checkout", True),
+    ("git stash in the protected main folder", "git stash", None, "stash", True),
+    ("git -C into the protected folder from elsewhere", "git -C %s stash" % _prot, os.path.join(_gd, "other"), "stash", True),
+    ("cd into the protected folder first", "cd %s && git reset" % _prot, os.path.join(_gd, "other"), "reset", True),
+    ("git stash list is only a look", "git stash list", None, "stash", False),
+    ("git status is fine", "git status", None, "status", False),
+    ("git reset in a crew copy under the protected folder", "git reset --hard", os.path.join(_prot, ".claude", "worktrees", "copy"), "reset", False),
+    ("git reset in an unprotected folder", "git reset --hard", os.path.join(_gd, "other"), "reset", False),
+    ("git push to the named public repo, not through its scanner", "git push origin main", _prot, "scanner", True),
+    ("the scanner command itself is not a push", "bash scan.sh", _prot, "scanner", False),
+    ("git push to another public repo the project does not allow", "git push origin main", os.path.join(_gd, "other"), "leaky", True),
+    ("git push to a public repo the project allows", "git push origin main", os.path.join(_gd, "own"), "own", False),
+    ("a commit message with a key in it", "git commit -m 'add %s'" % _K, None, "commit message", True),
+    ("a commit message with a placeholder", "git commit -m 'add key <your-key>'", None, "commit message", False),
+]:
+    _o = _g("Bash", _cwd, command=_cmd)
+    add("item 117: " + _n + (" is refused" if _want else " goes through"), "" if _blocked(_o, _word) == _want else "BAD " + _o[:200], False)
+_tf = os.path.join(_gd, "other", "conf.txt")
+for _n, _tool, _inp, _word, _want in [
+    ("a key written into a tracked file", "Write", dict(file_path=_tf, content="token " + _K), "tracked file", True),
+    (".env-style secret lines written into a tracked file", "Write", dict(file_path=_tf, content=_E + "\n"), "tracked file", True),
+    ("placeholder .env lines are fine", "Write", dict(file_path=_tf, content="STRIPE_API_KEY=<your-key>\nAPI_SECRET=changeme-please\n"), "tracked file", False),
+    ("a .env.example may hold anything", "Write", dict(file_path=os.path.join(_gd, "other", ".env.example"), content=_E), "tracked file", False),
+    ("a key sent in a message", "SendMessage", dict(to="x", message="the key is " + _K), "a message", True),
+    ("an ordinary edit", "Edit", dict(file_path=_tf, new_string="hello"), "tracked file", False),
+]:
+    _o = _g(_tool, None, **_inp)
+    add("item 117: " + _n + (" is refused" if _want else " goes through"), "" if _blocked(_o, _word) == _want else "BAD " + _o[:200], False)
+open(os.path.join(_gd, "other", ".gitignore"), "w").write(".env\n")
+add("item 117: ...once .gitignore names it", "" if not _blocked(_g("Write", None, file_path=os.path.join(_gd, "other", ".env"), content=_E), "tracked file") else "BAD", False)
+add("item 117: with no guard in the profile nothing is refused", "" if "item 117" not in subprocess.run([sys.executable, os.path.join(ROOT, "hooks", "rules-check.py")], input=json.dumps(dict(hook_event_name="PreToolUse", cwd=_prot, tool_name="Bash", tool_input=dict(command="git reset --hard"), transcript_path=_gt)), capture_output=True, text=True, env=dict(ENV)).stdout else "BAD", False)
 add("1 the owner's own chat is untouched", send("hello team", tr("hi there")), False)
 add("1 without the profile Site_PINR_002 is not a crew chat (Muster unchanged)", send("NEED: x\nWhat: only one line", site, plain=True), False)
 # 2 report shape

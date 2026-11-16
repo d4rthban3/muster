@@ -338,11 +338,121 @@ fn refuses_order(t: &str) -> bool {
     is(&rei(r"\b(i\s+can(?:'|’)?t|i\s+cannot|i\s+won(?:'|’)?t|i(?:'|’)?m\s+unable|i\s+am\s+unable|i(?:'|’)?m\s+not\s+able|i\s+am\s+not\s+able|i\s+(?:would|'d)\s+advise\s+against|i\s+don(?:'|’)?t\s+think\s+(?:we|you)\s+should|i\s+(?:am\s+)?not\s+going\s+to|that\s+is\s+not\s+possible|that(?:'|’)?s\s+not\s+possible|i\s+disagree|i\s+don(?:'|’)?t\s+agree|that(?:'|’)?s\s+a\s+bad\s+idea|would\s+be\s+a\s+mistake|i\s+took\s+(?:that|this)\s+to\s+mean|i\s+assumed|i\s+interpreted|you\s+(?:probably|likely|really)\s+mean|what\s+you\s+(?:really|probably)\s+mean|i\s+read\s+(?:that|this)\s+as|i(?:'|’)ll\s+do\s+[^.]{0,60}\s+instead|i\s+will\s+do\s+[^.]{0,60}\s+instead)\b"), t)
 }
 
+// ---- blocking guards (item 117): a project's own "guard" config says which folders are protected and which public repos it may push to ----
+fn secret_shapes() -> fancy_regex::Regex {
+    re(r"AKIA[0-9A-Z]{16}|\bgh[pousr]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{40,}|\bxox[abprs]-[A-Za-z0-9-]{10,}|\b[sr]k_live_[A-Za-z0-9]{16,}|\bsk-ant-[A-Za-z0-9_-]{20,}|\bsk-(?:proj-)?[A-Za-z0-9_-]{32,}|\bAIza[0-9A-Za-z_-]{35}|-----BEGIN (?:[A-Z]+ )?PRIVATE KEY-----")
+}
+const SECRET_WHY: &str = "a key or secret value is about to be written into {} (item 117): keep it in an ignored .env file, never in a tracked file, a commit message or a message; a placeholder like <your-key> or a .env.example is fine";
+
+fn secret_in(text: &str) -> bool {
+    if is(&secret_shapes(), text) { return true; }
+    let env_line = re(r#"(?m)^[ \t]*(?:export[ \t]+)?[A-Za-z][A-Za-z0-9_]*(?:KEY|SECRET|TOKEN|PASSWORD|PASSWD|PRIVATE)[A-Za-z0-9_]*[ \t]*=[ \t]*["']?([^\s"'#]{8,})"#);
+    let placeholder = rei(r"^(?:<.*>|\$.*|\{\{.*|%.*%|\.{3,}|\*{3,}|x{3,}.*|your[-_ ].*|my[-_ ].*|changeme.*|change[-_]me.*|replace.*|example.*|placeholder.*|dummy.*|redacted.*|secret|password|token|none|null|todo|test.*|(.)\1{5,})$");
+    for m in env_line.captures_iter(text).flatten() {
+        if let Some(v) = m.get(1) { if !is(&placeholder, v.as_str()) { return true; } }
+    }
+    false
+}
+
+fn under(path: &str, folder: &str) -> bool {
+    let (p, f) = (path.replace('\\', "/"), folder.replace('\\', "/"));
+    let (p, f) = (p.trim_end_matches('/'), f.trim_end_matches('/'));
+    p == f || p.starts_with(&format!("{f}/"))
+}
+
+fn in_protected(path: &Path, conf: &Value) -> bool {
+    let p = normalise(path).to_string_lossy().replace('\\', "/");
+    pstrings(conf, "protected_folders").iter().any(|f| under(&p, f) && !under(&p, &format!("{}/.claude/worktrees", f.trim_end_matches('/'))))
+}
+
+fn repo_of(url: &str) -> Option<(String, String)> {
+    let m = caps(&re(r"github\.com[:/]([^/\s]+)/([^/\s]+?)(?:\.git)?/?$"), url.trim())?;
+    Some((m[1].to_string(), m[2].to_string()))
+}
+
+/// True/False from the GitHub CLI; None when it cannot be told (then nothing is refused). MUSTER_GUARD_PUBLIC names public repos for the self-tests.
+fn repo_public(owner: &str, name: &str) -> Option<bool> {
+    if let Ok(forced) = std::env::var("MUSTER_GUARD_PUBLIC") { return Some(forced.split(',').any(|x| x.trim() == name)); }
+    let out = Command::new("gh").args(["repo", "view", &format!("{owner}/{name}"), "--json", "isPrivate", "-q", ".isPrivate"]).output().ok()?;
+    match String::from_utf8_lossy(&out.stdout).trim() { "false" => Some(true), "true" => Some(false), _ => None }
+}
+
+fn guard_shell(cmd: &str, cwd: &str, conf: &Value) -> Option<String> {
+    let mut cur: PathBuf = if cwd.is_empty() { std::env::current_dir().unwrap_or_default() } else { cwd.into() };
+    let sep = re(r"&&|\|\||[;&|\n]");
+    let public_repos: Vec<Value> = conf.get("public_repos").and_then(Value::as_array).cloned().unwrap_or_default();
+    let flat = sub(&sep, cmd, "\u{1}");
+    for seg in flat.split('\u{1}') {
+        let w = shell_words(seg);
+        if w.is_empty() { continue; }
+        if w[0] == "cd" && w.len() > 1 { cur = normalise(&cur.join(expand_home(&w[1]))); continue; }
+        let mut i = 0;
+        while i < w.len() && (matches!(w[i].as_str(), "sudo" | "command" | "env") || w[i].split('/').next().unwrap_or("").contains('=')) { i += 1; }
+        if i >= w.len() || Path::new(&w[i]).file_name().and_then(|x| x.to_str()) != Some("git") { continue; }
+        let mut a: &[String] = &w[i + 1..];
+        let mut wh = cur.clone();
+        while !a.is_empty() && a[0].starts_with('-') {
+            if a[0] == "-C" && a.len() > 1 { wh = normalise(&cur.join(expand_home(&a[1]))); a = &a[2..]; } else { a = &a[1..]; }
+        }
+        if a.is_empty() { continue; }
+        let (sub, rest) = (a[0].as_str(), &a[1..]);
+        if !pstrings(conf, "protected_folders").is_empty() && in_protected(&wh, conf) {
+            let bad = sub == "reset"
+                || (sub == "stash" && !rest.first().map(|r| r == "list" || r == "show").unwrap_or(false))
+                || (sub == "checkout" && rest.iter().any(|r| r == "." || r == "-f" || r == "--force"))
+                || (sub == "restore" && rest.iter().any(|r| r == "."));
+            if bad { return Some(format!("git {sub} is not run in a protected main folder (item 117): it can throw away other chats' unsaved work; do it in your own copy, or ask the manager")); }
+        }
+        if sub == "push" {
+            let pos: Vec<&String> = rest.iter().filter(|r| !r.starts_with('-')).collect();
+            let remote = pos.first().map(|r| r.as_str()).unwrap_or("origin");
+            let url = if remote.contains("github.com") { remote.to_string() } else {
+                Command::new("git").args(["-C", &wh.to_string_lossy(), "remote", "get-url", remote]).output().map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string()).unwrap_or_default()
+            };
+            if let Some((owner, name)) = repo_of(&url) {
+                if let Some(r) = public_repos.iter().find(|x| s(x, "name") == name) {
+                    let sc = s(r, "scanner");
+                    return Some(format!("a push to {name} goes only through its scanner (item 117): run {}", if sc.is_empty() { "the project's scanner" } else { sc }));
+                }
+                if !pstrings(conf, "push_allowed").iter().any(|x| *x == name) && repo_public(&owner, &name) == Some(true) {
+                    return Some(format!("{name} is a public repo and this project does not allow pushing to it (item 117): ask the manager"));
+                }
+            }
+        }
+    }
+    None
+}
+
+fn guard_problem(tool: &str, inp: &Value, cwd: &str, conf: &Value) -> Option<String> {
+    let why = |w: &str| SECRET_WHY.replace("{}", w);
+    match tool {
+        "Bash" => {
+            let cmd = s(inp, "command");
+            if let Some(w) = guard_shell(cmd, cwd, conf) { return Some(w); }
+            if is(&re(r"\bgit\s+(?:-C\s+\S+\s+)?commit\b"), cmd) && secret_in(cmd) { return Some(why("a commit message")); }
+            None
+        }
+        "SendMessage" => if secret_in(s(inp, "message")) { Some(why("a message")) } else { None },
+        "Write" | "Edit" | "MultiEdit" | "NotebookEdit" => {
+            let path = s(inp, "file_path");
+            let body = ["content", "new_string", "new_source"].iter().map(|k| s(inp, k)).collect::<Vec<_>>().join(" ");
+            if is(&re(r"\.env\.(?:example|sample|template|dist)$"), path) || !secret_in(&body) { return None; }
+            let folder = Path::new(path).parent().map(|p| p.to_string_lossy().to_string()).filter(|p| !p.is_empty()).unwrap_or_else(|| ".".into());
+            let ignored = Command::new("git").args(["-C", &folder, "check-ignore", "-q", path]).status().map(|st| st.success()).unwrap_or(false);
+            if ignored { None } else { Some(why("a tracked file")) }
+        }
+        _ => None,
+    }
+}
+
 fn pretool(c: &Ctx, data: &Value, manager: bool) {
     let tool = s(data, "tool_name");
     let empty = Value::Object(Default::default());
     let inp = data.get("tool_input").unwrap_or(&empty);
     let root = main_folder(s(data, "cwd"));
+    if let Some(conf) = c.profile.get("guard").filter(|g| g.is_object()) {
+        if let Some(why) = guard_problem(tool, inp, s(data, "cwd"), conf) { return deny(&why); }
+    }
     if tool == "SendMessage" { return send_message(c, data, inp, &root, manager); }
     if tool == "Agent" || tool == "Task" { return helper_problem(inp, manager); }
     if tool.ends_with("start_session") {

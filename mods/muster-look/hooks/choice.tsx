@@ -5,7 +5,7 @@ export default function Choice(props: any, s: any) {
   if (s.state === undefined) {
     s.setState({ ready: true })
     s.onPointer((e: any) => {
-      if (e.type === 'down') s.post({ pick: String(props.letter) })
+      if (e.type === 'down') s.post({ pick: String(props.letter), q: String(props.q) })
     })
   }
   return <Text> </Text>

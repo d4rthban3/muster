@@ -2,6 +2,7 @@ import { expect, test } from 'claude-code/testing'
 import Rail from './rail'
 import { parse } from './parse'
 import { isOwnerSubmit } from './register'
+import { hashText } from './group'
 
 const MSG = (text: string, surface: 'terminal' | 'desktop') => ({
   plugin: 'muster-look',
@@ -373,4 +374,24 @@ test('a card heading after text or a list has a clear gap above it; the first th
   const list = '1. one\n2. two\n3. three\n\n**SERVER · reading your allowance**\n- a\n- b'
   expect(await gaps(list)).toBe(1)
   expect(await gaps('**SERVER · reading your allowance**\n- a\n- b')).toBe(0)
+})
+
+test('an old question stays live: its click says which question it answers; the newest sends the bare letter', async ($, on) => {
+  const sent: string[] = []
+  on('prompt.submit', ($, e) => { sent.push(String((e as any).text)); return { text: String((e as any).text) } as any })
+  const OLD = '**WAITING · item 3**\nWhich colour?\n\n***A.*** Red.\n\n***B.*** Blue.'
+  const NEW = '**WAITING · item 4**\nWhich size?\n\n***A.*** Big.\n\n***B.*** Small.'
+  const old = await $.ui.mount(MSG(OLD, 'desktop'))
+  const now = await $.ui.mount(MSG(NEW, 'desktop'))
+  // both questions have a click area on every letter
+  expect(await old.find({ type: 'Client', key: 'pickA' })).toBeTruthy()
+  expect(await old.find({ type: 'Client', key: 'pickB' })).toBeTruthy()
+  expect(await now.find({ type: 'Client', key: 'pickB' })).toBeTruthy()
+  try { await (old as any).post({ pick: 'B', q: hashText(OLD) }, { in: 'pickB' }) } catch (x) { throw new Error('old ' + x) }
+  try { await (now as any).post({ pick: 'A', q: hashText(NEW) }, { in: 'pickA' }) } catch (x) { throw new Error('now ' + x) }
+  // one press each; a second press on either sends nothing more
+  await expect((old as any).post({ pick: 'A', q: hashText(OLD) }, { in: 'pickA' })).rejects.toThrow()
+  expect(sent).toEqual(['Answer to WAITING · item 3: B', 'A'])
+  await old.unmount()
+  await now.unmount()
 })

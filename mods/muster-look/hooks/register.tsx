@@ -3,7 +3,7 @@ import { parse } from './parse'
 import { cutFont, fromBase64, type Cut } from './font'
 import { labelWidth } from './metrics'
 import { panel, registerLook } from './panel'
-import { loadGroup, pickedOn, typedOn, savePick } from './group'
+import { loadGroup, pickedOn, typedOn, savePick, hashText, isNewest } from './group'
 import { svgChip, pillOf, colourOr, YELLOW } from './chip'
 
 
@@ -26,10 +26,13 @@ export const register: Register = (on) => {
   // answered (by a click here, or by typing a reply) is not sent again.
   let latestQuestion = ''
   const answered = new Set<string>()
+  // what a click sent: the click already did its own bookkeeping, so it is not the owner typing
+  const ours = new Set<string>()
   on('prompt.submit', async ($, e, next) => {
     // only the owner's own typing answers a question; a peer's message, a
     // notification, a scheduled prompt or another plugin's submit leaves it live
-    const owner = isOwnerSubmit(e)
+    const mine = ours.delete(String((e as any).text ?? ''))
+    const owner = !mine && isOwnerSubmit(e)
     if (owner && latestQuestion !== '') {
       answered.add(latestQuestion)
       // a reply that is just a letter of that question sticks on it
@@ -42,14 +45,26 @@ export const register: Register = (on) => {
     }
     return next(e)
   })
+  // Every option of every question is live until that question is answered. A press lights
+  // its letter and sends at once; the save comes after. A second press on the same question
+  // does nothing: `answered` holds it from the first press, the stored pick holds it after a reload.
+  const known = new Map<string, string>()
+  const pending = new Map<string, string>()
   on('ui.message', { component: 'AssistantMessage' }, async ($, e, next) => {
-    const d = e.data as { pick?: string } | undefined
+    const d = e.data as { pick?: string; q?: string } | undefined
     if (/(^|\/)choice\.tsx$/.test(e.module) && d !== undefined && typeof d.pick === 'string' && /^[A-Z]$/.test(d.pick)) {
-      if (latestQuestion !== '' && !answered.has(latestQuestion)) {
-        answered.add(latestQuestion)
-        await savePick($, latestQuestion, d.pick)
-        void $.prompt.submit({ text: d.pick })
+      const text = typeof d.q === 'string' ? known.get(d.q) : latestQuestion
+      if (text !== undefined && text !== '' && !answered.has(text)) {
+        answered.add(text)
+        pending.set(text, d.pick)
+        // light the letter first: nothing is awaited before this redraw
         $.ui.invalidate('ui.render')
+        const head = parse(text)?.pieces.find(p => p.kind === 'title') as { word: string; job: string } | undefined
+        const tagged = head !== undefined && !(await isNewest($, text, latestQuestion))
+        const said = tagged ? `Answer to ${head.word} \u00b7 ${head.job}: ${d.pick}` : d.pick
+        ours.add(said)
+        void $.prompt.submit({ text: said })
+        await savePick($, text, d.pick)
       }
       return {}
     }
@@ -74,7 +89,7 @@ export const register: Register = (on) => {
     if (parsed === null) return next(e)
     // this group's own look; a group with none gets the defaults
     const opts = await loadGroup($)
-    const picked = parsed.isQuestion ? await pickedOn($, e.props.text) : undefined
+    const picked = parsed.isQuestion ? (pending.get(e.props.text) ?? await pickedOn($, e.props.text)) : undefined
     const typed = parsed.isQuestion ? await typedOn($, e.props.text) : undefined
     const QUESTION = pillOf('question', opts)
     const CARD = pillOf('card', opts)
@@ -86,7 +101,9 @@ export const register: Register = (on) => {
 
     const ui = $.ui.resolve(e) as any
     if (parsed.isQuestion) latestQuestion = e.props.text
-    const live = parsed.isQuestion && e.props.text === latestQuestion && !answered.has(e.props.text)
+    if (parsed.isQuestion) known.set(hashText(e.props.text), e.props.text)
+    const live = parsed.isQuestion && !answered.has(e.props.text) && picked === undefined && typed === undefined
+    const liveNewest = live && e.props.text === latestQuestion
     const { Box, Text, Markdown, Svg, Client, Input } = ui
     const isTerminal = e.surface === 'terminal'
     // an empty picture h px tall: air in pixels (Box padding counts character cells)
@@ -157,7 +174,7 @@ export const register: Register = (on) => {
           <Box key={`cb${i}`} flexShrink={1} flexGrow={1}><Markdown key={`cm${i}`} text={p.text} /></Box>
           {live && !isTerminal && Client !== undefined && (
             <Box position="absolute" top={0} left={0} right={0} bottom={0}>
-              <Client key={`pick${p.letter}`} module="./choice.tsx" props={{ letter: p.letter }} width="100%" height="100%" />
+              <Client key={`pick${p.letter}`} module="./choice.tsx" props={{ letter: p.letter, q: hashText(e.props.text) }} width="100%" height="100%" />
             </Box>
           )}
         </Box>
@@ -239,7 +256,7 @@ export const register: Register = (on) => {
             </Box>
           </Box>
         )}
-        {parsed.isQuestion && live && Input !== undefined && (
+        {parsed.isQuestion && liveNewest && Input !== undefined && (
           <Box key="own" flexDirection="column" paddingLeft={1}>
             {isTerminal ? null : spacer(6)}
             <Input

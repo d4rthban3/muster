@@ -63,7 +63,7 @@ export async function storeWorks($: any): Promise<boolean> {
 
 // Which letter was picked on which question, so it stays lit in the chat. Kept
 // by the question's text (a short hash), the newest 200 only.
-const hashText = (t: string) => { let h = 5381; for (let i = 0; i < t.length; i++) h = ((h * 33) ^ t.charCodeAt(i)) >>> 0; return h.toString(36) + t.length.toString(36) }
+export const hashText = (t: string) => { let h = 5381; for (let i = 0; i < t.length; i++) h = ((h * 33) ^ t.charCodeAt(i)) >>> 0; return h.toString(36) + t.length.toString(36) }
 export async function loadPicks($: any): Promise<Record<string, string>> {
   try {
     const raw = await kvGet($, 'picks')
@@ -90,4 +90,15 @@ export async function savePick($: any, text: string, letter: string): Promise<vo
     for (const old of keys.slice(0, Math.max(0, keys.length - 200))) delete all[old]
     await kvSet($, 'picks', all)
   } catch { /* a store that refuses keeps nothing */ }
+}
+
+// Is this question the newest thing the assistant said? Then a bare letter answers it clearly.
+export async function isNewest($: any, text: string, latest: string): Promise<boolean> {
+  try {
+    const msgs = await $.session.messages()
+    if (Array.isArray(msgs)) {
+      for (let i = msgs.length - 1; i >= 0; i--) if (msgs[i].role === 'assistant') return String(msgs[i].text).includes(text.trim())
+    }
+  } catch { /* no transcript to read */ }
+  return text === latest
 }

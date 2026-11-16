@@ -158,6 +158,13 @@ export function optionLine(text: string, letter: string): string {
   const t = o?.text.replace(/[*_`]/g, '').replace(/\s+/g, ' ').trim() ?? ''
   return t !== '' ? `${letter}. ${t}` : letter
 }
+// A card can keep the props of an early draw while its message is still streaming, so the text a click
+// names may be the question cut short. The finished question is the longest seen text it is the start of.
+export function fullestText(text: string, seen: Iterable<string>): string {
+  let best = text
+  for (const t of seen) if (t.length > best.length && t.startsWith(text)) best = t
+  return best
+}
 export const answerLine = (text: string, words: string) => (/^[A-Z]$/.test(words) ? optionLine(text, words) : words)
 export type Said = { role: string; text: string }
 export function answerIn(msgs: Said[], question: string, mark: string): 'yes' | 'no' | 'unknown' {

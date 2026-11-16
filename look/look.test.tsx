@@ -579,3 +579,17 @@ test('the look’s saved data from the old muster-look plugin is copied across o
   expect(fake.store.m.has('group:new')).toBe(false)
   void $
 })
+
+test('a click on a card drawn while the question was still streaming sends the whole option text', async ($, on) => {
+  const sent: string[] = []
+  on('prompt.submit', ($, e) => { sent.push(String((e as any).text)); return { text: String((e as any).text) } as any })
+  const Q = "**ASK · glass-warning**\nOne call for you.\n\n***A.*** Let GitHub's check accept that one known glass warning and stay strict about everything else *(my pick)*\n\n***B.*** Turn the strict check off"
+  const early = Q.slice(0, Q.indexOf('GitHub'))  // "...***A.*** Let " as the stream had it
+  const half = Q.slice(0, Q.indexOf('Hub') )
+  const a = await $.ui.mount(MSG(half, 'desktop'))
+  const b = await $.ui.mount(MSG(Q, 'desktop'))
+  await (a as any).post({ pick: 'A', q: hashText(half), t: half }, { in: 'pickA' })
+  expect(sent).toEqual(["A. Let GitHub's check accept that one known glass warning and stay strict about everything else (my pick)"])
+  void early
+  await a.unmount(); await b.unmount()
+})

@@ -4,7 +4,7 @@ import { cutFont, fromBase64, type Cut } from './font'
 import { labelWidth } from './metrics'
 import { panel, registerLook } from './panel'
 import { glass, glassOn, applyGlass } from './glass'
-import { loadGroup, pickedOn, typedOn, savePick, hashText, answerLine, clearPick, answerStands, sent } from './group'
+import { loadGroup, pickedOn, typedOn, savePick, hashText, answerLine, fullestText, clearPick, answerStands, sent } from './group'
 import { migrateLook } from './migrate'
 import { svgChip, pillOf, colourOr, YELLOW } from './chip'
 
@@ -70,10 +70,12 @@ export const register: Register = (on) => {
     if (/(^|\/)choice\.tsx$/.test(e.module) && d !== undefined && typeof d.pick === 'string' && /^[A-Z]$/.test(d.pick)) {
       // the card carries its own question text (bounded), so a click works after a reload or an older card
       const sentText = typeof (d as { t?: string }).t === 'string' ? (d as { t?: string }).t : undefined
-      const text =
+      const named =
         typeof d.q === 'string'
           ? (known.get(d.q) ?? (sentText !== undefined && hashText(sentText) === d.q ? sentText : undefined))
           : latestQuestion
+      // the card may have been drawn while the message was still streaming: use the finished question
+      const text = named === undefined || named === "" ? named : fullestText(named, known.values())
       if (text === undefined || text === '') {
         $.ui.toast('That click could not be matched to its question. Type the answer instead.')
       } else if (answered.has(text)) {

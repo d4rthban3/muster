@@ -32,7 +32,11 @@ orig=$(git rev-parse HEAD)
 # marks the last release it landed there (refs/muster/landed); build on it, so this ship carries those releases. Other local work is never carried.
 base=origin/main
 landed=$(git rev-parse -q --verify refs/muster/landed 2>/dev/null)
-if [ -n "$landed" ] && ! git merge-base --is-ancestor "$landed" origin/main && git merge-base --is-ancestor origin/main "$landed" \
+if git rev-parse -q --verify refs/heads/main >/dev/null && ! git merge-base --is-ancestor main origin/main \
+   && git merge-base --is-ancestor origin/main main && git merge-base --is-ancestor main HEAD; then
+  # this branch is built on top of the owner's own folder, which is ahead of GitHub: its versions run ahead of GitHub's, so build on them
+  base=main; echo "== this branch is built on the main folder, which holds $(git rev-list --count origin/main..main) commit(s) GitHub does not have yet; this ship carries them"
+elif [ -n "$landed" ] && ! git merge-base --is-ancestor "$landed" origin/main && git merge-base --is-ancestor origin/main "$landed" \
    && git merge-base --is-ancestor "$landed" main 2>/dev/null; then
   base=$landed; echo "== the main folder holds $(git rev-list --count origin/main.."$landed") commit(s) of releases GitHub does not have yet; this ship carries them"
 fi

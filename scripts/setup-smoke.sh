@@ -470,6 +470,15 @@ rm "$SH/remote.git/hooks/pre-receive"
   grep -q "SHIPPED 1.2.10" "$SH/lf2.out" || { cat "$SH/lf2.out"; fail "the next ship was not 1.2.10"; } )
 git -C "$SH/remote.git" show main:.claude-plugin/releases/1.2.9.json >/dev/null 2>&1 || fail "the next ship did not carry the release GitHub had not got"
 git -C "$SH/remote.git" show main:.claude-plugin/plugin.json | grep -q '"1.2.10"' || fail "GitHub did not get the next release"
+# the owner's folder moved ahead of GitHub by hand (no landed marker): a branch built on it still ships, carrying those versions
+printf '#!/bin/sh\nexit 1\n' > "$SH/remote.git/hooks/pre-receive"; chmod +x "$SH/remote.git/hooks/pre-receive"
+( cd "$SH/wt-live"; git fetch -q origin; git reset -q --hard main; echo sixth > sixth.txt; git add -A; git commit -q -m "sixth"
+  bash scripts/ship.sh "ahead" --roles Builder --no-wait > "$SH/ah.out" 2>&1; grep -q "SHIPPED 1.2.11" "$SH/ah.out" || { cat "$SH/ah.out"; fail "the ahead ship did not land locally"; } )
+rm "$SH/remote.git/hooks/pre-receive"; git -C "$SH/wt-live" update-ref -d refs/muster/landed
+( cd "$SH/wt-live"; git reset -q --hard main; echo seventh > seventh.txt; git add -A; git commit -q -m "seventh"
+  bash scripts/ship.sh "built on the folder" --roles Builder --no-wait > "$SH/ah2.out" 2>&1 || { cat "$SH/ah2.out"; fail "a branch built on the owner's folder was refused"; }
+  grep -q "SHIPPED 1.2.12" "$SH/ah2.out" || { cat "$SH/ah2.out"; fail "the version gate refused versions that run ahead of GitHub"; } )
+git -C "$SH/remote.git" show main:.claude-plugin/releases/1.2.11.json >/dev/null 2>&1 || fail "the release GitHub had not got was not carried"
 rm -rf muster
 [ "$(grep -c '^## 1.2.5' CHANGELOG.md)" = 1 ] || fail "the changelog entry was doubled"
 grep -q "my own note" .claude-plugin/releases/1.2.5.json || fail "the branch's own release file was overwritten"

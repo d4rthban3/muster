@@ -593,3 +593,28 @@ test('a click on a card drawn while the question was still streaming sends the w
   void early
   await a.unmount(); await b.unmount()
 })
+
+import Choice from './choice'
+
+test('a press on a choice row lights it at once, posts its letter, and lets go on release', async () => {
+  let pointer: any = null
+  const posts: any[] = []
+  let state: any
+  const surface: any = {
+    elements: { Box: (p: any) => p, Text: (p: any) => p },
+    get state() { return state },
+    setState: (n: any) => { state = n },
+    onPointer: (fn: any) => { pointer = fn },
+    post: (d: any) => posts.push(d),
+  }
+  const oldH = (globalThis as any).h
+  ;(globalThis as any).h = (t: any, p: any, ...c: any[]) => ({ t, p, c })
+  const lit = () => (Choice({ letter: 'A', q: 'x', t: 'Q' }, surface) as any).p.backgroundColor
+  expect(lit()).toBeUndefined()
+  pointer({ type: 'down', x: 3, y: 0, button: 'left' })
+  expect(posts).toEqual([{ pick: 'A', q: 'x', t: 'Q' }])
+  expect(lit()).toBeDefined()
+  pointer({ type: 'up', x: 3, y: 0, button: 'left' })
+  expect(lit()).toBeUndefined()
+  ;(globalThis as any).h = oldH
+})

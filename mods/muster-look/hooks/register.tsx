@@ -34,13 +34,16 @@ function svgChip(Svg: any, label: string, c: { text: string; label?: string; glo
   // the pill itself is always 28 tall; pad is clear air above and below it, inside the picture
   const pill = 28
   const ht = pill + pad * 2
+  // a one-letter chip is a perfect circle (as wide as the pill is tall) in the middle of its picture
+  const bw = single ? pill - 4.5 : w - 4.5
+  const bx = single ? (w - bw) / 2 : 2.25
   const source =
     `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${ht}" viewBox="0 0 ${w} ${ht}" preserveAspectRatio="xMinYMid meet">` +
     face +
     `<g transform="translate(0 ${pad})">` +
     `<defs><filter id="g" x="-20%" y="-40%" width="140%" height="180%"><feGaussianBlur stdDeviation="1.2"/></filter></defs>` +
-    `<rect x="2.25" y="2.25" width="${w - 4.5}" height="${pill - 4.5}" rx="${(pill - 4.5) / 2}" fill="none" stroke="${c.glow}" stroke-opacity="0.4" stroke-width="1" filter="url(#g)"/>` +
-    `<rect x="2.25" y="2.25" width="${w - 4.5}" height="${pill - 4.5}" rx="${(pill - 4.5) / 2}" fill="${c.text}" fill-opacity="0.08" stroke="${c.glow}" stroke-width="0.5"/>` +
+    `<rect x="${bx}" y="2.25" width="${bw}" height="${pill - 4.5}" rx="${(pill - 4.5) / 2}" fill="none" stroke="${c.glow}" stroke-opacity="0.4" stroke-width="1" filter="url(#g)"/>` +
+    `<rect x="${bx}" y="2.25" width="${bw}" height="${pill - 4.5}" rx="${(pill - 4.5) / 2}" fill="${c.text}" fill-opacity="0.08" stroke="${c.glow}" stroke-width="0.5"/>` +
     (single
       ? `<text x="${w / 2}" y="${pill / 2}" text-anchor="middle" dominant-baseline="central" font-family="${family}" font-size="14" font-weight="400" font-style="normal" fill="${c.label ?? c.text}"${face === '' ? '' : ` stroke="${c.label ?? c.text}" stroke-width="0.3" stroke-linejoin="round"`}>${esc(label)}</text>`
       : `<text x="12" y="19" font-family="${family}" font-size="14" font-weight="400" font-style="normal" fill="${c.label ?? c.text}"${stretch}>${esc(label)}</text>`) +

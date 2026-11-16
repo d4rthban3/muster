@@ -75,6 +75,11 @@ export async function pickedOn($: any, text: string): Promise<string | undefined
   const v = (await loadPicks($))[hashText(text)]
   return typeof v === 'string' && /^[A-Z]$/.test(v) ? v : undefined
 }
+// the words he typed instead of a letter, kept beside the letters under the same key (marked with a leading "=")
+export async function typedOn($: any, text: string): Promise<string | undefined> {
+  const v = (await loadPicks($))[hashText(text)]
+  return typeof v === 'string' && v.startsWith('=') ? v.slice(1) : undefined
+}
 export async function savePick($: any, text: string, letter: string): Promise<void> {
   try {
     const all = await loadPicks($)

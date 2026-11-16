@@ -1,6 +1,6 @@
 {
   "name": "muster-look",
-  "version": "0.2.11",
+  "version": "0.2.12",
   "description": "Muster's small colour accents on Claude Code: chip labels on crew cards, a thin rule and chip letters on questions waiting for the owner. Plain markdown is unchanged. Colours and font are kept per project (/look).",
   "author": {
     "name": "Muster contributors"

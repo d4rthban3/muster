@@ -302,3 +302,12 @@ test('every A/B/C circle is one size and cannot be squeezed by a long, wrapping 
   expect((tree.match(/"flexShrink":0/g) ?? []).length).toBeGreaterThanOrEqual(4)
   await ui.unmount()
 })
+
+test('a live question has a text box; what is typed is sent with its heading and sticks on the card', async ($, on) => {
+  on('ui.render', ($, e) => { const { Text } = $.ui.resolve(e); return <Text>engine</Text> })
+  const boxes = async (ui: any) => ((await ui.findAll({ type: 'Input' })) ?? []).filter((x: any) => x.props?.placeholder === 'Or type your own answer')
+  const ui = await $.ui.mount(MSG(Q2, 'desktop'))
+  const live = await boxes(ui)
+  expect(live.length).toBe(1)
+  await ui.unmount()
+})

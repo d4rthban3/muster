@@ -3,7 +3,7 @@ import { parse } from './parse'
 import { cutFont, fromBase64, type Cut } from './font'
 import { labelWidth } from './metrics'
 import { panel, registerLook } from './panel'
-import { loadGroup, pickedOn, savePick } from './group'
+import { loadGroup, pickedOn, typedOn, savePick } from './group'
 import { svgChip, pillOf, colourOr, YELLOW } from './chip'
 
 
@@ -69,6 +69,7 @@ export const register: Register = (on) => {
     // this group's own look; a group with none gets the defaults
     const opts = await loadGroup($)
     const picked = parsed.isQuestion ? await pickedOn($, e.props.text) : undefined
+    const typed = parsed.isQuestion ? await typedOn($, e.props.text) : undefined
     const QUESTION = pillOf('question', opts)
     const CARD = pillOf('card', opts)
     const CHOICE = pillOf('choice', opts)
@@ -80,7 +81,7 @@ export const register: Register = (on) => {
     const ui = $.ui.resolve(e) as any
     if (parsed.isQuestion) latestQuestion = e.props.text
     const live = parsed.isQuestion && e.props.text === latestQuestion && !answered.has(e.props.text)
-    const { Box, Text, Markdown, Svg, Client } = ui
+    const { Box, Text, Markdown, Svg, Client, Input } = ui
     const isTerminal = e.surface === 'terminal'
     // an empty picture h px tall: air in pixels (Box padding counts character cells)
     const spacerW = (px: number) => (
@@ -225,6 +226,30 @@ export const register: Register = (on) => {
                 {question.slice(1)}
               </Box>
             </Box>
+          </Box>
+        )}
+        {parsed.isQuestion && live && Input !== undefined && (
+          <Box key="own" flexDirection="column" paddingLeft={1}>
+            {isTerminal ? null : spacer(6)}
+            <Input
+              key="own-answer"
+              placeholder="Or type your own answer"
+              submitLabel="send"
+              onSubmit={(t: string) => {
+                const words = String(t).trim()
+                const head = parsed.pieces[parsed.startsAt]
+                if (words === '' || e.props.text !== latestQuestion || answered.has(e.props.text)) return
+                answered.add(e.props.text)
+                const tag = head !== undefined && head.kind === 'title' ? `${head.word} \u00b7 ${head.job}` : 'the question above'
+                void savePick($, e.props.text, '=' + words.slice(0, 300)).then(() => $.ui.invalidate('ui.render'))
+                void $.prompt.submit({ text: `Answer to ${tag}: ${words}` })
+              }}
+            />
+          </Box>
+        )}
+        {parsed.isQuestion && typed !== undefined && (
+          <Box key="typed" paddingLeft={1}>
+            <Text color="#b4b9c6">{`Your answer: ${typed}`}</Text>
           </Box>
         )}
         {after.length > 0 && parsed.pieces[lastChoice + 1]?.kind === 'title' && (isTerminal ? <Text key="gap"> </Text> : spacer(14))}

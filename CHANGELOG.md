@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.109
+Affects: see .claude-plugin/releases/0.3.109.json.
+Guard reads a project's own profile guard too, so PINR's protected folders block (item 117)
+
 ## 0.3.108
 Affects: see .claude-plugin/releases/0.3.108.json.
 Muster look 0.2.0: picker, balanced and clickable choices, even gaps reach installs (item 118)

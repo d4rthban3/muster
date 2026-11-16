@@ -1,0 +1,23 @@
+{
+  "version": "0.3.109",
+  "changed_files": [
+    "bin/SOURCE-STAMP",
+    "bin/linux-arm64/muster-checks",
+    "bin/linux-x86_64/muster-checks",
+    "bin/macos-arm64/muster-checks",
+    "bin/macos-x86_64/muster-checks",
+    "bin/windows-x86_64/muster-checks.exe",
+    "checks/src/main.rs",
+    "checks/src/rules.rs",
+    "hooks/guard-check.sh",
+    "hooks/hooks.json",
+    "hooks/rules-check.py",
+    "scripts/profile-selftest.py"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Guard reads a project's own profile guard too, so PINR's protected folders block (item 117)"
+}

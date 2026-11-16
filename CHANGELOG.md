@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.108
+Affects: see .claude-plugin/releases/0.3.108.json.
+Muster look 0.2.0: picker, balanced and clickable choices, even gaps reach installs (item 118)
+
 ## 0.3.107
 Affects: see .claude-plugin/releases/0.3.107.json.
 Even gaps under the title and above the first choice; left line ends at the last choice (item 118)

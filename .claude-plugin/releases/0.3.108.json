@@ -1,0 +1,13 @@
+{
+  "version": "0.3.108",
+  "changed_files": [
+    ".claude-plugin/marketplace.json",
+    "mods/muster-look/.claude-plugin/plugin.json"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Muster look 0.2.0: picker, balanced and clickable choices, even gaps reach installs (item 118)"
+}

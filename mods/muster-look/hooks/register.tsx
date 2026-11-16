@@ -3,7 +3,7 @@ import { parse } from './parse'
 import { cutFont, fromBase64, type Cut } from './font'
 import { labelWidth } from './metrics'
 import { panel, registerLook } from './panel'
-import { loadGroup, pickedOn, typedOn, savePick, hashText, isNewest } from './group'
+import { loadGroup, pickedOn, typedOn, savePick, hashText, isNewest, clearPick, answerStands, sent } from './group'
 import { svgChip, pillOf, colourOr, YELLOW } from './chip'
 
 
@@ -40,6 +40,7 @@ export const register: Register = (on) => {
       const q = parse(latestQuestion)
       if (m !== null && q !== null && q.pieces.some(p => p.kind === 'choice' && p.letter === m[1].toUpperCase())) {
         await savePick($, latestQuestion, m[1].toUpperCase())
+        sent.add(latestQuestion)
         $.ui.invalidate('ui.render')
       }
     }
@@ -50,6 +51,17 @@ export const register: Register = (on) => {
   // does nothing: `answered` holds it from the first press, the stored pick holds it after a reload.
   const known = new Map<string, string>()
   const pending = new Map<string, string>()
+  // The owner took an edit back (chat:undo): the newest question goes back to unpicked
+  // and live again, as if never clicked. (The one undo the mod API reports.)
+  on('prompt.change', { origin: { kind: 'undo' } }, async ($, e, next) => {
+    if (latestQuestion !== '') {
+      answered.delete(latestQuestion)
+      pending.delete(latestQuestion)
+      await clearPick($, latestQuestion)
+      $.ui.invalidate('ui.render')
+    }
+    return next(e)
+  })
   on('ui.message', { component: 'AssistantMessage' }, async ($, e, next) => {
     const d = e.data as { pick?: string; q?: string } | undefined
     if (/(^|\/)choice\.tsx$/.test(e.module) && d !== undefined && typeof d.pick === 'string' && /^[A-Z]$/.test(d.pick)) {
@@ -63,6 +75,7 @@ export const register: Register = (on) => {
         const tagged = head !== undefined && !(await isNewest($, text, latestQuestion))
         const said = tagged ? `Answer to ${head.word} \u00b7 ${head.job}: ${d.pick}` : d.pick
         ours.add(said)
+        sent.add(text)
         void $.prompt.submit({ text: said })
         await savePick($, text, d.pick)
       }
@@ -89,8 +102,17 @@ export const register: Register = (on) => {
     if (parsed === null) return next(e)
     // this group's own look; a group with none gets the defaults
     const opts = await loadGroup($)
-    const picked = parsed.isQuestion ? (pending.get(e.props.text) ?? await pickedOn($, e.props.text)) : undefined
-    const typed = parsed.isQuestion ? await typedOn($, e.props.text) : undefined
+    let picked = parsed.isQuestion ? (pending.get(e.props.text) ?? await pickedOn($, e.props.text)) : undefined
+    let typed = parsed.isQuestion ? await typedOn($, e.props.text) : undefined
+    // the answer message is gone from the chat (the rewind button): back to unpicked and live again
+    const mark = picked ?? (typed !== undefined ? '=' + typed : undefined)
+    if (mark !== undefined && !(await answerStands($, e.props.text, mark))) {
+      picked = undefined
+      typed = undefined
+      answered.delete(e.props.text)
+      pending.delete(e.props.text)
+      await clearPick($, e.props.text)
+    }
     const QUESTION = pillOf('question', opts)
     const CARD = pillOf('card', opts)
     const CHOICE = pillOf('choice', opts)
@@ -269,6 +291,7 @@ export const register: Register = (on) => {
                 if (words === '' || e.props.text !== latestQuestion || answered.has(e.props.text)) return
                 answered.add(e.props.text)
                 const tag = head !== undefined && head.kind === 'title' ? `${head.word} \u00b7 ${head.job}` : 'the question above'
+                sent.add(e.props.text)
                 void savePick($, e.props.text, '=' + words.slice(0, 300)).then(() => $.ui.invalidate('ui.render'))
                 void $.prompt.submit({ text: `Answer to ${tag}: ${words}` })
               }}

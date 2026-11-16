@@ -24,7 +24,11 @@ export const register: Register = (on) => {
   let latestQuestion = ''
   const answered = new Set<string>()
   on('prompt.submit', async ($, e, next) => {
-    if (latestQuestion !== '') {
+    // only the owner's own typing answers a question; a peer's message, a
+    // notification, a scheduled prompt or another plugin's submit leaves it live
+    const kind = (e as any).origin?.kind
+    const owner = kind === 'composer' || kind === 'bridge'
+    if (owner && latestQuestion !== '') {
       answered.add(latestQuestion)
       // a reply that is just a letter of that question sticks on it
       const m = /^\s*\**([A-Za-z])[.)]?\**\s*$/.exec(String((e as any).text ?? ''))

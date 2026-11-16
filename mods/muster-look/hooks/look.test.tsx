@@ -311,3 +311,13 @@ test('a live question has a text box; what is typed is sent with its heading and
   expect(live.length).toBe(1)
   await ui.unmount()
 })
+
+test('a message that is not the owner typing does not kill the live question', async ($, on) => {
+  on('prompt.submit', ($, e) => ({ text: String((e as any).text) }) as any)
+  const ui = await $.ui.mount(MSG(Q2, 'desktop'))
+  expect(await ui.find({ type: 'Client', key: 'pickA' })).toBeTruthy()
+  // a plugin's own prompt (origin is not the composer) goes by
+  await $.prompt.submit({ text: 'status from a peer' })
+  expect(await ui.find({ type: 'Client', key: 'pickA' })).toBeTruthy()
+  await ui.unmount()
+})

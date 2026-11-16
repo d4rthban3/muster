@@ -187,7 +187,7 @@ export const register: Register = (on) => {
     parsed.pieces.forEach((p, i) => { if (p.kind === 'choice') lastChoice = i })
     // Terminal width is not known here: a wrapped line is guessed at 70 columns.
     const lines = (p: (typeof parsed.pieces)[number]) =>
-      p.kind === 'title' || p.kind === 'status' ? 1 : p.kind === 'choice' ? Math.max(1, Math.ceil((p.text.length + 5) / 70)) : p.text.split('\n').reduce((n, l) => n + Math.max(1, Math.ceil(l.length / 70)), 0)
+      p.kind === 'title' ? 1 : p.kind === 'status' ? (p.rest === '' ? 1 : 2) : p.kind === 'choice' ? Math.max(1, Math.ceil((p.text.length + 5) / 70)) : p.text.split('\n').reduce((n, l) => n + Math.max(1, Math.ceil(l.length / 70)), 0)
 
     // Every choice chip is as wide as the widest letter, so all the choice text
     // starts at one x; each gets 4px of air above and below inside its own
@@ -197,11 +197,14 @@ export const register: Register = (on) => {
       const inQ = parsed.isQuestion && i >= parsed.startsAt && i <= lastChoice
       if (p.kind === 'md') return <Markdown key={`m${i}`} text={p.text} />
       if (p.kind === 'status') {
-        // the badge is the ORDER title badge's colour (the card purple); the rest of the line is plain text
+        // laid out as a card's title badge is: the badge on its own line, clear air above it after text,
+        // and the rest of the line below it as card text, in the card colour
+        const gapAbove = parsed.pieces[i - 1]?.kind === 'md'
         return (
-          <Box key={`s${i}`} gap={2} alignItems="center">
-            <Box flexShrink={0}>{chip(p.badge, CARD)}</Box>
-            {p.rest !== '' && <Box flexShrink={1} flexGrow={1}><Markdown key={`sm${i}`} text={p.rest} /></Box>}
+          <Box key={`s${i}`} flexDirection="column">
+            {gapAbove && (isTerminal ? <Text key="sgap"> </Text> : spacer(14))}
+            {chip(p.badge, CARD)}
+            {p.rest !== '' && <Markdown key={`sm${i}`} text={p.rest} />}
           </Box>
         )
       }
@@ -255,7 +258,7 @@ export const register: Register = (on) => {
     // short rather than long so it never runs into the next card.
     const px = (p: (typeof parsed.pieces)[number]) => {
       if (p.kind === 'title') return 0
-      if (p.kind === 'status') return 28
+      if (p.kind === 'status') return 28 + (p.rest === '' ? 0 : 18.5)
       const wrap = (n: number) => Math.max(1, Math.ceil(n / 80))
       if (p.kind === 'choice') return Math.max(28, wrap(p.text.length + 5) * 18.5)
       return p.text.split('\n').reduce((n, l) => n + wrap(l.length) * 18.5, 0)

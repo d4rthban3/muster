@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.132
+Affects: see .claude-plugin/releases/0.3.132.json.
+badge-position: the Working and Idle badges sit where a card's title badge sits, on their own line with clear air above, and the rest of the line is laid out below like card text
+
 ## 0.3.131
 Affects: see .claude-plugin/releases/0.3.131.json.
 fill-pick-name: when a click fills the chat box, the option's (my pick) reads (<project name> pick), for example (Muster pick); the card itself is unchanged

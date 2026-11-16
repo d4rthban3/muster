@@ -1,0 +1,14 @@
+{
+  "version": "0.3.132",
+  "changed_files": [
+    ".claude-plugin/marketplace.json",
+    ".claude-plugin/plugin.json",
+    "look/register.tsx"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "badge-position: the Working and Idle badges sit where a card's title badge sits, on their own line with clear air above, and the rest of the line is laid out below like card text"
+}

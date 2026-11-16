@@ -4,6 +4,10 @@
 Read-only: reads muster/BOARD.md and muster/BOARD-ARCHIVE.md, writes nothing, no network.
 
 Usage:  python3 board_digest.py <ROLE> [project-dir]
+        python3 board_digest.py Manager --mark-asked <job>   (manager only) after asking the owner that job's question, mark its
+                                                              open entries "Asked:"; the digest then lists it apart as "waiting on
+                                                              his answer, do not re-ask" until he answers (status done/closed) or
+                                                              the entry text changes (item 120)
 
 Entry format (see templates/BOARD.md):
     ### <date> | <DONE|READY|PASS|FAIL|STUCK|NEED> | <from> -> <to> | <job name>
@@ -76,6 +80,60 @@ def read(path):
         return None, str(err)
 
 
+ASKED = re.compile(r"^\s*asked\s*:", re.I)
+
+
+def entry_hash(lines):
+    """Short fingerprint of an entry without its Asked line: if the question changes, the mark no longer matches."""
+    import hashlib
+    body = "\n".join(l.rstrip() for l in lines if not ASKED.match(l)).strip()
+    return hashlib.sha1(body.encode("utf-8")).hexdigest()[:8]
+
+
+def is_asked(lines):
+    """True when the entry carries an Asked mark that still matches its text (the question is unchanged since it was put to him)."""
+    for l in lines:
+        if ASKED.match(l):
+            return l.split(":", 1)[1].split()[-1:] == [entry_hash(lines)]
+    return False
+
+
+def mark_asked(path, job):
+    """Add (or refresh) the Asked line under the Status line of every open entry of this job. Changes nothing else."""
+    text, err = read(path)
+    if text is None:
+        print("NOT WRITTEN: %s" % err)
+        return 1
+    src = text.split("\n")
+    out, i, n = [], 0, 0
+    while i < len(src):
+        if re.match(r"^\s*###\s", src[i]):
+            j = i + 1
+            while j < len(src) and not re.match(r"^\s*###\s", src[j]):
+                j += 1
+            block = src[i:j]
+            parts = [p.strip(" #`") for p in block[0].split("|")]
+            st = next((re.match(r"^\s*status\s*:\s*([A-Za-z]+)", l, re.I) for l in block if re.match(r"^\s*status\s*:", l, re.I)), None)
+            open_ = not (st and st.group(1).lower() in CLOSED)
+            if open_ and len(parts) > 3 and parts[3].lower() == job.strip().lower():
+                block = [l for l in block if not ASKED.match(l)]
+                at = next((k for k, l in enumerate(block) if re.match(r"^\s*status\s*:", l, re.I)), 0) + 1
+                block.insert(at, "Asked: %s %s" % (time.strftime("%Y-%m-%d"), entry_hash(block)))
+                n += 1
+            out.extend(block)
+            i = j
+        else:
+            out.append(src[i])
+            i += 1
+    if not n:
+        print("NOT MARKED: no open entry for the job %r" % job)
+        return 1
+    with open(path, "w", encoding="utf-8", newline="") as fh:
+        fh.write("\n".join(out))
+    print("Marked %d open entr%s for %r as asked (his answer is awaited; do not ask again)" % (n, "y" if n == 1 else "ies", job))
+    return 0
+
+
 def write_waiting_line(path, line):
     """Set the single "Waiting on:" line right under the board's title; changes nothing else."""
     text, err = read(path)
@@ -99,6 +157,15 @@ def write_waiting_line(path, line):
 def main():
     # With no role name, read as the manager (the chat that reads the whole board).
     # --write-waiting (manager only): also rewrite the one "Waiting on:" line at the top of muster/BOARD.md.
+    if "--mark-asked" in sys.argv:
+        k = sys.argv.index("--mark-asked")
+        job = sys.argv[k + 1] if k + 1 < len(sys.argv) else ""
+        rest = [a for a in sys.argv[1:k] + sys.argv[k + 2:] if a]
+        root0 = find_root(rest[1] if len(rest) > 1 else os.getcwd())
+        if not job or root0 is None:
+            print("NOT MARKED: needs a job name and a project with muster/BOARD.md")
+            return 1
+        return mark_asked(os.path.join(root0, "muster", "BOARD.md"), job)
     write_waiting = "--write-waiting" in sys.argv
     args = [a for a in sys.argv[1:] if a != "--write-waiting"]
     # --board <file>: read exactly that board (and BOARD-ARCHIVE.md beside it); strictly read-only, for a second computer
@@ -160,11 +227,11 @@ def main():
         sender = re.sub(r"\s*->.*", "", parts[2]) if len(parts) > 2 else "?"
         body = "\n".join(lines)
         yes = bool(re.search(r"^\s*paused\s*:\s*yes", body, re.I | re.M)) and not re.search(r"^\s*paused\s*:\s*no", body, re.I | re.M)
-        seq.append((sender, parts[1].upper() if len(parts) > 1 else "", parts[3] if len(parts) > 3 else "", yes, status))
+        seq.append((sender, parts[1].upper() if len(parts) > 1 else "", parts[3] if len(parts) > 3 else "", yes, status, is_asked(lines)))
     last = {}
     for i, s in enumerate(seq):
         last[s[0]] = i
-    for i, (sender, kind, job, yes, status) in enumerate(seq):
+    for i, (sender, kind, job, yes, status, asked) in enumerate(seq):
         if status in CLOSED:
             continue
         is_p = yes and last[sender] == i
@@ -176,7 +243,7 @@ def main():
                 if not waiting[mt.group(1)]:
                     del waiting[mt.group(1)]
         if is_p or kind in ("NEED", "STUCK", "OWNER CALL"):
-            owner_q.append((kind, sender, job, is_p))
+            owner_q.append((kind, sender, job, is_p, asked))
     # fallback for a worker that cannot write the main board: a file .muster-paused in its own folder copy
     for p in sorted(glob.glob(os.path.join(root, ".claude", "worktrees", "*", ".muster-paused"))):
         who_p = os.path.basename(os.path.dirname(p))
@@ -187,7 +254,7 @@ def main():
             pass
         if who_p not in paused:
             paused.append(who_p)
-            owner_q.append(("", who_p, "paused (marker file)", True))
+            owner_q.append(("", who_p, "paused (marker file)", True, False))
     bits = ["%s (%d)" % kv for kv in sorted(waiting.items())]
     bits += ["relay his answer to %s (never send him to type in it)" % p for p in paused]
     line = "Waiting on: " + (", ".join(bits) or "nobody")
@@ -202,12 +269,18 @@ def main():
         except Exception as err:
             print("ARCHIVE SKIPPED: %s" % err)
         write_waiting_line(os.path.join(root, "muster", "BOARD.md"), line)
-    if owner_q:
-        print("\nOWNER QUESTIONS (ask the owner the top one as lettered lines (***A.*** ...) before ending your turn, unless his own words answer it):")
-        order = {"OWNER CALL": 0, "STUCK": 1, "NEED": 2}
-        for kind, sender, job, is_p in sorted(owner_q, key=lambda q: (not q[3], order.get(q[0], 3))):
+    fresh_q = [q for q in owner_q if not q[4]]
+    asked_q = [q for q in owner_q if q[4]]
+    order = {"OWNER CALL": 0, "STUCK": 1, "NEED": 2}
+    if fresh_q:
+        print("\nOWNER QUESTIONS (ask the owner the top one as lettered lines (***A.*** ...) under a bold heading line 'WORD \u00b7 job' before ending your turn, unless his own words answer it; then mark it: board_digest.py Manager --mark-asked <job>):")
+        for kind, sender, job, is_p, _a in sorted(fresh_q, key=lambda q: (not q[3], order.get(q[0], 3))):
             print("  %s from %s: %s%s" % (kind or "REPORT", sender, job,
                   "  [PAUSED: relay his answer to %s]" % sender if is_p else ""))
+    if asked_q:
+        print("\nWAITING ON HIS ANSWER (already asked; do not ask again until he answers or the entry changes):")
+        for kind, sender, job, is_p, _a in asked_q:
+            print("  %s from %s: %s" % (kind or "REPORT", sender, job))
     for item in unreadable:
         print("UNREADABLE:", item)
     for name, body in mine:

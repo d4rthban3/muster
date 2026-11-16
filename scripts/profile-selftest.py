@@ -282,7 +282,7 @@ add("8 ...and it cannot write the founder's list", W(C + "/Founder/FOUNDER-LIST.
 AQ = lambda t: run("rules-check.py", "PreToolUse", tool_name="AskUserQuestion", tool_input={"questions": [{"question": "Ship it?", "options": []}]}, transcript_path=t)
 add("10 a PINR manager's choice card is refused (lettered lines instead)", AQ(mgr), True)
 add("10 a PINR worker's card is not this check's business", AQ(site), False)
-add("10 a PINR manager's lettered question passes the Stop check", run("rules-check.py", "Stop", last_assistant_message="Ship it?\n\n***A.*** yes (my pick)\n\n***B.*** no", transcript_path=mgr), False)
+add("10 a PINR manager's lettered question passes the Stop check", run("rules-check.py", "Stop", last_assistant_message="**ASK \u00b7 ship**\n\nShip it?\n\n***A.*** yes (my pick)\n\n***B.*** no", transcript_path=mgr), False)
 LET = tr("You are Manager_PINR_002", [{"type": "assistant", "message": {"content": [{"type": "text", "text": "***A.*** red (my pick)\n\n***B.*** blue"}]}}, {"type": "user", "message": {"content": "a"}}])
 letout = run("rules-check.py", "Stop", last_assistant_message="Going ahead.", transcript_path=LET)
 add("10 a typed letter in PINR must be recorded", letout, True)

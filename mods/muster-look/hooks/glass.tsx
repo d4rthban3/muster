@@ -1,7 +1,7 @@
 // An opt-in whole-app background: a calm, slow liquid-glass scene (soft coloured light on a
 // deep ground) or the owner's own small picture, with the app's own panels frosted over it.
 // Off unless the owner switches it on in /look; its colours and picture are set there too.
-import { kvGet, kvSet, kvDel } from './group'
+import { kvGet, kvSet, groupId } from './group'
 import { HEX } from './chip'
 
 const KEY = 'frostedBackground'
@@ -12,27 +12,42 @@ export const GLASS_COLOURS = [
 export const GLASS_IMAGE = 'glassImage'
 const MAX_IMAGE = 90000 // bytes: a scene is at most 131,072 characters, and base64 adds a third
 
-export async function glassOn($: any): Promise<boolean> {
-  try { return (await kvGet($, KEY)) === 'on' } catch { return false }
+// Kept per group, like the chip colours: one record under 'glass:<group>' holds the switch, the
+// two glow colours and the picture, so setting them in one group never changes another's.
+type Rec = Record<string, string>
+async function recOf($: any, id?: string): Promise<Rec> {
+  try {
+    const raw = await kvGet($, 'glass:' + (id ?? (await groupId($))))
+    if (raw && typeof raw === 'object') return { ...(raw as Rec) }
+  } catch { /* nothing kept */ }
+  return {}
 }
-export async function setGlassFlag($: any, on: boolean): Promise<void> {
-  try { await kvSet($, KEY, on ? 'on' : 'off') } catch { /* a store that refuses keeps it off */ }
+async function putRec($: any, r: Rec, id?: string): Promise<void> {
+  try { await kvSet($, 'glass:' + (id ?? (await groupId($))), r) } catch { /* kept as it was */ }
 }
-export async function glassSettings($: any): Promise<Record<string, string>> {
+export async function glassOn($: any, id?: string): Promise<boolean> {
+  return (await recOf($, id))[KEY] === 'on'
+}
+export async function setGlassFlag($: any, on: boolean, id?: string): Promise<void> {
+  const r = await recOf($, id)
+  r[KEY] = on ? 'on' : 'off'
+  await putRec($, r, id)
+}
+export async function glassSettings($: any, id?: string): Promise<Record<string, string>> {
+  const r = await recOf($, id)
   const out: Record<string, string> = {}
   for (const c of GLASS_COLOURS) {
-    let v: unknown
-    try { v = await kvGet($, c.key) } catch { v = undefined }
+    const v = r[c.key]
     out[c.key] = typeof v === 'string' && HEX.test(v) ? v : c.dflt
   }
-  let img: unknown
-  try { img = await kvGet($, GLASS_IMAGE) } catch { img = undefined }
-  out[GLASS_IMAGE] = typeof img === 'string' ? img : ''
+  out[GLASS_IMAGE] = typeof r[GLASS_IMAGE] === 'string' ? r[GLASS_IMAGE] : ''
   return out
 }
-export async function setGlassSetting($: any, key: string, value: string | null): Promise<void> {
+export async function setGlassSetting($: any, key: string, value: string | null, id?: string): Promise<void> {
   if (key !== GLASS_IMAGE && !GLASS_COLOURS.some(c => c.key === key)) return
-  try { if (value === null) await kvDel($, key); else await kvSet($, key, value) } catch { /* kept as it was */ }
+  const r = await recOf($, id)
+  if (value === null) delete r[key]; else r[key] = value
+  await putRec($, r, id)
 }
 
 export const SCENE_ARGS = { backdrop: { scene: 'liquid', glass: { blur: 28, tint: 'rgba(25,28,36,1)', opacity: 0.42 } } }

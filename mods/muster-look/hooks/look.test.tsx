@@ -1,5 +1,5 @@
 import { expect, test } from 'claude-code/testing'
-import { sceneOf } from './glass'
+import { sceneOf, glassOn, setGlassFlag, glassSettings, setGlassSetting } from './glass'
 import Rail from './rail'
 import { parse } from './parse'
 import { isOwnerSubmit } from './register'
@@ -469,4 +469,22 @@ test('the glass scene is calm, small enough, and takes the owner colours or pict
   expect(s).not.toContain('<script')
   const p = sceneOf('#112233', '#445566', 'data:image/png;base64,AAAA')
   expect(p).toContain('data:image/png;base64,AAAA')
+})
+test('the glass background belongs to its group: switch, colours and picture never cross', async ($) => {
+  await setGlassFlag($, true, '/proj/a')
+  await setGlassSetting($, 'glassColour1', '#112233', '/proj/a')
+  await setGlassSetting($, 'glassImage', '/tmp/a.png', '/proj/a')
+  expect(await glassOn($, '/proj/a')).toBe(true)
+  expect(await glassOn($, '/proj/b')).toBe(false)
+  const b = await glassSettings($, '/proj/b')
+  expect(b.glassColour1).toBe('#5b4bb8')
+  expect(b.glassImage).toBe('')
+  await setGlassSetting($, 'glassColour1', '#445566', '/proj/b')
+  expect((await glassSettings($, '/proj/a')).glassColour1).toBe('#112233')
+  expect((await glassSettings($, '/proj/b')).glassColour1).toBe('#445566')
+  await setGlassFlag($, false, '/proj/b')
+  expect(await glassOn($, '/proj/a')).toBe(true)
+  await setGlassSetting($, 'glassColour1', null, '/proj/a')
+  expect((await glassSettings($, '/proj/a')).glassColour1).toBe('#5b4bb8')
+  expect((await glassSettings($, '/proj/b')).glassColour1).toBe('#445566')
 })

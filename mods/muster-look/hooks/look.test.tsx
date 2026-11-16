@@ -171,3 +171,14 @@ test('clicking a choice sends its letter once; an answered question does not sen
   expect(sent).toEqual(['A'])
   await ui.unmount()
 })
+
+test('a live choice has a hidden purple circle that its row hover reveals', async ($, on) => {
+  on('ui.render', ($, e) => { const { Text } = $.ui.resolve(e); return <Text>engine</Text> })
+  const ui = await $.ui.mount(MSG(Q2, 'desktop'))
+  // the purple circle is drawn twice (A, B), each inside a hidden Box that the row's hover reveals
+  const hot = ((await ui.findAll({ type: 'Svg' })) ?? []).filter((n: any) => String(n.props?.source).includes('fill="#7c4dff" fill-opacity="1"'))
+  const hidden = hot
+  expect(JSON.stringify(await ui.findAll({ type: 'Box' }))).toContain('"display":"none"')
+  expect(hidden.length).toBe(2)
+  await ui.unmount()
+})

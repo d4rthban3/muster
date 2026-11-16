@@ -13,7 +13,10 @@ const PURPLE = { label: '#a995ff', text: '#9b6dff', fill: '#2b2748', edge: '#5b3
 // is drawn as a small vector pill: thin brighter border, lifted fill, a soft
 // glow, 28px tall. The label is spaced to its measured width, never stretched.
 const esc = (t: string) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-function svgChip(Svg: any, label: string, c: { text: string; label?: string; glow: string; lift: string }, font: string, cut: Cut | null, minTw = 0, pad = 0) {
+// The purple a choice's circle fills with while the pointer is over its row; the letter turns white on it.
+const HOT = '#7c4dff'
+const HOT_EDGE = '#a98bff'
+function svgChip(Svg: any, label: string, c: { text: string; label?: string; glow: string; lift: string }, font: string, cut: Cut | null, minTw = 0, pad = 0, hot = false) {
   // The pill is as wide as the same words in body text (measured widths of the
   // app's regular-weight text). The letters keep their own shape: the label is
   // only ever spaced to that width, never stretched.
@@ -42,11 +45,11 @@ function svgChip(Svg: any, label: string, c: { text: string; label?: string; glo
     face +
     `<g transform="translate(0 ${pad})">` +
     `<defs><filter id="g" x="-20%" y="-40%" width="140%" height="180%"><feGaussianBlur stdDeviation="1.2"/></filter></defs>` +
-    `<rect x="${bx}" y="2.25" width="${bw}" height="${pill - 4.5}" rx="${(pill - 4.5) / 2}" fill="none" stroke="${c.glow}" stroke-opacity="0.4" stroke-width="1" filter="url(#g)"/>` +
-    `<rect x="${bx}" y="2.25" width="${bw}" height="${pill - 4.5}" rx="${(pill - 4.5) / 2}" fill="${c.text}" fill-opacity="0.08" stroke="${c.glow}" stroke-width="0.5"/>` +
+    `<rect x="${bx}" y="2.25" width="${bw}" height="${pill - 4.5}" rx="${(pill - 4.5) / 2}" fill="none" stroke="${hot ? HOT_EDGE : c.glow}" stroke-opacity="0.4" stroke-width="1" filter="url(#g)"/>` +
+    `<rect x="${bx}" y="2.25" width="${bw}" height="${pill - 4.5}" rx="${(pill - 4.5) / 2}" fill="${hot ? HOT : c.text}" fill-opacity="${hot ? 1 : 0.08}" stroke="${hot ? HOT_EDGE : c.glow}" stroke-width="${hot ? 1 : 0.5}"/>` +
     (single
-      ? `<text x="${w / 2}" y="${pill / 2}" text-anchor="middle" dominant-baseline="central" font-family="${family}" font-size="14" font-weight="400" font-style="normal" fill="${c.label ?? c.text}"${face === '' ? '' : ` stroke="${c.label ?? c.text}" stroke-width="0.3" stroke-linejoin="round"`}>${esc(label)}</text>`
-      : `<text x="12" y="19" font-family="${family}" font-size="14" font-weight="400" font-style="normal" fill="${c.label ?? c.text}"${stretch}>${esc(label)}</text>`) +
+      ? `<text x="${w / 2}" y="${pill / 2}" text-anchor="middle" dominant-baseline="central" font-family="${family}" font-size="14" font-weight="400" font-style="normal" fill="${hot ? '#ffffff' : (c.label ?? c.text)}"${face === '' ? '' : ` stroke="${c.label ?? c.text}" stroke-width="0.3" stroke-linejoin="round"`}>${esc(label)}</text>`
+      : `<text x="12" y="19" font-family="${family}" font-size="14" font-weight="400" font-style="normal" fill="${hot ? '#ffffff' : (c.label ?? c.text)}"${stretch}>${esc(label)}</text>`) +
     `</g></svg>`
   return <Svg alt={label} width={w} height={ht} source={source} />
 }
@@ -147,7 +150,7 @@ export const register: Register = (on, options: any) => {
 
     // Desktop and the other apps: the one-line rounded bordered chip, as first
     // built. Terminal: one line with thin bars at each end.
-    const chip = (label: string, c: typeof YELLOW, minTw = 0, pad = 0) =>
+    const chip = (label: string, c: typeof YELLOW, minTw = 0, pad = 0, hot = false) =>
       isTerminal ? (
         <Text>
           <Text color={c.edge}>{'\u258F'}</Text>
@@ -155,7 +158,7 @@ export const register: Register = (on, options: any) => {
           <Text color={c.edge}>{'\u2595'}</Text>
         </Text>
       ) : (
-        svgChip(Svg, label, c, FONT, cut, minTw, pad)
+        svgChip(Svg, label, c, FONT, cut, minTw, pad, hot)
       )
 
     let lastChoice = -1
@@ -179,7 +182,14 @@ export const register: Register = (on, options: any) => {
       const firstChoice = parsed.pieces[i - 1]?.kind === 'md'
       const row = (
         <Box key={`c${i}`} gap={2} alignItems="center" position="relative" hover={live && !isTerminal && Client !== undefined ? { backgroundColor: '#23262e' } : undefined}>
-          {chip(p.letter, CHOICE, letterTw, 4)}
+          {live && !isTerminal ? (
+            <Box position="relative">
+              {chip(p.letter, CHOICE, letterTw, 4)}
+              <Box position="absolute" top={0} left={0} display="none" hover={{ display: 'flex' }}>
+                {chip(p.letter, CHOICE, letterTw, 4, true)}
+              </Box>
+            </Box>
+          ) : chip(p.letter, CHOICE, letterTw, 4)}
           <Markdown key={`cm${i}`} text={p.text} />
           {live && !isTerminal && Client !== undefined && (
             <Box position="absolute" top={0} left={0} right={0} bottom={0}>

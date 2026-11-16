@@ -163,8 +163,10 @@ def first_message(path):
                 if d.get("type") != "user" or d.get("isCompactSummary"):
                     continue
                 c = (d.get("message") or {}).get("content", "")
-                if isinstance(c, list):
-                    c = " ".join(b.get("text", "") for b in c if isinstance(b, dict))
+                if isinstance(c, list):  # only the text blocks: a line holding only tool results is not the chat's first message
+                    c = " ".join(b.get("text", "") for b in c if isinstance(b, dict) and b.get("type") == "text")
+                if not str(c).strip():
+                    continue
                 return str(c)[:6000]
     except OSError:
         pass

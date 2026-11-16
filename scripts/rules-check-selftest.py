@@ -64,6 +64,17 @@ def compacted(first):
     return p
 
 
+def tool_first(first):
+    """a transcript whose first user line holds only tool results (a chat started by another chat), then the chat's real first message"""
+    p = os.path.join(T, "tf%d.jsonl" % next(_tn))
+    with open(p, "w") as f:
+        f.write(json.dumps({"type": "user", "message": {"content": [{"type": "tool_result", "tool_use_id": "t1", "content": "ok"}]}}) + "\n")
+        f.write(json.dumps({"type": "user", "message": {"content": [{"type": "text", "text": first}]}}) + "\n")
+    return p
+
+
+tool_first_b = tool_first("You are Builder A_Muster_002, agents/builder.md")
+tool_first_o = tool_first("hello there")
 compacted_mgr = compacted("Manager_Muster")
 compacted_b = compacted("Builder A_Muster, agents/builder.md")
 
@@ -91,6 +102,9 @@ cases = [
     ("item 119: a wrap-up with only a recap goes through", run("PreToolUse", tool_name="mcp__ccd_turn__wrap_up", tool_input={"recap": "done"}, transcript_path=b), False),
     ("item 119: empty ask and actions go through", run("PreToolUse", tool_name="mcp__ccd_turn__wrap_up", tool_input={"recap": "done", "ask": "", "actions": []}, transcript_path=b), False),
     ("item 119: the owner's own chat is not checked", run("PreToolUse", tool_name="mcp__ccd_turn__wrap_up", tool_input={"recap": "done", "ask": "Ship it?"}, transcript_path=owner), False),
+    ("item 120: a crew chat whose first transcript line holds only tool results is still known as crew (stopped from the crew list)", run("PreToolUse", tool_name="Edit", tool_input={"file_path": "/home/x/p/muster/CREW.md", "new_string": "x"}, transcript_path=tool_first_b), True),
+    ("item 120: ...and its own first message is what gets kept beside the transcript", "" if open(tool_first_b + ".muster-first").read().startswith("You are Builder A_Muster_002") else "BAD", False),
+    ("item 120: the owner's own chat with such a first line is still not crew", run("PreToolUse", tool_name="Edit", tool_input={"file_path": "/home/x/p/muster/CREW.md", "new_string": "x"}, transcript_path=tool_first_o), False),
     ("D-039: a builder is still stopped from the crew list after a compaction", run("PreToolUse", tool_name="Edit", tool_input={"file_path": "/home/x/p/muster/CREW.md", "new_string": "x"}, transcript_path=compacted_b), True),
     ("item 114: a question already put to him is not asked again", run("Stop", last_assistant_message=Q, transcript_path=tr(mgr_first, [asst(Q), usr("<cross-session-message from=x>PASS</cross-session-message>")])), True),
     ("item 114: the same question after he typed something is allowed", run("Stop", last_assistant_message=Q, transcript_path=tr(mgr_first, [asst(Q), usr("hello"), usr("<cross-session-message from=x>PASS</cross-session-message>")])), False),

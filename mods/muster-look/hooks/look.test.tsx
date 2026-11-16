@@ -1,5 +1,6 @@
 import { expect, test } from 'claude-code/testing'
 import Rail from './rail'
+import { parse } from './parse'
 import { isOwnerSubmit } from './register'
 
 const MSG = (text: string, surface: 'terminal' | 'desktop') => ({
@@ -337,4 +338,26 @@ test('only the owner typing answers a question; peers, plugins and notifications
   expect(isOwnerSubmit({})).toBe(false)
   expect(isOwnerSubmit({ origin: { kind: 'composer' } })).toBe(true)
   expect(isOwnerSubmit({ origin: { kind: 'bridge' } })).toBe(true)
+})
+
+test('a question resent on one line splits into one choice per letter', () => {
+  const p = parse('Which one? ***A.*** Build it now or ***B.*** Wait for the check')!
+  const ch = p.pieces.filter(x => x.kind === 'choice') as any[]
+  expect(ch.map(c => c.letter)).toEqual(['A', 'B'])
+  expect(ch[0].text).toBe('Build it now')
+  expect(ch[1].text).toBe('Wait for the check')
+  expect(p.pieces[0]).toEqual({ kind: 'md', text: 'Which one?' })
+  expect(p.isQuestion).toBe(true)
+  const q = parse('**WAITING · item 7**\n***A.*** yes, ***B.*** no, ***C.*** later')!
+  expect((q.pieces.filter(x => x.kind === 'choice') as any[]).map(c => `${c.letter}:${c.text}`)).toEqual(['A:yes', 'B:no', 'C:later'])
+  expect(parse('***A.*** one\n\n***B.*** two')!.pieces.length).toBe(2)
+  expect(parse('See ***A.*** here and nothing else')).toBe(null)
+})
+
+test('the one-line form draws one clickable circle per letter', async ($, on) => {
+  on('ui.render', ($, e) => { const { Text } = $.ui.resolve(e); return <Text>engine</Text> })
+  const ui = await $.ui.mount(MSG('**WAITING · item 7**\nPick: ***A.*** Build it now or ***B.*** Wait', 'desktop'))
+  const svgs = ((await ui.findAll({ type: 'Svg' })) ?? []).filter((x: any) => String(x.props?.alt ?? '').length === 1)
+  expect(new Set(svgs.map((x: any) => x.props.alt))).toEqual(new Set(['A', 'B']))
+  await ui.unmount()
 })

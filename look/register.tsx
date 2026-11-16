@@ -4,7 +4,7 @@ import { cutFont, fromBase64, type Cut } from './font'
 import { labelWidth } from './metrics'
 import { panel, registerLook } from './panel'
 import { glass, glassOn, applyGlass } from './glass'
-import { loadGroup, pickedOn, typedOn, savePick, hashText, answerLine, fullestText, clearPick, answerStands, sent } from './group'
+import { loadGroup, pickedOn, typedOn, savePick, hashText, answerLine, optionLine, fullestText, clearPick, answerStands, sent } from './group'
 import { migrateLook } from './migrate'
 import { svgChip, pillOf, colourOr, YELLOW } from './chip'
 
@@ -41,7 +41,14 @@ export const register: Register = (on) => {
       // a reply that is just a letter of that question sticks on it
       const m = /^\s*\**([A-Za-z])[.)]?\**\s*$/.exec(String((e as any).text ?? ''))
       const q = parse(latestQuestion)
-      if (m !== null && q !== null && q.pieces.some(p => p.kind === 'choice' && p.letter === m[1]!.toUpperCase())) {
+      // the owner pressed Enter on the option line a click put in the box
+      const sentLine = String((e as any).text ?? '').trim()
+      const clicked = q === null ? undefined : q.pieces.find(p => p.kind === 'choice' && optionLine(latestQuestion, p.letter) === sentLine)
+      if (clicked !== undefined && clicked.kind === 'choice') {
+        await savePick($, latestQuestion, clicked.letter)
+        sent.add(latestQuestion)
+        $.ui.invalidate('ui.render')
+      } else if (m !== null && q !== null && q.pieces.some(p => p.kind === 'choice' && p.letter === m[1]!.toUpperCase())) {
         await savePick($, latestQuestion, m[1]!.toUpperCase())
         sent.add(latestQuestion)
         $.ui.invalidate('ui.render')
@@ -79,36 +86,18 @@ export const register: Register = (on) => {
       if (text === undefined || text === '') {
         $.ui.toast('That click could not be matched to its question. Type the answer instead.')
       } else if (answered.has(text)) {
-        $.ui.toast(pending.has(text) ? 'Already sent; waiting for the chat to take it.' : 'That question is already answered.')
+        $.ui.toast('That question is already answered.')
       } else {
-        answered.add(text)
-        pending.set(text, d.pick)
-        // light the letter first: nothing is awaited before this redraw
-        $.ui.invalidate('ui.render')
-        // every click names its own question, so it can never be read as the answer to another
+        // a click only puts the option's full text in the owner's chat box; the owner presses Enter to
+        // send it. Nothing is submitted here, and another click just replaces the draft.
         const said = answerLine(text, d.pick)
-        ours.add(said)
-        sent.add(text)
-        $.ui.toast('Sent ' + said.slice(0, 60))
-        // if the chat refuses or fails to take it, un-light the pick so it can be clicked again
-        const undo = async (why: string) => {
-          answered.delete(text)
-          pending.delete(text)
-          sent.delete(text)
-          ours.delete(said)
-          await clearPick($, text)
-          $.ui.invalidate('ui.render')
-          $.ui.toast('Not sent (' + why + '). Click again.')
-        }
-        void $.prompt.submit({ text: said }).then(
-          async r => {
-            if (r !== undefined && typeof (r as { drop?: string }).drop === 'string') await undo((r as { drop: string }).drop)
+        void $.prompt.fill({ text: said, mode: 'replace' }).then(
+          r => {
+            if (r !== undefined && (r as { isFilled?: boolean }).isFilled === false) $.ui.toast('The chat box could not take it. Type the answer instead.')
+            else $.ui.toast('In the chat box. Press Enter to send.')
           },
-          async () => {
-            await undo('the chat did not take it')
-          },
+          () => { $.ui.toast('The chat box could not take it. Type the answer instead.') },
         )
-        await savePick($, text, d.pick)
       }
       return {}
     }

@@ -202,16 +202,18 @@ test('the left line is a region as tall as the rows beside it, one glyph per lai
   void el
 })
 
-test('clicking a choice sends the option own text once; an answered question does not send again', async ($, on) => {
+test('clicking a choice puts the option own text in the chat box and sends nothing; another click replaces it', async ($, on) => {
   const sent: string[] = []
+  const filled: string[] = []
   on('prompt.submit', ($, e) => { sent.push(String((e as any).text)); return { text: String((e as any).text) } as any })
+  on('prompt.fill', async ($, e, next) => { filled.push(`${(e as any).mode}:${String((e as any).text)}`); return next(e) })
   const ui = await $.ui.mount(MSG(Q2, 'desktop'))
   await (ui as any).post({ pick: 'A' }, { in: 'pickA' })
-  // the answered question has drawn no click areas any more
-  expect(await ui.find({ type: 'Client', key: 'pickB' })).toBeFalsy()
-  await expect((ui as any).post({ pick: 'B' }, { in: 'pickB' })).rejects.toThrow()
-  // only the option's own text, nothing before or after
-  expect(sent).toEqual(['A. Top right.'])
+  await (ui as any).post({ pick: 'B' }, { in: 'pickB' })
+  // only the option's own text, nothing before or after, replacing the draft; never submitted
+  expect(filled.map(f => f.split(':')[0])).toEqual(['replace', 'replace'])
+  expect(filled[0]).toBe('replace:A. Top right.')
+  expect(sent).toEqual([])
   await ui.unmount()
 })
 
@@ -245,29 +247,16 @@ test('a card heading after the last choice is set apart by a clear gap; choices 
   expect(withCard).toBe(without + 1)
 })
 
-test('the picked letter stays lit on its question; the others do not', async ($, on) => {
+test('a click lights nothing by itself: the pick is lit only once the owner has sent it', async ($, on) => {
   on('ui.render', ($, e) => { const { Text } = $.ui.resolve(e); return <Text>engine</Text> })
-  on('prompt.submit', ($, e) => ({ text: String((e as any).text) }) as any)
   const Q3 = '**WAITING · item 9**\nWhich colour?\n\n***A.*** Red.\n\n***B.*** Blue.\n\n***C.*** Green.'
-  const lit = async () => {
-    const ui = await $.ui.mount(MSG(Q3, 'desktop'))
-    const n = ((await ui.findAll({ type: 'Svg' })) ?? []).filter((x: any) => String(x.props?.source).includes('fill-opacity="1"')).length
-    const j = JSON.stringify(await ui.findAll({ type: 'Box' }))
-    // a tint on the row itself, not the one inside its hover
-    const tint = (j.match(/"backgroundColor":"#23262e"/g) ?? []).length > (j.match(/"hover":\{"backgroundColor":"#23262e"/g) ?? []).length
-    return { ui, n, tint }
-  }
-  const before = await lit()
-  // live question: each of 3 rows has one hidden hot copy, none tinted
-  expect(before.n).toBe(3)
-  expect(before.tint).toBe(false)
-  await (before.ui as any).post({ pick: 'B' }, { in: 'pickB' })
-  await before.ui.unmount()
-  const after = await lit()
-  // answered: no hidden copies any more, exactly one lit circle and a tinted row
-  expect(after.n).toBe(1)
-  expect(after.tint).toBe(true)
-  await after.ui.unmount()
+  const ui = await $.ui.mount(MSG(Q3, 'desktop'))
+  await (ui as any).post({ pick: 'B' }, { in: 'pickB' })
+  const n = ((await ui.findAll({ type: 'Svg' })) ?? []).filter((x: any) => String(x.props?.source).includes('fill-opacity="1"')).length
+  // still live: each of 3 rows keeps its hidden hot copy, and the question is not marked answered
+  expect(n).toBe(3)
+  expect(await ui.find({ type: 'Client', key: 'pickC' })).toBeTruthy()
+  await ui.unmount()
 })
 
 test('every colour row has a colour-code box holding its code; a bad code is shown and not saved', async ($, on) => {
@@ -379,9 +368,9 @@ test('a card heading after text or a list has a clear gap above it; the first th
   expect(await gaps('**SERVER · reading your allowance**\n- a\n- b')).toBe(0)
 })
 
-test('an old question stays live: a click on an old or the newest question sends that option own text', async ($, on) => {
-  const sent: string[] = []
-  on('prompt.submit', ($, e) => { sent.push(String((e as any).text)); return { text: String((e as any).text) } as any })
+test('an old question stays live: a click on an old or the newest question puts that option own text in the box', async ($, on) => {
+  const filled: string[] = []
+  on('prompt.fill', async ($, e, next) => { filled.push(`${(e as any).mode}:${String((e as any).text)}`); return next(e) })
   const OLD = '**WAITING · item 3**\nWhich colour?\n\n***A.*** Red.\n\n***B.*** Blue.'
   const NEW = '**WAITING · item 4**\nWhich size?\n\n***A.*** Big.\n\n***B.*** Small.'
   const old = await $.ui.mount(MSG(OLD, 'desktop'))
@@ -392,9 +381,7 @@ test('an old question stays live: a click on an old or the newest question sends
   expect(await now.find({ type: 'Client', key: 'pickB' })).toBeTruthy()
   try { await (old as any).post({ pick: 'B', q: hashText(OLD) }, { in: 'pickB' }) } catch (x) { throw new Error('old ' + x) }
   try { await (now as any).post({ pick: 'A', q: hashText(NEW) }, { in: 'pickA' }) } catch (x) { throw new Error('now ' + x) }
-  // one press each; a second press on either sends nothing more
-  await expect((old as any).post({ pick: 'A', q: hashText(OLD) }, { in: 'pickA' })).rejects.toThrow()
-  expect(sent).toEqual(['B. Blue.', 'A. Big.'])
+  expect(filled).toEqual(['replace:B. Blue.', 'replace:A. Big.'])
   await old.unmount()
   await now.unmount()
 })
@@ -516,40 +503,37 @@ test('what a click sends is the clicked option word for word, and the chat check
   expect(answerIn([{ role: 'assistant', text: Q2 }, { role: 'user', text: 'blue please' }], Q2, '=blue please')).toBe('yes')
 })
 
-test('a click after a reload still reaches the chat: the card carries its own question text', async ($, on) => {
-  const sent: string[] = []
-  on('prompt.submit', ($, e) => { sent.push(String((e as any).text)); return { text: String((e as any).text) } as any })
+test('a click after a reload still reaches the chat box: the card carries its own question text', async ($, on) => {
+  const filled: string[] = []
+  on('prompt.fill', async ($, e, next) => { filled.push(`${(e as any).mode}:${String((e as any).text)}`); return next(e) })
   const Z = '**ASK · recheck-desk-owner**\nWhich desk?\n\n***A.*** Front desk.\n\n***B.*** Back desk.'
   const ui = await $.ui.mount(MSG(Z, 'desktop'))
   // a post whose question the plugin does not remember (state reset by a reload), but carries its text
   const NEVER = '**ASK · other**\nWhich floor?\n\n***A.*** Up.\n\n***B.*** Down.'
   await (ui as any).post({ pick: 'B', q: hashText(NEVER), t: NEVER }, { in: 'pickB' })
-  expect(sent).toEqual(['B. Down.'])
+  expect(filled).toEqual(['replace:B. Down.'])
   await ui.unmount()
 })
 
-test('a click that cannot be matched is told so and sends nothing', async ($, on) => {
+test('a click that cannot be matched is told so and fills nothing', async ($, on) => {
   const sent: string[] = []
+  const filled: string[] = []
   on('prompt.submit', ($, e) => { sent.push(String((e as any).text)); return { text: String((e as any).text) } as any })
+  on('prompt.fill', async ($, e, next) => { filled.push(`${(e as any).mode}:${String((e as any).text)}`); return next(e) })
   const ui = await $.ui.mount(MSG(Q2, 'desktop'))
   await (ui as any).post({ pick: 'A', q: 'nonsense', t: '' }, { in: 'pickA' })
   expect(sent).toEqual([])
+  expect(filled).toEqual([])
   await ui.unmount()
 })
 
-test('a click the chat refuses is un-lit so it can be clicked again', async ($, on) => {
-  const sent: string[] = []
-  let busy = true
-  on('prompt.submit', ($, e) => {
-    sent.push(String((e as any).text))
-    return (busy ? { drop: 'busy' } : { text: String((e as any).text) }) as any
-  })
+test('clicking the same option twice fills the same text twice, never stacking it', async ($, on) => {
+  const filled: string[] = []
+  on('prompt.fill', async ($, e, next) => { filled.push(`${(e as any).mode}:${String((e as any).text)}`); return next(e) })
   const ui = await $.ui.mount(MSG(Q2, 'desktop'))
   await (ui as any).post({ pick: 'A' }, { in: 'pickA' })
-  await new Promise(r => setTimeout(r, 50))
-  busy = false
   await (ui as any).post({ pick: 'A' }, { in: 'pickA' })
-  expect(sent).toEqual(['A. Top right.', 'A. Top right.'])
+  expect(filled).toEqual(['replace:A. Top right.', 'replace:A. Top right.'])
   await ui.unmount()
 })
 
@@ -580,16 +564,16 @@ test('the look’s saved data from the old muster-look plugin is copied across o
   void $
 })
 
-test('a click on a card drawn while the question was still streaming sends the whole option text', async ($, on) => {
-  const sent: string[] = []
-  on('prompt.submit', ($, e) => { sent.push(String((e as any).text)); return { text: String((e as any).text) } as any })
+test('a click on a card drawn while the question was still streaming fills the whole option text', async ($, on) => {
+  const filled: string[] = []
+  on('prompt.fill', async ($, e, next) => { filled.push(`${(e as any).mode}:${String((e as any).text)}`); return next(e) })
   const Q = "**ASK · glass-warning**\nOne call for you.\n\n***A.*** Let GitHub's check accept that one known glass warning and stay strict about everything else *(my pick)*\n\n***B.*** Turn the strict check off"
   const early = Q.slice(0, Q.indexOf('GitHub'))  // "...***A.*** Let " as the stream had it
   const half = Q.slice(0, Q.indexOf('Hub') )
   const a = await $.ui.mount(MSG(half, 'desktop'))
   const b = await $.ui.mount(MSG(Q, 'desktop'))
   await (a as any).post({ pick: 'A', q: hashText(half), t: half }, { in: 'pickA' })
-  expect(sent).toEqual(["A. Let GitHub's check accept that one known glass warning and stay strict about everything else (my pick)"])
+  expect(filled).toEqual(["replace:A. Let GitHub's check accept that one known glass warning and stay strict about everything else (my pick)"])
   void early
   await a.unmount(); await b.unmount()
 })

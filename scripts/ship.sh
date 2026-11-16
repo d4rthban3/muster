@@ -72,6 +72,8 @@ if [ -z "$files" ] && [ "$base" != origin/main ] && [ "$(git rev-parse HEAD)" = 
   # publish only: this branch IS the owner's folder, already versioned and landed there; GitHub just does not have it yet. No new version.
   new=$have; keep=1; files=$(git diff --name-only origin/main HEAD | paste -sd, -)
   [ -f ".claude-plugin/releases/$new.json" ] && grep -q "^## $new\$" CHANGELOG.md || stop "the main folder is at $new but it has no release file or changelog entry; nothing to publish"
+  pub=$(git show origin/main:.claude-plugin/plugin.json | $py -c 'import json,sys;print(json.load(sys.stdin)["version"])')
+  [ "$new" != "$pub" ] || [ -z "$(git diff --name-only origin/main HEAD)" ] || stop "the main folder has changes after $pub, which GitHub already holds, but the version is still $pub; a version commit is needed on top (raise plugin.json and marketplace.json, add the release file and changelog entry)"
   echo "== publish only: the main folder already holds $new; sending it to GitHub with the releases before it"
 else
 [ -n "$files" ] || stop "nothing differs from $base"

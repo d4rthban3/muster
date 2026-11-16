@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.127
+Affects: see .claude-plugin/releases/0.3.127.json.
+ship-mod-version: version-check refuses a changed second plugin (a mod) whose version stayed and ship.sh raises it; publish-only now stops with a clear line when the folder changed after the version GitHub holds
+
 ## 0.3.126
 Affects: Manager.
 working-status-line: while the crew works and nothing needs the owner, the manager may end with one status line naming who works on what

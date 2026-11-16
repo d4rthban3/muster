@@ -1,0 +1,16 @@
+{
+  "version": "0.3.127",
+  "changed_files": [
+    ".claude-plugin/marketplace.json",
+    ".claude-plugin/plugin.json",
+    "scripts/setup-smoke.sh",
+    "scripts/ship.sh",
+    "scripts/version-check.sh"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "ship-mod-version: version-check refuses a changed second plugin (a mod) whose version stayed and ship.sh raises it; publish-only now stops with a clear line when the folder changed after the version GitHub holds"
+}

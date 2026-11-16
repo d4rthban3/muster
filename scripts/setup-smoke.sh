@@ -488,6 +488,12 @@ rm "$SH/remote.git/hooks/pre-receive"
 ( cd "$SH/wt-live"; bash scripts/ship.sh "held back" --roles Builder --no-wait > "$SH/po2.out" 2>&1 || { cat "$SH/po2.out"; fail "publish only stopped"; }
   grep -q "publish only" "$SH/po2.out" && grep -q "SHIPPED 1.2.13" "$SH/po2.out" || { cat "$SH/po2.out"; fail "publish only did not say so or changed the version"; } )
 git -C "$SH/remote.git" show main:.claude-plugin/plugin.json | grep -q '"1.2.13"' || fail "publish only did not reach GitHub"
+# publish only agrees with version-check: files changed after a version GitHub already holds need a version commit, not a silent stop later
+( cd "$SH/wt-live"; git fetch -q origin; prev=$(git rev-parse HEAD); git reset -q --hard main; echo ninth > ninth.txt; git add -A; git commit -q -m "ninth, no version"
+  git -C "$MF" merge -q --ff-only "$(git rev-parse HEAD)"
+  if bash scripts/ship.sh "unversioned" --roles Builder --no-wait > "$SH/po3.out" 2>&1; then cat "$SH/po3.out"; fail "publish only shipped changes after a version GitHub already holds"; fi
+  grep -q "a version commit is needed" "$SH/po3.out" || { cat "$SH/po3.out"; fail "publish only did not say a version commit is needed"; }
+  git -C "$MF" reset -q --hard "$prev"; git reset -q --hard "$prev" )
 rm -rf muster
 [ "$(grep -c '^## 1.2.5' CHANGELOG.md)" = 1 ] || fail "the changelog entry was doubled"
 grep -q "my own note" .claude-plugin/releases/1.2.5.json || fail "the branch's own release file was overwritten"

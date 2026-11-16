@@ -1,1 +1,46 @@
-{ "name": "muster-look", "version": "0.1.0", "description": "Muster's small colour accents on Claude Code: chip labels on crew cards, a thin rule and chip letters on questions waiting for the owner. Plain markdown is unchanged." }
+{
+  "name": "muster-look",
+  "version": "0.1.0",
+  "description": "Muster's small colour accents on Claude Code: chip labels on crew cards, a thin rule and chip letters on questions waiting for the owner. Plain markdown is unchanged.",
+  "author": {
+    "name": "Muster contributors"
+  },
+  "userConfig": {
+    "chipFont": {
+      "type": "string",
+      "title": "Chip font",
+      "description": "Font for the chip labels on desktop. Falls back to the system sans if the machine lacks it.",
+      "default": "Anthropic Sans"
+    },
+    "questionHeadingColor": {
+      "type": "string",
+      "title": "Question heading chip colour",
+      "description": "Colour of the heading chip above a question, as #rrggbb.",
+      "default": "#FFDB58"
+    },
+    "cardHeadingColor": {
+      "type": "string",
+      "title": "Card heading chip colour",
+      "description": "Colour of the heading chip on other cards, as #rrggbb.",
+      "default": "#9b6dff"
+    },
+    "choiceChipColor": {
+      "type": "string",
+      "title": "A/B/C chip colour",
+      "description": "Colour of the A, B and C chips, as #rrggbb.",
+      "default": "#FFDB58"
+    },
+    "lineTopColor": {
+      "type": "string",
+      "title": "Line top colour",
+      "description": "Colour at the top of the left line, as #rrggbb.",
+      "default": "#FFDB58"
+    },
+    "lineBottomColor": {
+      "type": "string",
+      "title": "Line bottom colour",
+      "description": "Colour at the bottom of the left line, as #rrggbb.",
+      "default": "#7c4dff"
+    }
+  }
+}

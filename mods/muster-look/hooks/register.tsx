@@ -1,27 +1,119 @@
 import type { Register } from 'claude-code'
 import { parse } from './parse'
+import { cutFont, fromBase64, type Cut } from './font'
+import { labelWidth } from './metrics'
 
 // Muster's colours, taken from the owner's reference chips: a low tint of the
 // chip's own hue, a thin brighter border in it, text in it. Dark first.
-const YELLOW = { text: '#FFDB58', fill: '#3a3419', edge: '#8a7a30' }
-const PURPLE = { text: '#a995ff', fill: '#2b2748', edge: '#5f55a8' }
+const YELLOW = { text: '#FFDB58', fill: '#3a3419', edge: '#8a7a30', glow: '#ffe066', lift: '#5c4f17' }
+const PURPLE = { label: '#a995ff', text: '#9b6dff', fill: '#2b2748', edge: '#5b3fd0', glow: '#8f5bff', lift: '#463d7c' }
 
-export const register: Register = on => {
+// A bordered Box is always three rows tall in the apps, so on desktop the chip
+// is drawn as a small vector pill: thin brighter border, lifted fill, a soft
+// glow, 28px tall. The label is spaced to its measured width, never stretched.
+const esc = (t: string) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+function svgChip(Svg: any, label: string, c: { text: string; label?: string; glow: string; lift: string }, font: string, cut: Cut | null) {
+  // The pill is as wide as the same words in body text (measured widths of the
+  // app's regular-weight text). The letters keep their own shape: the label is
+  // only ever spaced to that width, never stretched.
+  const measured = labelWidth(label, 14)
+  const tw = Math.ceil(measured ?? label.length * 6.6)
+  let face = ''
+  let family = font
+  if (cut !== null && Array.from(label).every(ch => cut.advance[ch] !== undefined)) {
+    face = `<style>@font-face{font-family:"MusterAS";src:url(${cut.dataUri})}</style>`
+    family = `MusterAS,${font}`
+  }
+  // The cut is the font's lightest setting; a hair of outline brings it to the
+  // regular weight the chat's body text has.
+  const stretch = ` textLength="${tw}" lengthAdjust="spacing"` + (face === '' ? '' : ` stroke="${c.label ?? c.text}" stroke-width="0.3" stroke-linejoin="round"`)
+  const w = tw + 24
+  const ht = 28
+  const source =
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${ht}" viewBox="0 0 ${w} ${ht}" preserveAspectRatio="xMinYMid meet">` +
+    face +
+    `<defs><filter id="g" x="-20%" y="-40%" width="140%" height="180%"><feGaussianBlur stdDeviation="1.2"/></filter></defs>` +
+    `<rect x="2.25" y="2.25" width="${w - 4.5}" height="${ht - 4.5}" rx="${(ht - 4.5) / 2}" fill="none" stroke="${c.glow}" stroke-opacity="0.4" stroke-width="1" filter="url(#g)"/>` +
+    `<rect x="2.25" y="2.25" width="${w - 4.5}" height="${ht - 4.5}" rx="${(ht - 4.5) / 2}" fill="${c.text}" fill-opacity="0.08" stroke="${c.glow}" stroke-width="0.5"/>` +
+    `<text x="12" y="19" font-family="${family}" font-size="14" font-weight="400" font-style="normal" fill="${c.label ?? c.text}"${stretch}>${esc(label)}</text>` +
+    `</svg>`
+  return <Svg alt={label} width={w} height={ht} source={source} />
+}
+
+// Anthropic Sans is read from the Claude app's own folder at run time, never copied.
+const APP_FONT = ['/Applications/Claude.app', 'Contents', 'Resources', 'fonts', 'AnthropicSans-Romans-Variable-25x258.ttf'].join('/')
+const FONT_TAIL = 'Anthropic Sans,Styrene B,system-ui,-apple-system,Segoe UI,sans-serif'
+const BACKDROP = [0x19, 0x1c, 0x24]
+const HEX = /^#[0-9a-fA-F]{6}$/
+
+// A user's colour for a chip: the default palette exactly when it is the
+// default colour, else a fill, lift and borders mixed from it and the dark page.
+function palette(base: typeof YELLOW, want: unknown): typeof YELLOW {
+  if (typeof want !== 'string' || !HEX.test(want) || want.toLowerCase() === base.text.toLowerCase()) return base
+  const rgb = [1, 3, 5].map(i => parseInt(want.slice(i, i + 2), 16))
+  const mix = (k: number) =>
+    '#' + rgb.map((v, i) => Math.round(BACKDROP[i] * (1 - k) + v * k).toString(16).padStart(2, '0')).join('')
+  return { text: want, fill: mix(0.2), lift: mix(0.42), edge: mix(0.55), glow: mix(0.95) }
+}
+const colourOr = (want: unknown, dflt: string) => (typeof want === 'string' && HEX.test(want) ? want : dflt)
+const fontList = (want: unknown) => {
+  const name = typeof want === 'string' ? want.replace(/[^A-Za-z0-9 ,-]/g, '').trim() : ''
+  return name === '' || name === 'Anthropic Sans' ? FONT_TAIL : `${name},${FONT_TAIL}`
+}
+
+export const register: Register = (on, options: any) => {
+  const opts = options ?? {}
+  const QUESTION = palette(YELLOW, opts.questionHeadingColor)
+  const CARD = palette(PURPLE, opts.cardHeadingColor)
+  const CHOICE = palette(YELLOW, opts.choiceChipColor)
+  const TOP = colourOr(opts.lineTopColor, YELLOW.text)
+  const BOTTOM = colourOr(opts.lineBottomColor, '#7c4dff')
+  const FONT = fontList(opts.chipFont)
+  const useAppFont = FONT === FONT_TAIL
+  let fontBytes: Uint8Array | null = null
+  const cuts: Record<string, Cut | null> = {}
+
+  on('session.start', async ($, e, next) => {
+    if (useAppFont) {
+      try {
+        const { base64 } = (await $.fs.read(APP_FONT, { as: 'bytes' })) as { base64: string }
+        fontBytes = fromBase64(base64)
+      } catch {
+        fontBytes = null
+      }
+    }
+    return next(e)
+  })
   on('ui.render', { component: 'AssistantMessage' }, ($, e, next) => {
     const parsed = parse(e.props.text)
     if (parsed === null) return next(e)
 
-    const { Box, Text, Markdown } = $.ui.resolve(e)
+    const ui = $.ui.resolve(e) as any
+    const { Box, Text, Markdown, Svg } = ui
+    const isTerminal = e.surface === 'terminal'
 
-    // One line tall on every surface: a tinted fill and text in the chip's own
-    // colour (the owner asked for smaller chips than the bordered box).
-    const chip = (label: string, c: typeof YELLOW) => (
-      <Text>
-        <Text color={c.edge}>{'\u25D6'}</Text>
-        <Text color={c.text} backgroundColor={c.fill} bold>{` ${label} `}</Text>
-        <Text color={c.edge}>{'\u25D7'}</Text>
-      </Text>
-    )
+    // The letters this message's chips need, cut from the app's font once.
+    let cut: Cut | null = null
+    if (fontBytes !== null && !isTerminal) {
+      const letters = Array.from(new Set(Array.from(
+        parsed.pieces.map(p => (p.kind === 'title' ? `${p.word} · ${p.job}` : p.kind === 'choice' ? p.letter : '')).join(''),
+      ))).sort().join('')
+      if (!(letters in cuts)) cuts[letters] = cutFont(fontBytes, letters)
+      cut = cuts[letters]
+    }
+
+    // Desktop and the other apps: the one-line rounded bordered chip, as first
+    // built. Terminal: one line with thin bars at each end.
+    const chip = (label: string, c: typeof YELLOW) =>
+      isTerminal ? (
+        <Text>
+          <Text color={c.edge}>{'\u258F'}</Text>
+          <Text color={(c as any).label ?? c.text} backgroundColor={c.fill} bold>{` ${label} `}</Text>
+          <Text color={c.edge}>{'\u2595'}</Text>
+        </Text>
+      ) : (
+        svgChip(Svg, label, c, FONT, cut)
+      )
 
     let lastChoice = -1
     parsed.pieces.forEach((p, i) => { if (p.kind === 'choice') lastChoice = i })
@@ -34,12 +126,12 @@ export const register: Register = on => {
       if (p.kind === 'md') return <Markdown key={`m${i}`} text={p.text} />
       if (p.kind === 'title') {
         return (
-          <Box key={`t${i}`}>{chip(`${p.word} · ${p.job}`, inQ ? YELLOW : PURPLE)}</Box>
+          <Box key={`t${i}`}>{chip(`${p.word} · ${p.job}`, inQ ? QUESTION : CARD)}</Box>
         )
       }
       return (
-        <Box key={`c${i}`} gap={1}>
-          {chip(p.letter, YELLOW)}
+        <Box key={`c${i}`} gap={1} alignItems="center">
+          {chip(p.letter, CHOICE)}
           <Markdown key={`cm${i}`} text={p.text} />
         </Box>
       )
@@ -48,20 +140,60 @@ export const register: Register = on => {
     const before = rows.slice(0, parsed.isQuestion ? parsed.startsAt : rows.length)
     const question = parsed.isQuestion ? rows.slice(parsed.startsAt, lastChoice + 1) : []
     const after = parsed.isQuestion ? rows.slice(lastChoice + 1) : []
-    const height = parsed.isQuestion
+    // Terminal: a column of thin bars as tall as the question, beside all of it.
+    const termHeight = parsed.isQuestion
       ? parsed.pieces.slice(parsed.startsAt, lastChoice + 1).reduce((n, p) => n + lines(p), 0)
       : 0
-    // One unbroken rule: a single column of thin bars as tall as the question.
-    const rule = Array.from({ length: height }, () => '\u258F').join('\n')
+    const rule = Array.from({ length: termHeight }, () => '\u258F').join('\n')
+
+    // Apps: the yellow heading chip sits flush left; under it one solid thin
+    // yellow line, and the intro and choices sit to the right of it. The line
+    // is a vector the height of what it sits beside, worked out from line
+    // counts (a text line about 18.5px, a choice row 28px at least), a little
+    // short rather than long so it never runs into the next card.
+    const px = (p: (typeof parsed.pieces)[number]) => {
+      if (p.kind === 'title') return 0
+      const wrap = (n: number) => Math.max(1, Math.ceil(n / 80))
+      if (p.kind === 'choice') return Math.max(28, wrap(p.text.length + 5) * 18.5)
+      return p.text.split('\n').reduce((n, l) => n + wrap(l.length) * 18.5, 0)
+    }
+    // The vector is as tall as what it sits beside; the line inside it keeps
+    // 5px clear at the top and at the bottom, so the gap under the yellow chip
+    // equals the gap above the next card's chip. It fades yellow to purple.
+    const lineH = Math.max(
+      14,
+      Math.round(parsed.pieces.slice(parsed.startsAt + 1, lastChoice + 1).reduce((n, p) => n + px(p), 0)),
+    )
+    const appLine = (
+      <Box flexShrink={0} alignSelf="flex-start">
+        <Svg
+          alt="line"
+          width={15}
+          height={lineH}
+          source={`<svg xmlns="http://www.w3.org/2000/svg" width="15" height="${lineH}"><defs><linearGradient id="f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${TOP}"/><stop offset="1" stop-color="${BOTTOM}"/></linearGradient></defs><rect x="12" y="5" width="1" height="${lineH - 10}" fill="url(#f)" shape-rendering="crispEdges"/></svg>`}
+        />
+      </Box>
+    )
 
     return (
       <Box flexDirection="column">
         {before}
-        {question.length > 0 && (
+        {question.length > 0 && isTerminal && (
           <Box flexDirection="row">
-            <Box flexShrink={0}><Text color={YELLOW.text}>{rule}</Text></Box>
+            <Box flexShrink={0}><Text color={TOP}>{rule}</Text></Box>
             <Box flexDirection="column" paddingLeft={1}>
               {question}
+            </Box>
+          </Box>
+        )}
+        {question.length > 0 && !isTerminal && (
+          <Box flexDirection="column">
+            {question[0]}
+            <Box flexDirection="row">
+              {appLine}
+              <Box flexDirection="column" paddingLeft={1}>
+                {question.slice(1)}
+              </Box>
             </Box>
           </Box>
         )}

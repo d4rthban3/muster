@@ -104,6 +104,7 @@ pub fn first_message(path: &str) -> String {
     for d in lines_of(path) {
         if s(&d, "type") != "user" || d.get("isCompactSummary").and_then(Value::as_bool) == Some(true) { continue; }
         let t = content_text(&msg_content(&d));
+        if t.trim().is_empty() { continue; } // a line holding only tool results is not the chat's first message
         return t.chars().take(6000).collect();
     }
     String::new()

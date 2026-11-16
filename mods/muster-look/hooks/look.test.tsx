@@ -230,7 +230,7 @@ test('a card heading after the last choice is set apart by a clear gap; choices 
   on('ui.render', ($, e) => { const { Text } = $.ui.resolve(e); return <Text>engine</Text> })
   const gaps = async (text: string) => {
     const ui = await $.ui.mount(MSG(text, 'desktop'))
-    const n = ((await ui.findAll({ type: 'Svg' })) ?? []).filter((x: any) => String(x.props?.source).includes('height="20"') && String(x.props?.source).includes('width="1"')).length
+    const n = ((await ui.findAll({ type: 'Svg' })) ?? []).filter((x: any) => String(x.props?.source).includes('height="14"') && String(x.props?.source).includes('width="1"')).length
     await ui.unmount()
     return n
   }

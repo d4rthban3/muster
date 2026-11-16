@@ -337,6 +337,17 @@ add("install-checks --profile copies profile.json, and twice is safe", "" if os.
 add("install-checks refuses an unknown profile", "" if ic(IC, "--profile", "nope").returncode == 1 else "BAD", False)
 ic(IC)
 add("install-checks without a profile removes the old profile", "" if not os.path.exists(os.path.join(IC, ".muster-checks", "profile.json")) else "BAD", False)
+# box-check-pinr: a re-install over an old PreToolUse matcher (no wrap_up) refreshes it in place and keeps the project's own hooks
+IC2 = os.path.join(T, "ic2"); os.makedirs(os.path.join(IC2, ".claude"))
+json.dump({"model": "x", "hooks": {"PreToolUse": [
+    {"matcher": "SendMessage|Write|Edit|NotebookEdit|Bash", "hooks": [{"type": "command", "command": 'python3 "$CLAUDE_PROJECT_DIR/.muster-checks/rules-check.py"'}]},
+    {"matcher": "Bash", "hooks": [{"type": "command", "command": "echo mine"}]}]}}, open(os.path.join(IC2, ".claude", "settings.json"), "w"))
+ic(IC2, "--profile", "pinr")
+_st2 = json.load(open(os.path.join(IC2, ".claude", "settings.json")))
+_pre = _st2["hooks"]["PreToolUse"]
+_mine = [g for g in _pre if any("echo mine" in h["command"] for h in g["hooks"])]
+_ours = [g for g in _pre if any("rules-check.py" in h["command"] for h in g["hooks"])]
+add("box-check-pinr: a re-install over the old matcher adds wrap_up, once, and keeps the project's own hook and settings", "" if len(_ours) == 1 and "mcp__ccd_turn__wrap_up" in _ours[0]["matcher"] and len(_mine) == 1 and _st2.get("model") == "x" else "BAD " + json.dumps(_pre), False)
 # item 86: install-checks --profile pinr puts Muster's PINR recorder in place of PINR's own, and decide.py takes a typed letter or line
 RP = os.path.join(T, "rec")
 os.makedirs(os.path.join(RP, "manager"))

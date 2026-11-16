@@ -7,7 +7,7 @@ choice recorder be checked instead of only Muster's; without one, only Muster's 
 would be written and writes nothing.
 --live <Muster folder> puts small stand-ins (scripts/live-standin.py) in <project>/.muster-checks/ and <project>/manager/ instead of copies: each one
 runs the check of its name straight from that Muster folder every time, so a new Muster version reaches the project with no re-install
-(its profile and message form still apply; a missing Muster folder is said plainly, never silently).
+(a hook group installed earlier, even with an older matcher such as one lacking mcp__ccd_turn__wrap_up, is replaced by a re-run in place; the project's own hooks stay; the stand-ins read the rules live but the matcher is written to settings.json, so re-run after a Muster version that adds a tool name) (its profile and message form still apply; a missing Muster folder is said plainly, never silently).
 Copies hooks/rules-check.py, hooks/board-stop.py, hooks/talk-check.py, hooks/renew-after-summary.py (SessionStart after a summary; its crew names come from the profile), scripts/usage.py, scripts/worker-queue-check.py and scripts/idle-check.py into <project>/.muster-checks/,
 and adds the hooks to <project>/.claude/settings.json (existing settings and other hooks are kept). Run it again after a
 Muster update to refresh the copies; --remove takes everything it added away. The checks act only in a chat whose first

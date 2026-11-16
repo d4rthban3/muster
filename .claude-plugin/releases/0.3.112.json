@@ -1,0 +1,20 @@
+{
+  "version": "0.3.112",
+  "changed_files": [
+    ".claude-plugin/marketplace.json",
+    "mods/muster-look/.claude-plugin/plugin.json",
+    "mods/muster-look/hooks/chip.tsx",
+    "mods/muster-look/hooks/field.tsx",
+    "mods/muster-look/hooks/group.ts",
+    "mods/muster-look/hooks/look.test.tsx",
+    "mods/muster-look/hooks/panel.tsx",
+    "mods/muster-look/hooks/register.tsx",
+    "screenshots/look-settings/settings.png"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "look-settings: per-group colour pickers with live samples (item 118)"
+}

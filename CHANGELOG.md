@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.112
+Affects: see .claude-plugin/releases/0.3.112.json.
+look-settings: per-group colour pickers with live samples (item 118)
+
 ## 0.3.111
 Affects: see .claude-plugin/releases/0.3.111.json.
 plugin-live: keep Muster live in every chat (item 117)

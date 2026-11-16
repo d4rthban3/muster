@@ -51,6 +51,12 @@ export function nameFromRemote(remote: string | null | undefined): string {
   const r = remote.trim().replace(/\.git$/i, '').replace(/\/+$/, '')
   return r.split(/[/:]/).pop() ?? ''
 }
+// The main folder of a project from git's common directory ("<main>/.git"): a worktree's own folder may hold no
+// muster/ (it is kept out of git), but the main folder does.
+export function mainFromCommonDir(dir: string): string {
+  const d = dir.trim().replace(/\/+$/, '')
+  return /\/\.git$/.test(d) ? d.slice(0, -5) : ''
+}
 export async function pickName($: any): Promise<string> {
   let repo: any = null
   try { repo = await $.session.repo() } catch { /* not a repository */ }
@@ -58,6 +64,11 @@ export async function pickName($: any): Promise<string> {
   if (repo && typeof repo.root === 'string' && repo.root !== '') roots.push(repo.root)
   try { roots.push(String(await $.session.root())) } catch { /* none */ }
   try { roots.push(String(await $.session.cwd())) } catch { /* none */ }
+  try {
+    const r = await $.process.run(['git', 'rev-parse', '--path-format=absolute', '--git-common-dir'], { cwd: roots[roots.length - 1] })
+    const main = r && r.exitCode === 0 ? mainFromCommonDir(String(r.stdout)) : ''
+    if (main !== '') roots.unshift(main)
+  } catch { /* no git */ }
   for (const r of roots) {
     try {
       const n = nameFromCrew(String(await $.fs.read(r.replace(/\/+$/, '') + '/muster/CREW.md')))

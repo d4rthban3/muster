@@ -3,7 +3,7 @@ import { sceneOf, glassOn, setGlassFlag, glassSettings, setGlassSetting } from '
 import Rail from './rail'
 import { parse } from './parse'
 import { isOwnerSubmit } from './register'
-import { hashText, nameFromCrew, nameFromRemote, projectName, rename, optionLine } from './group'
+import { hashText, mainFromCommonDir, nameFromCrew, nameFromRemote, projectName, rename, optionLine } from './group'
 import { migrateLook } from './migrate'
 
 const MSG = (text: string, surface: 'terminal' | 'desktop') => ({
@@ -631,6 +631,11 @@ test('a click fills the option in the owner voice: the card (my pick) reads (<pr
   expect(nameFromCrew(CREW_P)).toBe('PINR')
   expect(nameFromCrew('| Builder A_PINR_001 | x |')).toBe('PINR')
   expect(nameFromCrew('no crew here')).toBe('')
+  // a worktree's git common dir names its project's main folder, where the crew file is
+  expect(mainFromCommonDir('/work/Claude Code/.git\n')).toBe('/work/Claude Code')
+  expect(mainFromCommonDir('/work/Muster/.git')).toBe('/work/Muster')
+  expect(mainFromCommonDir('.git')).toBe('')
+  expect(mainFromCommonDir('/work/bare.git')).toBe('')
   expect(rename('A. Do it *(my pick)*'.replace(/\*/g, ''), nameFromCrew(CREW_M))).toBe('A. Do it (Muster pick)')
   expect(rename('A. Do it (my pick)', nameFromCrew(CREW_P))).toBe('A. Do it (PINR pick)')
   expect(nameFromRemote('https://github.com/acme/PINR.git')).toBe('PINR')

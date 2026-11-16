@@ -106,6 +106,24 @@ OUT3=$(cd "$FOLDER" && $PY "$ROOT/skills/board-digest/scripts/board_digest.py" M
 echo "$OUT3" | grep -q "^OWNER QUESTIONS" || fail "no OWNER QUESTIONS block for a paused NEED: $OUT3"
 head -3 "$FOLDER/muster/BOARD.md" | grep -q "^Waiting on: relay his answer to Builder A_X_001" || fail "Waiting on line does not name the paused chat: $(head -4 "$FOLDER/muster/BOARD.md")"
 
+step "an owner question is asked once: --mark-asked lists it apart, a changed entry or his answer brings it back (item 120)"
+printf '# Board\n\n## Entries\n### 2026-01-31 | NEED | Builder A_X_001 -> Manager | demo\nStatus: open\nWhat: which first?\n### 2026-01-31 | NEED | Builder A_X_002 -> Manager | other\nStatus: open\n' > "$FOLDER/muster/BOARD.md"
+DG() { (cd "$FOLDER" && $PY "$ROOT/skills/board-digest/scripts/board_digest.py" Manager "$@"); }
+DG | grep -q "^OWNER QUESTIONS" || fail "unmarked NEEDs are not listed as owner questions"
+DG --mark-asked demo | grep -q "Marked 1 open entry" || fail "--mark-asked did not mark the one open entry"
+grep -q "^Asked: " "$FOLDER/muster/BOARD.md" || fail "no Asked line written"
+[ "$(grep -c "^Asked: " "$FOLDER/muster/BOARD.md")" = 1 ] || fail "the other job was marked too"
+OUTA=$(DG); echo "$OUTA" | grep -q "^WAITING ON HIS ANSWER" || fail "no waiting-on-his-answer block: $OUTA"
+echo "$OUTA" | sed -n '/^OWNER QUESTIONS/,/^$/p' | grep -q "demo" && fail "an asked question is still listed to ask again: $OUTA"
+echo "$OUTA" | sed -n '/^OWNER QUESTIONS/,/^$/p' | grep -q "other" || fail "the unasked question vanished: $OUTA"
+DG --mark-asked demo >/dev/null; [ "$(grep -c "^Asked: " "$FOLDER/muster/BOARD.md")" = 1 ] || fail "marking twice added a second Asked line"
+$PY -c "import sys;p=sys.argv[1];t=open(p).read();open(p,'w').write(t.replace('which first?','which first, or later?',1))" "$FOLDER/muster/BOARD.md"
+DG | sed -n '/^OWNER QUESTIONS/,/^$/p' | grep -q "demo" || fail "a changed question was not brought back"
+DG --mark-asked demo >/dev/null
+$PY -c "import sys;p=sys.argv[1];t=open(p).read();open(p,'w').write(t.replace('Status: open','Status: done',1))" "$FOLDER/muster/BOARD.md"
+DG | grep -q "WAITING ON HIS ANSWER" && fail "an answered (done) question is still listed as waiting"
+DG --mark-asked nosuchjob | grep -q "NOT MARKED" || fail "marking an unknown job did not say so"
+
 step "the manager's Stop hook blocks on an unmentioned paused chat, and stays silent for everyone else"
 mkdir -p "$SCRATCH/tr"
 printf '{"type":"user","message":{"role":"user","content":"First: read the plugin folder/agents/manager.md and follow it. You are Manager_X_001."}}\n' > "$SCRATCH/tr/manager.jsonl"

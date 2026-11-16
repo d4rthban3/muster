@@ -23,6 +23,9 @@ you or to ALL; this only finds them.
 The digest prints it. The manager alone runs it with `--write-waiting` to keep the one line at the top of `muster/BOARD.md`
 current; it changes nothing else in the file. Everyone else never writes the board with it.
 
+## Asked once (item 120)
+The manager alone runs `board_digest.py Manager --mark-asked <job>` after asking the owner: it adds an `Asked:` line (a hash of the entry) to the open entries of that job. Marked entries print under "WAITING ON HIS ANSWER", not "OWNER QUESTIONS", so the owner is not asked again. An entry that changes, or a new one, counts as unasked; a closed one drops out.
+
 ## Do not
 - Treat the digest as the whole board. Closed entries live in `muster/BOARD-ARCHIVE.md`.
 - Edit the script or point it at another file.

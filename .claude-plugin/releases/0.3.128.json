@@ -1,0 +1,15 @@
+{
+  "version": "0.3.128",
+  "changed_files": [
+    ".claude-plugin/marketplace.json",
+    ".claude-plugin/plugin.json",
+    "look/choice.tsx",
+    "look/register.tsx"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "click-whole-row and click-fill: a press on a choice row lights it at once and the whole row is the click target; a click puts that option's full text in the chat box (prompt.fill) and sends nothing, the owner presses Enter"
+}

@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.128
+Affects: see .claude-plugin/releases/0.3.128.json.
+click-whole-row and click-fill: a press on a choice row lights it at once and the whole row is the click target; a click puts that option's full text in the chat box (prompt.fill) and sends nothing, the owner presses Enter
+
 ## 0.3.127
 Affects: see .claude-plugin/releases/0.3.127.json.
 ship-mod-version: version-check refuses a changed second plugin (a mod) whose version stayed and ship.sh raises it; publish-only now stops with a clear line when the folder changed after the version GitHub holds

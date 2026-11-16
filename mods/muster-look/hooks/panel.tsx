@@ -17,6 +17,8 @@ export const COLOURS: { key: string; label: string; dflt: string }[] = [
   { key: 'lineBottomColor', label: 'Line, bottom', dflt: '#7c4dff' },
 ]
 
+let otherFont = false
+
 async function open($: any) {
   await $.ui.open({ id: PANE, title: 'Muster look' })
 }
@@ -53,10 +55,22 @@ export function panel(on: any) {
         <Select
           key="font"
           label="Chip font "
-          options={FONTS.map(f => ({ value: f, label: f }))}
-          value={v.chipFont || 'Anthropic Sans'}
-          onSelect={(val: string) => { void set($, 'chipFont', val) }}
+          options={[...FONTS, 'Other\u2026'].map(f => ({ value: f, label: f }))}
+          value={otherFont || !FONTS.includes(v.chipFont || 'Anthropic Sans') ? 'Other\u2026' : (v.chipFont || 'Anthropic Sans')}
+          onSelect={(val: string) => {
+            if (val === 'Other\u2026') { otherFont = true; $.ui.invalidate('ui.render') } else { otherFont = false; void set($, 'chipFont', val) }
+          }}
         />
+        {(otherFont || !FONTS.includes(v.chipFont || 'Anthropic Sans')) && (
+          <Input
+            key="font-other"
+            label="Font name "
+            placeholder="any font your computer has"
+            value={FONTS.includes(v.chipFont || '') ? '' : v.chipFont}
+            submitLabel="set"
+            onSubmit={(t: string) => { const x = t.replace(/[^A-Za-z0-9 ,-]/g, '').trim(); if (x !== '') void set($, 'chipFont', x) }}
+          />
+        )}
         {COLOURS.map(c => (
           <Box key={c.key} flexDirection="column">
             <Text>{c.label} <Text dimColor>{v[c.key] || c.dflt}</Text></Text>

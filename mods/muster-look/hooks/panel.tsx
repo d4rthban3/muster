@@ -110,14 +110,16 @@ export function panel(on: any) {
         {COLOURS.map(c => {
           const hex = v[c.key] || c.dflt
           return (
-            <Box key={c.key} flexDirection="column" gap={1}>
-              <Box flexDirection="row" gap={1}>
-                <Text bold>{c.label}</Text>
-                <Text>{hex}</Text>
+            <Box key={c.key} flexDirection="row" gap={2} alignItems="center">
+              <Box key={`${c.key}-left`} flexDirection="column" width={34} flexShrink={0}>
+                <Box flexDirection="row" gap={1}>
+                  <Text bold>{c.label}</Text>
+                  <Text>{hex}</Text>
+                </Box>
+                <Box key={`${c.key}-sample`} flexDirection="row">{sampleOf(Svg, Box, c.key, hex, v)}</Box>
               </Box>
-              <Box key={`${c.key}-sample`} flexDirection="row">{sampleOf(Svg, Box, c.key, hex, v)}</Box>
               {Client !== undefined && <Client key={`field-${c.key}`} module="./field.tsx" props={{ id: c.key, hex }} />}
-              <Box flexDirection="row" gap={1}>
+              <Box key={`${c.key}-right`} flexDirection="column">
                 <Input
                   key={`${c.key}-hex`}
                   label="Or type #rrggbb "

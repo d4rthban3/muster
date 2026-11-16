@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.118
+Affects: see .claude-plugin/releases/0.3.118.json.
+Choice clicks answer at once, follow a rewind, and each names its own question
+
 ## 0.3.117
 Affects: see .claude-plugin/releases/0.3.117.json.
 Optional glass background: two soft glows, adjustable in the look settings

@@ -1,0 +1,19 @@
+{
+  "version": "0.3.118",
+  "changed_files": [
+    ".claude-plugin/marketplace.json",
+    "mods/muster-look/.claude-plugin/plugin.json",
+    "mods/muster-look/hooks/choice.tsx",
+    "mods/muster-look/hooks/group.ts",
+    "mods/muster-look/hooks/look.test.tsx",
+    "mods/muster-look/hooks/register.tsx",
+    "screenshots/choice-speed/choice-speed.png",
+    "screenshots/choice-undo/choice-undo.png"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Choice clicks answer at once, follow a rewind, and each names its own question"
+}

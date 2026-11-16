@@ -1,0 +1,19 @@
+{
+  "version": "0.3.110",
+  "changed_files": [
+    ".claude-plugin/marketplace.json",
+    "mods/muster-look/.claude-plugin/plugin.json",
+    "mods/muster-look/hooks/look.test.tsx",
+    "mods/muster-look/hooks/register.tsx",
+    "screenshots/choice-cutoff/choice-center.png",
+    "screenshots/choice-cutoff/choice-circle.png",
+    "screenshots/choice-cutoff/choice-cutoff.png",
+    "screenshots/choice-cutoff/choice-hover.png"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Choice chips: whole perfect circles, centred letter, purple hover fill (item 118)"
+}

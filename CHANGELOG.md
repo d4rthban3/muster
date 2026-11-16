@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.110
+Affects: see .claude-plugin/releases/0.3.110.json.
+Choice chips: whole perfect circles, centred letter, purple hover fill (item 118)
+
 ## 0.3.109
 Affects: see .claude-plugin/releases/0.3.109.json.
 Guard reads a project's own profile guard too, so PINR's protected folders block (item 117)

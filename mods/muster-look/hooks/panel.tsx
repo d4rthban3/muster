@@ -119,8 +119,7 @@ export function panel(on: any) {
                 </Box>
                 <Box key={`${c.key}-sample`} flexDirection="row">{sampleOf(Svg, Box, c.key, hex, v)}</Box>
               </Box>
-              {Client !== undefined && <Client key={`field-${c.key}`} module="./field.tsx" props={{ id: c.key, hex }} />}
-              <Box key={`${c.key}-right`} flexDirection="column">
+              <Box key={`${c.key}-right`} flexDirection="column" width={36} flexShrink={0}>
                 <Input
                   key={`${c.key}-hex-${hex}`}
                   label="Colour code "
@@ -133,9 +132,10 @@ export function panel(on: any) {
                     else { badCode[c.key] = x; $.ui.invalidate('ui.render') }
                   }}
                 />
-                {badCode[c.key] !== undefined && <Text color="#ff6b6b">{`"${badCode[c.key]}" is not a colour code (use #rrggbb, like #2dd4bf). Not saved.`}</Text>}
+                {badCode[c.key] !== undefined && <Text color="#ff6b6b">{`"${badCode[c.key]}" is not a colour code. Use #rrggbb. Not saved.`}</Text>}
                 <Button key={`${c.key}-reset`} label="Reset" onPress={() => { delete badCode[c.key]; void saveGroup($, c.key, null, gid).then(() => $.ui.invalidate('ui.render')) }} />
               </Box>
+              {Client !== undefined && <Client key={`field-${c.key}`} module="./field.tsx" props={{ id: c.key, hex }} />}
             </Box>
           )
         })}

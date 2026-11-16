@@ -150,6 +150,31 @@ for _n, _tool, _inp, _word, _want in [
 open(os.path.join(_gd, "other", ".gitignore"), "w").write(".env\n")
 add("item 117: ...once .gitignore names it", "" if not _blocked(_g("Write", None, file_path=os.path.join(_gd, "other", ".env"), content=_E), "tracked file") else "BAD", False)
 add("item 117: with no guard in the profile nothing is refused", "" if "item 117" not in subprocess.run([sys.executable, os.path.join(ROOT, "hooks", "rules-check.py")], input=json.dumps(dict(hook_event_name="PreToolUse", cwd=_prot, tool_name="Bash", tool_input=dict(command="git reset --hard"), transcript_path=_gt)), capture_output=True, text=True, env=dict(ENV)).stdout else "BAD", False)
+# item 117, PINR-shaped end to end: the project keeps its guard in its OWN .muster-checks/profile.json, runs its own older installed
+# rules-check.py (no guard code; the plugin's rules-check stands down there), and the chat is a crew chat named in that profile
+import shutil
+_pp = os.path.join(T, "pinrshape"); os.makedirs(os.path.join(_pp, ".muster-checks")); os.makedirs(os.path.join(_pp, "sub"))
+open(os.path.join(_pp, ".muster-checks", "rules-check.py"), "w").write("# older installed copy, no guard\n")
+json.dump({"name": "P", "crew_names": ["\\bManager_P_\\d{3}\\b"], "guard": {"protected_folders": [_pp], "public_repos": [{"name": "pub-view", "scanner": "bash scan.sh"}]}}, open(os.path.join(_pp, ".muster-checks", "profile.json"), "w"))
+subprocess.run(["git", "init", "-q", _pp], capture_output=True)
+_plug = os.path.join(T, "plug"); os.makedirs(os.path.join(_plug, "scripts"))   # a plugin copy with no ready-made program: the Python copy runs
+shutil.copytree(os.path.join(ROOT, "hooks"), os.path.join(_plug, "hooks"))
+for _f in ("find-binary.sh", "find-python.sh"):
+    shutil.copy(os.path.join(ROOT, "scripts", _f), os.path.join(_plug, "scripts", _f))
+_pt = tr("You are Manager_P_001, the go-between")
+_penv = {k: v for k, v in ENV.items() if k != "MUSTER_PROFILE"}
+def _pg(runner, cmd, cwd=None, trans=None, proj=None):
+    ev = dict(hook_event_name="PreToolUse", cwd=cwd or _pp, tool_name="Bash", tool_input=dict(command=cmd), transcript_path=trans or _pt)
+    r = subprocess.run(runner, input=json.dumps(ev), capture_output=True, text=True, env=dict(_penv, CLAUDE_PROJECT_DIR=proj or _pp, MUSTER_GUARD_PUBLIC="pub-view"))
+    return r.stdout
+_runners = [("python", ["sh", os.path.join(_plug, "hooks", "guard-check.sh")])] + ([("program", [BIN, "guard"])] if BIN else [])
+for _rn, _rr in _runners:
+    add("item 117 (project profile, %s): git -C into its main folder with reset is refused" % _rn, "" if _blocked(_pg(_rr, 'git -C "%s" reset --help' % _pp, cwd=os.path.join(T, "elsewhere")), "reset") else "BAD", False)
+    add("item 117 (project profile, %s): git reset in its main folder is refused" % _rn, "" if _blocked(_pg(_rr, "git reset --hard"), "reset") else "BAD", False)
+    add("item 117 (project profile, %s): ...from a sub-folder too" % _rn, "" if _blocked(_pg(_rr, "git stash", cwd=os.path.join(_pp, "sub"), proj=os.path.join(_pp, "sub")), "stash") else "BAD", False)
+    add("item 117 (project profile, %s): git status goes through" % _rn, "" if not _pg(_rr, "git status") else "BAD", False)
+    add("item 117 (project profile, %s): a chat that is not a crew chat is untouched" % _rn, "" if not _pg(_rr, "git reset --hard", trans=tr("hello there")) else "BAD", False)
+add("item 117 (project profile): a project profile with no guard refuses nothing", (lambda: "" if not (json.dump({"name": "P", "crew_names": ["\\bManager_P_\\d{3}\\b"]}, open(os.path.join(_pp, ".muster-checks", "profile.json"), "w")) or _pg(_runners[0][1], "git reset --hard")) else "BAD")(), False)
 add("1 the owner's own chat is untouched", send("hello team", tr("hi there")), False)
 add("1 without the profile Site_PINR_002 is not a crew chat (Muster unchanged)", send("NEED: x\nWhat: only one line", site, plain=True), False)
 # 2 report shape

@@ -1,5 +1,5 @@
 //! muster-checks: Muster's coded checks as one ready-built program per system.
-//!   muster-checks rules|talk|board-stop   the hooks (a hook's JSON on standard input; same output as the Python copies)
+//!   muster-checks rules|guard|talk|board-stop   the hooks (a hook's JSON on standard input; same output as the Python copies)
 //!   muster-checks record        reads one worker-to-worker record on standard input; exit 0 if valid, 1 and the reason if not.
 mod boardstop;
 mod common;
@@ -21,8 +21,9 @@ fn main() {
             }
         }
         Some("rules") => std::process::exit(rules::run()),
+        Some("guard") => std::process::exit(rules::run_guard()),
         Some("talk") => std::process::exit(talk::run()),
         Some("board-stop") => std::process::exit(boardstop::run()),
-        _ => { eprintln!("usage: muster-checks record|rules|talk|board-stop < input.json"); std::process::exit(2); }
+        _ => { eprintln!("usage: muster-checks record|rules|guard|talk|board-stop < input.json"); std::process::exit(2); }
     }
 }

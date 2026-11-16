@@ -710,6 +710,40 @@ fn stop(c: &Ctx, data: &Value, manager: bool) {
     }
 }
 
+/// The profile of the project this chat works in: the file named in MUSTER_PROFILE, else .muster-checks/profile.json in the chat's
+/// folder or any folder above it.
+fn project_profile(data: &Value) -> Value {
+    let mut cands: Vec<std::path::PathBuf> = vec![];
+    if let Ok(p) = std::env::var("MUSTER_PROFILE") { if !p.is_empty() { cands.push(p.into()); } }
+    let start = std::env::var("CLAUDE_PROJECT_DIR").ok().filter(|x| !x.is_empty()).unwrap_or_else(|| {
+        let c = s(data, "cwd"); if c.is_empty() { std::env::current_dir().map(|p| p.to_string_lossy().to_string()).unwrap_or_default() } else { c.to_string() }
+    });
+    let mut d = std::path::PathBuf::from(start);
+    loop {
+        cands.push(d.join(".muster-checks").join("profile.json"));
+        match d.parent() { Some(p) if p != d => d = p.to_path_buf(), _ => break }
+    }
+    for c in cands {
+        if c.is_file() {
+            return std::fs::read_to_string(&c).ok().and_then(|t| serde_json::from_str::<Value>(&t).ok()).filter(Value::is_object).unwrap_or(Value::Object(Default::default()));
+        }
+    }
+    Value::Object(Default::default())
+}
+
+/// Item 117 on its own: the guard in a project's own profile blocks even where the project runs its own older installed copy.
+pub fn run_guard() -> i32 {
+    let Some(data) = read_stdin() else { return 0 };
+    if s(&data, "hook_event_name") != "PreToolUse" { return 0; }
+    let prof = project_profile(&data);
+    let Some(conf) = prof.get("guard").filter(|g| g.is_object()) else { return 0 };
+    let first = first_message(s(&data, "transcript_path"));
+    if !is(&crew_re(&prof), &first) && std::env::var("MUSTER_ASSUME_CREW").ok().as_deref() != Some("1") { return 0; }
+    let empty = Value::Object(Default::default());
+    if let Some(why) = guard_problem(s(&data, "tool_name"), data.get("tool_input").unwrap_or(&empty), s(&data, "cwd"), conf) { deny(&why); }
+    0
+}
+
 pub fn run() -> i32 {
     let Some(data) = read_stdin() else { return 0 };
     if stood_down(&data, "rules-check.py") { return 0; }

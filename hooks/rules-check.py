@@ -1262,7 +1262,55 @@ def stood_down(data):
         d = parent
 
 
+def project_profile(data):
+    """The profile of the project this chat works in: the file named in MUSTER_PROFILE, else .muster-checks/profile.json in the chat's
+    folder or any folder above it (a crew copy under the main folder finds the main folder's)."""
+    cands = [os.environ.get("MUSTER_PROFILE")]
+    d = os.path.abspath(os.environ.get("CLAUDE_PROJECT_DIR") or data.get("cwd") or os.getcwd())
+    while True:
+        cands.append(os.path.join(d, ".muster-checks", "profile.json"))
+        parent = os.path.dirname(d)
+        if parent == d:
+            break
+        d = parent
+    for cand in cands:
+        if cand and os.path.isfile(cand):
+            try:
+                with open(cand, encoding="utf-8") as fh:
+                    j = json.load(fh)
+                return j if isinstance(j, dict) else {}
+            except (OSError, ValueError):
+                return {}
+    return {}
+
+
+def guard_main():
+    """Item 117, run on its own: the guard in a project's own profile blocks even where the project runs its own older installed copy of
+    the checks (the plugin's copy stands down there, and the older copy has no guard)."""
+    try:
+        data = json.loads(sys.stdin.buffer.read().decode("utf-8", "replace"))
+    except Exception:
+        return 0
+    if data.get("hook_event_name") != "PreToolUse":
+        return 0
+    prof = project_profile(data)
+    conf = prof.get("guard")
+    if not isinstance(conf, dict):
+        return 0
+    crew = CREW_RE
+    if prof.get("crew_names"):
+        crew = re.compile(CREW_RE.pattern + "|" + "|".join("(?:%s)" % x for x in prof["crew_names"]))
+    if not crew.search(first_message(data.get("transcript_path") or "")) and os.environ.get("MUSTER_ASSUME_CREW") != "1":
+        return 0
+    why = guard_problem(data.get("tool_name", ""), data.get("tool_input") or {}, data.get("cwd") or "", conf)
+    if why:
+        deny(why)
+    return 0
+
+
 def main():
+    if sys.argv[1:2] == ["guard"]:
+        return guard_main()
     try:
         data = json.loads(sys.stdin.buffer.read().decode("utf-8", "replace"))
     except Exception:

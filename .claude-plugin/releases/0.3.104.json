@@ -1,0 +1,18 @@
+{
+  "version": "0.3.104",
+  "changed_files": [
+    "mods/muster-look/.claude-plugin/plugin.json",
+    "mods/muster-look/hooks/color.ts",
+    "mods/muster-look/hooks/field.tsx",
+    "mods/muster-look/hooks/look.test.tsx",
+    "mods/muster-look/hooks/panel.tsx",
+    "mods/muster-look/hooks/register.tsx",
+    "screenshots/look-picker/look-panel.png"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Look picker: font dropdown with Other, colour swatches with hue bar, live chip preview (item 118)"
+}

@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.104
+Affects: see .claude-plugin/releases/0.3.104.json.
+Look picker: font dropdown with Other, colour swatches with hue bar, live chip preview (item 118)
+
 ## 0.3.103
 Affects: see .claude-plugin/releases/0.3.103.json.
 Look mod comes with the normal Muster install; Change your look help and portable style block (item 118)

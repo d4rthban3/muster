@@ -224,4 +224,15 @@ test('when the store refuses, the settings page says the look is not saved betwe
   const ui = await $.ui.mount({ plugin: 'muster-look', component: 'Pane', requestId: 'muster-look-settings', surface: 'desktop', props: {} } as any)
   expect(JSON.stringify(await ui.findAll({ type: 'Text' }))).toContain('Not saved between sessions')
   await ui.unmount()
+test('a card heading after the last choice is set apart by a clear gap; choices keep their spacing', async ($, on) => {
+  on('ui.render', ($, e) => { const { Text } = $.ui.resolve(e); return <Text>engine</Text> })
+  const gaps = async (text: string) => {
+    const ui = await $.ui.mount(MSG(text, 'desktop'))
+    const n = ((await ui.findAll({ type: 'Svg' })) ?? []).filter((x: any) => String(x.props?.source).includes('height="20"') && String(x.props?.source).includes('width="1"')).length
+    await ui.unmount()
+    return n
+  }
+  const withCard = await gaps(Q2 + '\n\n**SHIPPING · card-val-contrast**\nDone.')
+  const without = await gaps(Q2)
+  expect(withCard).toBe(without + 1)
 })

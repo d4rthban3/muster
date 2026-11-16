@@ -216,6 +216,7 @@ export const register: Register = (on) => {
             </Box>
           </Box>
         )}
+        {after.length > 0 && parsed.pieces[lastChoice + 1]?.kind === 'title' && (isTerminal ? <Text key="gap"> </Text> : spacer(20))}
         {after}
       </Box>
     )

@@ -3,7 +3,7 @@ import { sceneOf, glassOn, setGlassFlag, glassSettings, setGlassSetting } from '
 import Rail from './rail'
 import { parse } from './parse'
 import { isOwnerSubmit } from './register'
-import { hashText } from './group'
+import { hashText, nameFromRemote, projectName, rename, optionLine } from './group'
 import { migrateLook } from './migrate'
 
 const MSG = (text: string, surface: 'terminal' | 'desktop') => ({
@@ -619,4 +619,26 @@ test('a Working: line and a The crew is idle line get a badge; the rest stays pl
   expect(await ui.find({ type: 'Text', text: /Working/ })).toBeTruthy()
   expect(await ui.find({ type: 'Markdown', text: 'Builder A on the badge' })).toBeTruthy()
   await ui.unmount()
+})
+
+test('a click fills the option in the owner voice: the card (my pick) reads (<project> pick); the typed line still lights the pick', async ($, on) => {
+  expect(projectName('/home/dev/PINRroot/Muster')).toBe('Muster')
+  expect(projectName('/home/dev/PINRroot/Muster/.claude/worktrees/designer-005')).toBe('Muster')
+  expect(projectName('/home/dev/PINR/')).toBe('PINR')
+  expect(nameFromRemote('https://github.com/acme/PINR.git')).toBe('PINR')
+  expect(nameFromRemote('git@github.com:acme/Muster.git')).toBe('Muster')
+  expect(nameFromRemote(null)).toBe('')
+  expect(rename('A. Do it (my pick)', 'PINR')).toBe('A. Do it (PINR pick)')
+  expect(rename('B. Not this', 'PINR')).toBe('B. Not this')
+  expect(rename('A. Do it (my pick)', '')).toBe('A. Do it (my pick)')
+  const Q = '**ASK · x**\nOne?\n\n***A.*** Do it *(my pick)*\n\n***B.*** Not this'
+  expect(optionLine(Q, 'A', 'Muster')).toBe('A. Do it (Muster pick)')
+  expect(optionLine(Q, 'B', 'Muster')).toBe('B. Not this')
+  // the test host has no session root, so a click there falls back to the card's own words
+  const filled: string[] = []
+  on('prompt.fill', async ($, e, next) => { filled.push(String((e as any).text)); return next(e) })
+  const a = await $.ui.mount(MSG(Q, 'desktop'))
+  await (a as any).post({ pick: 'A', q: hashText(Q), t: Q }, { in: 'pickA' })
+  expect(filled).toEqual(['A. Do it (my pick)'])
+  await a.unmount()
 })

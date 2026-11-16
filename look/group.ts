@@ -39,6 +39,22 @@ async function ids($: any): Promise<{ id: string; legacy: string }> {
   }
   return { id: groupKey(remote, root), legacy: root }
 }
+// The project's name for the owner's words: the origin remote's last part as written (so every clone and
+// worktree of one project says the same name), else the repository's folder name.
+export function nameFromRemote(remote: string | null | undefined): string {
+  if (typeof remote !== 'string') return ''
+  const r = remote.trim().replace(/\.git$/i, '').replace(/\/+$/, '')
+  return r.split(/[/:]/).pop() ?? ''
+}
+export async function pickName($: any): Promise<string> {
+  try {
+    const repo = await $.session.repo()
+    const n = nameFromRemote(repo && typeof repo.remote === 'string' ? repo.remote : null)
+    if (n !== '') return n
+    if (repo && typeof repo.root === 'string' && repo.root !== '') return projectName(repo.root)
+  } catch { /* not a repository */ }
+  try { return projectName(String(await $.session.root())) } catch { return '' }
+}
 export async function groupId($: any): Promise<string> { return (await ids($)).id }
 // What was kept for this group: under its own key, else (only when the group is this session's) under
 // the folder key it was kept under before, so nothing already set is lost.
@@ -153,10 +169,20 @@ export function answerTag(text: string): string {
 // What a click sends: only the clicked option's own text, as the card shows it ("A. Arena only"),
 // nothing before or after. Words the owner typed are sent as typed. (A letter this card has no
 // option for goes as the bare letter.)
-export function optionLine(text: string, letter: string): string {
+// The project's name from its root folder; a crew worktree (.../<project>/.claude/worktrees/<name>) names its project.
+export function projectName(root: string): string {
+  const base = root.replace(/\/+$/, '').split('/.claude/worktrees/')[0]!
+  return base.split('/').pop() ?? ''
+}
+// What a click puts in the box is the owner's words in the owner's voice: the card's "(my pick)" is the
+// assistant's, so it reads "(<project> pick)" there.
+export function rename(line: string, name: string): string {
+  return name === '' ? line : line.replace(/\(my pick\)/gi, `(${name} pick)`)
+}
+export function optionLine(text: string, letter: string, name = ''): string {
   const o = (parse(text)?.pieces ?? []).find(p => p.kind === 'choice' && p.letter === letter) as { text: string } | undefined
   const t = o?.text.replace(/[*_`]/g, '').replace(/\s+/g, ' ').trim() ?? ''
-  return t !== '' ? `${letter}. ${t}` : letter
+  return t !== '' ? rename(`${letter}. ${t}`, name) : letter
 }
 // A card can keep the props of an early draw while its message is still streaming, so the text a click
 // names may be the question cut short. The finished question is the longest seen text it is the start of.
@@ -165,9 +191,9 @@ export function fullestText(text: string, seen: Iterable<string>): string {
   for (const t of seen) if (t.length > best.length && t.startsWith(text)) best = t
   return best
 }
-export const answerLine = (text: string, words: string) => (/^[A-Z]$/.test(words) ? optionLine(text, words) : words)
+export const answerLine = (text: string, words: string, name = '') => (/^[A-Z]$/.test(words) ? optionLine(text, words, name) : words)
 export type Said = { role: string; text: string }
-export function answerIn(msgs: Said[], question: string, mark: string): 'yes' | 'no' | 'unknown' {
+export function answerIn(msgs: Said[], question: string, mark: string, name = ''): 'yes' | 'no' | 'unknown' {
   const q = question.trim()
   let at = -1
   msgs.forEach((m, i) => { if (m.role === 'assistant' && m.text.includes(q)) at = i })
@@ -178,7 +204,7 @@ export function answerIn(msgs: Said[], question: string, mark: string): 'yes' | 
     const t = m.text.trim()
     // the clicked option's own text, or the words he typed; the older "Answer to ..." line and a bare letter count too
     const old = `Answer to ${answerTag(question)}: `
-    if (typed ? (t.startsWith(mark.slice(1)) || (t.startsWith(old) && t.includes(mark.slice(1, 40)))) : (t === optionLine(question, mark) || t === old + mark || t.replace(/[*.)]/g, '').toUpperCase() === mark)) return 'yes'
+    if (typed ? (t.startsWith(mark.slice(1)) || (t.startsWith(old) && t.includes(mark.slice(1, 40)))) : (t === optionLine(question, mark) || (name !== '' && t === optionLine(question, mark, name)) || t === old + mark || t.replace(/[*.)]/g, '').toUpperCase() === mark)) return 'yes'
   }
   return 'no'
 }
@@ -193,7 +219,8 @@ export async function answerStands($: any, question: string, mark: string): Prom
     if (!Array.isArray(got)) return true
     msgs = got
   } catch { return true }
-  const r = answerIn(msgs, question, mark)
+  const name = await pickName($)
+  const r = answerIn(msgs, question, mark, name)
   if (r === 'unknown') return true
   if (r === 'yes') { seenIn.add(question); sent.delete(question); return true }
   // not there: fine while it has only just been sent; gone once it was seen, or was never sent now

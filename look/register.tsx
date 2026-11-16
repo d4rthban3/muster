@@ -4,7 +4,7 @@ import { cutFont, fromBase64, type Cut } from './font'
 import { labelWidth } from './metrics'
 import { panel, registerLook } from './panel'
 import { glass, glassOn, applyGlass } from './glass'
-import { loadGroup, pickedOn, typedOn, savePick, hashText, answerLine, optionLine, fullestText, clearPick, answerStands, sent } from './group'
+import { pickName, loadGroup, pickedOn, typedOn, savePick, hashText, answerLine, optionLine, fullestText, clearPick, answerStands, sent } from './group'
 import { migrateLook } from './migrate'
 import { svgChip, pillOf, colourOr, YELLOW } from './chip'
 
@@ -43,7 +43,8 @@ export const register: Register = (on) => {
       const q = parse(latestQuestion)
       // the owner pressed Enter on the option line a click put in the box
       const sentLine = String((e as any).text ?? '').trim()
-      const clicked = q === null ? undefined : q.pieces.find(p => p.kind === 'choice' && optionLine(latestQuestion, p.letter) === sentLine)
+      const name = await pickName($)
+      const clicked = q === null ? undefined : q.pieces.find(p => p.kind === 'choice' && (optionLine(latestQuestion, p.letter) === sentLine || optionLine(latestQuestion, p.letter, name) === sentLine))
       if (clicked !== undefined && clicked.kind === 'choice') {
         await savePick($, latestQuestion, clicked.letter)
         sent.add(latestQuestion)
@@ -90,7 +91,8 @@ export const register: Register = (on) => {
       } else {
         // a click only puts the option's full text in the owner's chat box; the owner presses Enter to
         // send it. Nothing is submitted here, and another click just replaces the draft.
-        const said = answerLine(text, d.pick)
+        const name = await pickName($)
+        const said = answerLine(text, d.pick, name)
         void $.prompt.fill({ text: said, mode: 'replace' }).then(
           r => {
             if (r !== undefined && (r as { isFilled?: boolean }).isFilled === false) $.ui.toast('The chat box could not take it. Type the answer instead.')

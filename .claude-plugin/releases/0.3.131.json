@@ -1,0 +1,15 @@
+{
+  "version": "0.3.131",
+  "changed_files": [
+    ".claude-plugin/marketplace.json",
+    ".claude-plugin/plugin.json",
+    "look/group.ts",
+    "look/register.tsx"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "fill-pick-name: when a click fills the chat box, the option's (my pick) reads (<project name> pick), for example (Muster pick); the card itself is unchanged"
+}

@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.131
+Affects: see .claude-plugin/releases/0.3.131.json.
+fill-pick-name: when a click fills the chat box, the option's (my pick) reads (<project name> pick), for example (Muster pick); the card itself is unchanged
+
 ## 0.3.130
 Affects: see .claude-plugin/releases/0.3.130.json.
 working-badge: a reply line starting Working: shows a Working badge, and one starting The crew is idle shows an Idle badge, in the ORDER title badge colour; the rest of the line stays plain text

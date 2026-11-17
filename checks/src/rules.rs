@@ -653,12 +653,36 @@ fn owner_typed_last(path: &str) -> bool {
 }
 
 
+/// Item 125: Some(true/false) when the board is readable, None with no board. A worker holds an open order when a board entry
+/// "### <date> | ORDER | <from> -> <to> | <job>" says Status: open and <to> is not a manager.
+fn open_order_held(root: &str) -> Option<bool> {
+    let board = std::fs::read_to_string(Path::new(if root.is_empty() { "." } else { root }).join("muster").join("BOARD.md")).ok()?;
+    let head = re(r"^### \S+ \| ORDER \| .*? -> ([^|]+?) \|");
+    let open = rei(r"(?m)^Status:\s*open");
+    let mut blocks: Vec<String> = Vec::new();
+    for line in board.lines() {
+        if line.starts_with("### ") || blocks.is_empty() { blocks.push(String::new()); }
+        let b = blocks.last_mut().unwrap(); b.push_str(line); b.push('\n');
+    }
+    Some(blocks.iter().any(|b| caps(&head, b).map(|m| !is(&re(r"^\s*Manager"), &m[1])).unwrap_or(false) && is(&open, b)))
+}
+/// The working status line, the idle card (two or more lettered next steps), or a question or yes he must give.
+fn idle_card_ok(t: &str) -> bool {
+    status_line(t) || is(&rei(r"\b(I need your yes|needs? your yes|your yes (is needed|to))\b"), t) || re(r"(?m)^\*\*\*[A-D]\.\*\*\*").find_iter(t).count() >= 2
+}
+
 fn stop(c: &Ctx, data: &Value, manager: bool) {
     let text = s(data, "last_assistant_message");
     // Founder orders (item 76): NOT subject to the once-per-turn pass. A manager reply that refuses, says it cannot, argues with or
     // reinterprets a task he typed is refused every time; the only way through is doing it, or one short question to him.
     if manager && !text.is_empty() && refuses_order(text) && owner_typed_last(s(data, "transcript_path")) {
         block("he gave you an order in his own words, and a coded rule says you do it: no refusing, no \"cannot\", no arguing, no reinterpreting (item 76). Do the task now, or if you are unsure ask him ONE short question, nothing else");
+        return;
+    }
+    // Item 125: a manager's turn ends with the idle card or the Working line when no worker holds an open order on the board (even with no text)
+    if manager && !data.get("stop_hook_active").and_then(Value::as_bool).unwrap_or(false) && !bounced_this_turn(s(data, "transcript_path"))
+        && !owner_typed_last(s(data, "transcript_path")) && open_order_held(&main_folder(s(data, "cwd"))) == Some(false) && !idle_card_ok(text) {
+        block("no worker holds an open order on the board, and the owner has not been told (item 125): end this turn with the idle card, a bold 'IDLE \u{b7} crew' title, then 'The crew is idle. Here's what's next toward your goal,' and the top next steps as lettered lines (***A.*** ... with your pick marked); or give a worker its next order first");
         return;
     }
     if text.is_empty() || data.get("stop_hook_active").and_then(Value::as_bool).unwrap_or(false) || bounced_this_turn(s(data, "transcript_path")) { return; }

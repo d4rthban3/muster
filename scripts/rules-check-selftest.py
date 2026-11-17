@@ -45,9 +45,21 @@ def big(n):
 
 
 def run(ev, **kw):
-    r = subprocess.run([BIN, "rules"] if BIN else [sys.executable, HOOK], input=json.dumps(dict(hook_event_name=ev, cwd=T, **kw)), capture_output=True, text=True, env=RUN_ENV)
+    r = subprocess.run([BIN, "rules"] if BIN else [sys.executable, HOOK], input=json.dumps(dict(dict(hook_event_name=ev, cwd=T), **kw)), capture_output=True, text=True, env=RUN_ENV)
     return r.stdout.strip()
 
+
+
+def _proj(name, entry):
+    d = os.path.join(T, name); os.makedirs(os.path.join(d, "muster"))
+    open(os.path.join(d, "muster", "BOARD.md"), "w").write("# Board\n\n## Entries\n" + entry)
+    return d
+MG = "You are Manager_Muster_002"
+_o = "### 2026-01-01 | ORDER | Manager_X -> %s | job\nStatus: %s\nORDER: job\n"
+PJ_IDLE = _proj("pj_idle", "### 2026-01-01 | PASS | Inspector_X -> Manager_X | job\nStatus: open\n")
+PJ_BUSY = _proj("pj_busy", _o % ("Builder A_X", "open"))
+PJ_MGR = _proj("pj_mgr", _o % ("Manager_X", "open"))
+PJ_DONE = _proj("pj_done", _o % ("Builder A_X", "done"))
 
 b = tr("You are Builder A_Muster_002, agents/builder.md")
 m = tr("You are Manager_Muster_002")
@@ -192,6 +204,16 @@ cases = [
     ("item 120: a heading below the choices does not count", run("Stop", last_assistant_message="Which one?\n\n***A.*** yes (my pick)\n\n***B.*** no\n\n**ASK \u00b7 score-audit**", transcript_path=m), True),
     ("a manager question as lettered lines passes", run("Stop", last_assistant_message="**ASK \u00b7 q**\nWhich one?\n\n***A.*** yes (my pick)\n\n***B.*** no", transcript_path=m), False),
     ("a manager idle line passes", run("Stop", last_assistant_message="**IDLE · crew**\n\nThe crew is idle. Here's what's next.\n\nHere's what's next toward your goal,\n\n***A.*** one (my pick)\n\n***B.*** two", transcript_path=m), False),
+    # item 125: with no worker holding an open order on the board, the manager's turn ends with the idle card or the Working line
+    ("item 125: all idle and no card is refused", run("Stop", last_assistant_message="Everything is done.", transcript_path=tr(MG, [said("<task-notification>x")]), cwd=PJ_IDLE), True),
+    ("item 125: all idle and no text at all is refused", run("Stop", last_assistant_message="", transcript_path=tr(MG, [said("<task-notification>x")]), cwd=PJ_IDLE), True),
+    ("item 125: all idle with the idle card passes", run("Stop", last_assistant_message="**IDLE \u00b7 crew**\n\nThe crew is idle. Here's what's next toward your goal,\n\n***A.*** one (my pick)\n\n***B.*** two", transcript_path=tr(MG, [said("<task-notification>x")]), cwd=PJ_IDLE), False),
+    ("item 125: an open order and no text passes", run("Stop", last_assistant_message="", transcript_path=tr(MG, [said("<task-notification>x")]), cwd=PJ_BUSY), False),
+    ("item 125: an open order and a Working line passes", run("Stop", last_assistant_message="Working: Builder A on idle-card", transcript_path=tr(MG, [said("<task-notification>x")]), cwd=PJ_BUSY), False),
+    ("item 125: an open order to the manager itself is not a worker's", run("Stop", last_assistant_message="Done.", transcript_path=tr(MG, [said("<task-notification>x")]), cwd=PJ_MGR), True),
+    ("item 125: a closed order is not open", run("Stop", last_assistant_message="Done.", transcript_path=tr(MG, [said("<task-notification>x")]), cwd=PJ_DONE), True),
+    ("item 125: no board to read is not judged", run("Stop", last_assistant_message="", transcript_path=tr(MG, [said("<task-notification>x")]), cwd=T), False),
+    ("item 125: his own typed words are not bounced", run("Stop", last_assistant_message="Here is the answer.", transcript_path=tr(MG, [said("what is the plan")]), cwd=PJ_IDLE), False),
     ("item 124: a bare idle card is refused", run("Stop", last_assistant_message="The crew is idle.", transcript_path=m), True),
     ("item 124: idle with only one lettered line is refused", run("Stop", last_assistant_message="**IDLE · crew**\n\nThe crew is idle. Here's what's next toward your goal,\n\n***A.*** one (my pick)", transcript_path=m), True),
     ("item 124: idle with two lettered next steps passes", run("Stop", last_assistant_message="**IDLE · crew**\n\nThe crew is idle. Here's what's next toward your goal,\n\n***A.*** one (my pick)\n\n***B.*** two", transcript_path=m), False),

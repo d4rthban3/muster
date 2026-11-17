@@ -1244,12 +1244,39 @@ def owner_typed_last(path):
     return typed
 
 
+def open_order_held(root):
+    """Item 125: True/False when the board is readable; None when there is no board to judge by. A worker holds an open order when a board entry
+    '### <date> | ORDER | <from> -> <to> | <job>' says Status: open and <to> is not a manager."""
+    try:
+        board = open(os.path.join(root or ".", "muster", "BOARD.md"), encoding="utf-8").read()
+    except OSError:
+        return None
+    for blk in re.split(r"\n(?=### )", board):
+        h = re.match(r"### \S+ \| ORDER \| .*? -> ([^|]+?) \|", blk)
+        if h and re.search(r"^Status:\s*open", blk, re.M | re.I) and not re.match(r"\s*Manager", h.group(1)):
+            return True
+    return False
+
+
+def idle_card_ok(t):
+    """The working status line, the idle card (two or more lettered next steps), or a question or yes he must give."""
+    if status_line(t):
+        return True
+    if re.search(r"\b(I need your yes|needs? your yes|your yes (is needed|to))\b", t, re.I):
+        return True
+    return len(re.findall(r"^\*\*\*[A-D]\.\*\*\*", t, re.M)) >= 2
+
+
 def stop(data, manager):
     text = data.get("last_assistant_message") or ""
     # Founder orders (item 76): NOT subject to the once-per-turn pass; the only way through is doing it, or one short question
     if manager and text and refuses_order(text) and owner_typed_last(data.get("transcript_path") or ""):
         return block("he gave you an order in his own words, and a coded rule says you do it: no refusing, no \"cannot\", no arguing, no reinterpreting (item 76). "
                      "Do the task now, or if you are unsure ask him ONE short question, nothing else")
+    # Item 125: a manager's turn ends with the idle card or the Working line when no worker holds an open order on the board (even with no text)
+    if manager and not data.get("stop_hook_active") and not bounced_this_turn(data.get("transcript_path") or "") \
+            and not owner_typed_last(data.get("transcript_path") or "") and open_order_held(main_folder(data.get("cwd"))) is False and not idle_card_ok(text):
+        return block("no worker holds an open order on the board, and the owner has not been told (item 125): end this turn with the idle card, a bold 'IDLE \u00b7 crew' title, then 'The crew is idle. Here's what's next toward your goal,' and the top next steps as lettered lines (***A.*** ... with your pick marked); or give a worker its next order first")
     if not text or data.get("stop_hook_active") or bounced_this_turn(data.get("transcript_path") or ""):
         return
     uses = turn_blocks(data.get("transcript_path") or "")

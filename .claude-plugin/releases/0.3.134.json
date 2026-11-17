@@ -1,0 +1,17 @@
+{
+  "version": "0.3.134",
+  "changed_files": [
+    "checks/src/rules.rs",
+    "hooks/rules-check.py",
+    "scripts/rules-check-selftest.py",
+    "skills/manager-details/SKILL.md"
+  ],
+  "affected_roles": [
+    "Manager"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "idle-card-required: when no worker holds an open order on the board, the manager's turn must end with the idle card or a Working line, even with no text"
+}

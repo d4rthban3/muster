@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.134
+Affects: Manager.
+idle-card-required: when no worker holds an open order on the board, the manager's turn must end with the idle card or a Working line, even with no text
+
 ## 0.3.133
 Affects: see .claude-plugin/releases/0.3.133.json.
 pick-fallback: when no project name can be read, a click fills the option text with the (my pick) marker left out; never a folder or remote name

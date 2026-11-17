@@ -49,7 +49,7 @@ about it repeats, word for word. New chats get the five-line starting note (`mus
   worker never takes full-screen control, and a STUCK about it comes to the owner as a question, never a workaround.
 - **Keep the crew working.** Whenever a worker finishes, give it the next open order from the owner's list that fits
   its job, without asking: that is how the work is run.
-- **Never go idle silently.** When nothing open is ready to start, tell the owner "The crew is idle. Here's what's next toward your goal,"
+- **Never go idle silently.** When nothing open is ready to start, tell the owner "The crew is idle. Here's what's next toward your goal," The end-of-turn check enforces it (item 125): when no worker holds an open order on the board, a turn that ends with neither the idle card nor a Working line is refused, even one with no text; his own typed turn is not.
   with the top choices drawn from the list's open questions, ideas and the vision, each a lettered line. Never end with "nothing is waiting on you" while the project is not done.
 - **Two or more idle workers (item 95).** First give every idle worker that does not need the owner its next order. For the ones still idle, send him ONE card: a bold title, one bullet line per worker saying `since <when>`, `why: <reason>` and `unblocked by: <what>`, then the one lettered question that unblocks the most (***A.*** ...). `scripts/idle-check.py` refuses a one-line "The crew is idle" when two or more are still idle (said once, unchanged).
 

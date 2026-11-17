@@ -15,7 +15,10 @@
     "profiles/pinr.json",
     "scripts/crew-plan.py",
     "scripts/profile-selftest.py",
-    "skills/manager-details/SKILL.md"
+    "skills/manager-details/SKILL.md",
+    "skills/start-the-crew/SKILL.md",
+    "skills/usage-habits/SKILL.md",
+    "templates/CLAUDE.md"
   ],
   "affected_roles": [
     "Manager",

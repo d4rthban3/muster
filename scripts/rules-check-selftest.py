@@ -65,7 +65,7 @@ b = tr("You are Builder A_Muster_002, agents/builder.md")
 m = tr("You are Manager_Muster_002")
 owner = tr("hello there")
 good = "READY: x [ID builder-x-1]\nWhat: a\nWhere: b; touches: none\nWhy: c\nHow: 3/3 passed\nNeed: nothing\nUsage: n"
-order = "To: B\nJob: j\nOwner's words: \"do it now\"\nOwns: a\nOut: b\nDone: c"
+order = "To: B\nJob: j\nOwner's words: \"do it now\"\nOwns: a\nOut: b\nAccept: \"do it now\" met\nDone: c"
 send = lambda msg, t, to="x": run("PreToolUse", tool_name="SendMessage", tool_input={"to": to, "message": msg}, transcript_path=t)
 def compacted(first):
     """a transcript the way a compaction leaves it: the chat's own first message is kept beside it, the file opens with the summary"""
@@ -148,6 +148,10 @@ cases = [
     ("a READY with no test count is refused", send(good.replace("3/3 passed", "fine"), b), True),
     ("an order that quotes his words goes through", send(order, m), False),
     ("an order without his words quoted is refused", send(order.replace('"do it now"', "do it now"), m), True),
+    ("an order with no Accept line is refused", send(order.replace('Accept: "do it now" met\n', ""), m), True),
+    ("an order with an empty Accept line is refused", send(order.replace('Accept: "do it now" met', "Accept:"), m), True),
+    ("an order with a filled Contract line goes through", send(order.replace("Done: c", "Contract: posts {filter: name}; list page reads it\nDone: c"), m), False),
+    ("an order with an empty Contract line is refused", send(order.replace("Done: c", "Contract:\nDone: c"), m), True),
     ("an ID sent twice is refused", send(good, tr("You are Builder A_Muster_002, agents/builder.md", [use("SendMessage", "s1", message=good), res("s1")])), True),
     ("a sibling send in the same turn (no result yet) does not use up the ID", send(good, tr("You are Builder A_Muster_002, agents/builder.md", [use("SendMessage", "s1", message=good)])), False),
     ("the call's own copy in the transcript does not use up its ID", send(good, tr("You are Builder A_Muster_002, agents/builder.md", [use("SendMessage", "s1", message=good)])), False),

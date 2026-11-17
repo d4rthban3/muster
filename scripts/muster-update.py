@@ -5,7 +5,7 @@ Usage: muster-update.py <project-folder> [--apply]
 Without --apply it only prints what it would do. With --apply it:
   * replaces the project's copies of the rule files (muster/CLAUDE.md, REPORT.md, START-NOTE.md, RULES-PAGE.md) with
     this version's templates, first moving each old copy to muster/superseded/<name>.<old version>.md;
-  * never touches the project's own records (OWNERS-LIST.md, DECISIONS-LOG.md, BOARD.md, CREW.md, LOOK-BOOK.md,
+  * never touches the project's own records (OWNERS-LIST.md, DECISIONS-LOG.md, BOARD.md, CREW.md, LOOK-BOOK.md, RISKS.md,
     rules/, handovers/, setup-choices.json, anything else);
   * copies a template the project does not have yet (for example LOOK-BOOK.md) when it is new;
   * writes muster/.muster-version;
@@ -20,7 +20,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 PLUGIN = os.path.normpath(os.path.join(HERE, ".."))
 RULE_FILES = ["CLAUDE.md", "REPORT.md", "START-NOTE.md", "RULES-PAGE.md", "PROTOCOL.md"]
-NEW_IF_MISSING = ["LOOK-BOOK.md", "BUILDERS-LOG.md"]
+NEW_IF_MISSING = ["LOOK-BOOK.md", "BUILDERS-LOG.md", "RISKS.md"]
 
 
 def vkey(v):

@@ -92,7 +92,7 @@ def main():
     # muster/ from the templates
     T = os.path.join(PLUGIN, "templates")
     M = os.path.join(main_dir, "muster")
-    for n in ("CREW.md", "DECISIONS-LOG.md", "BOARD.md", "OWNERS-LIST.md", "REPORT.md", "START-NOTE.md", "RULES-PAGE.md", "LOOK-BOOK.md", "CLAUDE.md", "PROTOCOL.md", "BUILDERS-LOG.md"):
+    for n in ("CREW.md", "DECISIONS-LOG.md", "BOARD.md", "OWNERS-LIST.md", "REPORT.md", "START-NOTE.md", "RULES-PAGE.md", "LOOK-BOOK.md", "CLAUDE.md", "PROTOCOL.md", "BUILDERS-LOG.md", "RISKS.md"):
         copy_new(os.path.join(T, n), os.path.join(M, n))
     for d in ("rules", "handovers", "start-notes", "tools"):
         os.makedirs(os.path.join(M, d), exist_ok=True)

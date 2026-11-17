@@ -84,15 +84,18 @@ def report_problem(text):
 
 
 def order_problem(text):
-    """An order: lines To, Job, Owner's words (his words in quotes), Owns, Out, Done, each starting its label."""
+    """An order: lines To, Job, Owner's words (his words in quotes), Owns, Out, Accept, Done, each starting its label.
+    A Contract line is optional (a hand-off between workers) but, when it is there, it must be filled."""
     labels = {}
     for l in text.splitlines():
-        m = re.match(r"^\s*(To|Job|Owner'?s words|Owns|Out|Done)\s*:\s*(.*)$", l, re.I)
+        m = re.match(r"^\s*(To|Job|Owner'?s words|Owns|Out|Accept|Contract|Done)\s*:\s*(.*)$", l, re.I)
         if m:
             labels.setdefault(m.group(1).lower().replace("owners", "owner's"), m.group(2))
-    for need in ("to", "job", "owner's words", "owns", "out", "done"):
+    for need in ("to", "job", "owner's words", "owns", "out", "accept", "done"):
         if need not in labels or not labels[need].strip():
             return "an order needs a filled '%s:' line" % need.capitalize()
+    if "contract" in labels and not labels["contract"].strip():
+        return "the Contract line is empty: name what is handed over and its shape, or leave the line out"
     if not re.search(r"[\"“][^\"”]{3,}[\"”]", labels["owner's words"]):
         return "the Owner's words line must quote his words in quotation marks"
     return None

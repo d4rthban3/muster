@@ -1,0 +1,31 @@
+{
+  "version": "0.3.139",
+  "changed_files": [
+    "agents/builder.md",
+    "agents/design-inspector.md",
+    "agents/inspector.md",
+    "agents/manager.md",
+    "checks/src/rules.rs",
+    "commands/setup.md",
+    "cursor/setup.py",
+    "hooks/rules-check.py",
+    "scripts/muster-update.py",
+    "scripts/profile-selftest.py",
+    "scripts/rules-check-selftest.py",
+    "scripts/setup-smoke.sh",
+    "skills/manager-details/SKILL.md",
+    "skills/one-order-per-piece/SKILL.md",
+    "templates/RISKS.md"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Builder",
+    "Inspector",
+    "Design Inspector"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "order-acceptance-contract-risks: every order now carries an Accept line (what counts as passed, in his words) that the inspector reads one by one; a Contract line for a hand-off between workers (what is handed over and its shape); and one risk page, muster/RISKS.md (owner, what would go wrong, what closes it), kept by the manager. The end-of-turn check refuses a To/Job order with no filled Accept line, and an empty Contract line; a Contract line may be left out when nothing is handed over"
+}

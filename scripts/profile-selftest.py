@@ -94,7 +94,7 @@ _pq = os.path.join(T, "pq"); os.makedirs(os.path.join(_pq, "Founder"))
 open(os.path.join(_pq, "Founder", "FOUNDER-LIST.md"), "w").write("## Open\n\n7. \"fix the menu\"\n   Choice (2026-11-08): which?\n     Picked: A\n\n8. \"why waiting\"\n")
 def _qo(item, turn):
     t = tr("You are Manager_PINR_002, the go-between", turn)
-    o = "To: Engine_PINR\nJob: menu\nOwner's words: \"fix the menu\" (item %d)\nOwns: a\nOut: b\nDone: c" % item
+    o = "To: Engine_PINR\nJob: menu\nOwner's words: \"fix the menu\" (item %d)\nOwns: a\nOut: b\nAccept: a\nDone: c" % item
     r = subprocess.run([BIN, "rules"] if BIN else [sys.executable, os.path.join(ROOT, "hooks", "rules-check.py")], input=json.dumps(dict(hook_event_name="PreToolUse", cwd=_pq, tool_name="SendMessage", tool_input={"to": "Engine_PINR", "message": o}, transcript_path=t)), capture_output=True, text=True, env=dict(os.environ, MUSTER_PROFILE=os.path.join(ROOT, "profiles", "pinr.json")))
     return r.stdout
 add("item 115: PINR's manager order in a turn his question started is refused", "" if "item 115" in _qo(8, [{"type": "user", "message": {"content": "why is engine waiting?"}}]) else "BAD", False)

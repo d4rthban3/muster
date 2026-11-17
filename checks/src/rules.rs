@@ -85,7 +85,7 @@ fn report_problem(c: &Ctx, text: &str) -> Option<String> {
 }
 
 fn order_problem(text: &str) -> Option<String> {
-    let lab = rei(r"^\s*(To|Job|Owner'?s words|Owns|Out|Done)\s*:\s*(.*)$");
+    let lab = rei(r"^\s*(To|Job|Owner'?s words|Owns|Out|Accept|Contract|Done)\s*:\s*(.*)$");
     let mut labels: Vec<(String, String)> = vec![];
     for l in text.lines() {
         if let Some(m) = caps(&lab, l) {
@@ -93,11 +93,14 @@ fn order_problem(text: &str) -> Option<String> {
             if !labels.iter().any(|(x, _)| *x == k) { labels.push((k, m[2].to_string())); }
         }
     }
-    for need in ["to", "job", "owner's words", "owns", "out", "done"] {
+    for need in ["to", "job", "owner's words", "owns", "out", "accept", "done"] {
         match labels.iter().find(|(k, _)| k == need) {
             Some((_, v)) if !v.trim().is_empty() => {}
             _ => { let mut cap = need.to_string(); cap[..1].make_ascii_uppercase(); return Some(format!("an order needs a filled '{cap}:' line")); }
         }
+    }
+    if let Some((_, v)) = labels.iter().find(|(k, _)| k == "contract") {
+        if v.trim().is_empty() { return Some("the Contract line is empty: name what is handed over and its shape, or leave the line out".into()); }
     }
     let ow = &labels.iter().find(|(k, _)| k == "owner's words").unwrap().1;
     if !is(&re("[\"\u{201c}][^\"\u{201d}]{3,}[\"\u{201d}]"), ow) { return Some("the Owner's words line must quote his words in quotation marks".into()); }

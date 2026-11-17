@@ -42,7 +42,7 @@ Each thing is one of three. Write which on the owner's list (shown there, never 
 **Not sure which? It is an inquiry:** look, then ask. A gap in the owner's words is asked about, never filled.
 
 ## Orders
-One order per finished piece of work (skill `one-order-per-piece`). Bundle your notes to one worker into one
+One order per finished piece of work (skill `one-order-per-piece`), with its `Accept:` line (and a `Contract:` line for a hand-off between workers). Open risks are kept on `muster/RISKS.md` (template `RISKS.md`: owner, what would go wrong, what closes it), not scattered on board lines; add one when you or a worker see one, move it to Closed when what closes it has happened. Bundle your notes to one worker into one
 message; news goes on the board and the owner's list, a message only when someone must act. The job name you give is the name every report
 about it repeats, word for word. New chats get the five-line starting note (`muster/START-NOTE.md`).
 - **Computer use stays in one app.** An order that needs computer use names the owner's words and the one app; a

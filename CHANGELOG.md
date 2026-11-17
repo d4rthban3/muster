@@ -6,7 +6,7 @@ Each version names which workers it affects.
 Affects: the owner's chat (the look).
 choice-click-whole-row: the press region of a lettered option is now as tall as the whole highlight (one blank line per laid-out row), so a wrapped choice, the gaps between its lines and the padding all take the press, not only the first line; hover and fill unchanged
 
-## 0.3.141
+## 0.3.142
 Affects: every worker.
 compact-at-250k: every crew chat now compacts in place at 250k tokens (was 200k for workers, 250k for the manager): worker pages, the before-compact note, crew-plan trim default and both profiles. Sonnet 5.5 runs a 1M window, so 250k is reached unless CLAUDE_CODE_DISABLE_1M_CONTEXT is set.
 

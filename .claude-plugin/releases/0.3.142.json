@@ -1,5 +1,5 @@
 {
-  "version": "0.3.141",
+  "version": "0.3.142",
   "changed_files": [
     "agents/agent-teacher.md",
     "agents/ai-socket.md",

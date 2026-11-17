@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.144
+Affects: the owner's chat (the look).
+choice-click-whole-row-2: the press region of a lettered option now takes its line count from the card (a generous estimate of the wrapped lines, clipped to the row) instead of its own height, so every line of a wrapped choice, the gaps and the padding take the press; hover and fill unchanged
+
 ## 0.3.140
 Affects: the owner's chat (the look).
 choice-click-whole-row: the press region of a lettered option is now as tall as the whole highlight (one blank line per laid-out row), so a wrapped choice, the gaps between its lines and the padding all take the press, not only the first line; hover and fill unchanged

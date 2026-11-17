@@ -197,6 +197,9 @@ export const register: Register = (on) => {
     // starts at one x; each gets 4px of air above and below inside its own
     // picture, so the rows are even and a little looser. Sizes are unchanged.
     const letterTw = Math.max(0, ...parsed.pieces.map(p => (p.kind === 'choice' ? Math.ceil(labelWidth(p.letter, 14) ?? 9) : 0)))
+    // Lines the press region draws for a choice: a generous count (a narrow window wraps at about 40
+    // columns, +1 for the padding); the extra is clipped by the row, a short count would leave dead lines.
+    const pressRows = (t: string) => Math.max(2, Math.ceil((t.length + 5) / 40) + 1)
     const rows = parsed.pieces.map((p, i) => {
       const inQ = parsed.isQuestion && i >= parsed.startsAt && i <= lastChoice
       if (p.kind === 'md') return <Markdown key={`m${i}`} text={p.text} />
@@ -235,8 +238,8 @@ export const register: Register = (on) => {
           ) : <Box flexShrink={0}>{chip(p.letter, CHOICE, letterTw, 4, p.letter === picked)}</Box>}
           <Box key={`cb${i}`} flexShrink={1} flexGrow={1}><Markdown key={`cm${i}`} text={p.text} /></Box>
           {live && !isTerminal && Client !== undefined && (
-            <Box position="absolute" top={0} left={0} right={0} bottom={0} width="100%" height="100%">
-              <Client key={`pick${p.letter}`} module="./choice.tsx" props={{ letter: p.letter, q: hashText(e.props.text), t: e.props.text.length <= 4000 ? e.props.text : '' }} width="100%" height="100%" />
+            <Box position="absolute" top={0} left={0} right={0} bottom={0} width="100%" height="100%" overflow="hidden">
+              <Client key={`pick${p.letter}`} module="./choice.tsx" props={{ letter: p.letter, rows: pressRows(p.text), q: hashText(e.props.text), t: e.props.text.length <= 4000 ? e.props.text : '' }} width="100%" height="100%" />
             </Box>
           )}
         </Box>

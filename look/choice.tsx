@@ -4,9 +4,11 @@
 // held; the plugin's own picked light takes over as it redraws.
 export default function Choice(props: any, s: any) {
   const { Box, Text } = s.elements
-  // One blank line per laid-out row of the region (as the left line does), so the press region is
-  // as tall as the whole highlight: a wrapped choice, the gaps between its lines and its padding.
-  const n = Math.max(1, Math.round(Number(s.rows) || 1))
+  // One blank line per row of the highlight, so the press region is as tall as the whole highlight:
+  // a wrapped choice, the gaps between its lines and its padding. The count comes from the card
+  // (props.rows, a generous estimate; the card clips any extra), never from this region's own
+  // height, which is only as tall as what it draws.
+  const n = Math.max(1, Math.round(Number(props.rows) || 0), Math.round(Number(s.rows) || 1))
   const lines = []
   for (let i = 0; i < n; i++) lines.push(<Text key={`l${i}`}> </Text>)
   if (s.state === undefined) {

@@ -1,0 +1,14 @@
+{
+  "version": "0.3.144",
+  "changed_files": [
+    "look/choice.tsx",
+    "look/register.tsx",
+    "look/look.test.tsx"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "choice-click-whole-row-2: the press region of a lettered option now takes its line count from the card (a generous estimate of the wrapped lines, clipped to the row) instead of its own height, so every line of a wrapped choice, the gaps and the padding take the press; hover and fill unchanged"
+}

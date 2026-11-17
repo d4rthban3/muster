@@ -825,3 +825,25 @@ test('a wrapped choice: the press region has a line for every laid-out row, so t
   }
   ;(globalThis as any).h = oldH
 })
+
+test('the press region takes its line count from the card, not from its own height: a 3-line choice gets 3+ lines even when the region reads 1 row', async () => {
+  let state: any
+  const surface: any = { rows: 1, elements: { Box: (p: any) => p, Text: (p: any) => p }, get state() { return state }, setState: (n: any) => { state = n }, onPointer: () => {}, post: () => {} }
+  const oldH = (globalThis as any).h
+  ;(globalThis as any).h = (t: any, p: any, ...c: any[]) => ({ t, p, c: c.flat() })
+  const drawn: any = Choice({ letter: 'A', q: 'x', t: '', rows: 3 }, surface)
+  expect(drawn.c.length).toBe(3)
+  ;(globalThis as any).h = oldH
+})
+
+test('the card passes a generous line count for a long choice and clips the region to the row', async ($, on) => {
+  on('ui.render', ($, e) => { const { Text } = $.ui.resolve(e); return <Text>engine</Text> })
+  const long = 'x '.repeat(70).trim()
+  const ui = await $.ui.mount(MSG(`**WAITING · item 7**\n***A.*** Short\n***B.*** ${long}`, 'desktop'))
+  const cl = (await ui.findAll({ type: 'Client' })) ?? []
+  const rowsOf = (l: string) => { const c: any = cl.find((x: any) => x.props?.props?.letter === l); return c?.props?.props?.rows }
+  expect(rowsOf('A')).toBeGreaterThanOrEqual(2)
+  expect(rowsOf('B')).toBeGreaterThanOrEqual(5) // 144 characters: at least 4 lines at 40 columns, plus padding
+  expect(rowsOf('B')).toBeGreaterThan(rowsOf('A'))
+  await ui.unmount()
+})

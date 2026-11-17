@@ -3,7 +3,7 @@ import { sceneOf, glassOn, setGlassFlag, glassSettings, setGlassSetting } from '
 import Rail from './rail'
 import { parse } from './parse'
 import { isOwnerSubmit } from './register'
-import { clock, FRESH_MS, resetCaches, dropMessages, hashText, mainFromCommonDir, nameFromCrew, nameFromChat, pickName, rename, optionLine } from './group'
+import { clock, FRESH_MS, resetCaches, dropMessages, hashText, mainFromCommonDir, nameFromCrew, nameFromChat, nameFromSummary, pickName, rename, optionLine } from './group'
 import { migrateLook } from './migrate'
 
 // each test starts with nothing kept in memory, as a new chat does
@@ -723,4 +723,49 @@ test('a click fills the option in the owner voice: the card (my pick) reads (<pr
   await (a as any).post({ pick: 'A', q: hashText(Q), t: Q }, { in: 'pickA' })
   expect(filled).toEqual(['A. Do it (Claude pick)'])
   await a.unmount()
+})
+
+test('the project name is read in every kind of chat: worktree, subfolder, no git, no crew file, accents, compacted, before the plugin loaded', async () => {
+  const CREW = '| Name | Model |\n|---|---|\n| Manager_PINR | x |\n| Builder A_PINR | y |'
+  // a host mock: files that exist, whether git answers, the repo, and the chat
+  const host = (o: { files?: Record<string, string>; git?: string | null; repo?: string | null; root: string; cwd?: string; chat?: any[] }) => ({
+    session: { repo: async () => (o.repo ? { root: o.repo, remote: null } : null), root: async () => o.root, cwd: async () => o.cwd ?? o.root, messages: async () => o.chat ?? [] },
+    process: { run: async () => (o.git ? { exitCode: 0, stdout: o.git + '\n' } : { exitCode: 127, stdout: '' }) },
+    fs: { read: async (f: string) => { if (o.files && f in o.files) return o.files[f]; throw new Error('missing') } },
+  })
+  const crewAt = { '/w/PINR/muster/CREW.md': CREW }
+  const names: Array<[string, any, string]> = [
+    // the project's main folder
+    ['main folder', host({ files: crewAt, repo: '/w/PINR', root: '/w/PINR', git: '/w/PINR/.git' }), 'PINR'],
+    // a subfolder of the project: the repo root holds the crew file
+    ['subfolder', host({ files: crewAt, repo: '/w/PINR', root: '/w/PINR', cwd: '/w/PINR/site/src', git: '/w/PINR/.git' }), 'PINR'],
+    // a worktree copy with no crew file of its own: git's common dir names the main folder
+    ['worktree via git', host({ files: crewAt, repo: '/w/PINR/.claude/worktrees/b-1', root: '/w/PINR/.claude/worktrees/b-1', git: '/w/PINR/.git' }), 'PINR'],
+    // the same worktree when git does not answer: the folders above are walked (the main folder is three up)
+    ['worktree without git', host({ files: crewAt, repo: '/w/PINR/.claude/worktrees/b-1', root: '/w/PINR/.claude/worktrees/b-1', git: null }), 'PINR'],
+    // no repository at all, a plain folder under the project
+    ['no repo', host({ files: crewAt, root: '/w/PINR/tools', git: null }), 'PINR'],
+    // no crew file: the chat's own first message
+    ['first message', host({ repo: '/w/x', root: '/w/x', git: '/w/x/.git', chat: [{ role: 'user', text: 'First: read agents/builder.md. You are Builder A_PINR_003.' }] }), 'PINR'],
+    // an accented name stays whole
+    ['accents', host({ repo: '/w/x', root: '/w/x', git: null, chat: [{ role: 'user', text: 'You are Manager_Pâtisserie_001, read agents/manager.md' }] }), 'Pâtisserie'],
+    // a chat started long ago and compacted: the summary names it
+    ['compacted summary', host({ repo: '/w/x', root: '/w/x', git: null, chat: [{ role: 'user', text: 'Summary: I am Builder A_Muster (chat "Builder A_Muster_006"); I build what the manager orders.' }, { role: 'assistant', text: 'ok' }] }), 'Muster'],
+    // a chat with no plugin message before: messages present but none names it, crew file still wins over any of them
+    ['crew wins', host({ files: crewAt, repo: '/w/PINR', root: '/w/PINR', git: '/w/PINR/.git', chat: [{ role: 'user', text: 'You are Manager_Other_001' }] }), 'PINR'],
+    // a plain, non-Muster project: no name, the click reads "(Claude pick)"
+    ['plain project', host({ repo: '/w/plain', root: '/w/plain', git: '/w/plain/.git', chat: [{ role: 'user', text: 'help me fix this bug in Manager_Dashboard' }] }), ''],
+    // a host that can read nothing at all
+    ['nothing readable', { session: {}, process: {}, fs: {} }, ''],
+  ]
+  for (const [what, $, want] of names) {
+    resetCaches()
+    expect([what, await pickName($)]).toEqual([what, want])
+  }
+  expect(nameFromChat('You are Builder A_My Shop_001, go')).toBe('My Shop')
+  expect(nameFromChat('You are Manager_PINR and keep going')).toBe('PINR')
+  expect(nameFromChat('You are Designer B_Muster')).toBe('Muster')
+  expect(nameFromSummary('I am Manager_PINR.')).toBe('PINR')
+  expect(nameFromSummary('We talked about Manager_PINR')).toBe('')
+  expect(nameFromCrew('| Sketchpad_Muster | x |')).toBe('Muster')
 })

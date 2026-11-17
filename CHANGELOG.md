@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.137
+Affects: the owner's chat (the look).
+pick-name-every-chat: the project's name is now read in every kind of chat: a worktree copy found even when git does not answer (the folders above are walked five up, not two), names with accents kept whole, a name read from a compacted chat's summary, and the other crew roles listed in the crew file; a folder with no crew keeps (Claude pick)
+
 ## 0.3.136
 Affects: the owner's chat (the look).
 fast-cards: a card redraw waits on nothing: the project name, look settings and saved picks are read once per chat and kept (updated on this chat's own save or setting change), and the conversation is read once per new message, and again by the next redraw once the kept copy is 1.5 seconds old (so a rewind unpicks at once), one read for all cards, not one per card; nothing visible changes

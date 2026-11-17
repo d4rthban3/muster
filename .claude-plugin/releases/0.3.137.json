@@ -1,0 +1,13 @@
+{
+  "version": "0.3.137",
+  "changed_files": [
+    "look/group.ts",
+    "look/look.test.tsx"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "pick-name-every-chat: the project's name is now read in every kind of chat: a worktree copy found even when git does not answer (the folders above are walked five up, not two), names with accents kept whole, a name read from a compacted chat's summary, and the other crew roles listed in the crew file; a folder with no crew keeps (Claude pick)"
+}

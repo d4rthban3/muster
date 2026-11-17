@@ -72,7 +72,7 @@ async function ids($: any): Promise<{ id: string; legacy: string }> {
 // The project's name for the owner's words is the name typed at setup, which every crew chat carries as the
 // suffix of its name (Manager_Muster, Builder A_PINR). The project's muster/CREW.md lists those chats.
 export function nameFromCrew(text: string): string {
-  const m = /^\|\s*(?:Manager|Builder|Designer|Inspector|Design Inspector)(?: [A-Z])?_([^|_]+?)(?:_\d{3})?\s*\|/m.exec(text)
+  const m = /^\|\s*(?:Manager|Builder|Designer|Inspector|Design Inspector|Sketchpad|Agent Teacher|AI Socket)(?: [A-Z])?_([^|_]+?)(?:_\d{3})?\s*\|/m.exec(text)
   return m === null ? '' : m[1]!.trim()
 }
 // The main folder of a project from git's common directory ("<main>/.git"): a worktree's own folder may hold no
@@ -101,7 +101,7 @@ async function findName($: any): Promise<string> {
     const main = r && r.exitCode === 0 ? mainFromCommonDir(String(r.stdout)) : ''
     if (main !== '') roots.unshift(main)
   } catch { /* no git */ }
-  for (const r of [...roots].flatMap(x => { const up: string[] = [x]; let d = x.replace(/\/+$/, ''); for (let i = 0; i < 2 && d.lastIndexOf('/') > 0; i++) { d = d.slice(0, d.lastIndexOf('/')); up.push(d) } return up })) {
+  for (const r of [...roots].flatMap(x => { const up: string[] = [x]; let d = x.replace(/\/+$/, ''); for (let i = 0; i < 5 && d.lastIndexOf('/') > 0; i++) { d = d.slice(0, d.lastIndexOf('/')); up.push(d) } return up })) {
     try {
       const n = nameFromCrew(String(await $.fs.read(r.replace(/\/+$/, '') + '/muster/CREW.md')))
       if (n !== '') return n
@@ -113,6 +113,12 @@ async function findName($: any): Promise<string> {
     if (got !== null) {
       for (const m of got.slice(0, 6)) {
         const n = nameFromChat(String(m?.text ?? ''))
+        if (n !== '') return n
+      }
+      // a chat that was compacted starts with its summary, which names the chat ('I am Builder A_Muster', 'chat "Builder A_Muster"')
+      for (const m of got.slice(0, 3)) {
+        if (m?.role !== 'user') continue
+        const n = nameFromSummary(String(m?.text ?? ''))
         if (n !== '') return n
       }
     }
@@ -254,10 +260,19 @@ export function rename(line: string, name: string): string {
   return line.replace(/\(my pick(?=[:)])/gi, `(${name === '' ? 'Claude' : name} pick`)
 }
 // A crew chat's own first message names it ("You are Manager_PINR_001"): the project name when no crew file is found.
-export function nameFromChat(text: string): string {
-  const m = /\bYou are (?:Manager|Builder|Designer|Inspector|Design Inspector|Sketchpad|Agent Teacher|AI Socket)(?: [A-Z])?_([A-Za-z0-9-]+?)(?:_\d{3})?\b/.exec(text)
+const ROLES = 'Manager|Builder|Designer|Inspector|Design Inspector|Sketchpad|Agent Teacher|AI Socket'
+// the project's name after "Role_": letters of any language, digits and hyphens (a name with accents, "Pâtisserie", is whole);
+// a name with spaces is read only when a chat number follows it ("Builder A_My Shop_001")
+const nameAfter = (lead: string, text: string): string => {
+  const spaced = new RegExp(lead + `(?:${ROLES})(?: [A-Z])?_([\\p{L}\\p{N}-]+(?: [\\p{L}\\p{N}-]+){0,2})_\\d{3}(?![\\p{L}\\p{N}])`, 'u').exec(text)
+  if (spaced !== null) return spaced[1]!.trim()
+  const m = new RegExp(lead + `(?:${ROLES})(?: [A-Z])?_([\\p{L}\\p{N}-]+)(?:_\\d{3})?(?![\\p{L}\\p{N}_])`, 'u').exec(text)
   return m === null ? '' : m[1]!.trim()
 }
+// A crew chat's own first message names it ("You are Manager_PINR_001"): the project name when no crew file is found.
+export function nameFromChat(text: string): string { return nameAfter('\\bYou are ', text) }
+// A compacted chat's summary names itself ("I am Builder A_Muster", 'chat "Builder A_Muster_006"').
+export function nameFromSummary(text: string): string { return nameAfter('(?:\\bI am |\\bchat [\"\u201c]?)', text) }
 // name undefined: the card's own words; a string (even empty): the owner's voice.
 export function optionLine(text: string, letter: string, name?: string): string {
   const o = (parse(text)?.pieces ?? []).find(p => p.kind === 'choice' && p.letter === letter) as { text: string } | undefined

@@ -669,6 +669,68 @@ fn open_order_held(root: &str) -> Option<bool> {
     }
     Some(blocks.iter().any(|b| caps(&head, b).map(|m| !is(&re(r"^\s*Manager"), &m[1])).unwrap_or(false) && is(&open, b)))
 }
+/// '2026-11-17T20:32:30.123Z' as seconds since 1970 (civil-days count), or None.
+fn iso_epoch(ts: &str) -> Option<i64> {
+    let m = caps(&re(r"^(\d{4})-(\d\d)-(\d\d)T(\d\d):(\d\d):(\d\d)"), ts)?;
+    let n = |i: usize| m[i].parse::<i64>().unwrap_or(0);
+    let (y, mo, d) = (n(1) - if n(2) <= 2 { 1 } else { 0 }, n(2), n(3));
+    let era = y.div_euclid(400);
+    let yoe = y - era * 400;
+    let doy = (153 * (if mo > 2 { mo - 3 } else { mo + 9 }) + 2) / 5 + d - 1;
+    let doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
+    Some((era * 146097 + doe - 719468) * 86400 + n(4) * 3600 + n(5) * 60 + n(6))
+}
+
+/// Item 118 (idle-card-when-changed): true when something changed since the manager's last idle card: a new owner message, a new report
+/// (an id not seen before the card), a ship, or a board change (BOARD.md newer than the card). With no earlier card, or no transcript, true.
+fn idle_changed(path: &str, root: &str) -> bool {
+    let entries = lines_of(path);
+    if entries.is_empty() { return true; }
+    let ends = rei(r"<cross-session-message|<task-notification|<side-sessions-event|<ci-monitor-event|\[SYSTEM NOTIFICATION");
+    let neutral = rei(r"^\s*(<system-reminder|Stop hook feedback|Stop hook blocking error)");
+    let kind = rei(r#"(?m)"kind"\s*:\s*"(READY|PASS|FAIL|DONE|NEED|REPORT|SHIP)"|^\s*(READY|PASS|FAIL|DONE)\b"#);
+    let cid = re(r#""id"\s*:\s*"([^"]+)""#);
+    let shipre = re(r"\bship\.sh\b|git push\b[^\n]*\bmain\b");
+    let idle = rei(r"\bThe crew is idle\b");
+    let mut seen: std::collections::HashSet<String> = std::collections::HashSet::new();
+    let (mut card_at, mut card_ts, mut changed) = (None::<usize>, String::new(), false);
+    for (i, d) in entries.iter().enumerate() {
+        let c = msg_content(d);
+        let blocks: Vec<Value> = match &c { Value::Array(a) => a.clone(), o => vec![serde_json::json!({"type": "text", "text": content_text(o)})] };
+        let text = content_text(&c);
+        let key = |t: &str| caps(&cid, t).map(|m| m[1].to_string()).unwrap_or_else(|| t.to_string());
+        if s(d, "type") == "assistant" {
+            let mut t = String::new();
+            for b in &blocks { if s(b, "type") == "text" { t.push_str(s(b, "text")); t.push(' '); } }
+            if is(&idle, &t) { card_at = Some(i); card_ts = s(d, "timestamp").to_string(); changed = false; }
+            if card_at.is_some() && card_at != Some(i) {
+                for b in &blocks {
+                    if s(b, "type") == "tool_use" && is(&shipre, b.get("input").map(|x| s(x, "command")).unwrap_or("")) { changed = true; }
+                }
+            }
+            continue;
+        }
+        if s(d, "type") != "user" || blocks.iter().any(|b| s(b, "type") == "tool_result") || text.trim().is_empty() { continue; }
+        if card_at.is_none() {
+            if text.contains("<cross-session-message") { seen.insert(key(&text)); }
+            continue;
+        }
+        if text.contains("<cross-session-message") {
+            let k = key(&text);
+            if !seen.contains(&k) && is(&kind, &text) { changed = true; }
+            seen.insert(k);
+        } else if !is(&ends, &text) && !is(&neutral, &text) {
+            changed = true;
+        }
+    }
+    if card_at.is_none() || changed { return true; }
+    let t0 = match iso_epoch(&card_ts) { Some(t) => t, None => return false };
+    let board = Path::new(if root.is_empty() { "." } else { root }).join("muster").join("BOARD.md");
+    match std::fs::metadata(&board).and_then(|m| m.modified()).ok().and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok()) {
+        Some(d) => (d.as_secs() as i64) > t0,
+        None => false,
+    }
+}
 /// The working status line, the idle card (two or more lettered next steps), or a question or yes he must give.
 fn idle_card_ok(t: &str) -> bool {
     status_line(t) || is(&rei(r"\b(I need your yes|needs? your yes|your yes (is needed|to))\b"), t) || re(r"(?m)^\*\*\*[A-D]\.\*\*\*").find_iter(t).count() >= 2
@@ -684,7 +746,8 @@ fn stop(c: &Ctx, data: &Value, manager: bool) {
     }
     // Item 125: a manager's turn ends with the idle card or the Working line when no worker holds an open order on the board (even with no text)
     if manager && !data.get("stop_hook_active").and_then(Value::as_bool).unwrap_or(false) && !bounced_this_turn(s(data, "transcript_path"))
-        && !owner_typed_last(s(data, "transcript_path")) && open_order_held(&main_folder(s(data, "cwd"))) == Some(false) && !idle_card_ok(text) {
+        && !owner_typed_last(s(data, "transcript_path")) && open_order_held(&main_folder(s(data, "cwd"))) == Some(false) && !idle_card_ok(text)
+        && idle_changed(s(data, "transcript_path"), &main_folder(s(data, "cwd"))) {
         block("no worker holds an open order on the board, and the owner has not been told (item 125): end this turn with the idle card, a bold 'IDLE \u{b7} crew' title, then 'The crew is idle. Here's what's next toward your goal,' and the top next steps as lettered lines (***A.*** ... with your pick marked); or give a worker its next order first");
         return;
     }

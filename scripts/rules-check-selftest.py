@@ -39,6 +39,16 @@ def said(text):
     return {"type": "user", "message": {"content": text}}
 
 
+def card(ts=None):
+    d = {"type": "assistant", "message": {"content": [{"type": "text", "text": "**IDLE \u00b7 crew**\n\nThe crew is idle. Here's what's next toward your goal,\n\n***A.*** one\n\n***B.*** two"}]}}
+    if ts:
+        d["timestamp"] = ts
+    return d
+
+
+report = lambda i: '<cross-session-message from="x">{"v":1,"kind":"PASS","id":"%s","job":"j"}</cross-session-message>' % i
+
+
 def big(n):
     return {"type": "assistant", "message": {"content": [{"type": "text", "text": "x"}], "usage": {"input_tokens": 5, "cache_read_input_tokens": n - 5000, "cache_creation_input_tokens": 4995}}}
 
@@ -212,6 +222,17 @@ cases = [
     ("item 125: all idle and no card is refused", run("Stop", last_assistant_message="Everything is done.", transcript_path=tr(MG, [said("<task-notification>x")]), cwd=PJ_IDLE), True),
     ("item 125: all idle and no text at all is refused", run("Stop", last_assistant_message="", transcript_path=tr(MG, [said("<task-notification>x")]), cwd=PJ_IDLE), True),
     ("item 125: all idle with the idle card passes", run("Stop", last_assistant_message="**IDLE \u00b7 crew**\n\nThe crew is idle. Here's what's next toward your goal,\n\n***A.*** one (my pick)\n\n***B.*** two", transcript_path=tr(MG, [said("<task-notification>x")]), cwd=PJ_IDLE), False),
+    # item 118 (idle-card-when-changed): after an idle card, the next one is asked for only when something changed
+    ("idle-changed: nothing new since the last card passes", run("Stop", last_assistant_message="Nothing new.", transcript_path=tr(MG, [card(), said("<task-notification>x")]), cwd=PJ_IDLE), False),
+    ("idle-changed: no text at all, nothing new, passes", run("Stop", last_assistant_message="", transcript_path=tr(MG, [card(), said("<task-notification>x")]), cwd=PJ_IDLE), False),
+    ("idle-changed: a new owner message is a change", run("Stop", last_assistant_message="Done.", transcript_path=tr(MG, [card(), said("please add the thing")]), cwd=PJ_IDLE), True),
+    ("idle-changed: a new report is a change", run("Stop", last_assistant_message="Done.", transcript_path=tr(MG, [card(), said(report("p-2"))]), cwd=PJ_IDLE), True),
+    ("idle-changed: a repeat of a report seen before the card is not", run("Stop", last_assistant_message="Done.", transcript_path=tr(MG, [said(report("p-1")), card(), said(report("p-1"))]), cwd=PJ_IDLE), False),
+    ("idle-changed: other-chat talk that is no report is not", run("Stop", last_assistant_message="Done.", transcript_path=tr(MG, [card(), said("<cross-session-message from=\"b\">got it, thanks</cross-session-message>")]), cwd=PJ_IDLE), False),
+    ("idle-changed: a ship after the card is a change", run("Stop", last_assistant_message="Done.", transcript_path=tr(MG, [card(), {"type": "assistant", "message": {"content": [{"type": "tool_use", "name": "Bash", "input": {"command": "bash scripts/ship.sh"}}]}}, said("<task-notification>x")]), cwd=PJ_IDLE), True),
+    ("idle-changed: a board changed since the card is a change", run("Stop", last_assistant_message="Done.", transcript_path=tr(MG, [card("2000-01-01T00:00:00Z"), said("<task-notification>x")]), cwd=PJ_IDLE), True),
+    ("idle-changed: a board older than the card is not", run("Stop", last_assistant_message="Done.", transcript_path=tr(MG, [card("2999-01-01T00:00:00Z"), said("<task-notification>x")]), cwd=PJ_IDLE), False),
+    ("idle-changed: a changed turn with the card passes", run("Stop", last_assistant_message="**IDLE \u00b7 crew**\n\nThe crew is idle. Here's what's next toward your goal,\n\n***A.*** one (my pick)\n\n***B.*** two", transcript_path=tr(MG, [card(), said("please add the thing")]), cwd=PJ_IDLE), False),
     ("item 125: an open order and no text passes", run("Stop", last_assistant_message="", transcript_path=tr(MG, [said("<task-notification>x")]), cwd=PJ_BUSY), False),
     ("item 125: an open order and a Working line passes", run("Stop", last_assistant_message="Working: Builder A on idle-card", transcript_path=tr(MG, [said("<task-notification>x")]), cwd=PJ_BUSY), False),
     ("item 125: an open order to the manager itself is not a worker's", run("Stop", last_assistant_message="Done.", transcript_path=tr(MG, [said("<task-notification>x")]), cwd=PJ_MGR), True),

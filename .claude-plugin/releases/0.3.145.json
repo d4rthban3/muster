@@ -1,0 +1,16 @@
+{
+  "version": "0.3.145",
+  "changed_files": [
+    "hooks/rules-check.py",
+    "checks/src/rules.rs",
+    "scripts/rules-check-selftest.py"
+  ],
+  "affected_roles": [
+    "Manager"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "idle-card-when-changed: the manager's idle card is asked for only when something changed since its last one: a new owner message, a new report, a ship or a board change; background, other-chat and repeat-report turns with nothing new pass without it; a first card, or a transcript that cannot be read, is still asked for"
+}

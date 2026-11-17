@@ -1261,6 +1261,70 @@ def open_order_held(root):
     return False
 
 
+REPORT_KIND = re.compile(r"\"kind\"\s*:\s*\"(READY|PASS|FAIL|DONE|NEED|REPORT|SHIP)\"|^\s*(READY|PASS|FAIL|DONE)\b", re.I | re.M)
+CARD_ID = re.compile(r"\"id\"\s*:\s*\"([^\"]+)\"")
+
+
+def _iso_epoch(ts):
+    """'2026-11-17T20:32:30.123Z' as seconds since 1970, or None."""
+    m = re.match(r"(\d{4})-(\d\d)-(\d\d)T(\d\d):(\d\d):(\d\d)", str(ts or ""))
+    if not m:
+        return None
+    import calendar
+    return calendar.timegm(tuple(int(x) for x in m.groups()) + (0, 0, 0))
+
+
+def idle_changed(path, root):
+    """Item 118 (idle-card-when-changed): True when something changed since the manager's last idle card: a new owner message, a new report
+    (an id not seen before the card), a ship, or a board change (BOARD.md newer than the card). With no earlier card, or no transcript, True.
+    Background, other-chat and repeat-report turns with nothing new are not a change."""
+    entries = []
+    try:
+        with open(path, encoding="utf-8") as fh:
+            for line in fh:
+                try:
+                    entries.append(json.loads(line))
+                except ValueError:
+                    continue
+    except OSError:
+        return True
+    seen, card_at, card_ts, changed = set(), None, None, False
+    for i, d in enumerate(entries):
+        c = (d.get("message") or {}).get("content", "")
+        blocks = c if isinstance(c, list) else [{"type": "text", "text": str(c)}]
+        text = " ".join(b.get("text", "") for b in blocks if isinstance(b, dict) and b.get("type") == "text")
+        if d.get("type") == "assistant":
+            if re.search(r"\bThe crew is idle\b", text, re.I):
+                card_at, card_ts, changed = i, d.get("timestamp"), False
+            if card_at is not None and card_at != i:
+                for b in blocks:
+                    if isinstance(b, dict) and b.get("type") == "tool_use" and re.search(r"\bship\.sh\b|git push\b[^\n]*\bmain\b", str((b.get("input") or {}).get("command", ""))):
+                        changed = True
+            continue
+        if d.get("type") != "user" or any(isinstance(b, dict) and b.get("type") == "tool_result" for b in blocks) or not text.strip():
+            continue
+        if card_at is None:
+            if "<cross-session-message" in text:
+                seen.add(CARD_ID.search(text).group(1) if CARD_ID.search(text) else text)
+            continue
+        if "<cross-session-message" in text:
+            key = CARD_ID.search(text).group(1) if CARD_ID.search(text) else text
+            if key not in seen and REPORT_KIND.search(text):
+                changed = True
+            seen.add(key)
+        elif not ENDS_TURN.search(text) and not re.match(r"^\s*(<system-reminder|Stop hook feedback|Stop hook blocking error)", text, re.I):
+            changed = True
+    if card_at is None:
+        return True
+    if changed:
+        return True
+    t0 = _iso_epoch(card_ts)
+    try:
+        return t0 is not None and os.path.getmtime(os.path.join(root or ".", "muster", "BOARD.md")) > t0
+    except OSError:
+        return False
+
+
 def idle_card_ok(t):
     """The working status line, the idle card (two or more lettered next steps), or a question or yes he must give."""
     if status_line(t):
@@ -1278,7 +1342,8 @@ def stop(data, manager):
                      "Do the task now, or if you are unsure ask him ONE short question, nothing else")
     # Item 125: a manager's turn ends with the idle card or the Working line when no worker holds an open order on the board (even with no text)
     if manager and not data.get("stop_hook_active") and not bounced_this_turn(data.get("transcript_path") or "") \
-            and not owner_typed_last(data.get("transcript_path") or "") and open_order_held(main_folder(data.get("cwd"))) is False and not idle_card_ok(text):
+            and not owner_typed_last(data.get("transcript_path") or "") and open_order_held(main_folder(data.get("cwd"))) is False and not idle_card_ok(text) \
+            and idle_changed(data.get("transcript_path") or "", main_folder(data.get("cwd"))):
         return block("no worker holds an open order on the board, and the owner has not been told (item 125): end this turn with the idle card, a bold 'IDLE \u00b7 crew' title, then 'The crew is idle. Here's what's next toward your goal,' and the top next steps as lettered lines (***A.*** ... with your pick marked); or give a worker its next order first")
     if not text or data.get("stop_hook_active") or bounced_this_turn(data.get("transcript_path") or ""):
         return

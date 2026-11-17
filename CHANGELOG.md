@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.145
+Affects: the manager.
+idle-card-when-changed: the manager's idle card is asked for only when something changed since its last one: a new owner message, a new report, a ship or a board change; background, other-chat and repeat-report turns with nothing new pass without it; a first card, or a transcript that cannot be read, is still asked for
+
 ## 0.3.144
 Affects: the owner's chat (the look).
 choice-click-whole-row-2: the press region of a lettered option now takes its line count from the card (a generous estimate of the wrapped lines, clipped to the row) instead of its own height, so every line of a wrapped choice, the gaps and the padding take the press; hover and fill unchanged

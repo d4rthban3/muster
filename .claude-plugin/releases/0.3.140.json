@@ -1,0 +1,13 @@
+{
+  "version": "0.3.140",
+  "changed_files": [
+    "look/choice.tsx",
+    "look/look.test.tsx"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "choice-click-whole-row: the press region of a lettered option is now as tall as the whole highlight (one blank line per laid-out row), so a wrapped choice, the gaps between its lines and the padding all take the press, not only the first line; hover and fill unchanged"
+}

@@ -804,3 +804,24 @@ test('the click region is laid over the whole highlighted row on all four edges,
   expect(JSON.stringify(regions)).toContain('"width":"100%"')
   await ui.unmount()
 })
+
+test('a wrapped choice: the press region has a line for every laid-out row, so the whole highlight takes the press', async () => {
+  const posts: any[] = []
+  let state: any, pointer: any
+  const mk = (rows: number): any => ({
+    rows,
+    elements: { Box: (p: any) => p, Text: (p: any) => p },
+    get state() { return state },
+    setState: (n: any) => { state = n },
+    onPointer: (fn: any) => { pointer = fn },
+    post: (d: any) => posts.push(d),
+  })
+  const oldH = (globalThis as any).h
+  ;(globalThis as any).h = (t: any, p: any, ...c: any[]) => ({ t, p, c: c.flat() })
+  for (const rows of [1, 2, 3, 5]) {
+    state = undefined
+    const drawn: any = Choice({ letter: 'A', q: 'x', t: '' }, mk(rows))
+    expect(drawn.c.length).toBe(rows) // 0.3.138 drew one line whatever the height
+  }
+  ;(globalThis as any).h = oldH
+})

@@ -4,6 +4,11 @@
 // held; the plugin's own picked light takes over as it redraws.
 export default function Choice(props: any, s: any) {
   const { Box, Text } = s.elements
+  // One blank line per laid-out row of the region (as the left line does), so the press region is
+  // as tall as the whole highlight: a wrapped choice, the gaps between its lines and its padding.
+  const n = Math.max(1, Math.round(Number(s.rows) || 1))
+  const lines = []
+  for (let i = 0; i < n; i++) lines.push(<Text key={`l${i}`}> </Text>)
   if (s.state === undefined) {
     s.setState({ down: false })
     s.onPointer((e: any) => {
@@ -16,8 +21,8 @@ export default function Choice(props: any, s: any) {
     })
   }
   return (
-    <Box width="100%" height="100%" backgroundColor={s.state?.down === true ? '#ffffff26' : '#00000001'}>
-      <Text> </Text>
+    <Box width="100%" height="100%" flexDirection="column" backgroundColor={s.state?.down === true ? '#ffffff26' : '#00000001'}>
+      {lines}
     </Box>
   )
 }

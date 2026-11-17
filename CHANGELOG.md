@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.140
+Affects: the owner's chat (the look).
+choice-click-whole-row: the press region of a lettered option is now as tall as the whole highlight (one blank line per laid-out row), so a wrapped choice, the gaps between its lines and the padding all take the press, not only the first line; hover and fill unchanged
+
 ## 0.3.139
 Affects: the manager, builders and inspectors.
 order-acceptance-contract-risks: every order now carries an Accept line (what counts as passed, in his words) that the inspector reads one by one; a Contract line for a hand-off between workers (what is handed over and its shape); and one risk page, muster/RISKS.md (owner, what would go wrong, what closes it), kept by the manager. The end-of-turn check refuses a To/Job order with no filled Accept line, and an empty Contract line; a Contract line may be left out when nothing is handed over

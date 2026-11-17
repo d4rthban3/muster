@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.136
+Affects: the owner's chat (the look).
+fast-cards: a card redraw waits on nothing: the project name, look settings and saved picks are read once per chat and kept (updated on this chat's own save or setting change), and the conversation is read once per new message, and again by the next redraw once the kept copy is 1.5 seconds old (so a rewind unpicks at once), one read for all cards, not one per card; nothing visible changes
+
 ## 0.3.135
 Affects: the owner's chat (the look).
 pick-marker-back: a click's filled text always keeps the pick marker, '(<project> pick)' or '(Claude pick)' with no name, and a marker with a reason keeps the reason; the project name is also read from the chat's own first message

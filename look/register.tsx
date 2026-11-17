@@ -4,7 +4,7 @@ import { cutFont, fromBase64, type Cut } from './font'
 import { labelWidth } from './metrics'
 import { panel, registerLook } from './panel'
 import { glass, glassOn, applyGlass } from './glass'
-import { pickName, loadGroup, pickedOn, typedOn, savePick, hashText, answerLine, optionLine, fullestText, clearPick, answerStands, sent } from './group'
+import { pickName, loadGroup, pickedOn, typedOn, savePick, hashText, answerLine, optionLine, fullestText, clearPick, answerStands, sent, resetCaches, dropMessages } from './group'
 import { migrateLook } from './migrate'
 import { svgChip, pillOf, colourOr, YELLOW } from './chip'
 
@@ -32,6 +32,8 @@ export const register: Register = (on) => {
   // what a click sent: the click already did its own bookkeeping, so it is not the owner typing
   const ours = new Set<string>()
   on('prompt.submit', async ($, e, next) => {
+    // a message was sent: the kept conversation is read again the next time a card needs it
+    dropMessages()
     // only the owner's own typing answers a question; a peer's message, a
     // notification, a scheduled prompt or another plugin's submit leaves it live
     const mine = ours.delete(String((e as any).text ?? ''))
@@ -65,6 +67,7 @@ export const register: Register = (on) => {
   // The owner took an edit back (chat:undo): the newest question goes back to unpicked
   // and live again, as if never clicked. (The one undo the mod API reports.)
   on('prompt.change', { origin: { kind: 'undo' } }, async ($, e, next) => {
+    dropMessages()
     if (latestQuestion !== '') {
       answered.delete(latestQuestion)
       pending.delete(latestQuestion)
@@ -109,6 +112,7 @@ export const register: Register = (on) => {
 
   on('session.start', async ($, e, next) => {
     await migrateLook($)
+    resetCaches()
     await registerLook($)
     if (await glassOn($)) await applyGlass($, true)
     {

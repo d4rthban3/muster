@@ -1,10 +1,13 @@
-import { expect, test } from 'claude-code/testing'
+import { expect, test as rawTest } from 'claude-code/testing'
 import { sceneOf, glassOn, setGlassFlag, glassSettings, setGlassSetting } from './glass'
 import Rail from './rail'
 import { parse } from './parse'
 import { isOwnerSubmit } from './register'
-import { hashText, mainFromCommonDir, nameFromCrew, nameFromChat, pickName, rename, optionLine } from './group'
+import { clock, FRESH_MS, resetCaches, dropMessages, hashText, mainFromCommonDir, nameFromCrew, nameFromChat, pickName, rename, optionLine } from './group'
 import { migrateLook } from './migrate'
+
+// each test starts with nothing kept in memory, as a new chat does
+const test = ((name: string, fn: (...a: any[]) => any) => rawTest(name, ((...a: any[]) => { resetCaches(); return fn(...a) }) as any)) as typeof rawTest
 
 const MSG = (text: string, surface: 'terminal' | 'desktop') => ({
   plugin: 'muster',
@@ -102,7 +105,7 @@ test('with nothing set the look is the default', async ($, on) => {
   expect(s).toContain('font-weight="400"')
 })
 
-import { groupKey, groupId, loadGroup, saveGroup, clearGroup, savePick, pickedOn, clearPick, answerIn, answerStands, sent, answerTag, answerLine } from './group'
+import { groupKey, groupId, loadGroup, saveGroup, clearGroup, savePick, pickedOn, typedOn, clearPick, answerIn, answerStands, sent, answerTag, answerLine } from './group'
 
 const CUSTOM = { chipFont: 'Georgia', questionHeadingColor: '#2dd4bf', choiceChipColor: '#ff7ab6', lineTopColor: '#2dd4bf', lineBottomColor: '#ff7ab6' }
 
@@ -407,13 +410,70 @@ test('a pick follows the chat: the answer message gone (rewind) means unpicked; 
   const calls = (msgs: any) => ({ session: { messages: async () => msgs } })
   // seen in the chat, then rewound out of it: not picked
   expect(await answerStands(calls(chat('B')), Q, 'B')).toBe(true)
+  // the chat changed (the answer was rewound): the kept conversation is dropped, then read again
+  dropMessages()
   expect(await answerStands(calls(chat()), Q, 'B')).toBe(false)
   // just sent, not in the chat yet: still picked
   const Q2 = Q + ' two'
+  resetCaches()
   sent.add(Q2)
   expect(await answerStands(calls([{ role: 'assistant', text: Q2 }]), Q2, 'B')).toBe(true)
   // a host with no transcript reading changes nothing
+  resetCaches()
   expect(await answerStands({}, Q, 'B')).toBe(true)
+})
+
+test('a redraw of answered cards is quick: once warm it reads nothing from the session, a process or a file', async () => {
+  const N = 60
+  const qs = Array.from({ length: N }, (_, i) => `**WAITING · item ${i}**\nWhich ${i}?\n\n***A.*** Red. *(my pick)*\n\n***B.*** Blue.`)
+  const chat: any[] = [{ role: 'user', text: 'You are Manager_PINR_001' }]
+  qs.forEach(q => { chat.push({ role: 'assistant', text: q }); chat.push({ role: 'user', text: optionLine(q, 'A', 'PINR') }) })
+  const n = { session: 0, process: 0, fs: 0, store: 0 }
+  const kept = new Map<string, unknown>([['picks', Object.fromEntries(qs.map(q => [hashText(q), 'A']))]])
+  const $: any = {
+    session: { repo: async () => { n.session++; return { root: '/p/w', remote: 'git@h:o/r.git' } }, root: async () => { n.session++; return '/p/w' }, cwd: async () => { n.session++; return '/p/w' }, messages: async () => { n.session++; return chat } },
+    process: { run: async () => { n.process++; return { exitCode: 1, stdout: '' } } },
+    fs: { read: async () => { n.fs++; throw new Error('missing') } },
+    store: { get: async (k: string) => { n.store++; return kept.get(k) }, set: async (k: string, v: unknown) => { kept.set(k, v) }, delete: async (k: string) => { kept.delete(k) } },
+  }
+  // what one card's redraw reads: the look, the saved picks, and whether the answer still stands in the chat
+  const redraw = async (q: string) => {
+    await loadGroup($)
+    const p = await pickedOn($, q)
+    await typedOn($, q)
+    return p !== undefined && (await answerStands($, q, p))
+  }
+  const t0 = performance.now()
+  for (const q of qs) expect(await redraw(q)).toBe(true)
+  const cold = performance.now() - t0
+  const reads = { ...n }
+  expect(reads.session).toBeGreaterThan(0)
+  // warm: ten more redraws of every card touch nothing
+  const t1 = performance.now()
+  for (let r = 0; r < 10; r++) for (const q of qs) expect(await redraw(q)).toBe(true)
+  const warmMs = performance.now() - t1
+  expect(n).toEqual(reads)
+  expect(await pickName($)).toBe('PINR')
+  expect(n).toEqual(reads)
+  // a saved pick or setting updates what is kept, with no read back
+  await saveGroup($, 'questionHeadingColor', '#112233')
+  expect((await loadGroup($)).questionHeadingColor).toBe('#112233')
+  // a rewind sends no event: once the kept chat is older than FRESH_MS the next redraw reads it again,
+  // one read for the whole burst of cards, and sees the answer gone
+  const t = Date.now()
+  clock.now = () => t + FRESH_MS + 1
+  chat.length = 2 * N
+  const b0 = n.session
+  expect(await redraw(qs[N - 1]!)).toBe(false)
+  for (const q of qs) await redraw(q)
+  expect(n.session - b0).toBe(1)
+  clock.now = () => Date.now()
+  // a new message is read once, then kept again
+  dropMessages()
+  const before = n.session
+  for (const q of qs) await redraw(q)
+  expect(n.session - before).toBe(1)
+  console.log(`FAST-CARDS timing: ${N} answered cards, cold pass ${cold.toFixed(1)} ms, ten warm passes ${warmMs.toFixed(1)} ms; reads after warm-up: 0 (session ${reads.session}, store ${reads.store})`)
 })
 
 test('an older question answered with "Answer to <heading>: B" counts as answered in the chat', async () => {
@@ -649,6 +709,7 @@ test('a click fills the option in the owner voice: the card (my pick) reads (<pr
   expect(nameFromChat('hello there')).toBe('')
   const mk = (msgs: any[]) => ({ session: { repo: async () => null, root: async () => '/nowhere', cwd: async () => '/nowhere', messages: async () => msgs }, process: { run: async () => ({ exitCode: 1, stdout: '' }) }, fs: { read: async () => { throw new Error('missing') } } })
   expect(await pickName(mk([{ role: 'user', text: 'You are Manager_PINR_001' }]))).toBe('PINR')
+  resetCaches()
   expect(await pickName(mk([{ role: 'user', text: 'hello' }]))).toBe('')
   const Q = '**ASK · x**\nOne?\n\n***A.*** Do it *(my pick)*\n\n***B.*** Not this'
   expect(optionLine(Q, 'A', 'Muster')).toBe('A. Do it (Muster pick)')

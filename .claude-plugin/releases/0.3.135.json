@@ -1,0 +1,13 @@
+{
+  "version": "0.3.135",
+  "changed_files": [
+    "look/group.ts",
+    "look/look.test.tsx"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "pick-marker-back: a click's filled text always keeps the pick marker, '(<project> pick)' or '(Claude pick)' with no name, and a marker with a reason keeps the reason; the project name is also read from the chat's own first message"
+}

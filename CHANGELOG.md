@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.135
+Affects: the owner's chat (the look).
+pick-marker-back: a click's filled text always keeps the pick marker, '(<project> pick)' or '(Claude pick)' with no name, and a marker with a reason keeps the reason; the project name is also read from the chat's own first message
+
 ## 0.3.134
 Affects: Manager.
 idle-card-required: when no worker holds an open order on the board, the manager's turn must end with the idle card or a Working line, even with no text

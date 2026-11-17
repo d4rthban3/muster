@@ -63,13 +63,23 @@ export async function pickName($: any): Promise<string> {
     const main = r && r.exitCode === 0 ? mainFromCommonDir(String(r.stdout)) : ''
     if (main !== '') roots.unshift(main)
   } catch { /* no git */ }
-  for (const r of roots) {
+  for (const r of [...roots].flatMap(x => { const up: string[] = [x]; let d = x.replace(/\/+$/, ''); for (let i = 0; i < 2 && d.lastIndexOf('/') > 0; i++) { d = d.slice(0, d.lastIndexOf('/')); up.push(d) } return up })) {
     try {
       const n = nameFromCrew(String(await $.fs.read(r.replace(/\/+$/, '') + '/muster/CREW.md')))
       if (n !== '') return n
     } catch { /* no crew file here */ }
   }
-  // No crew file anywhere: no name. A folder or remote name is never guessed in its place.
+  // No crew file in this folder, its main folder or the folders above: the chat's own first message names it.
+  try {
+    const got = await $.session.messages()
+    if (Array.isArray(got)) {
+      for (const m of got.slice(0, 6)) {
+        const n = nameFromChat(String(m?.text ?? ''))
+        if (n !== '') return n
+      }
+    }
+  } catch { /* no messages */ }
+  // Still none: no name (the marker then reads "Claude pick"). A folder or remote name is never guessed in its place.
   return ''
 }
 export async function groupId($: any): Promise<string> { return (await ids($)).id }
@@ -187,9 +197,15 @@ export function answerTag(text: string): string {
 // nothing before or after. Words the owner typed are sent as typed. (A letter this card has no
 // option for goes as the bare letter.)
 // What a click puts in the box is the owner's words in the owner's voice: the card's "(my pick)" is the
-// assistant's, so it reads "(<project> pick)" there, or with no project name the marker is left out.
+// assistant's, so it reads "(<project> pick)" there, or "(Claude pick)" when no project name is read: the
+// owner keeps the recommendation either way. A marker with its reason, "(my pick: why)", keeps the reason.
 export function rename(line: string, name: string): string {
-  return name === '' ? line.replace(/\s*\(my pick\)/gi, '').trim() : line.replace(/\(my pick\)/gi, `(${name} pick)`)
+  return line.replace(/\(my pick(?=[:)])/gi, `(${name === '' ? 'Claude' : name} pick`)
+}
+// A crew chat's own first message names it ("You are Manager_PINR_001"): the project name when no crew file is found.
+export function nameFromChat(text: string): string {
+  const m = /\bYou are (?:Manager|Builder|Designer|Inspector|Design Inspector|Sketchpad|Agent Teacher|AI Socket)(?: [A-Z])?_([A-Za-z0-9-]+?)(?:_\d{3})?\b/.exec(text)
+  return m === null ? '' : m[1]!.trim()
 }
 // name undefined: the card's own words; a string (even empty): the owner's voice.
 export function optionLine(text: string, letter: string, name?: string): string {

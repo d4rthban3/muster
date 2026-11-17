@@ -3,7 +3,7 @@ import { sceneOf, glassOn, setGlassFlag, glassSettings, setGlassSetting } from '
 import Rail from './rail'
 import { parse } from './parse'
 import { isOwnerSubmit } from './register'
-import { hashText, mainFromCommonDir, nameFromCrew, rename, optionLine } from './group'
+import { hashText, mainFromCommonDir, nameFromCrew, nameFromChat, pickName, rename, optionLine } from './group'
 import { migrateLook } from './migrate'
 
 const MSG = (text: string, surface: 'terminal' | 'desktop') => ({
@@ -573,7 +573,7 @@ test('a click on a card drawn while the question was still streaming fills the w
   const a = await $.ui.mount(MSG(half, 'desktop'))
   const b = await $.ui.mount(MSG(Q, 'desktop'))
   await (a as any).post({ pick: 'A', q: hashText(half), t: half }, { in: 'pickA' })
-  expect(filled).toEqual(["replace:A. Let GitHub's check accept that one known glass warning and stay strict about everything else"])
+  expect(filled).toEqual(["replace:A. Let GitHub's check accept that one known glass warning and stay strict about everything else (Claude pick)"])
   void early
   await a.unmount(); await b.unmount()
 })
@@ -637,18 +637,29 @@ test('a click fills the option in the owner voice: the card (my pick) reads (<pr
   expect(rename('A. Do it (my pick)', nameFromCrew(CREW_P))).toBe('A. Do it (PINR pick)')
   expect(rename('A. Do it (my pick)', 'PINR')).toBe('A. Do it (PINR pick)')
   expect(rename('B. Not this', 'PINR')).toBe('B. Not this')
-  expect(rename('A. Do it (my pick)', '')).toBe('A. Do it')
+  expect(rename('A. Do it (my pick)', '')).toBe('A. Do it (Claude pick)')
   expect(rename('B. Not this', '')).toBe('B. Not this')
+  // the marker with its reason keeps the reason, in either voice
+  expect(rename('A. Do it (my pick: if you already have one, all the paths are unblocked at once)', 'PINR')).toBe('A. Do it (PINR pick: if you already have one, all the paths are unblocked at once)')
+  expect(rename('A. Do it (my pick: because)', '')).toBe('A. Do it (Claude pick: because)')
+  expect(rename('A. Do it (My Pick)', 'PINR')).toBe('A. Do it (PINR pick)')
+  // a crew chat's first message names the project when no crew file is found
+  expect(nameFromChat('First: read agents/manager.md. You are Manager_PINR_001.')).toBe('PINR')
+  expect(nameFromChat('You are Builder A_Muster_006, agents/builder.md')).toBe('Muster')
+  expect(nameFromChat('hello there')).toBe('')
+  const mk = (msgs: any[]) => ({ session: { repo: async () => null, root: async () => '/nowhere', cwd: async () => '/nowhere', messages: async () => msgs }, process: { run: async () => ({ exitCode: 1, stdout: '' }) }, fs: { read: async () => { throw new Error('missing') } } })
+  expect(await pickName(mk([{ role: 'user', text: 'You are Manager_PINR_001' }]))).toBe('PINR')
+  expect(await pickName(mk([{ role: 'user', text: 'hello' }]))).toBe('')
   const Q = '**ASK · x**\nOne?\n\n***A.*** Do it *(my pick)*\n\n***B.*** Not this'
   expect(optionLine(Q, 'A', 'Muster')).toBe('A. Do it (Muster pick)')
   expect(optionLine(Q, 'B', 'Muster')).toBe('B. Not this')
-  expect(optionLine(Q, 'A', '')).toBe('A. Do it')
+  expect(optionLine(Q, 'A', '')).toBe('A. Do it (Claude pick)')
   expect(optionLine(Q, 'A')).toBe('A. Do it (my pick)')
-  // no project name can be read (the test host has none): a click fills the text with the marker left out
+  // no project name can be read (the test host has none): a click fills the text with the marker as (Claude pick)
   const filled: string[] = []
   on('prompt.fill', async ($, e, next) => { filled.push(String((e as any).text)); return next(e) })
   const a = await $.ui.mount(MSG(Q, 'desktop'))
   await (a as any).post({ pick: 'A', q: hashText(Q), t: Q }, { in: 'pickA' })
-  expect(filled).toEqual(['A. Do it'])
+  expect(filled).toEqual(['A. Do it (Claude pick)'])
   await a.unmount()
 })

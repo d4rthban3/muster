@@ -15,7 +15,11 @@
     "scripts/setup-smoke.sh",
     "skills/manager-details/SKILL.md",
     "skills/one-order-per-piece/SKILL.md",
-    "templates/RISKS.md"
+    "templates/RISKS.md",
+    "pages/builder.md",
+    "pages/design-inspector.md",
+    "pages/inspector.md",
+    "pages/manager.md"
   ],
   "affected_roles": [
     "Manager",

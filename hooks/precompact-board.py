@@ -88,7 +88,7 @@ def main():
     entry = ("\n### %s | DONE | %s -> Manager | compaction\nStatus: done\nDONE: compacted in place [ID compact-%s-%s]\n"
              "What:  this chat is compacting in place (D-039); it carries on, no renewal.\n"
              "Where: open job %s; branch %s at %s.\n"
-             "Why:   the chat reached its size line (compact window, item 105).\n"
+             "Why:   the chat reached its size line, 250k tokens (compact window, items 105 and 118).\n"
              "How:   next step, from its last message: %s\n"
              "Need:  none\n") % (now.strftime("%Y-%m-%d"), who, slug, now.strftime("%H%M%S"),
                                 job or "none named in its last messages", branch, sha, note or "read its summary and the board entries addressed to it")

@@ -1,0 +1,35 @@
+{
+  "version": "0.3.141",
+  "changed_files": [
+    "agents/agent-teacher.md",
+    "agents/ai-socket.md",
+    "agents/builder.md",
+    "agents/design-inspector.md",
+    "agents/designer.md",
+    "agents/inspector.md",
+    "agents/manager.md",
+    "agents/sketchpad.md",
+    "hooks/precompact-board.py",
+    "pages/shared.md",
+    "profiles/muster.json",
+    "profiles/pinr.json",
+    "scripts/crew-plan.py",
+    "scripts/profile-selftest.py",
+    "skills/manager-details/SKILL.md"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Builder",
+    "Designer",
+    "Inspector",
+    "Design Inspector",
+    "Sketchpad",
+    "AI Socket",
+    "Agent Teacher"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "compact-at-250k: every crew chat now compacts in place at 250k tokens (was 200k for workers, 250k for the manager): worker pages, the before-compact note, crew-plan trim default and both profiles. Sonnet 5.5 runs a 1M window, so 250k is reached unless CLAUDE_CODE_DISABLE_1M_CONTEXT is set."
+}

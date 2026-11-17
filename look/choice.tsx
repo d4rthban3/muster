@@ -16,7 +16,7 @@ export default function Choice(props: any, s: any) {
     })
   }
   return (
-    <Box width="100%" height="100%" backgroundColor={s.state?.down === true ? '#ffffff26' : undefined}>
+    <Box width="100%" height="100%" backgroundColor={s.state?.down === true ? '#ffffff26' : '#00000001'}>
       <Text> </Text>
     </Box>
   )

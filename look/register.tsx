@@ -235,7 +235,7 @@ export const register: Register = (on) => {
           ) : <Box flexShrink={0}>{chip(p.letter, CHOICE, letterTw, 4, p.letter === picked)}</Box>}
           <Box key={`cb${i}`} flexShrink={1} flexGrow={1}><Markdown key={`cm${i}`} text={p.text} /></Box>
           {live && !isTerminal && Client !== undefined && (
-            <Box position="absolute" top={0} left={0} right={0} bottom={0}>
+            <Box position="absolute" top={0} left={0} right={0} bottom={0} width="100%" height="100%">
               <Client key={`pick${p.letter}`} module="./choice.tsx" props={{ letter: p.letter, q: hashText(e.props.text), t: e.props.text.length <= 4000 ? e.props.text : '' }} width="100%" height="100%" />
             </Box>
           )}

@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.138
+Affects: the owner's chat (the look).
+choice-click-area: the whole highlighted row of a lettered option takes the press: the click region is painted almost clear and set to full width and height, so no strip of the highlight is dead; hover and fill unchanged; nothing else visible changes
+
 ## 0.3.137
 Affects: the owner's chat (the look).
 pick-name-every-chat: the project's name is now read in every kind of chat: a worktree copy found even when git does not answer (the folders above are walked five up, not two), names with accents kept whole, a name read from a compacted chat's summary, and the other crew roles listed in the crew file; a folder with no crew keeps (Claude pick)

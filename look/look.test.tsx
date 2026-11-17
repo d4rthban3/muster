@@ -654,12 +654,12 @@ test('a press on a choice row lights it at once, posts its letter, and lets go o
   const oldH = (globalThis as any).h
   ;(globalThis as any).h = (t: any, p: any, ...c: any[]) => ({ t, p, c })
   const lit = () => (Choice({ letter: 'A', q: 'x', t: 'Q' }, surface) as any).p.backgroundColor
-  expect(lit()).toBeUndefined()
+  expect(lit()).toBe('#00000001')
   pointer({ type: 'down', x: 3, y: 0, button: 'left' })
   expect(posts).toEqual([{ pick: 'A', q: 'x', t: 'Q' }])
-  expect(lit()).toBeDefined()
+  expect(lit()).toBe('#ffffff26')
   pointer({ type: 'up', x: 3, y: 0, button: 'left' })
-  expect(lit()).toBeUndefined()
+  expect(lit()).toBe('#00000001')
   ;(globalThis as any).h = oldH
 })
 
@@ -768,4 +768,39 @@ test('the project name is read in every kind of chat: worktree, subfolder, no gi
   expect(nameFromSummary('I am Manager_PINR.')).toBe('PINR')
   expect(nameFromSummary('We talked about Manager_PINR')).toBe('')
   expect(nameFromCrew('| Sketchpad_Muster | x |')).toBe('Muster')
+})
+
+test('a press anywhere in a choice row picks it: every edge and corner, and the region is painted so it takes the press', async () => {
+  const posts: any[] = []
+  let state: any, pointer: any
+  const surface: any = {
+    elements: { Box: (p: any) => p, Text: (p: any) => p },
+    get state() { return state },
+    setState: (n: any) => { state = n },
+    onPointer: (fn: any) => { pointer = fn },
+    post: (d: any) => posts.push(d),
+  }
+  const oldH = (globalThis as any).h
+  ;(globalThis as any).h = (t: any, p: any, ...c: any[]) => ({ t, p, c })
+  const drawn: any = Choice({ letter: 'B', q: 'x', t: '' }, surface)
+  expect(drawn.p.backgroundColor).toBe('#00000001') // painted, so no unpainted strip
+  expect(drawn.p.width).toBe('100%')
+  expect(drawn.p.height).toBe('100%')
+  const spots = [[0, 0], [0, 1], [1, 0], [999, 0], [999, 40], [0, 40], [500, 20], [-1, -1]]
+  for (const [x, y] of spots) {
+    pointer({ type: 'down', x, y, button: 'left' })
+    pointer({ type: 'up', x, y, button: 'left' })
+  }
+  expect(posts.length).toBe(spots.length)
+  expect(posts.every(d => d.pick === 'B')).toBe(true)
+  ;(globalThis as any).h = oldH
+})
+
+test('the click region is laid over the whole highlighted row on all four edges, full width and height', async ($, on) => {
+  on('ui.render', ($, e) => { const { Text } = $.ui.resolve(e); return <Text>engine</Text> })
+  const ui = await $.ui.mount(MSG('**WAITING · item 7**\n***A.*** Build it now\n***B.*** Wait', 'desktop'))
+  const regions = (await ui.findAll({ type: 'Client' })) ?? []
+  expect(regions.length).toBeGreaterThan(0)
+  expect(JSON.stringify(regions)).toContain('"width":"100%"')
+  await ui.unmount()
 })

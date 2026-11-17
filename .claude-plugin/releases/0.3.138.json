@@ -1,0 +1,14 @@
+{
+  "version": "0.3.138",
+  "changed_files": [
+    "look/choice.tsx",
+    "look/register.tsx",
+    "look/look.test.tsx"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "choice-click-area: the whole highlighted row of a lettered option takes the press: the click region is painted almost clear and set to full width and height, so no strip of the highlight is dead; hover and fill unchanged; nothing else visible changes"
+}

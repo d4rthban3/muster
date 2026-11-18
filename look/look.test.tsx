@@ -2,7 +2,7 @@ import { expect, test as rawTest } from 'claude-code/testing'
 import { sceneOf, glassOn, setGlassFlag, glassSettings, setGlassSetting } from './glass'
 import Rail from './rail'
 import { parse } from './parse'
-import { isOwnerSubmit } from './register'
+import { isOwnerSubmit, findPick } from './register'
 import { clock, FRESH_MS, resetCaches, dropMessages, hashText, mainFromCommonDir, nameFromCrew, nameFromChat, nameFromSummary, pickName, rename, optionLine } from './group'
 import { migrateLook } from './migrate'
 
@@ -846,4 +846,55 @@ test('the card passes a generous line count for a long choice and clips the regi
   expect(rowsOf('B')).toBeGreaterThanOrEqual(5) // 144 characters: at least 4 lines at 40 columns, plus padding
   expect(rowsOf('B')).toBeGreaterThan(rowsOf('A'))
   await ui.unmount()
+})
+
+const QL = '**WAITING · item 31**\nWhich colour?\n\n***A.*** Red.\n\n***B.*** Blue.'
+const owner = (text: string) => ({ text, origin: { kind: 'composer' } }) as any
+const isLive = async (ui: any) => (await ui.find({ type: 'Client', key: 'pickA' })) !== undefined && (await ui.find({ type: 'Client', key: 'pickA' })) !== null
+
+test('choices stay live: free text from the owner does not answer the question', async ($, on) => {
+  on('ui.render', ($, e) => { const { Text } = $.ui.resolve(e); return <Text>engine</Text> })
+  on('prompt.submit', ($, e) => ({ text: String((e as any).text) }) as any)
+  const ui = await $.ui.mount(MSG(QL, 'desktop'))
+  expect(await isLive(ui)).toBe(true)
+  await $.prompt.submit(owner('Actually, one more thing before I pick'))
+  expect(await pickedOn($, QL)).toBeUndefined()
+  expect(await isLive(ui)).toBe(true)
+  await ui.unmount()
+})
+
+test('what counts as a pick: a lone letter of the newest question, or a click-then-Enter option line of any open question; free words pick nothing', async ($) => {
+  const NEWQ = '**WAITING · item 32**\nWhich size?\n\n***A.*** Big.\n\n***B.*** Small.'
+  const qs = [QL, NEWQ]
+  const answered = new Set<string>()
+  expect(await findPick($, 'Actually, one more thing', qs, answered, NEWQ)).toBeUndefined()
+  expect(await findPick($, 'b', qs, answered, NEWQ)).toEqual({ text: NEWQ, letter: 'B' })
+  expect(await findPick($, '**A.**', qs, answered, NEWQ)).toEqual({ text: NEWQ, letter: 'A' })
+  // an older question stays live: its click line picks it, and leaves the newer one alone
+  expect(await findPick($, 'B. Blue.', qs, answered, NEWQ)).toEqual({ text: QL, letter: 'B' })
+  // a locked question takes no second pick, by a line or a letter
+  answered.add(NEWQ)
+  expect(await findPick($, 'a', qs, answered, NEWQ)).toBeUndefined()
+  expect(await findPick($, 'A. Big.', qs, answered, NEWQ)).toBeUndefined()
+  await savePick($, QL, 'B')
+  expect(await findPick($, 'A. Red.', qs, answered, NEWQ)).toBeUndefined()
+})
+
+test('a pick locks the question wherever it is drawn: twice in one chat, and after a reload; a click on it fills nothing', async ($, on) => {
+  const filled: string[] = []
+  on('prompt.fill', async ($, e, next) => { filled.push(String((e as any).text)); return next(e) })
+  on('ui.render', ($, e) => { const { Text } = $.ui.resolve(e); return <Text>engine</Text> })
+  on('prompt.submit', ($, e) => ({ text: String((e as any).text) }) as any)
+  const QP = '**WAITING · item 33**\nWhich fruit?\n\n***A.*** Pear.\n\n***B.*** Plum.'
+  const one = await $.ui.mount(MSG(QP, 'desktop'))
+  const twin = await $.ui.mount(MSG(QP, 'desktop'))
+  expect(await isLive(one)).toBe(true)
+  await $.prompt.submit(owner('Let me think about it'))
+  expect(await isLive(one)).toBe(true) // free words leave it live
+  await $.prompt.submit(owner('b'))
+  const again = await $.ui.mount(MSG(QP, 'desktop'))
+  expect(await isLive(again)).toBe(false)
+  try { await (again as any).post({ pick: 'A', q: hashText(QP) }, { in: 'pickA' }) } catch { /* no live region */ }
+  expect(filled).toEqual([])
+  await one.unmount(); await twin.unmount(); await again.unmount()
 })

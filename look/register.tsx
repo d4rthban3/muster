@@ -21,6 +21,25 @@ const fontList = (want: unknown) => {
 // true only for the owner's own typing (the composer, or the phone/web bridge)
 export const isOwnerSubmit = (e: any): boolean => e?.origin?.kind === 'composer' || e?.origin?.kind === 'bridge'
 
+// Which question and letter a sent line picks, or undefined (free words pick nothing): the option line
+// a click put in the box, for any question not yet answered (newest first), or a lone letter of the newest.
+export async function findPick($: any, line: string, questions: string[], answered: Set<string>, latest: string): Promise<{ text: string; letter: string } | undefined> {
+  const sentLine = line.trim()
+  const name = await pickName($)
+  for (const text of [...questions].reverse()) {
+    if (answered.has(text) || (await pickedOn($, text)) !== undefined) continue
+    const q = parse(text)
+    const c = q === null ? undefined : q.pieces.find(p => p.kind === 'choice' && (optionLine(text, p.letter) === sentLine || optionLine(text, p.letter, name) === sentLine))
+    if (c !== undefined && c.kind === 'choice') return { text, letter: c.letter }
+  }
+  if (latest !== '' && !answered.has(latest) && (await pickedOn($, latest)) === undefined) {
+    const m = /^\s*\**([A-Za-z])[.)]?\**\s*$/.exec(sentLine)
+    const q = parse(latest)
+    if (m !== null && q !== null && q.pieces.some(p => p.kind === 'choice' && p.letter === m[1]!.toUpperCase())) return { text: latest, letter: m[1]!.toUpperCase() }
+  }
+  return undefined
+}
+
 export const register: Register = (on) => {
   panel(on)
   glass(on)
@@ -39,21 +58,15 @@ export const register: Register = (on) => {
     const mine = ours.delete(String((e as any).text ?? ''))
     const owner = !mine && isOwnerSubmit(e)
     if (owner && latestQuestion !== '') {
-      answered.add(latestQuestion)
-      // a reply that is just a letter of that question sticks on it
-      const m = /^\s*\**([A-Za-z])[.)]?\**\s*$/.exec(String((e as any).text ?? ''))
-      const q = parse(latestQuestion)
-      // the owner pressed Enter on the option line a click put in the box
-      const sentLine = String((e as any).text ?? '').trim()
-      const name = await pickName($)
-      const clicked = q === null ? undefined : q.pieces.find(p => p.kind === 'choice' && (optionLine(latestQuestion, p.letter) === sentLine || optionLine(latestQuestion, p.letter, name) === sentLine))
-      if (clicked !== undefined && clicked.kind === 'choice') {
-        await savePick($, latestQuestion, clicked.letter)
-        sent.add(latestQuestion)
-        $.ui.invalidate('ui.render')
-      } else if (m !== null && q !== null && q.pieces.some(p => p.kind === 'choice' && p.letter === m[1]!.toUpperCase())) {
-        await savePick($, latestQuestion, m[1]!.toUpperCase())
-        sent.add(latestQuestion)
+      // Only a real pick answers a question; any other words the owner sends leave every question live.
+      // A pick is the option line a click put in the box (for any question still drawn and unanswered,
+      // newest first, so an older question stays live after a newer one appears), or, for the newest
+      // question only, a reply that is just one of its letters.
+      const hit = await findPick($, String((e as any).text ?? ''), Array.from(known.values()), answered, latestQuestion)
+      if (hit !== undefined) {
+        answered.add(hit.text)
+        await savePick($, hit.text, hit.letter)
+        sent.add(hit.text)
         $.ui.invalidate('ui.render')
       }
     }
@@ -89,7 +102,7 @@ export const register: Register = (on) => {
       const text = named === undefined || named === "" ? named : fullestText(named, known.values())
       if (text === undefined || text === '') {
         $.ui.toast('That click could not be matched to its question. Type the answer instead.')
-      } else if (answered.has(text)) {
+      } else if (answered.has(text) || (await pickedOn($, text)) !== undefined) {
         $.ui.toast('That question is already answered.')
       } else {
         // a click only puts the option's full text in the owner's chat box; the owner presses Enter to

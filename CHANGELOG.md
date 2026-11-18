@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.148
+Affects: the owner's chat (the look).
+choices-stay-live: only a real pick answers a question (a click then Enter, or a reply that is just one of its letters); other words the owner sends leave the choices live and unfilled; a pick fills the choice and locks the question everywhere it is drawn and after a reload; an older question stays live (its option line picks it) once a newer one appears; a locked question takes no second pick; undo still returns it to live
+
 ## 0.3.147
 Affects: the manager.
 idle-card-manager-only: in an installed project the idle card is asked for only in the chat whose own title names the manager; a worker whose first message names its manager no longer gets it, and a chat whose title cannot be read stays silent

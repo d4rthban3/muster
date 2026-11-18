@@ -108,6 +108,14 @@ for msg, want in (("I need to edit the manager page next", False), ("Needs the m
                   ("The manager's call is pending", True), ("WAIT: the route; Manager's choice", True),
                   ("Needs the manager to pick one", True), ("Blocked on the manager for his go-ahead", True)):
     t("wait words: %r %s" % (msg, "refused" if want else "allowed"), ("sent the manager nothing" in wrun(msg, False, cwd=wt)) == want)
+# files saved with Windows line endings read the same (Python's text mode and the program both)
+for f in ("BOARD.md", "CREW.md", "OWNERS-LIST.md"):
+    q = os.path.join(main, "muster", f)
+    raw = open(q, "rb").read()
+    open(q, "wb").write(raw.replace(b"\r\n", b"\n").replace(b"\n", b"\r\n"))
+o = run({"last_assistant_message": "done"})
+t("CRLF files: the open order and the list item are still found", "job-one" in o and "item 1" in o and "job-fin" not in o and "item 2" not in o)
+
 # the shell hook: the program first, Python when no program is found or an older program does not know the check (exit 2)
 if PASS == "program":
     import shutil

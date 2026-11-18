@@ -9,7 +9,8 @@ use std::io::Read;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-fn read(p: &Path) -> String { fs::read(p).map(|b| String::from_utf8_lossy(&b).to_string()).unwrap_or_default() }
+/// A text file as Python's text mode reads it: every line ending (CRLF, a lone CR) becomes a newline, so a file saved on Windows reads the same.
+fn read(p: &Path) -> String { fs::read(p).map(|b| String::from_utf8_lossy(&b).replace("\r\n", "\n").replace('\r', "\n")).unwrap_or_default() }
 
 /// Python's str.splitlines for the separators that can show up in a text file.
 fn py_lines(t: &str) -> Vec<&str> {

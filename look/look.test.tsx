@@ -899,29 +899,30 @@ test('a pick locks the question wherever it is drawn: twice in one chat, and aft
   await one.unmount(); await twin.unmount(); await again.unmount()
 })
 
-test('words sent from the card own box answer nothing and the choices stay live; a lone letter there picks and locks', async ($, on) => {
+test('words sent from the card own box are his answer: the choices lock and the box draws yellow with his words, in every copy and after a reload; main-box words leave choices live', async ($, on) => {
   const sentOut: string[] = []
   on('ui.render', ($, e) => { const { Text } = $.ui.resolve(e); return <Text>engine</Text> })
   on('prompt.submit', ($, e) => { sentOut.push(String((e as any).text)); return { text: String((e as any).text) } as any })
   const QB = '**WAITING · item 41**\nWhich metal?\n\n***A.*** Iron.\n\n***B.*** Tin.'
-  const ui = await $.ui.mount(MSG(QB, 'desktop'))
-  await (ui as any).input({ key: 'own-answer', text: 'okay' })
-  expect(sentOut).toEqual(['okay']) // still goes to the chat as his message
-  expect(await isLive(ui)).toBe(true) // choices stay live
-  expect(await ui.find({ type: 'Client', key: 'pickB' })).toBeTruthy()
-  await (ui as any).input({ key: 'own-answer', text: 'b' })
-  expect(sentOut).toEqual(['okay', 'B. Tin.'])
-  const again = await $.ui.mount(MSG(QB, 'desktop'))
-  expect(await isLive(again)).toBe(false)
-  await ui.unmount(); await again.unmount()
+  const one = await $.ui.mount(MSG(QB, 'desktop'))
+  const twin = await $.ui.mount(MSG(QB, 'desktop'))
+  // main-box words (not the card's box) leave it live
+  await $.prompt.submit({ text: 'main box words', origin: { kind: 'composer' } } as any)
+  expect(await isLive(one)).toBe(true)
+  await (one as any).input({ key: 'own-answer', text: 'okay' })
+  expect(sentOut.at(-1)).toContain('okay') // still goes to the chat as his message
+  const yellow = async (ui: any) => JSON.stringify(await ui.findAll({ type: 'Box' })).includes('"backgroundColor":"#3a3419"') && JSON.stringify(await ui.findAll({ type: 'Text' })).includes('okay')
+  const again = await $.ui.mount(MSG(QB, 'desktop')) // a reload: drawn fresh
+  for (const ui of [one, twin, again]) {
+    expect(await isLive(ui)).toBe(false)
+    expect(await yellow(ui)).toBe(true)
+  }
+  await one.unmount(); await twin.unmount(); await again.unmount()
 })
 
-test('an old stored typed answer no longer deadens the choices', async ($, on) => {
-  on('ui.render', ($, e) => { const { Text } = $.ui.resolve(e); return <Text>engine</Text> })
-  const QO = '**WAITING · item 42**\nWhich shape?\n\n***A.*** Round.\n\n***B.*** Square.'
-  await savePick($, QO, '=okay')
-  resetCaches()
-  const ui = await $.ui.mount(MSG(QO, 'desktop'))
-  expect(await isLive(ui)).toBe(true)
-  await ui.unmount()
+test('undo clears the yellow answer and unlocks the choices', async ($) => {
+  await savePick($, 'question yellow', '=okay')
+  expect(await typedOn($, 'question yellow')).toBe('okay')
+  await clearPick($, 'question yellow')
+  expect(await typedOn($, 'question yellow')).toBeUndefined()
 })

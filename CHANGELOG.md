@@ -6,6 +6,9 @@ Each version names which workers it affects.
 Affects: the manager and every worker.
 manager-known-by-title: a chat whose file opens with a compaction summary is now known by its own title (a title naming a crew chat, such as Manager_PINR) in the rules check, talk check, board stop, worker queue, renewal and pre-compact hooks, Python and Rust, so the ?? play-back and the refusal of ask and buttons in the wrap-up call reach it; a worker's first message that names its manager still does not make it a manager (a worker title decides)
 
+Affects: the owner's chat (the look).
+answer-box-yellow: words sent from the box under the choices are his answer (as before 0.3.150): the choices lock and the box fills yellow with his words, in every copy of the question and after a reload; words from the main message box still leave the choices live; undo clears it
+
 ## 0.3.150
 Affects: the owner's chat (the look).
 choices-stay-live-2: words sent from the card's own type-your-own-answer box are the owner's message and answer nothing, so the choices stay live and unfilled; only a click or a lone letter (there or in the chat box) fills and locks; an old stored typed answer is dropped so it cannot deaden the choices, and the 'Your answer' line is gone

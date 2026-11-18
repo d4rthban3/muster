@@ -144,13 +144,12 @@ export const register: Register = (on) => {
     // this group's own look; a group with none gets the defaults
     const opts = await loadGroup($)
     let picked = parsed.isQuestion ? (pending.get(e.props.text) ?? await pickedOn($, e.props.text)) : undefined
-    // Words the owner typed are never an answer: an old stored typed answer is dropped, so it cannot deaden the choices.
-    const typed: string | undefined = undefined
-    if (parsed.isQuestion && (await typedOn($, e.props.text)) !== undefined) await clearPick($, e.props.text)
+    let typed = parsed.isQuestion ? await typedOn($, e.props.text) : undefined
     // the answer message is gone from the chat (the rewind button): back to unpicked and live again
-    const mark = picked
+    const mark = picked ?? (typed !== undefined ? '=' + typed : undefined)
     if (mark !== undefined && !(await answerStands($, e.props.text, mark))) {
       picked = undefined
+      typed = undefined
       answered.delete(e.props.text)
       pending.delete(e.props.text)
       await clearPick($, e.props.text)
@@ -166,7 +165,7 @@ export const register: Register = (on) => {
     const ui = $.ui.resolve(e) as any
     if (parsed.isQuestion) latestQuestion = e.props.text
     if (parsed.isQuestion) known.set(hashText(e.props.text), e.props.text)
-    const live = parsed.isQuestion && !answered.has(e.props.text) && picked === undefined
+    const live = parsed.isQuestion && !answered.has(e.props.text) && picked === undefined && typed === undefined
     const liveNewest = live && e.props.text === latestQuestion
     const { Box, Text, Markdown, Svg, Client, Input } = ui
     const isTerminal = e.surface === 'terminal'
@@ -346,22 +345,22 @@ export const register: Register = (on) => {
               onSubmit={(t: string) => {
                 const words = String(t).trim()
                 if (words === '' || e.props.text !== latestQuestion || answered.has(e.props.text)) return
-                // words from this box are the owner's message and answer nothing; only a lone letter of the
-                // question picks it (then the option's own line is what is sent)
-                const m = /^\**([A-Za-z])[.)]?\**$/.exec(words)
-                const q = parse(e.props.text)
-                const letter = m !== null && q !== null && q.pieces.some(c => c.kind === 'choice' && c.letter === m[1]!.toUpperCase()) ? m[1]!.toUpperCase() : undefined
-                if (letter !== undefined) {
-                  answered.add(e.props.text)
-                  sent.add(e.props.text)
-                  void savePick($, e.props.text, letter).then(() => $.ui.invalidate('ui.render'))
-                  void $.prompt.submit({ text: answerLine(e.props.text, letter) })
-                  return
-                }
-                void $.prompt.submit({ text: words })
-                return
+                answered.add(e.props.text)
+                sent.add(e.props.text)
+                void savePick($, e.props.text, '=' + words.slice(0, 300)).then(() => $.ui.invalidate('ui.render'))
+                void $.prompt.submit({ text: answerLine(e.props.text, words) })
               }}
             />
+          </Box>
+        )}
+        {parsed.isQuestion && typed !== undefined && (
+          // his own answer, sent from the box under the choices: the box fills yellow (the question's own
+          // colour) and shows his words; it, the lock and the words stay wherever this question is drawn
+          <Box key="typed" paddingLeft={1} flexDirection="column">
+            {isTerminal ? null : spacer(6)}
+            <Box key="typed-box" flexGrow={1} backgroundColor={isTerminal ? undefined : QUESTION.fill} paddingLeft={1} paddingRight={1}>
+              <Text color={QUESTION.text}>{typed}</Text>
+            </Box>
           </Box>
         )}
         {after.length > 0 && parsed.pieces[lastChoice + 1]?.kind === 'title' && (isTerminal ? <Text key="gap"> </Text> : spacer(14))}

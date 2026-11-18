@@ -117,3 +117,10 @@ jobs:
           chmod +x "$BIN" || true
           MUSTER_CHECKS_BIN="$BIN" python3 scripts/rules-check-selftest.py
           MUSTER_CHECKS_BIN="$BIN" python3 scripts/profile-selftest.py
+      - name: The program and the Python checks answer alike (parity)
+        if: matrix.dir == 'linux-x86_64'
+        run: |
+          BIN="$GITHUB_WORKSPACE/bin/${{ matrix.dir }}/${{ matrix.exe }}"
+          MUSTER_CHECKS_BIN="$BIN" python3 scripts/rules-parity-fuzz.py
+          MUSTER_CHECKS_BIN="$BIN" python3 scripts/rules-parity-stop.py
+          MUSTER_CHECKS_BIN="$BIN" python3 scripts/rules-parity-tools.py

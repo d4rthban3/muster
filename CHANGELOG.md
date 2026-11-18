@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.154
+Affects: the manager and every worker.
+rust-first-1-parity: the Rust program now answers the way the Python checks do where it differed: it finds the choice recorder and the usage script from where the plugin keeps its programs, the board check remembers what the manager was told under the same fingerprint, a profile that only names managers still knows a summary-first manager chat by its title, and a hook field or profile switch that Python reads as true or false is read the same way; four parity scripts compare the two copies. Python stays as the fallback; nothing is removed
+
 ## 0.3.153
 Affects: the owner's chat (the look).
 background-loads-light: the glass background is built once per chat and kept, so a redraw no longer reads the stored settings, the picture file and rebuilds the 130,000-character scene each time; the scene is applied before the /look command is registered; the picture itself is unchanged

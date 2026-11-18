@@ -7,22 +7,22 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 #[derive(Clone)]
-struct Entry { kind: String, from: String, job: String, status: String, paused: bool, resumed: bool, body: String }
+struct Entry { kind: String, from: String, job: String, status: String, paused: bool, resumed: bool, body: Vec<String> }
 
 fn entries(text: &str) -> Vec<Entry> {
     let (head, status_re, pause_yes, pause_no) = (re(r"^\s*###\s"), rei(r"^\s*status\s*:\s*([A-Za-z]+)"), rei(r"^\s*paused\s*:\s*yes"), rei(r"^\s*paused\s*:\s*no"));
     let arrow = re(r"\s*->.*");
     let (mut out, mut cur, mut fenced): (Vec<Entry>, Option<Entry>, bool) = (vec![], None, false);
     for line in text.lines() {
-        if line.trim().starts_with("```") { fenced = !fenced; continue; }
-        if fenced { continue; }
+        if line.trim().starts_with("```") { fenced = !fenced; if let Some(c) = cur.as_mut() { c.body.push(line.to_string()); } continue; }
+        if fenced { if let Some(c) = cur.as_mut() { c.body.push(line.to_string()); } continue; }
         if is(&head, line) {
             if let Some(c) = cur.take() { out.push(c); }
             let parts: Vec<String> = line.split('|').map(|p| p.trim_matches(|c| c == ' ' || c == '#' || c == '`').to_string()).collect();
             let frm = parts.get(2).map(|p| sub(&arrow, p, "")).unwrap_or_default();
-            cur = Some(Entry { kind: parts.get(1).map(|p| p.to_uppercase()).unwrap_or_default(), from: frm, job: parts.get(3).cloned().unwrap_or_default(), status: "open".into(), paused: false, resumed: false, body: String::new() });
+            cur = Some(Entry { kind: parts.get(1).map(|p| p.to_uppercase()).unwrap_or_default(), from: frm, job: parts.get(3).cloned().unwrap_or_default(), status: "open".into(), paused: false, resumed: false, body: vec![] });
         } else if let Some(c) = cur.as_mut() {
-            c.body.push_str(line); c.body.push('\n');
+            c.body.push(line.to_string());
             if let Some(m) = caps(&status_re, line) { c.status = m[1].to_lowercase(); }
             if is(&pause_yes, line) { c.paused = true; }
             if is(&pause_no, line) { c.resumed = true; }
@@ -36,7 +36,7 @@ fn entries(text: &str) -> Vec<Entry> {
 fn line_entries(text: &str) -> Vec<Entry> {
     let row = re(r"^\s*\d{4}-\d\d-\d\d\s*\|\s*([A-Za-z ]+?)\s*\|\s*([^|]*?)\s*\|\s*(.*)$");
     let (yes, no, arrow) = (rei(r"\bpaused\s*:\s*yes"), rei(r"\bpaused\s*:\s*no"), re(r"\s*->.*"));
-    text.lines().filter_map(|l| caps(&row, l).map(|m| Entry { kind: m[1].to_uppercase(), from: sub(&arrow, &m[2], ""), job: String::new(), status: "open".into(), paused: is(&yes, l), resumed: is(&no, l), body: l.to_string() })).collect()
+    text.lines().filter_map(|l| caps(&row, l).map(|m| Entry { kind: m[1].to_uppercase(), from: sub(&arrow, &m[2], ""), job: String::new(), status: "open".into(), paused: is(&yes, l), resumed: is(&no, l), body: vec![l.to_string()] })).collect()
 }
 
 /// FNV-1a 64-bit (the same hash as the Python copy).
@@ -50,7 +50,7 @@ fn told_file(tpath: &str, cwd: &str) -> PathBuf {
 /// What the manager has been told about an item: changes when the worker, kind, job, status or any line of its entry changes.
 fn item_fp(e: &Entry) -> String {
     let py_bool = if e.paused { "True" } else { "False" };
-    format!("{:016x}", fnv(&[e.from.as_str(), e.kind.as_str(), e.job.as_str(), e.status.as_str(), py_bool, e.body.trim_end_matches('\n')].join("|")))
+    format!("{:016x}", fnv(&[e.from.as_str(), e.kind.as_str(), e.job.as_str(), e.status.as_str(), py_bool, e.body.join("\n").as_str()].join("|")))
 }
 
 fn manager_re(profile: &Value) -> fancy_regex::Regex {
@@ -83,16 +83,20 @@ pub fn run() -> i32 {
     let Some(data) = read_stdin() else { return 0 };
     if stood_down(&data, "board-stop.py") { return 0; }
     let profile = load_profile();
-    if data.get("stop_hook_active").and_then(Value::as_bool).unwrap_or(false) { return 0; }
+    if truthy(data.get("stop_hook_active")) { return 0; }
     if bounced_this_turn(s(&data, "transcript_path")) { return 0; }
     let tpath = s(&data, "transcript_path");
     let mgr_re = manager_re(&profile);
     if std::env::var("MUSTER_ASSUME_MANAGER").ok().as_deref() != Some("1") {
         // the chat's own title decides when it names a crew chat (a worker's first message names its manager; a summary names nobody)
-        let crew = crate::talk::crew_re(&profile);
-        let is_mgr = match title_if_crew(tpath, &crew) {
-            Some(t) => is(&mgr_re, &t),
-            None => is(&mgr_re, &first_message(tpath)),
+        let mut ct = format!(r"^(?:(?:{})_", crate::talk::ROLE);
+        for x in pstrings(&profile, "crew_names").iter().chain(pstrings(&profile, "manager_names").iter()) { ct.push_str(&format!("|(?:{x})")); }
+        ct.push(')');
+        let title = chat_title(tpath);
+        let is_mgr = if !title.is_empty() && is(&re(&ct), &title) {
+            find(&re(&format!("^(?:{})", mgr_re.as_str())), &title).is_some()
+        } else {
+            is(&mgr_re, &first_message(tpath))
         };
         if !is_mgr { return 0; }
     }
@@ -115,11 +119,11 @@ pub fn run() -> i32 {
             let p = e.path().join(".muster-paused");
             if p.is_file() {
                 let who = fs::read_to_string(&p).ok().and_then(|t| t.lines().next().map(|l| l.trim().to_string())).filter(|l| !l.is_empty()).unwrap_or_else(|| e.file_name().to_string_lossy().to_string());
-                items.push(Entry { kind: String::new(), from: who, job: String::new(), status: "open".into(), paused: true, resumed: false, body: String::new() });
+                items.push(Entry { kind: String::new(), from: who, job: String::new(), status: "open".into(), paused: true, resumed: false, body: vec![] });
             }
         }
     }
-    let kinds_open = profile.get("board_kinds_open") != Some(&Value::Bool(false));
+    let kinds_open = profile.get("board_kinds_open").map(|v| truthy(Some(v))).unwrap_or(true);
     let mut last: HashMap<String, usize> = HashMap::new();
     for (i, e) in items.iter().enumerate() { last.insert(e.from.clone(), i); }
     let mut missed: Vec<Entry> = vec![];

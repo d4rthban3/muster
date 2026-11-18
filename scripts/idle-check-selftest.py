@@ -168,4 +168,26 @@ def qrun(tp, msg):
 t("quiet: an empty reply to a worker's message is not asked for a line", qrun(tpath("You are Manager_X_001", "<cross-session-message from=\"b\">DONE: x [ID b-1]</cross-session-message>"), "") == "")
 t("quiet: an empty reply to HIS typed words is still asked", "block" in qrun(tpath("You are Manager_X_001", "<cross-session-message from=\"b\">x</cross-session-message>", "status?"), ""))
 t("quiet: a worker-started turn that wrote text is still checked", "block" in qrun(tpath("You are Manager_X_001", "<cross-session-message from=\"b\">x</cross-session-message>"), "ok"))
+
+# idle-card-manager-only: in an installed project the chat's OWN TITLE decides, never first-message text
+import shutil
+inst = os.path.join(tmp, ".muster-checks"); os.makedirs(inst)
+shutil.copy(CHK, os.path.join(inst, "idle-check.py"))
+def titled(title, first):
+    pth = os.path.join(tempfile.mkdtemp(), "t.jsonl")
+    with open(pth, "w") as f:
+        f.write(json.dumps({"type": "user", "message": {"content": first}}) + "\n")
+        if title is not None:
+            f.write(json.dumps({"type": "custom-title", "customTitle": title, "sessionId": "x"}) + "\n")
+    return pth
+def irun(tp):
+    return subprocess.run([sys.executable, os.path.join(inst, "idle-check.py")], input=json.dumps({"last_assistant_message": "done", "transcript_path": tp}),
+                          capture_output=True, text=True, env=dict(env, MUSTER_STATE_DIR=tempfile.mkdtemp())).stdout
+t("installed: a chat titled Manager_X_001 gets the idle card", "block" in irun(titled("Manager_X_001", "hello")))
+t("installed: a worker whose first message names its manager is silent", irun(titled("Builder A_X_001", "You are Builder A_X_001. Manager_X_001 gives you orders.")) == "")
+t("installed: a manager first message but a worker title is silent", irun(titled("Builder B_X_001", "You are Manager_X_001")) == "")
+t("installed: no title record is silent", irun(titled(None, "You are Manager_X_001")) == "")
+t("installed: an unreadable transcript is silent", irun("/nonexistent/t.jsonl") == "")
+tp = titled("Builder A_X_001", "x"); open(tp, "a").write(json.dumps({"type": "custom-title", "customTitle": "Manager_X_001"}) + "\n")
+t("installed: the last title wins (renamed to a manager)", "block" in irun(tp))
 sys.exit(1 if bad else 0)

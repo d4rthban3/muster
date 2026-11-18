@@ -384,11 +384,31 @@ def first_message(path):
 
 
 
+def chat_title(path):
+    """The chat's own title: the last custom-title record in its transcript. "" when it cannot be read."""
+    title = ""
+    try:
+        with open(path, encoding="utf-8") as fh:
+            for line in fh:
+                if "custom-title" not in line:
+                    continue
+                try:
+                    d = json.loads(line)
+                except ValueError:
+                    continue
+                if d.get("type") == "custom-title" and isinstance(d.get("customTitle"), str):
+                    title = d["customTitle"]
+    except OSError:
+        return ""
+    return title.strip()
+
+
 def is_manager_chat(data):
-    """Installed copy (a project that does not load the plugin): the chat's first message names a manager."""
+    """Installed copy (a project that does not load the plugin): the chat's OWN TITLE names a manager. Never the first
+    message's text (a worker's first message names its manager). A title that cannot be read means no: stay silent."""
     pats = PROFILE.get("manager_names") or [r"\bManager_[^_\s]*?(?:_\d{3})?\b"]
-    first = first_message(data.get("transcript_path") or "")
-    return any(re.search(p, first) for p in pats)
+    title = chat_title(data.get("transcript_path") or "")
+    return bool(title) and any(re.search(p, title) for p in pats)
 
 
 def main(argv):

@@ -1,0 +1,15 @@
+{
+  "version": "0.3.147",
+  "changed_files": [
+    "scripts/idle-check.py",
+    "scripts/idle-check-selftest.py"
+  ],
+  "affected_roles": [
+    "Manager"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "idle-card-manager-only: in an installed project the idle card is asked for only in the chat whose own title names the manager; a worker whose first message names its manager no longer gets it, and a chat whose title cannot be read stays silent"
+}

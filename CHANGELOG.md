@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.157
+Affects: the manager and every worker.
+rust-first-4-worker-queue: the worker queue check (the "do not go idle" refusal at the end of a worker's turn, Muster's board and the line-style board) now also exists in the ready-built program; its shell hook runs the program first and falls back to the Python copy when no program is found (or it is an older one that does not know the check). A new order written as a JSON message is now held at 90% of the week by the Python rules check too, as the program and the text form already did (the standing rule). The self-test runs both copies side by side, and a parity script compares them, in the automatic run on all five systems. The build-or-buy page for the chrono crate (checks/BUILD-OR-BUY.md) is written. Python stays as the fallback; nothing is removed
+
 ## 0.3.156
 Affects: the manager and every worker.
 rust-first-3-small-hooks: the notice after a conversation is compacted, the board entry written before it, and the Usage line now also exist in the ready-built program; the two shell hooks run the program first and fall back to the Python copy when no program is found (or it is an older one that does not know the check); the 90% week stop in the rules check asks the program's own usage code. Same words and board entry as before; a new self-test runs both copies side by side, in the automatic run on all five systems. Python stays as the fallback; nothing is removed

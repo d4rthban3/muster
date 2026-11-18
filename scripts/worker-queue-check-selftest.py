@@ -1,8 +1,18 @@
 #!/usr/bin/env python3
-"""Self-test for scripts/worker-queue-check.py on a made-up project with a worker copy. Prints PASS/FAIL; exit 1 on a failure."""
+"""Self-test for scripts/worker-queue-check.py on a made-up project with a worker copy. Prints PASS/FAIL; exit 1 on a failure.
+With MUSTER_CHECKS_BIN set to the Rust program, the whole test runs twice: on the Python copy, then on the program's worker-queue command."""
 import json, os, subprocess, sys, tempfile
 HERE = os.path.dirname(os.path.abspath(__file__))
 CHK = os.path.join(HERE, "worker-queue-check.py")
+BIN = os.environ.get("MUSTER_CHECKS_BIN")
+PASS = os.environ.get("MUSTER_WQ_PASS")
+if BIN and not PASS:
+    worst = 0
+    for which in ("python", "program"):
+        print("== worker-queue on the %s ==" % which, flush=True)
+        worst |= subprocess.run([sys.executable, os.path.abspath(__file__)], env=dict(os.environ, MUSTER_WQ_PASS=which)).returncode
+    sys.exit(1 if worst else 0)
+CMD = [BIN, "worker-queue"] if PASS == "program" else [sys.executable, CHK]
 main = tempfile.mkdtemp()
 def sh(*a, cwd=main): subprocess.run(a, cwd=cwd, check=True, capture_output=True)
 sh("git", "init", "-q"); sh("git", "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "--allow-empty", "-m", "x")
@@ -14,7 +24,7 @@ w("muster/BOARD.md", "### 2026-01-01 | ORDER | Manager_X_001 -> Builder Q_X_001 
 w("muster/CREW.md", "## Running now\n| Name | Model | Effort | Folder copy | Chat id | Started |\n|---|---|---|---|---|---|\n| Manager_X_001 | m | medium | none (main) | local_1 | d |\n| Builder Q_X_001 | m | medium | .claude/worktrees/builder-q-001 (line q) | local_2 | d |\n\n## Archived\n")
 w("muster/OWNERS-LIST.md", "## Open\n1. \"a\"\n   Stands: with Builder Q_X_001\n2. \"b\"\n   Stands: standing; open fixes with Builder Q_X_001\n\n## Closed\n")
 def run(inp, cwd=wt):
-    return subprocess.run([sys.executable, CHK], input=json.dumps(inp), capture_output=True, text=True, cwd=cwd).stdout
+    return subprocess.run(CMD, input=json.dumps(inp), capture_output=True, text=True, cwd=cwd).stdout
 bad = 0
 def t(name, ok):
     global bad; bad += (not ok); print(("PASS " if ok else "FAIL ") + name)
@@ -43,7 +53,7 @@ def transcript(first):
     return f
 def prun(first, msg, **extra):
     d = {"transcript_path": transcript(first), "last_assistant_message": msg}; d.update(extra)
-    return subprocess.run([sys.executable, CHK], input=json.dumps(d), capture_output=True, text=True, cwd=pp,
+    return subprocess.run(CMD, input=json.dumps(d), capture_output=True, text=True, cwd=pp,
                           env=dict(os.environ, MUSTER_PROFILE=os.path.join(pp, "profile.json"))).stdout
 o = prun("You are Eng_P_006, the engine chat.", "done")
 t("PINR: blocks on a NEED line after the worker's last DONE", "block" in o and "serve burns" in o)
@@ -61,11 +71,11 @@ def ttranscript(title):
         fh.write(json.dumps({"type": "custom-title", "customTitle": title, "sessionId": "x"}) + "\n")
     return f
 def trun(title, msg):
-    return subprocess.run([sys.executable, CHK], input=json.dumps({"transcript_path": ttranscript(title), "last_assistant_message": msg}), capture_output=True, text=True, cwd=pp,
+    return subprocess.run(CMD, input=json.dumps({"transcript_path": ttranscript(title), "last_assistant_message": msg}), capture_output=True, text=True, cwd=pp,
                           env=dict(os.environ, MUSTER_PROFILE=os.path.join(pp, "profile.json"))).stdout
 t("title: a summary-first chat is a worker by its title", "block" in trun("Eng_P_006", "done"))
 t("title: a summary-first chat with another title is left alone", trun("my own chat", "done") == "")
-lst = lambda *a: subprocess.run([sys.executable, CHK, "--list", *a], capture_output=True, text=True, cwd=pp,
+lst = lambda *a: subprocess.run([*CMD, "--list", *a], capture_output=True, text=True, cwd=pp,
                                  env=dict(os.environ, MUSTER_PROFILE=os.path.join(pp, "profile.json"))).stdout
 t("PINR: --list --worker names the open line without any chat", "serve burns" in lst("--worker", "Eng_P_006"))
 t("PINR: --list --worker says nothing open for a worker with none", "nothing open" in lst("--worker", "Web_P_00x"))
@@ -84,7 +94,7 @@ def wtranscript(sent):
     return f
 def wrun(msg, sent, cwd=pp, **env):
     d = {"transcript_path": wtranscript(sent), "last_assistant_message": msg}
-    return subprocess.run([sys.executable, CHK], input=json.dumps(d), capture_output=True, text=True, cwd=cwd,
+    return subprocess.run(CMD, input=json.dumps(d), capture_output=True, text=True, cwd=cwd,
                           env=dict(os.environ, **env)).stdout
 pe = {"MUSTER_PROFILE": os.path.join(pp, "profile.json")}
 t("PINR: a reply that waits on the manager with nothing sent is refused", "sent the manager nothing" in wrun("WAIT: Manager's choice on the route", False, **pe))
@@ -98,4 +108,35 @@ for msg, want in (("I need to edit the manager page next", False), ("Needs the m
                   ("The manager's call is pending", True), ("WAIT: the route; Manager's choice", True),
                   ("Needs the manager to pick one", True), ("Blocked on the manager for his go-ahead", True)):
     t("wait words: %r %s" % (msg, "refused" if want else "allowed"), ("sent the manager nothing" in wrun(msg, False, cwd=wt)) == want)
+# the shell hook: the program first, Python when no program is found or an older program does not know the check (exit 2)
+if PASS == "program":
+    import shutil
+    ROOT = os.path.abspath(os.path.join(HERE, ".."))
+    def plugin(kind):
+        pl = os.path.join(tempfile.mkdtemp(), "plugin")
+        for d in ("hooks", "scripts"):
+            shutil.copytree(os.path.join(ROOT, d), os.path.join(pl, d), ignore=shutil.ignore_patterns("__pycache__"))
+        os.makedirs(os.path.join(pl, ".claude-plugin")); open(os.path.join(pl, ".claude-plugin", "plugin.json"), "w").write("{}")
+        if kind != "none":
+            for d, exe in (("windows-x86_64", "muster-checks.exe"), ("macos-arm64", "muster-checks"), ("macos-x86_64", "muster-checks"), ("linux-x86_64", "muster-checks"), ("linux-arm64", "muster-checks")):
+                os.makedirs(os.path.join(pl, "bin", d))
+                dst = os.path.join(pl, "bin", d, exe)
+                if kind == "real": shutil.copyfile(BIN, dst)
+                else: open(dst, "w").write("#!/bin/sh\nexit 2\n")
+                os.chmod(dst, 0o755)
+        return pl
+    def hook(pl, inp):
+        r = subprocess.run(["sh", os.path.join(pl, "hooks", "worker-queue-check.sh")], input=json.dumps(inp), capture_output=True, text=True, cwd=wt)
+        return r.returncode, r.stdout
+    ev = {"last_assistant_message": "done"}
+    rc, o = hook(plugin("none"), ev)
+    t("hook: with no program the Python copy answers", rc == 0 and "block" in o and "job-one" in o)
+    pl = plugin("real")
+    open(os.path.join(pl, "scripts", "worker-queue-check.py"), "w").write("import sys\nsys.stdout.write('PYTHON RAN')\n")
+    rc, o = hook(pl, ev)
+    t("hook: with a program found it answers, not Python", rc == 0 and "block" in o and "job-one" in o and "PYTHON RAN" not in o)
+    t("hook: the program lets a stop through when the reply names the work", hook(pl, {"last_assistant_message": "job-one and item 1: waiting on the inspector"}) == (0, ""))
+    rc, o = hook(plugin("old"), ev)
+    t("hook: an older program that does not know the check (exit 2) leaves it to Python", rc == 0 and "block" in o and "job-one" in o)
+
 sys.exit(1 if bad else 0)

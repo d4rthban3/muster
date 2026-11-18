@@ -322,6 +322,17 @@ cases += [
     ("item 115: a turn a worker's message started is not his question", q_order(36, [said("why is the engine waiting?"), said("<cross-session-message from=x>PASS</cross-session-message>")]), False),
     ("item 115: a builder's order-shaped message is not this check's business", q_order(36, [said("why is the engine waiting?")], mgr=False), False),
 ]
+def week_order(pct):
+    cfg = os.path.join(T, "cfg%s" % pct); os.makedirs(os.path.join(cfg, "muster-usage"), exist_ok=True)
+    json.dump({"week_used_percent": pct, "saved_at": 1}, open(os.path.join(cfg, "muster-usage", "a.json"), "w"))
+    env = dict(os.environ, CLAUDE_CONFIG_DIR=cfg); env.pop("MUSTER_MESSAGE_FORM", None)
+    o = ORD.replace('"item":35', '"item":35') % ("menu-fix", "menu-fix")
+    r = subprocess.run([BIN, "rules"] if BIN else [sys.executable, HOOK], input=json.dumps(dict(hook_event_name="PreToolUse", cwd=QD, tool_name="SendMessage", tool_input={"to": "builder-a", "message": o}, transcript_path=tr("You are Manager_Muster_002"))), capture_output=True, text=True, env=env)
+    return r.stdout.strip()
+cases += [
+    ("rust-first 4: a JSON order is held when the week is at 90% (the standing rule), by the reason", "" if "the week is at 90% or more" in week_order(95) else "x", False),
+    ("rust-first 4: ...and goes through at 89%", week_order(89), False),
+]
 cases.append(("GOAL: with no goal set every order goes through", order("weekly-goal"), False))
 goal("set", "--words", "finish muster", "--done", "the crew is live", "--list", "lean-rebuild,weekly-goal", "--parked", "site looks")
 cases += [

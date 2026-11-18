@@ -1,6 +1,7 @@
 //! muster-checks: Muster's coded checks as one ready-built program per system.
 //!   muster-checks rules|guard|talk|board-stop   the hooks (a hook's JSON on standard input; same output as the Python copies)
 //!   muster-checks renew|precompact   the SessionStart (compact) and PreCompact hooks; usage   the Usage line (scripts/usage.py)
+//!   muster-checks worker-queue   the worker queue Stop hook (scripts/worker-queue-check.py), also --list [--worker name]
 //!   muster-checks record        reads one worker-to-worker record on standard input; exit 0 if valid, 1 and the reason if not.
 mod boardstop;
 mod common;
@@ -8,6 +9,7 @@ mod record;
 mod rules;
 mod small;
 mod talk;
+mod wq;
 
 use std::io::Read;
 
@@ -28,7 +30,8 @@ fn main() {
         Some("board-stop") => std::process::exit(boardstop::run()),
         Some("renew") => std::process::exit(small::renew()),
         Some("precompact") => std::process::exit(small::precompact()),
+        Some("worker-queue") => std::process::exit(wq::run(&args[1..])),
         Some("usage") => std::process::exit(small::usage(&args[1..])),
-        _ => { eprintln!("usage: muster-checks record|rules|guard|talk|board-stop|renew|precompact < input.json, or usage [--session id] [--limit-percent n]"); std::process::exit(2); }
+        _ => { eprintln!("usage: muster-checks record|rules|guard|talk|board-stop|renew|precompact|worker-queue < input.json, or usage [--session id] [--limit-percent n]"); std::process::exit(2); }
     }
 }

@@ -58,9 +58,9 @@ def transcript(first, extra=(), title=None, summary_first=False):
 
 def both(py_cmd, rs_args, stdin, e, cwd=None, py_args=()):
     """Run the Python copy and (when a program is given) the program; return [(name, rc, stdout)]."""
-    out = [("python", subprocess.run([sys.executable] + py_cmd + list(py_args), input=stdin, capture_output=True, text=True, env=e, cwd=cwd))]
+    out = [("python", subprocess.run([sys.executable] + py_cmd + list(py_args), input=stdin, capture_output=True, text=True, encoding="utf-8", errors="replace", env=e, cwd=cwd))]
     if BIN:
-        out.append(("rust", subprocess.run([BINX] + rs_args, input=stdin, capture_output=True, text=True, env=e, cwd=cwd)))
+        out.append(("rust", subprocess.run([BINX] + rs_args, input=stdin, capture_output=True, text=True, encoding="utf-8", errors="replace", env=e, cwd=cwd)))
     return [(n, r.returncode, r.stdout) for n, r in out]
 
 
@@ -107,7 +107,7 @@ block = open(os.path.join(ROOT, "hooks", "talk-block.txt"), encoding="utf-8").re
 add("renew: the message ends with the talking rules, as the file holds them", all(block in o for _, _, o in rr), repr(rr[-1][2][-200:]))
 
 # precompact: one board entry per crew chat
-GIT = lambda *a, cwd: subprocess.run(["git", "-C", cwd] + list(a), capture_output=True, text=True)
+GIT = lambda *a, cwd: subprocess.run(["git", "-C", cwd] + list(a), capture_output=True, text=True, encoding="utf-8", errors="replace")
 PROJ = os.path.join(T, "proj")
 os.makedirs(os.path.join(PROJ, "muster"))
 GIT("init", "-q", cwd=PROJ)
@@ -126,7 +126,7 @@ def pre(first, which, board=True, cwd=None, prof=None, extra=(), **kw):
     ev = json.dumps({"transcript_path": tp, "cwd": cwd or b})
     e = env(**({"MUSTER_PROFILE": prof} if prof else {}))
     cmd = [sys.executable, os.path.join(ROOT, "hooks", "precompact-board.py")] if which == "python" else [BINX, "precompact"]
-    r = subprocess.run(cmd, input=ev, capture_output=True, text=True, env=e)
+    r = subprocess.run(cmd, input=ev, capture_output=True, text=True, encoding="utf-8", errors="replace", env=e)
     text = open(os.path.join(b, "muster", "BOARD.md")).read() if board else ""
     for rx, to in NORM:
         text = rx.sub(to, text)
@@ -165,7 +165,7 @@ for which in ["python"] + (["rust"] if BIN else []):
     shutil.copyfile(os.path.join(GB, "muster", "BOARD.md"), os.path.join(T, "gb.keep"))
     tp = transcript("You are Builder A_Muster_002", [JOBREC])
     cmd = [sys.executable, os.path.join(ROOT, "hooks", "precompact-board.py")] if which == "python" else [BINX, "precompact"]
-    subprocess.run(cmd, input=json.dumps({"transcript_path": tp, "cwd": GB}), capture_output=True, text=True, env=env())
+    subprocess.run(cmd, input=json.dumps({"transcript_path": tp, "cwd": GB}), capture_output=True, text=True, encoding="utf-8", errors="replace", env=env())
     t = open(os.path.join(GB, "muster", "BOARD.md")).read()
     for rx, to in NORM:
         t = rx.sub(to, t)
@@ -179,7 +179,7 @@ got = []
 for which in ["python"] + (["rust"] if BIN else []):
     tp = transcript("You are Builder A_Muster_002", [JOBREC])
     cmd = [sys.executable, os.path.join(ROOT, "hooks", "precompact-board.py")] if which == "python" else [BINX, "precompact"]
-    subprocess.run(cmd, input=json.dumps({"transcript_path": tp, "cwd": WT}), capture_output=True, text=True, env=env())
+    subprocess.run(cmd, input=json.dumps({"transcript_path": tp, "cwd": WT}), capture_output=True, text=True, encoding="utf-8", errors="replace", env=env())
     got.append(open(os.path.join(GB, "muster", "BOARD.md")).read().count("branch muster/wt-job at"))
 add("precompact: from a linked worktree the entry goes to the main folder's board", got == [1] + ([2] if BIN else []), repr(got))
 
@@ -234,7 +234,7 @@ if BIN:
         os.makedirs(U)
         json.dump({"week_used_percent": pct, "saved_at": 1}, open(os.path.join(U, "a.json"), "w"))
         ev = json.dumps({"hook_event_name": "PreToolUse", "cwd": RP_, "transcript_path": MGR, "tool_name": "SendMessage", "tool_input": {"to": "x", "message": json.dumps(ORDER)}})
-        r = subprocess.run([BINX, "rules"], input=ev, capture_output=True, text=True, env=env(CLAUDE_CONFIG_DIR=CFG, MUSTER_STATE_DIR=T))
+        r = subprocess.run([BINX, "rules"], input=ev, capture_output=True, text=True, encoding="utf-8", errors="replace", env=env(CLAUDE_CONFIG_DIR=CFG, MUSTER_STATE_DIR=T))
         add("rules (program): a new order is %s when the week is at %d%%" % ("held" if want else "let through", pct), ("week is at 90% or more" in r.stdout) == want, r.stdout[:200])
 
 # the shell hooks: the program first, Python when no program is found
@@ -245,7 +245,7 @@ open(os.path.join(MP, "muster", "BOARD.md"), "w").write("# Board\n")
 
 
 def shell(script, ev, plugin=PLUG):
-    r = subprocess.run(["sh", os.path.join(plugin, "hooks", script)], input=json.dumps(ev), capture_output=True, text=True, env=env(), cwd=MP)
+    r = subprocess.run(["sh", os.path.join(plugin, "hooks", script)], input=json.dumps(ev), capture_output=True, text=True, encoding="utf-8", errors="replace", env=env(), cwd=MP)
     return r.returncode, r.stdout
 
 

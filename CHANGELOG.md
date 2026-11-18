@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.155
+Affects: the manager and every worker.
+rust-first-2-all-five: the automatic run now runs the full self-tests against the shipped program of all five systems, the older-Mac (Intel) one included; the record fuzz can print why the program refuses each odd record that the Python copy lets through (every one is a field that breaks the written record rules: wrong type, empty, unknown key, wrong id form). No program or rule changed
+
 ## 0.3.154
 Affects: the manager and every worker.
 rust-first-1-parity: the Rust program now answers the way the Python checks do where it differed: it finds the choice recorder and the usage script from where the plugin keeps its programs, the board check remembers what the manager was told under the same fingerprint, a profile that only names managers still knows a summary-first manager chat by its title, and a hook field or profile switch that Python reads as true or false is read the same way; four parity scripts compare the two copies. Python stays as the fallback; nothing is removed

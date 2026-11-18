@@ -101,6 +101,17 @@ with ThreadPoolExecutor(8) as ex:
 gaps = [r for r in results if r[1] == "deny" and r[2] != "deny"]
 stricter = [r for r in results if r[1] != "deny" and r[2] == "deny"]
 print("%d messages sent, python refuses and rust allows: %d; python allows and rust refuses: %d" % (len(results), len(gaps), len(stricter)))
+import collections
+import re
+why = collections.Counter()
+ex_ = {}
+for r in stricter:  # group the stricter refusals by the reason the program gives (numbers and names folded away)
+    k = re.sub(r"'[^']*'|\d+", "_", r[4].split("is wrong:")[-1].strip())[:110]
+    why[k] += 1
+    ex_.setdefault(k, r)
+if "--why" in sys.argv:
+    for k, n in why.most_common():
+        print("%6d  %s\n          e.g. %s" % (n, k, json.dumps(ex_[k][0][0])[:200]))
 shown = set()
 for r in gaps:
     key = r[3][:120]

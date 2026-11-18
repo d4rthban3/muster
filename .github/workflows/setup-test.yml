@@ -100,6 +100,7 @@ jobs:
         include:
           - {os: windows-latest, dir: windows-x86_64, exe: muster-checks.exe}
           - {os: macos-latest, dir: macos-arm64, exe: muster-checks}
+          - {os: macos-15-intel, dir: macos-x86_64, exe: muster-checks}
           - {os: ubuntu-latest, dir: linux-x86_64, exe: muster-checks}
           - {os: ubuntu-24.04-arm, dir: linux-arm64, exe: muster-checks}
     runs-on: ${{ matrix.os }}

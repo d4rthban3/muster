@@ -1,0 +1,18 @@
+{
+  "version": "0.3.155",
+  "changed_files": [
+    ".github/workflows/setup-test.yml",
+    "scripts/rules-parity-fuzz.py"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Builder",
+    "Designer",
+    "Inspector"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "rust-first-2-all-five: the automatic run now runs the full self-tests against the shipped program of all five systems, the older-Mac (Intel) one included, on a real Intel Mac runner; the record fuzz can print why the program refuses each odd record the Python copy lets through (--why). No program or rule changed"
+}

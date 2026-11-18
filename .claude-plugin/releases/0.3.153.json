@@ -1,0 +1,14 @@
+{
+  "version": "0.3.153",
+  "changed_files": [
+    "look/glass.tsx",
+    "look/register.tsx",
+    "look/look.test.tsx"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "background-loads-light: the glass background is built once per chat and kept, so a redraw no longer reads the stored settings, the picture file and rebuilds the 130,000-character scene each time; the scene is applied before the /look command is registered; the picture itself is unchanged"
+}

@@ -1,5 +1,5 @@
 import { expect, test as rawTest } from 'claude-code/testing'
-import { sceneOf, glassOn, setGlassFlag, glassSettings, setGlassSetting } from './glass'
+import { sceneOf, sceneSource, resetScene, glassOn, setGlassFlag, glassSettings, setGlassSetting } from './glass'
 import Rail from './rail'
 import { parse } from './parse'
 import { isOwnerSubmit, findPick } from './register'
@@ -925,4 +925,32 @@ test('undo clears the yellow answer and unlocks the choices', async ($) => {
   expect(await typedOn($, 'question yellow')).toBe('okay')
   await clearPick($, 'question yellow')
   expect(await typedOn($, 'question yellow')).toBeUndefined()
+})
+
+test('the glass scene is built once and kept: a redraw makes no store or file call; a setting change rebuilds it once', async ($) => {
+  resetScene()
+  await setGlassFlag($, true)
+  let reads = 0
+  let gets = 0
+  const w: any = new Proxy($ as any, {
+    get: (t, k) => k === 'fs' ? { read: async (...a: any[]) => { reads++; return (t as any).fs.read(...a) } }
+      : k === 'store' ? { get: async (...a: any[]) => { gets++; return (t as any).store.get(...a) }, set: (...a: any[]) => (t as any).store.set(...a), delete: (...a: any[]) => (t as any).store.delete(...a) }
+      : (t as any)[k],
+  })
+  const first = await sceneSource(w)
+  expect(first).toBe(sceneOf('#5b4bb8', '#3b6fd6')) // the same scene as before, only kept
+  const afterFirst = gets
+  expect(afterFirst).toBeGreaterThan(0)
+  for (let i = 0; i < 5; i++) expect(await sceneSource(w)).toBe(first)
+  expect(gets).toBe(afterFirst)
+  expect(reads).toBe(0)
+  await setGlassSetting($, 'glassColour1', '#112233')
+  const changed = await sceneSource(w)
+  expect(changed).toContain('#112233')
+  expect(changed).not.toBe(first)
+  const afterChange = gets
+  expect(await sceneSource(w)).toBe(changed)
+  expect(gets).toBe(afterChange)
+  await setGlassSetting($, 'glassColour1', null)
+  expect(await sceneSource(w)).toBe(first)
 })

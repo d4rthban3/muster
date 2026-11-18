@@ -23,6 +23,7 @@ async function recOf($: any, id?: string): Promise<Rec> {
   return {}
 }
 async function putRec($: any, r: Rec, id?: string): Promise<void> {
+  shown = undefined // any change to the switch, a colour or the picture rebuilds the scene once
   try { await kvSet($, 'glass:' + (id ?? (await groupId($))), r) } catch { /* kept as it was */ }
 }
 export async function glassOn($: any, id?: string): Promise<boolean> {
@@ -94,12 +95,26 @@ export function sceneOf(c1: string, c2: string, uri?: string): string {
   )
 }
 
+// The scene a redraw needs is built once per group and kept: the stored settings, the picture file (read
+// and turned into base64) and the 130,000-character picture are not made again on every Backdrop draw.
+// A setting change (putRec) or a new chat (resetScene) drops it; a picture file edited in place under the
+// same path shows at the next of those.
+let shown: { id: string; source: string } | undefined
+export function resetScene(): void { shown = undefined }
+export async function sceneSource($: any): Promise<string> {
+  const id = await groupId($)
+  if (shown !== undefined && shown.id === id) return shown.source
+  const s = await glassSettings($)
+  const img = await imageData($, s[GLASS_IMAGE]!)
+  const source = sceneOf(s.glassColour1!, s.glassColour2!, img.uri)
+  shown = { id, source }
+  return source
+}
+
 export function glass(on: any) {
   on('ui.render', { component: 'Backdrop' }, async ($: any, e: any, next: any) => {
     if ((e.props as any).scene !== 'liquid' || (e.surface !== 'desktop' && e.surface !== 'mobile')) return next(e)
     const { Svg } = $.ui.resolve(e)
-    const s = await glassSettings($)
-    const img = await imageData($, s[GLASS_IMAGE]!)
-    return <Svg source={sceneOf(s.glassColour1!, s.glassColour2!, img.uri)} alt="A calm, soft liquid-glass background behind the chat" isInteractive />
+    return <Svg source={await sceneSource($)} alt="A calm, soft liquid-glass background behind the chat" isInteractive />
   })
 }

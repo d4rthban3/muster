@@ -3,7 +3,7 @@ import { parse } from './parse'
 import { cutFont, fromBase64, type Cut } from './font'
 import { labelWidth } from './metrics'
 import { panel, registerLook } from './panel'
-import { glass, glassOn, applyGlass } from './glass'
+import { glass, glassOn, applyGlass, resetScene } from './glass'
 import { pickName, loadGroup, pickedOn, typedOn, savePick, hashText, answerLine, optionLine, fullestText, clearPick, answerStands, sent, resetCaches, dropMessages } from './group'
 import { migrateLook } from './migrate'
 import { svgChip, pillOf, colourOr, YELLOW } from './chip'
@@ -126,8 +126,10 @@ export const register: Register = (on) => {
   on('session.start', async ($, e, next) => {
     await migrateLook($)
     resetCaches()
-    await registerLook($)
+    resetScene()
+    // the background goes first: nothing else waits ahead of it
     if (await glassOn($)) await applyGlass($, true)
+    await registerLook($)
     {
       try {
         const { base64 } = (await $.fs.read(APP_FONT, { as: 'bytes' })) as { base64: string }

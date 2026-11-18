@@ -120,6 +120,7 @@ The plugin ships `hooks/board-stop.py` (run through `hooks/hooks.json`): when yo
   paragraph. Details (saved-version codes, file paths) behind a link. No lists inside a line. A Need
   becomes the question at the bottom, as lettered lines. Nothing repeated from an earlier report. (Made-up example in
   `muster/REPORT.md`.) Messages to workers are data records (`muster/REPORT.md`), never sentences.
+- **A worker's news that needs nothing from him** (worker-news-line, item 118) is a badge and one plain line: a bold title "**WORD · job**" (WORD the report's first word: READY, PASS, FAIL, DONE, STUCK or NEED, job the order's job name), then one line saying who did what. Made-up example: "**READY · login screen**" then "Apps finished the login screen; Build Inspector has it." Never the empty "Apps' message needs nothing from you."; no saved-version codes or bare paths; not more than one line of news; a repeat copy of a report he already had a line for gets none. A coded check refuses anything else on these turns.
 - A question's shape: what you looked at, what you found, then the question naming its choices, each choice its own
   lettered line, your pick marked.
 - **Every choice is a lettered line, and the question names the choices.** The question itself says the choices (made-up

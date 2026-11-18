@@ -1,0 +1,14 @@
+{
+  "version": "0.3.161",
+  "changed_files": [
+    "look/register.tsx",
+    "look/rail.tsx",
+    "look/look.test.tsx"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "highlight-round-and-line: the highlight behind a picked choice has rounded corners (8 px) in place of square ones; the yellow-to-purple line beside a question card is drawn as a vector line on every card (the layout-sized glyph line is retired); nothing else changes"
+}

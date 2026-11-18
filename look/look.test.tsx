@@ -1,6 +1,5 @@
 import { expect, test as rawTest } from 'claude-code/testing'
 import { sceneOf, sceneSource, resetScene, glassOn, setGlassFlag, glassSettings, setGlassSetting } from './glass'
-import Rail from './rail'
 import { parse } from './parse'
 import { isOwnerSubmit, findPick } from './register'
 import { clock, FRESH_MS, resetCaches, dropMessages, hashText, mainFromCommonDir, nameFromCrew, nameFromChat, nameFromSummary, pickName, rename, optionLine } from './group'
@@ -192,17 +191,6 @@ test('colour helpers round-trip and the field posts the picked colour', async ()
   expect(posts[0].id).toBe('lineTopColor')
   expect(posts[0].hex).toBe('#ff0000')
   ;(globalThis as any).h = oldH
-})
-
-test('the left line is a region as tall as the rows beside it, one glyph per laid-out row', async () => {
-  const el = (t: any) => t
-  const mk = (rows: number) => Rail({ top: '#FFDB58', bottom: '#7c4dff' }, { rows, elements: { Box: (p: any) => p, Text: (p: any) => p } })
-  const tall: any = mk(9)
-  expect(tall.children.length).toBe(9)
-  expect(tall.children[0].color).toBe('#ffdb58')
-  expect(tall.children[8].color).toBe('#7c4dff')
-  expect((mk(0) as any).children.length).toBe(1)
-  void el
 })
 
 test('clicking a choice puts the option own text in the chat box and sends nothing; another click replaces it', async ($, on) => {
@@ -953,4 +941,25 @@ test('the glass scene is built once and kept: a redraw makes no store or file ca
   expect(gets).toBe(afterChange)
   await setGlassSetting($, 'glassColour1', null)
   expect(await sceneSource(w)).toBe(first)
+})
+
+test('a picked choice has a rounded highlight (four corner pieces, no square fill) and every question card has its side line', async ($, on) => {
+  on('ui.render', ($, e) => { const { Text } = $.ui.resolve(e); return <Text>engine</Text> })
+  on('prompt.submit', ($, e) => ({ text: String((e as any).text) }) as any)
+  const first = await $.ui.mount(MSG(Q2, 'desktop'))
+  await $.prompt.submit(owner('a'))
+  const ui = await $.ui.mount(MSG(Q2, 'desktop'))
+  await first.unmount()
+  const svgs = ((await ui.findAll({ type: 'Svg' })) ?? []) as any[]
+  const corners = svgs.filter(v => String(v.props?.source).includes('A8 8 0 0 1'))
+  expect(corners.length).toBe(4)
+  const boxes = ((await ui.findAll({ type: 'Box' })) ?? []) as any[]
+  expect(boxes.some(b => b.props?.backgroundColor === '#23262e' && b.props?.position !== 'absolute')).toBe(false)
+  const line = svgs.filter(v => v.props?.alt === 'line')
+  expect(line.length).toBe(1)
+  expect(String(line[0].props.source)).toContain('linearGradient')
+  expect(((await ui.findAll({ type: 'Client' })) ?? []).some((c: any) => String(c.props?.module).includes('rail'))).toBe(false)
+  // a card with nothing picked has the line too
+  const open = await $.ui.mount(MSG(Q2.replace('one', 'other'), 'desktop'))
+  expect((((await open.findAll({ type: 'Svg' })) ?? []) as any[]).filter(v => v.props?.alt === 'line').length).toBe(1)
 })

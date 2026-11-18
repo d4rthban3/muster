@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.161
+Affects: the owner's chat (the look).
+highlight-round-and-line: the highlight behind a picked choice has rounded corners (8 px) in place of square ones; the yellow-to-purple line beside a question card is drawn as a vector line on every card (the layout-sized glyph line is retired); nothing else changes
+
 ## 0.3.160
 Affects: the manager.
 rust-first-5-idle: the idle-crew check (the manager's stop check: idle chats with open work, the idle card, the crew sweep, held workers) now also exists in the ready-built program; its hook runs the program first and falls back to Python on any failure. Self-test runs both copies; a parity script compares them. Same answers, nothing added. Python stays as the fallback; nothing is removed

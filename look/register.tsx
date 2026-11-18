@@ -215,6 +215,25 @@ export const register: Register = (on) => {
     // Lines the press region draws for a choice: a generous count (a narrow window wraps at about 40
     // columns, +1 for the padding); the extra is clipped by the row, a short count would leave dead lines.
     const pressRows = (t: string) => Math.max(2, Math.ceil((t.length + 5) / 40) + 1)
+    // The highlight behind the picked row, with rounded corners (a Box has no corner radius, so it is a
+    // plain body, two side strips and four quarter-disc corners, all the same opaque colour, laid
+    // behind the row's own content). The pieces overlap by a pixel so no seam shows.
+    const HL = '#23262e'
+    const HR = 8
+    const quarter = (d: string, k: string, pos: Record<string, number>) => (
+      <Box key={k} position="absolute" {...pos}>
+        <Svg alt="" width={HR} height={HR} source={`<svg xmlns="http://www.w3.org/2000/svg" width="${HR}" height="${HR}"><path d="${d}" fill="${HL}"/></svg>`} />
+      </Box>
+    )
+    const highlight = () => [
+      <Box key="hb" position="absolute" top={0} bottom={0} left={HR} right={HR} backgroundColor={HL} />,
+      <Box key="hl" position="absolute" top={HR - 1} bottom={HR - 1} left={0} width={HR + 1} backgroundColor={HL} />,
+      <Box key="hr" position="absolute" top={HR - 1} bottom={HR - 1} right={0} width={HR + 1} backgroundColor={HL} />,
+      quarter(`M${HR} ${HR}L0 ${HR}A${HR} ${HR} 0 0 1 ${HR} 0Z`, 'htl', { top: 0, left: 0 }),
+      quarter(`M0 ${HR}L0 0A${HR} ${HR} 0 0 1 ${HR} ${HR}Z`, 'htr', { top: 0, right: 0 }),
+      quarter(`M${HR} 0L${HR} ${HR}A${HR} ${HR} 0 0 1 0 0Z`, 'hbl', { bottom: 0, left: 0 }),
+      quarter(`M0 0L${HR} 0A${HR} ${HR} 0 0 1 0 ${HR}Z`, 'hbr', { bottom: 0, right: 0 }),
+    ]
     const rows = parsed.pieces.map((p, i) => {
       const inQ = parsed.isQuestion && i >= parsed.startsAt && i <= lastChoice
       if (p.kind === 'md') return <Markdown key={`m${i}`} text={p.text} />
@@ -241,8 +260,10 @@ export const register: Register = (on) => {
         )
       }
       const firstChoice = parsed.pieces[i - 1]?.kind === 'md'
+      const lit = p.letter === picked && !isTerminal
       const row = (
-        <Box key={`c${i}`} gap={2} alignItems="center" position="relative" backgroundColor={p.letter === picked && !isTerminal ? '#23262e' : undefined} hover={live && !isTerminal && Client !== undefined ? { backgroundColor: '#23262e' } : undefined}>
+        <Box key={`c${i}`} gap={2} alignItems="center" position="relative" hover={live && !isTerminal && Client !== undefined ? { backgroundColor: '#23262e' } : undefined}>
+          {lit && highlight()}
           {live && !isTerminal ? (
             <Box position="relative" flexShrink={0}>
               {chip(p.letter, CHOICE, letterTw, 4)}
@@ -250,8 +271,8 @@ export const register: Register = (on) => {
                 {chip(p.letter, CHOICE, letterTw, 4, true)}
               </Box>
             </Box>
-          ) : <Box flexShrink={0}>{chip(p.letter, CHOICE, letterTw, 4, p.letter === picked)}</Box>}
-          <Box key={`cb${i}`} flexShrink={1} flexGrow={1}><Markdown key={`cm${i}`} text={p.text} /></Box>
+          ) : <Box flexShrink={0} position="relative">{chip(p.letter, CHOICE, letterTw, 4, p.letter === picked)}</Box>}
+          <Box key={`cb${i}`} flexShrink={1} flexGrow={1} position="relative"><Markdown key={`cm${i}`} text={p.text} /></Box>
           {live && !isTerminal && Client !== undefined && (
             <Box position="absolute" top={0} left={0} right={0} bottom={0} width="100%" height="100%" overflow="hidden">
               <Client key={`pick${p.letter}`} module="./choice.tsx" props={{ letter: p.letter, rows: pressRows(p.text), q: hashText(e.props.text), t: e.props.text.length <= 4000 ? e.props.text : '' }} width="100%" height="100%" />
@@ -292,18 +313,7 @@ export const register: Register = (on) => {
       14,
       Math.round(parsed.pieces.slice(parsed.startsAt + 1, lastChoice + 1).reduce((n, p) => n + px(p), 0)),
     )
-    const railLine = Client !== undefined ? (
-      // The line's region is laid over the column beside it (absolute), so the
-      // glyph rows it draws can never make that column taller: the line ends
-      // where the last choice ends. A 15px-wide empty picture holds its width.
-      <Box flexShrink={0} position="relative">
-        {spacerW(15)}
-        <Box position="absolute" top={0} left={0} right={0} bottom={0} overflow="hidden">
-          <Client key="rail" module="./rail.tsx" props={{ top: TOP, bottom: BOTTOM }} width="100%" height="100%" />
-        </Box>
-      </Box>
-    ) : null
-    const appLine = railLine ?? (
+    const appLine = (
       <Box flexShrink={0} alignSelf="flex-start">
         <Svg
           alt="line"

@@ -2,10 +2,11 @@
 
 Each version names which workers it affects.
 
-## 0.3.151
+## 0.3.152
 Affects: the manager and every worker.
 manager-known-by-title: a chat whose file opens with a compaction summary is now known by its own title (a title naming a crew chat, such as Manager_PINR) in the rules check, talk check, board stop, worker queue, renewal and pre-compact hooks, Python and Rust, so the ?? play-back and the refusal of ask and buttons in the wrap-up call reach it; a worker's first message that names its manager still does not make it a manager (a worker title decides)
 
+## 0.3.151
 Affects: the owner's chat (the look).
 answer-box-yellow: words sent from the box under the choices are his answer (as before 0.3.150): the choices lock and the box fills yellow with his words, in every copy of the question and after a reload; words from the main message box still leave the choices live; undo clears it
 

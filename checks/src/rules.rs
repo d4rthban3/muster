@@ -331,6 +331,31 @@ fn owner_form_ok(t: &str) -> bool {
     let letters = re(r"(?m)^\*\*\*[A-D]\.\*\*\*").find_iter(t).count();
     letters >= 2 || (t.contains('?') && letters >= 1)
 }
+/// Worker-news-line (item 118): on a turn a worker's message started, the manager's reply may be a badge, a bold "**WORD \u{b7} job**"
+/// (WORD the report's first word), and ONE plain line saying who did what: nothing else, no bullets, no "needs nothing from you".
+fn empty_news(t: &str) -> bool { is(&rei(r"\bneeds? nothing from you\b"), t) }
+fn worker_news_ok(t: &str) -> bool {
+    let lines: Vec<&str> = t.trim().lines().map(|l| l.trim()).filter(|l| !l.is_empty()).collect();
+    if lines.len() != 2 || !is(&re("^\\*\\*(READY|PASS|FAIL|DONE|STUCK|NEED) \u{b7} \\S[^*\n]*\\*\\*$"), lines[0]) { return false; }
+    let one = lines[1];
+    one.chars().count() <= 300 && !is(&re("^([-*\u{2022}#>]|\\*\\*|\\d+[.)] )"), one) && !empty_news(one)
+}
+/// A report the owner already had a line for gets no second line: the same badge in an earlier reply of this chat (a bounced reply does not count).
+fn news_line_repeated(path: &str, text: &str) -> bool {
+    let badge = text.trim().lines().next().unwrap_or("").trim().to_string();
+    let bounce = rei(r"^\s*(Stop hook feedback|Stop hook blocking error)");
+    let mut seen = false;
+    for d in lines_of(path) {
+        let c = msg_content(&d);
+        if s(&d, "type") == "assistant" {
+            if let Value::Array(a) = &c {
+                let t = a.iter().filter(|b| s(b, "type") == "text").map(|b| s(b, "text")).collect::<Vec<_>>().join("\n");
+                if t.trim().lines().next().unwrap_or("").trim() == badge && worker_news_ok(&t) { seen = true; }
+            }
+        } else if s(&d, "type") == "user" && is(&bounce, &content_text(&c)) { seen = false; }
+    }
+    seen
+}
 fn is_news(t: &str) -> bool { is(&re(r"\b(PASS|LIVE|DONE)\b"), t) || is(&rei(r"\b(shipped|passed|merged|released|progress|landed|finished)\b"), t) }
 
 fn group_unfiled(uses: &[Value]) -> bool {
@@ -778,6 +803,18 @@ fn stop(c: &Ctx, data: &Value, manager: bool) {
         }
         if is(&rei(r"\bis waiting for you\b|\btype (?:it |your \w+ |anything )?in (?:the |that |this )?[\w .-]*\b(?:chat|window)\b"), text) {
             block("never send the owner to type in a worker's chat (item 103): carrying his approval is your job; forward his quoted go to the worker that asked, by message, and say nothing to him");
+            return;
+        }
+        if worker_news_ok(text) && peer_started(tpath) { // worker-news-line: the badge and one plain line
+            if news_line_repeated(tpath, text) { block("the owner already had a line for this report (same badge): no second line; end this turn with no text"); }
+            return;
+        }
+        if is(&re("^\\*\\*(READY|PASS|FAIL|DONE|STUCK|NEED) \u{b7} \\S[^*\n]*\\*\\*$"), text.trim().lines().next().unwrap_or("").trim()) && peer_started(tpath) && !worker_news_ok(text) {
+            block("a worker's news is the bold badge and ONE plain line under it, nothing more: no bullets, no second news line, no 'needs nothing from you'");
+            return;
+        }
+        if empty_news(text) && !owner_asked(tpath) {
+            block("an empty \"needs nothing from you\" line tells him nothing: when a worker's message needs nothing from him, reply with a bold badge '**WORD \u{b7} job**' (WORD is the report's first word: READY, PASS, FAIL, DONE, STUCK or NEED) and ONE plain line saying who did what, like '**READY \u{b7} login screen**' then 'Apps finished the login screen; Build Inspector has it.'");
             return;
         }
         if is_news(text) && !owner_form_ok(text) && !owner_asked(tpath) {

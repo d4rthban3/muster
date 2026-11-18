@@ -1,0 +1,20 @@
+{
+  "version": "0.3.146",
+  "changed_files": [
+    "hooks/rules-check.py",
+    "checks/src/rules.rs",
+    "scripts/rules-check-selftest.py",
+    "pages/manager.md",
+    "agents/manager.md",
+    "skills/manager-details/SKILL.md",
+    "templates/CLAUDE.md"
+  ],
+  "affected_roles": [
+    "Manager"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "worker-news-line: on a turn a worker's message starts, the manager's reply to the owner is now a bold badge ('READY \u00b7 login screen') and one plain line saying who did what, never the empty \"needs nothing from you\" line; the end-of-turn check allows that shape and refuses the empty line, a second news line, bullets and a repeat of a report he already had a line for; the manager page, manager-details and the crew template say so with a made-up example"
+}

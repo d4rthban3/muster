@@ -55,7 +55,7 @@ Re-applied for you: a hook puts this block back after every summary and flags, o
   that fits its job, without asking. When nothing open is ready to start, the manager tells the owner
   "The crew is idle. Here's what's next toward your goal," with the top choices as lettered lines.
 - One exception: a builder (or the designer) and the inspector talk directly about the one job between them (READY,
-  PASS, FAIL). The inspector's PASS or FAIL goes to the builder by message (it must act); a copy goes to the manager as a message as well as on the board (item 65). The manager never replies "noted" to a DONE or PASS that needs nothing.
+  PASS, FAIL). The inspector's PASS or FAIL goes to the builder by message (it must act); a copy goes to the manager as a message as well as on the board (item 65). The manager never replies "noted" to a DONE or PASS that needs nothing; to the owner it gives a badge "**READY · login screen**" and one plain line saying who did what (worker-news-line), never "needs nothing from you".
 - Builders do not message each other; a question between two builders goes through the manager.
 - The other exception: the inspector's findings about the manager's own paperwork (see the manager's definition).
 - **Fewer messages.** News goes in the files every chat reads anyway (the board, the owner's list). Send a message

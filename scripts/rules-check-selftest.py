@@ -39,6 +39,9 @@ def said(text):
     return {"type": "user", "message": {"content": text}}
 
 
+PEER = '<cross-session-message from="b">{"kind":"READY"}</cross-session-message>'
+
+
 def card(ts=None):
     d = {"type": "assistant", "message": {"content": [{"type": "text", "text": "**IDLE \u00b7 crew**\n\nThe crew is idle. Here's what's next toward your goal,\n\n***A.*** one\n\n***B.*** two"}]}}
     if ts:
@@ -222,6 +225,17 @@ cases = [
     ("item 125: all idle and no card is refused", run("Stop", last_assistant_message="Everything is done.", transcript_path=tr(MG, [said("<task-notification>x")]), cwd=PJ_IDLE), True),
     ("item 125: all idle and no text at all is refused", run("Stop", last_assistant_message="", transcript_path=tr(MG, [said("<task-notification>x")]), cwd=PJ_IDLE), True),
     ("item 125: all idle with the idle card passes", run("Stop", last_assistant_message="**IDLE \u00b7 crew**\n\nThe crew is idle. Here's what's next toward your goal,\n\n***A.*** one (my pick)\n\n***B.*** two", transcript_path=tr(MG, [said("<task-notification>x")]), cwd=PJ_IDLE), False),
+    # item 118 (worker-news-line): on a turn a worker's message started, a badge and one plain line; never the empty line
+    ("news-line: a badge and one plain line passes", run("Stop", last_assistant_message="**READY \u00b7 login screen**\nApps finished the login screen; Build Inspector has it.", transcript_path=tr(MG, [said(PEER)])), False),
+    ("news-line: a PASS badge and one plain line passes", run("Stop", last_assistant_message="**PASS \u00b7 login screen**\nBuild Inspector passed the login screen.", transcript_path=tr(MG, [said(PEER)])), False),
+    ("news-line: the empty 'needs nothing from you' line is refused", run("Stop", last_assistant_message="Apps' message needs nothing from you.", transcript_path=tr(MG, [said(PEER)])), True),
+    ("news-line: ...and the badge with that empty line under it is refused", run("Stop", last_assistant_message="**READY \u00b7 login screen**\nApps' message needs nothing from you.", transcript_path=tr(MG, [said(PEER)])), True),
+    ("news-line: a badge and two news lines is refused", run("Stop", last_assistant_message="**READY \u00b7 login screen**\nApps finished it.\nBuild Inspector has it.", transcript_path=tr(MG, [said(PEER)])), True),
+    ("news-line: a badge and a bullet is refused", run("Stop", last_assistant_message="**READY \u00b7 login screen**\n- Apps finished it", transcript_path=tr(MG, [said(PEER)])), True),
+    ("news-line: a repeat of the same badge gets no second line", run("Stop", last_assistant_message="**READY \u00b7 login screen**\nApps finished the login screen again.", transcript_path=tr(MG, [said(PEER), {"type": "assistant", "message": {"content": [{"type": "text", "text": "**READY \u00b7 login screen**\nApps finished the login screen; Build Inspector has it."}]}}, said(PEER)])), True),
+    ("news-line: a badge the hook bounced does not count as a repeat", run("Stop", last_assistant_message="**READY \u00b7 login screen**\nApps finished the login screen; Build Inspector has it.", transcript_path=tr(MG, [said(PEER), {"type": "assistant", "message": {"content": [{"type": "text", "text": "**READY \u00b7 login screen**\nApps finished the login screen; Build Inspector has it."}]}}, said("Stop hook feedback: rewrite it")])), False),
+    ("news-line: a different job's badge is not a repeat", run("Stop", last_assistant_message="**READY \u00b7 sign-up page**\nApps finished the sign-up page.", transcript_path=tr(MG, [said(PEER), {"type": "assistant", "message": {"content": [{"type": "text", "text": "**READY \u00b7 login screen**\nApps finished the login screen."}]}}, said(PEER)])), False),
+    ("news-line: on his own typed turn the badge news is still refused", run("Stop", last_assistant_message="**PASS \u00b7 login screen**\nBuild Inspector passed the login screen.", transcript_path=tr(MG, [said("carry on")])), True),
     # item 118 (idle-card-when-changed): after an idle card, the next one is asked for only when something changed
     ("idle-changed: nothing new since the last card passes", run("Stop", last_assistant_message="Nothing new.", transcript_path=tr(MG, [card(), said("<task-notification>x")]), cwd=PJ_IDLE), False),
     ("idle-changed: no text at all, nothing new, passes", run("Stop", last_assistant_message="", transcript_path=tr(MG, [card(), said("<task-notification>x")]), cwd=PJ_IDLE), False),

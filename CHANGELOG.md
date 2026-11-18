@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.146
+Affects: the manager.
+worker-news-line: on a turn a worker's message starts, the manager's reply to the owner is now a bold badge ('READY · login screen') and one plain line saying who did what, never the empty "needs nothing from you" line; the end-of-turn check allows that shape and refuses the empty line, a second news line, bullets and a repeat of a report he already had a line for; the manager page, manager-details and the crew template say so with a made-up example
+
 ## 0.3.145
 Affects: the manager.
 idle-card-when-changed: the manager's idle card is asked for only when something changed since its last one: a new owner message, a new report, a ship or a board change; background, other-chat and repeat-report turns with nothing new pass without it; a first card, or a transcript that cannot be read, is still asked for

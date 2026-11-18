@@ -641,6 +641,7 @@ if $PY "$ROOT/scripts/check-edition.py" "$CE" >"$CE/out" 2>&1; then fail "check-
 grep -q "bad: no 'Why:' line" "$CE/out" || fail "check-edition did not name the missing line: $(cat "$CE/out")"
 step "a project profile (PINR): its chat names, report shape, recorder, board path, no second talk check; Muster unchanged without it"
 SH=$($PY "$ROOT/scripts/small-hooks-selftest.py") || { echo "$SH"; fail "the small-hooks self-test has a miss"; }
+PF=$($PY "$ROOT/scripts/program-fallback-selftest.py") || { echo "$PF"; fail "the program-fallback self-test has a miss"; }
 PS=$($PY "$ROOT/scripts/profile-selftest.py") || { echo "$PS"; fail "the profile self-test has a miss"; }
 echo "$PS" | tail -1
 

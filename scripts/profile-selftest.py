@@ -159,7 +159,7 @@ json.dump({"name": "P", "crew_names": ["\\bManager_P_\\d{3}\\b"], "guard": {"pro
 subprocess.run(["git", "init", "-q", _pp], capture_output=True)
 _plug = os.path.join(T, "plug"); os.makedirs(os.path.join(_plug, "scripts"))   # a plugin copy with no ready-made program: the Python copy runs
 shutil.copytree(os.path.join(ROOT, "hooks"), os.path.join(_plug, "hooks"))
-for _f in ("find-binary.sh", "find-python.sh"):
+for _f in ("find-binary.sh", "find-python.sh", "try-program.sh"):
     shutil.copy(os.path.join(ROOT, "scripts", _f), os.path.join(_plug, "scripts", _f))
 _pt = tr("You are Manager_P_001, the go-between")
 _penv = {k: v for k, v in ENV.items() if k != "MUSTER_PROFILE"}

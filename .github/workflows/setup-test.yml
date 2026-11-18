@@ -120,6 +120,7 @@ jobs:
           MUSTER_CHECKS_BIN="$BIN" python3 scripts/profile-selftest.py
           MUSTER_CHECKS_BIN="$BIN" python3 scripts/small-hooks-selftest.py
           MUSTER_CHECKS_BIN="$BIN" python3 scripts/worker-queue-check-selftest.py
+          python3 scripts/program-fallback-selftest.py
       - name: The program and the Python checks answer alike (parity)
         if: matrix.dir == 'linux-x86_64'
         run: |

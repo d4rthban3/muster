@@ -203,6 +203,41 @@ def first_or_summary(path, crew=None):
         summ = compact_summary(path)
         if summ and _own_token(summ) is not None:
             return summ
+    return title_identity(path, first, crew)
+
+
+TITLE_USED = []  # paths whose identity came from the title (not kept beside the transcript: a rename must take effect)
+
+
+def chat_title(path):
+    """The chat's own title: the last custom-title record in its transcript. "" when it cannot be read."""
+    title = ""
+    try:
+        with open(path, encoding="utf-8") as fh:
+            for line in fh:
+                if "custom-title" not in line:
+                    continue
+                try:
+                    d = json.loads(line)
+                except ValueError:
+                    continue
+                if d.get("type") == "custom-title" and isinstance(d.get("customTitle"), str):
+                    title = d["customTitle"]
+    except OSError:
+        return ""
+    return title.strip()
+
+
+def title_identity(path, first, crew=None):
+    """When the first message holds no name the chat calls itself by (a compaction summary opens the file), the chat's own title does:
+    'You are <title>'. A first message that names its own chat is never overridden, and a worker whose first message merely
+    mentions its manager is decided by its own title, never by that mention."""
+    if _own_token(first) is not None:
+        return first
+    t = chat_title(path)
+    if t and (crew or CREW_RE).match(t):
+        TITLE_USED.append(path)
+        return "You are " + t
     return first
 
 
@@ -1608,7 +1643,8 @@ def main():
     first = first_or_summary(path)
     if not CREW_RE.search(first) and os.environ.get("MUSTER_ASSUME_CREW") != "1":
         return 0
-    remember_first(path, first)
+    if path not in TITLE_USED:
+        remember_first(path, first)
     manager = is_manager(first) or os.environ.get("MUSTER_ASSUME_MANAGER") == "1"
     ev = data.get("hook_event_name", "")
     if ev == "PreToolUse":

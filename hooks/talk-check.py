@@ -37,6 +37,25 @@ PATH = re.compile(r"(?<![\w./-])(?:/Users/|/home/|[A-Za-z]:\\|(?:[\w.-]+/)+[\w.-
 HEX = re.compile(r"\b(?=[0-9a-f]*\d)(?=[0-9a-f]*[a-f])[0-9a-f]{7,40}\b")
 
 
+def chat_title(path):
+    """The chat's own title: the last custom-title record in its transcript. "" when it cannot be read."""
+    title = ""
+    try:
+        with open(path, encoding="utf-8") as fh:
+            for line in fh:
+                if "custom-title" not in line:
+                    continue
+                try:
+                    d = json.loads(line)
+                except ValueError:
+                    continue
+                if d.get("type") == "custom-title" and isinstance(d.get("customTitle"), str):
+                    title = d["customTitle"]
+    except OSError:
+        return ""
+    return title.strip()
+
+
 def first_message(path):
     # D-039: after a compaction the file may open with the summary; the chat's own first message is kept beside it
     try:
@@ -132,7 +151,7 @@ def main():
     bad_hex = HEX.search(body)
     if not bad_path and not bad_hex:
         return 0
-    if not CREW_RE.search(first_message(data.get("transcript_path") or "")):
+    if not CREW_RE.search(first_message(data.get("transcript_path") or "")) and not CREW_RE.match(chat_title(data.get("transcript_path") or "")):
         return 0  # the owner's own chat or another project
     what = ("a bare file path or file name (\"%s\")" % bad_path.group(0)) if bad_path else ("a saved-version code (\"%s\")" % bad_hex.group(0))
     print(json.dumps({"decision": "block", "reason": "Your reply to the owner has %s. Send just the corrected line or lines, in plain words with each file as a clickable link and no saved-version codes." % what + NOREPEAT}))

@@ -90,9 +90,35 @@ def line_entries(text):
     return out
 
 
+def chat_title(path):
+    """The chat's own title: the last custom-title record in its transcript. "" when it cannot be read."""
+    title = ""
+    try:
+        with open(path, encoding="utf-8") as fh:
+            for line in fh:
+                if "custom-title" not in line:
+                    continue
+                try:
+                    d = json.loads(line)
+                except ValueError:
+                    continue
+                if d.get("type") == "custom-title" and isinstance(d.get("customTitle"), str):
+                    title = d["customTitle"]
+    except OSError:
+        return ""
+    return title.strip()
+
+
+CREW_TITLE = re.compile(r"(?:Manager|Builder [A-Za-z]|Designer|Design Inspector|Inspector|Sketchpad|AI Socket|Agent Teacher)_|" + "|".join("(?:%s)" % x for x in (PROFILE.get("crew_names") or []) + (PROFILE.get("manager_names") or [])) if (PROFILE.get("crew_names") or PROFILE.get("manager_names")) else r"(?:Manager|Builder [A-Za-z]|Designer|Design Inspector|Inspector|Sketchpad|AI Socket|Agent Teacher)_")
+
+
 def is_manager_chat(transcript_path):
     """True only if the chat's FIRST user message names the manager's definition or a Manager_<project>_<digits> chat.
-    The owner's own chats in the same folder, and any worker, do not. Unreadable means no (stay silent)."""
+    The owner's own chats in the same folder, and any worker, do not. Unreadable means no (stay silent). When the chat's own title
+    names a crew chat, the title decides (a worker's first message names its manager; a compaction summary names nobody)."""
+    title = chat_title(transcript_path)
+    if title and CREW_TITLE.match(title):
+        return MANAGER_RE.match(title) is not None
     try:
         with open(transcript_path, encoding="utf-8") as fh:
             for line in fh:

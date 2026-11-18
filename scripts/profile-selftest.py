@@ -217,10 +217,24 @@ add("4b the next stop (a worker's message started the turn) with the same pause 
 add("4b a changed line for that chat is said again", (write_board(PA + " changed") or bs("Fine.", state=ST)), True)
 add("4b a different chat's pause is new", (write_board(PA + " changed", "2026-11-08 | LIVE | Site_PINR_002 -> Manager | Paused: yes | y") or bs("Fine.", state=ST)), True)
 add("4b ...and then silent again for both", bs("Fine.", state=ST), False)
+bare = "See hooks/rules-check.py for it."
+# manager-known-by-title: a file that opens with a compaction summary is known by the chat's own title
+def titled(title, first="carry on"):
+    q = os.path.join(T, "ti%d.jsonl" % len(os.listdir(T)))
+    with open(q, "w") as f:
+        f.write(json.dumps({"type": "user", "isCompactSummary": True, "message": {"content": "This session is being continued from a previous conversation."}}) + "\n")
+        f.write(json.dumps({"type": "user", "message": {"content": first}}) + "\n")
+        f.write(json.dumps({"type": "custom-title", "customTitle": title, "sessionId": "x"}) + "\n")
+    return q
+write_board(PA)
+add("4c a summary-first chat titled Manager_PINR is the manager for the board check", bs("Fine.", t=titled("Manager_PINR")), True)
+add("4c a worker-titled chat whose first message names its manager is not nagged", bs("Fine.", t=titled("Site_PINR_002", "You are Site_PINR_002. Reports go to Manager_PINR_002.")), False)
+add("4c a summary-first chat with no title stays silent", bs("Fine.", t=tr("carry on")), False)
+add("5 talk-check knows a summary-first crew chat by its title", run("talk-check.py", "Stop", plain=True, last_assistant_message=bare, transcript_path=titled("Builder A_Muster_003")), True)
+add("5 talk-check leaves a summary-first chat with another title alone", run("talk-check.py", "Stop", plain=True, last_assistant_message=bare, transcript_path=titled("my own chat")), False)
 add("4 a worker chat is never nagged", (write_board("2026-11-08 | LIVE | Site_PINR_002 -> Manager | Paused: yes | x") or bs("Fine.", t=site)), False)
 add("4 no board at the path is silent", (os.remove(board) or bs("Fine.")), False)
 # 5 no second talk check
-bare = "See hooks/rules-check.py for it."
 add("5 talk-check is off under the PINR profile", run("talk-check.py", "Stop", last_assistant_message=bare, transcript_path=site), False)
 add("5 talk-check still works without the profile", run("talk-check.py", "Stop", plain=True, last_assistant_message=bare, transcript_path=tr("You are Builder A_Muster_003")), True)
 # the plugin's own copy stands down where .muster-checks is installed; the board path is joined to the folder holding it

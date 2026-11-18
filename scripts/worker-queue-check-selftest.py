@@ -53,6 +53,18 @@ t("PINR: never loops", prun("You are Eng_P_006", "x", stop_hook_active=True) == 
 t("PINR: finds the worker when the first message also names its manager and inspector",
   "block" in prun("You are Eng_P_006. Your manager is Manager_P_005 and your inspector is Eng Inspector_P_003.", "done"))
 t("PINR: the earliest name wins without \"You are\"", "block" in prun("Eng_P_006 here; inspector Eng Inspector_P_003", "done"))
+def ttranscript(title):
+    f = os.path.join(pp, "t%d.jsonl" % len(os.listdir(pp)))
+    with open(f, "w") as fh:
+        fh.write(json.dumps({"type": "user", "isCompactSummary": True, "message": {"content": "This session is being continued."}}) + "\n")
+        fh.write(json.dumps({"type": "user", "message": {"content": "carry on"}}) + "\n")
+        fh.write(json.dumps({"type": "custom-title", "customTitle": title, "sessionId": "x"}) + "\n")
+    return f
+def trun(title, msg):
+    return subprocess.run([sys.executable, CHK], input=json.dumps({"transcript_path": ttranscript(title), "last_assistant_message": msg}), capture_output=True, text=True, cwd=pp,
+                          env=dict(os.environ, MUSTER_PROFILE=os.path.join(pp, "profile.json"))).stdout
+t("title: a summary-first chat is a worker by its title", "block" in trun("Eng_P_006", "done"))
+t("title: a summary-first chat with another title is left alone", trun("my own chat", "done") == "")
 lst = lambda *a: subprocess.run([sys.executable, CHK, "--list", *a], capture_output=True, text=True, cwd=pp,
                                  env=dict(os.environ, MUSTER_PROFILE=os.path.join(pp, "profile.json"))).stdout
 t("PINR: --list --worker names the open line without any chat", "serve burns" in lst("--worker", "Eng_P_006"))

@@ -88,8 +88,13 @@ pub fn run() -> i32 {
     let tpath = s(&data, "transcript_path");
     let mgr_re = manager_re(&profile);
     if std::env::var("MUSTER_ASSUME_MANAGER").ok().as_deref() != Some("1") {
-        let first: String = first_message(tpath);
-        if !is(&mgr_re, &first) { return 0; }
+        // the chat's own title decides when it names a crew chat (a worker's first message names its manager; a summary names nobody)
+        let crew = crate::talk::crew_re(&profile);
+        let is_mgr = match title_if_crew(tpath, &crew) {
+            Some(t) => is(&mgr_re, &t),
+            None => is(&mgr_re, &first_message(tpath)),
+        };
+        if !is_mgr { return 0; }
     }
     let cwd = { let c = s(&data, "cwd"); if c.is_empty() { std::env::current_dir().unwrap_or_default() } else { c.into() } };
     let cwd = std::path::absolute(&cwd).unwrap_or(cwd);

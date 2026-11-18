@@ -110,6 +110,22 @@ pub fn first_message(path: &str) -> String {
     String::new()
 }
 
+/// The chat's own title: the last custom-title record in its transcript, "" when it cannot be read.
+pub fn chat_title(path: &str) -> String {
+    let mut t = String::new();
+    for d in lines_of(path) {
+        if s(&d, "type") == "custom-title" { if let Some(x) = d.get("customTitle").and_then(Value::as_str) { t = x.to_string(); } }
+    }
+    t.trim().to_string()
+}
+/// The chat's title when it starts with a crew name (so a chat whose first message is a compaction summary is still known), else None.
+pub fn title_if_crew(path: &str, crew: &fancy_regex::Regex) -> Option<String> {
+    let t = chat_title(path);
+    if t.is_empty() { return None; }
+    let anchored = re(&format!("^(?:{})", crew.as_str()));
+    if is(&anchored, &t) { Some(t) } else { None }
+}
+
 /// The compaction summary's text: when no .muster-first file was kept, it is the one place left that names the chat.
 pub fn compact_summary(path: &str) -> String {
     for d in lines_of(path) {

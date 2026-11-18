@@ -524,6 +524,31 @@ cases += [
     ("play-back: a worker-started turn needs no A/B question", run("Stop", last_assistant_message="Forwarded.", transcript_path=pb("do it??", said(PEER))) and "play back" in run("Stop", last_assistant_message="Forwarded.", transcript_path=pb("do it??", said(PEER))), False),
     ("play-back: a worker chat is not held to it", run("PreToolUse", tool_name="Edit", tool_input={"file_path": "/p/a.md", "old_string": "a", "new_string": "b"}, transcript_path=tr("You are Builder A_Muster_002", [said("do it??")])), False),
 ]
+
+# manager-known-by-title: a chat whose file opens with a compaction summary is known by its own title (profile pinr)
+PINR = dict(RUN_ENV, MUSTER_PROFILE=os.path.join(HERE, "..", "profiles", "pinr.json"))
+def runp(ev, **kw):
+    r = subprocess.run([BIN, "rules"] if BIN else [sys.executable, HOOK], input=json.dumps(dict(dict(hook_event_name=ev, cwd=T), **kw)), capture_output=True, text=True, env=PINR)
+    return r.stdout.strip()
+def titled(title, first, *more):
+    p = os.path.join(T, "ti%d.jsonl" % next(_tn))
+    with open(p, "w") as f:
+        f.write(json.dumps({"type": "user", "isCompactSummary": True, "message": {"content": "This session is being continued from a previous conversation that ran out of context."}}) + "\n")
+        f.write(json.dumps({"type": "user", "message": {"content": first}}) + "\n")
+        for m in more:
+            f.write(json.dumps({"type": "user", "message": {"content": m}}) + "\n")
+        if title is not None:
+            f.write(json.dumps({"type": "custom-title", "customTitle": title, "sessionId": "x"}) + "\n")
+    return p
+WRAP = dict(tool_name="mcp__ccd_turn__wrap_up", tool_input={"ask": "Which?", "actions": [{"label": "A"}]})
+cases += [
+    ("title: a summary-first chat titled Manager_PINR gets play-back on ??", "play back" in runp("UserPromptSubmit", prompt="do it??", transcript_path=titled("Manager_PINR", "carry on", "do it??")), True),
+    ("title: ...and its wrap-up call with ask and actions is refused", runp("PreToolUse", transcript_path=titled("Manager_PINR", "carry on"), **WRAP), True),
+    ("title: a worker titled Builder A_PINR whose first message names its manager is not a manager (no play-back)", runp("UserPromptSubmit", prompt="do it??", transcript_path=titled("Builder A_PINR", "You are Builder A_PINR. Manager_PINR gives the orders.", "do it??")), False),
+    ("title: a worker whose first message only mentions Manager_PINR is decided by its title (no play-back)", runp("UserPromptSubmit", prompt="do it??", transcript_path=titled("Builder A_PINR", "report to Manager_PINR_001", "do it??")), False),
+    ("title: a chat with no crew title and no crew name stays silent", runp("UserPromptSubmit", prompt="do it??", transcript_path=titled("my own chat", "hello", "do it??")), False),
+    ("title: no title record at all stays silent", runp("UserPromptSubmit", prompt="do it??", transcript_path=titled(None, "carry on", "do it??")), False),
+]
 bad = 0
 for name, out, should_block in cases:
     ok = bool(out) == should_block

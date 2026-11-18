@@ -113,6 +113,25 @@ def open_work(main, name):
     return out
 
 
+def chat_title(path):
+    """The chat's own title: the last custom-title record in its transcript. "" when it cannot be read."""
+    title = ""
+    try:
+        with open(path, encoding="utf-8") as fh:
+            for line in fh:
+                if "custom-title" not in line:
+                    continue
+                try:
+                    d = json.loads(line)
+                except ValueError:
+                    continue
+                if d.get("type") == "custom-title" and isinstance(d.get("customTitle"), str):
+                    title = d["customTitle"]
+    except OSError:
+        return ""
+    return title.strip()
+
+
 def first_message(path):
     # D-039: after a compaction the file may open with the summary; the chat's own first message is kept beside it
     try:
@@ -277,6 +296,8 @@ def main_lines(argv, cwd):
     else:
         first = first_message(data.get("transcript_path") or "")
         name = pick_name(first, line_names(board))
+        if not name:  # a compaction summary opens the file: the chat's own title is the board name
+            name = pick_name("You are " + chat_title(data.get("transcript_path") or ""), line_names(board))
     if not name or re.search(r"\bManager_", name):
         return 0
     work = line_open_work(board, name)

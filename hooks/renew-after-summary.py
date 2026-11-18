@@ -50,6 +50,25 @@ def remember_first(path, first):
         pass
 
 
+def chat_title(path):
+    """The chat's own title: the last custom-title record in its transcript. "" when it cannot be read."""
+    title = ""
+    try:
+        with open(path, encoding="utf-8") as fh:
+            for line in fh:
+                if "custom-title" not in line:
+                    continue
+                try:
+                    d = json.loads(line)
+                except ValueError:
+                    continue
+                if d.get("type") == "custom-title" and isinstance(d.get("customTitle"), str):
+                    title = d["customTitle"]
+    except OSError:
+        return ""
+    return title.strip()
+
+
 def first_message(path):
     # D-039: after a compaction the file may open with the summary; the chat's own first message is kept beside it
     try:
@@ -85,6 +104,10 @@ def main():
     except Exception:
         return 0
     first = first_message(data.get("transcript_path") or "")
+    if not (ROLE_FILE.search(first) or CHAT_NAME.search(first) or any(p.search(first) for p in PROFILE_CREW)):
+        t = chat_title(data.get("transcript_path") or "")  # a summary opens the file: the chat's own title says who it is
+        if t and (CHAT_NAME.match(t) or any(p.match(t) for p in PROFILE_CREW)):
+            first = "You are " + t
     role = ROLE_FILE.search(first)
     name = CHAT_NAME.search(first)
     named_in_profile = any(p.search(first) for p in PROFILE_CREW)

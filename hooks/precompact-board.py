@@ -68,6 +68,10 @@ def main():
     h = crew_helper()
     path = data.get("transcript_path") or ""
     first = h.first_message(path)
+    if not (h.CHAT_NAME.search(first) or h.ROLE_FILE.search(first) or any(p.search(first) for p in h.PROFILE_CREW)):
+        t = h.chat_title(path)
+        if t and (h.CHAT_NAME.match(t) or any(p.match(t) for p in h.PROFILE_CREW)):
+            first = "You are " + t
     name = h.CHAT_NAME.search(first)
     role = h.ROLE_FILE.search(first)
     in_profile = any(p.search(first) for p in h.PROFILE_CREW)

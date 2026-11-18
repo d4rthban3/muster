@@ -952,7 +952,8 @@ pub fn run_guard() -> i32 {
     let prof = project_profile(&data);
     let Some(conf) = prof.get("guard").filter(|g| g.is_object()) else { return 0 };
     let first = first_message(s(&data, "transcript_path"));
-    if !is(&crew_re(&prof), &first) && std::env::var("MUSTER_ASSUME_CREW").ok().as_deref() != Some("1") { return 0; }
+    let crew = crew_re(&prof);
+    if !is(&crew, &first) && title_if_crew(s(&data, "transcript_path"), &crew).is_none() && std::env::var("MUSTER_ASSUME_CREW").ok().as_deref() != Some("1") { return 0; }
     let empty = Value::Object(Default::default());
     if let Some(why) = guard_problem(s(&data, "tool_name"), data.get("tool_input").unwrap_or(&empty), s(&data, "cwd"), conf) { deny(&why); }
     0
@@ -967,8 +968,13 @@ pub fn run() -> i32 {
         let summ = compact_summary(s(&data, "transcript_path"));
         if !summ.is_empty() && own_token(&c, &summ).is_some() { first = summ; }
     }
+    // the first message names no chat of its own (a compaction summary opens the file): the chat's own title does
+    let mut from_title = false;
+    if own_token(&c, &first).is_none() {
+        if let Some(t) = title_if_crew(s(&data, "transcript_path"), &c.crew) { first = format!("You are {t}"); from_title = true; }
+    }
     if !is(&c.crew, &first) && std::env::var("MUSTER_ASSUME_CREW").ok().as_deref() != Some("1") { return 0; }
-    remember_first(s(&data, "transcript_path"), &first);
+    if !from_title { remember_first(s(&data, "transcript_path"), &first); }
     let manager = is_manager(&c, &first) || std::env::var("MUSTER_ASSUME_MANAGER").ok().as_deref() == Some("1");
     match s(&data, "hook_event_name") { "PreToolUse" => pretool(&c, &data, manager), "Stop" => stop(&c, &data, manager), "UserPromptSubmit" if manager => playback_start(&data), _ => {} }
     0

@@ -19,7 +19,8 @@ pub fn run() -> i32 {
     let bad_path = find(&path, &body).map(|m| m.as_str().to_string());
     let bad_hex = find(&hex, &body).map(|m| m.as_str().to_string());
     if bad_path.is_none() && bad_hex.is_none() { return 0; }
-    if !is(&crew_re(&profile), &first_message(s(&data, "transcript_path"))) { return 0; }
+    let crew = crew_re(&profile);
+    if !is(&crew, &first_message(s(&data, "transcript_path"))) && title_if_crew(s(&data, "transcript_path"), &crew).is_none() { return 0; }
     let what = match (&bad_path, &bad_hex) {
         (Some(p), _) => format!("a bare file path or file name (\"{p}\")"),
         (_, Some(h)) => format!("a saved-version code (\"{h}\")"),

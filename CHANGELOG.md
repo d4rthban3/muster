@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.151
+Affects: the owner's chat (the look).
+answer-box-yellow: words sent from the box under the choices are his answer (as before 0.3.150): the choices lock and the box fills yellow with his words, in every copy of the question and after a reload; words from the main message box still leave the choices live; undo clears it
+
 ## 0.3.150
 Affects: the owner's chat (the look).
 choices-stay-live-2: words sent from the card's own type-your-own-answer box are the owner's message and answer nothing, so the choices stay live and unfilled; only a click or a lone letter (there or in the chat box) fills and locks; an old stored typed answer is dropped so it cannot deaden the choices, and the 'Your answer' line is gone

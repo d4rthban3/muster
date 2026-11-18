@@ -1,0 +1,13 @@
+{
+  "version": "0.3.151",
+  "changed_files": [
+    "look/register.tsx",
+    "look/look.test.tsx"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "answer-box-yellow: words sent from the box under the choices are his answer (as before 0.3.150): the choices lock and the box fills yellow with his words, in every copy of the question and after a reload; words from the main message box still leave the choices live; undo clears it"
+}

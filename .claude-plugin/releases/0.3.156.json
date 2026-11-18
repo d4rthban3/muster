@@ -1,0 +1,26 @@
+{
+  "version": "0.3.156",
+  "changed_files": [
+    "checks/src/small.rs",
+    "checks/src/main.rs",
+    "checks/src/rules.rs",
+    "checks/Cargo.toml",
+    "checks/Cargo.lock",
+    "hooks/renew-after-summary.sh",
+    "hooks/precompact-board.sh",
+    "scripts/small-hooks-selftest.py",
+    "scripts/setup-smoke.sh",
+    ".github/workflows/setup-test.yml"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Builder",
+    "Designer",
+    "Inspector"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "rust-first-3-small-hooks: the summary hook (renew-after-summary), the PreCompact hook (precompact-board) and the Usage line now also exist in the ready-built program (renew, precompact and usage); the two shell hooks use the program first and fall back to the Python copy when no program is found or the program is an older one that does not know the check; the rules check asks the program's own usage code instead of starting Python for the 90% week stop. Same words, same board entry, same exit codes; a new self-test runs the Python and the program side by side and runs in the automatic run on all five programs. Python stays as the fallback; nothing is removed"
+}

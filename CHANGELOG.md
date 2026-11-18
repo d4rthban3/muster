@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.156
+Affects: the manager and every worker.
+rust-first-3-small-hooks: the notice after a conversation is compacted, the board entry written before it, and the Usage line now also exist in the ready-built program; the two shell hooks run the program first and fall back to the Python copy when no program is found (or it is an older one that does not know the check); the 90% week stop in the rules check asks the program's own usage code. Same words and board entry as before; a new self-test runs both copies side by side, in the automatic run on all five systems. Python stays as the fallback; nothing is removed
+
 ## 0.3.155
 Affects: the manager and every worker.
 rust-first-2-all-five: the automatic run now runs the full self-tests against the shipped program of all five systems, the older-Mac (Intel) one included; the record fuzz can print why the program refuses each odd record that the Python copy lets through (every one is a field that breaks the written record rules: wrong type, empty, unknown key, wrong id form). No program or rule changed

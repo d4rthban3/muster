@@ -219,17 +219,10 @@ fn goal_problem(root: &str, job: &str) -> Option<String> {
 }
 
 fn usage_at_limit(root: &str) -> bool {
+    // the Python check runs scripts/usage.py when the plugin or the project has it; the program asks its own usage code for the same answer
     let mut cands: Vec<PathBuf> = script_roots().into_iter().map(|r| r.join("scripts").join("usage.py")).collect();
     cands.push(Path::new(root).join(".muster-checks").join("usage.py"));
-    for cand in cands {
-        if cand.is_file() {
-            for py in ["python3", "python"] {
-                if let Ok(st) = Command::new(py).arg(&cand).output() { return st.status.code() == Some(3); }
-            }
-            return false;
-        }
-    }
-    false
+    cands.into_iter().any(|c| c.is_file()) && crate::small::usage_line(&[]).1 == 3
 }
 
 fn segments(cmd: &str) -> Vec<&str> { cmd.split(|c| c == ';' || c == '&' || c == '|' || c == '\n').collect() }

@@ -640,6 +640,7 @@ printf '### 2026-11-08 | READY | Builder -> Inspector | bad\nWhat: a\nWhere: b\n
 if $PY "$ROOT/scripts/check-edition.py" "$CE" >"$CE/out" 2>&1; then fail "check-edition passed a broken entry"; fi
 grep -q "bad: no 'Why:' line" "$CE/out" || fail "check-edition did not name the missing line: $(cat "$CE/out")"
 step "a project profile (PINR): its chat names, report shape, recorder, board path, no second talk check; Muster unchanged without it"
+SH=$($PY "$ROOT/scripts/small-hooks-selftest.py") || { echo "$SH"; fail "the small-hooks self-test has a miss"; }
 PS=$($PY "$ROOT/scripts/profile-selftest.py") || { echo "$PS"; fail "the profile self-test has a miss"; }
 echo "$PS" | tail -1
 

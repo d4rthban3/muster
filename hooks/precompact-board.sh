@@ -10,5 +10,11 @@ while [ -n "$d" ] && [ "$d" != "/" ]; do
 done
 [ -n "$found" ] || exit 0
 here=$(dirname "$0")
+ev=$(cat)
+# the ready-built program first; a program that does not know this check yet (exit 2), or none at all, leaves it to the Python copy
+if bin=$(sh "$here/../scripts/find-binary.sh" "$(cd "$here/.." && pwd)" 2>/dev/null); then
+  printf '%s' "$ev" | "$bin" precompact; rc=$?
+  [ "$rc" -ne 2 ] && exit "$rc"
+fi
 py=$(sh "$here/../scripts/find-python.sh" 2>/dev/null) || exit 0
-exec $py "$here/precompact-board.py"
+printf '%s' "$ev" | $py "$here/precompact-board.py"

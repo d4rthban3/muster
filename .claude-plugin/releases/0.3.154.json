@@ -1,0 +1,12 @@
+{
+  "version": "0.3.154",
+  "changed_files": [
+    "look/panel.tsx"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "look-panel-properties: the look panel is laid out as a tidy properties panel, with small titled sections (Type, Background, one per colour group), aligned rows and a colour swatch beside every colour; every setting is the same and works the same"
+}

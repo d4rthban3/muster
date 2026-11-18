@@ -67,6 +67,24 @@ function sampleOf(Svg: any, Box: any, c: (typeof COLOURS)[number], hex: string, 
   return <Svg alt={`The line, ${end} end`} width={40} height={64} source={source} />
 }
 
+// A small square of the colour, with a hairline edge: the swatch beside each setting
+function swatch(Svg: any, hex: string, label: string) {
+  const c = HEX.test(hex) ? hex : '#000000'
+  return <Svg alt={`Swatch ${label}`} width={20} height={20} source={`<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><rect x="1" y="1" width="18" height="18" rx="4" fill="${c}" stroke="#4a5060" stroke-width="1"/></svg>`} />
+}
+// a section's small capital title with a hairline under it, as a properties panel has
+function sectionTitle(Box: any, Text: any, title: string, right?: any) {
+  return (
+    <Box flexDirection="column">
+      <Box flexDirection="row" justifyContent="space-between" alignItems="center">
+        <Text color={MUTED} bold>{title.toUpperCase()}</Text>
+        {right}
+      </Box>
+      <Text color={LINE}>{'\u2500'.repeat(46)}</Text>
+    </Box>
+  )
+}
+
 let otherFont = false
 // a colour code that was typed but is not #rrggbb, shown beside its box and never saved
 const badCode: Record<string, string> = {}
@@ -114,10 +132,11 @@ export function panel(on: any) {
     return (
       <Box flexDirection="column" gap={1}>
         <Box flexDirection="column">
-          <Text bold>Change your look</Text>
+          <Text bold>Look</Text>
           <Text color={MUTED}>{`For the group \u201c${groupName(gid)}\u201d only (${gid}). Other groups keep their own.`}</Text>
         </Box>
         {!kept && <Text color="#ff6b6b">{'Not saved between sessions: this host would not keep the look, so your colours and font last only until Claude Code closes.'}</Text>}
+        {sectionTitle(Box, Text, 'Type')}
         <Select
           key="font"
           label="Chip font "
@@ -137,13 +156,15 @@ export function panel(on: any) {
             onSubmit={(t: string) => { const x = t.replace(/[^A-Za-z0-9 ,-]/g, '').trim(); if (x !== '') void set($, 'chipFont', x) }}
           />
         )}
-        <Box flexDirection="column" borderStyle="round" borderColor={LINE} paddingX={2}>
-          <Box flexDirection="row" gap={1}><Text color={YELLOW.text}>{'\u25CF'}</Text><Text bold>Frosted glass background (whole app)</Text></Box>
+        <Box flexDirection="column">
+          {sectionTitle(Box, Text, 'Background')}
+          <Text bold>Frosted glass (whole app)</Text>
           <Text color={MUTED}>{'A soft moving colour behind the chat, with the app\u2019s own panels frosted over it. Off unless you switch it on. It replaces any other theme while on.'}</Text>
           <Button key="frost" label={frosted ? 'On \u2013 press to turn off' : 'Off \u2013 press to turn on'} onPress={() => { void (async () => { await setGlassFlag($, !frosted); await applyGlass($, !frosted); $.ui.invalidate('ui.render') })() }} />
           {GLASS_COLOURS.map(c => (
             <Box key={c.key} flexDirection="row" gap={2} alignItems="center" marginTop={1}>
-              <Box width={12} flexShrink={0}><Text color={MUTED}>{c.label}</Text></Box>
+              <Box flexShrink={0}>{swatch(Svg, gs[c.key]!, c.label)}</Box>
+              <Box width={16} flexShrink={0}><Text color={MUTED}>{c.label}</Text></Box>
               <Box flexDirection="column" width={26} flexShrink={0}>
                 <Input
                   key={`${c.key}-${gs[c.key]}`}
@@ -170,19 +191,14 @@ export function panel(on: any) {
           </Box>
         </Box>
         {GROUPS.map(g => (
-          <Box key={g.id} flexDirection="column" borderStyle="round" borderColor={LINE} paddingX={2} paddingY={0}>
-            <Box flexDirection="row" justifyContent="space-between" alignItems="center">
-              <Box flexDirection="row" gap={1}>
-                <Text color={YELLOW.text}>{'\u25CF'}</Text>
-                <Text bold>{g.title}</Text>
-              </Box>
-              <Box flexDirection="row" gap={1}>{previewOf(Svg, Box, g, v)}</Box>
-            </Box>
+          <Box key={g.id} flexDirection="column">
+            {sectionTitle(Box, Text, g.title, <Box flexDirection="row" gap={1}>{previewOf(Svg, Box, g, v)}</Box>)}
             {COLOURS.filter(c => c.group === g.id).map(c => {
               const hex = v[c.key] || (c.pill !== undefined && c.part !== undefined ? pillPart(c.pill, c.part, v) : c.dflt)
               return (
                 <Box key={c.key} flexDirection="row" gap={2} alignItems="center" marginTop={1}>
-                  <Box key={`${c.key}-name`} width={12} flexShrink={0}><Text color={MUTED}>{c.short}</Text></Box>
+                  <Box key={`${c.key}-swatch`} flexShrink={0}>{swatch(Svg, hex, c.short)}</Box>
+                  <Box key={`${c.key}-name`} width={8} flexShrink={0}><Text color={MUTED}>{c.short}</Text></Box>
                   <Box key={`${c.key}-right`} flexDirection="column" width={26} flexShrink={0}>
                     <Input
                       key={`${c.key}-hex-${hex}`}

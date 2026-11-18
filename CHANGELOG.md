@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.154
+Affects: the owner's chat (the look).
+look-panel-properties: the look panel is laid out as a tidy properties panel, with small titled sections (Type, Background, one per colour group), aligned rows and a colour swatch beside every colour; every setting is the same and works the same
+
 ## 0.3.153
 Affects: the owner's chat (the look).
 background-loads-light: the glass background is built once per chat and kept, so a redraw no longer reads the stored settings, the picture file and rebuilds the 130,000-character scene each time; the scene is applied before the /look command is registered; the picture itself is unchanged

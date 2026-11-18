@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.150
+Affects: the owner's chat (the look).
+choices-stay-live-2: words sent from the card's own type-your-own-answer box are the owner's message and answer nothing, so the choices stay live and unfilled; only a click or a lone letter (there or in the chat box) fills and locks; an old stored typed answer is dropped so it cannot deaden the choices, and the 'Your answer' line is gone
+
 ## 0.3.149
 Affects: the manager.
 play-back-shortcut: when the owner's own typed message ends with two question marks (??), a prompt hook tells the manager to play back what it heard, order nothing, message no worker, start no chat and change no file, and ask one lettered yes-or-off question; the pre-tool and end-of-turn checks refuse an order, a message, a file change or a reply without the question until his yes; one ?, ?? mid-message, a peer's message and a letter pick do not trigger it; the manager page, manager-details, the crew template and the README say so

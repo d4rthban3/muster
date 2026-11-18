@@ -1,0 +1,13 @@
+{
+  "version": "0.3.150",
+  "changed_files": [
+    "look/register.tsx",
+    "look/look.test.tsx"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "choices-stay-live-2: words sent from the card's own type-your-own-answer box are the owner's message and answer nothing, so the choices stay live and unfilled; only a click or a lone letter (there or in the chat box) fills and locks; an old stored typed answer is dropped so it cannot deaden the choices, and the 'Your answer' line is gone"
+}

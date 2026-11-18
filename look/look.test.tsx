@@ -320,7 +320,7 @@ test('a choice of four or more lines keeps its circle full size and centred on i
   }
 })
 
-test('a live question has a text box; what is typed is sent with its heading and sticks on the card', async ($, on) => {
+test('a live question has a text box', async ($, on) => {
   on('ui.render', ($, e) => { const { Text } = $.ui.resolve(e); return <Text>engine</Text> })
   const boxes = async (ui: any) => ((await ui.findAll({ type: 'Input' })) ?? []).filter((x: any) => x.props?.placeholder === 'Or type your own answer')
   const ui = await $.ui.mount(MSG(Q2, 'desktop'))
@@ -897,4 +897,31 @@ test('a pick locks the question wherever it is drawn: twice in one chat, and aft
   try { await (again as any).post({ pick: 'A', q: hashText(QP) }, { in: 'pickA' }) } catch { /* no live region */ }
   expect(filled).toEqual([])
   await one.unmount(); await twin.unmount(); await again.unmount()
+})
+
+test('words sent from the card own box answer nothing and the choices stay live; a lone letter there picks and locks', async ($, on) => {
+  const sentOut: string[] = []
+  on('ui.render', ($, e) => { const { Text } = $.ui.resolve(e); return <Text>engine</Text> })
+  on('prompt.submit', ($, e) => { sentOut.push(String((e as any).text)); return { text: String((e as any).text) } as any })
+  const QB = '**WAITING · item 41**\nWhich metal?\n\n***A.*** Iron.\n\n***B.*** Tin.'
+  const ui = await $.ui.mount(MSG(QB, 'desktop'))
+  await (ui as any).input({ key: 'own-answer', text: 'okay' })
+  expect(sentOut).toEqual(['okay']) // still goes to the chat as his message
+  expect(await isLive(ui)).toBe(true) // choices stay live
+  expect(await ui.find({ type: 'Client', key: 'pickB' })).toBeTruthy()
+  await (ui as any).input({ key: 'own-answer', text: 'b' })
+  expect(sentOut).toEqual(['okay', 'B. Tin.'])
+  const again = await $.ui.mount(MSG(QB, 'desktop'))
+  expect(await isLive(again)).toBe(false)
+  await ui.unmount(); await again.unmount()
+})
+
+test('an old stored typed answer no longer deadens the choices', async ($, on) => {
+  on('ui.render', ($, e) => { const { Text } = $.ui.resolve(e); return <Text>engine</Text> })
+  const QO = '**WAITING · item 42**\nWhich shape?\n\n***A.*** Round.\n\n***B.*** Square.'
+  await savePick($, QO, '=okay')
+  resetCaches()
+  const ui = await $.ui.mount(MSG(QO, 'desktop'))
+  expect(await isLive(ui)).toBe(true)
+  await ui.unmount()
 })

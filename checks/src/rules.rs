@@ -334,11 +334,19 @@ fn owner_form_ok(t: &str) -> bool {
 /// Worker-news-line (item 118): on a turn a worker's message started, the manager's reply may be a badge, a bold "**WORD \u{b7} job**"
 /// (WORD the report's first word), and ONE plain line saying who did what: nothing else, no bullets, no "needs nothing from you".
 fn empty_news(t: &str) -> bool { is(&rei(r"\bneeds? nothing from you\b"), t) }
+/// A saved-version code, a bare path or file name, or a version number in the news line (links are fine).
+fn news_leaks(t: &str) -> bool {
+    let body = re(r"(?s)```.*?```").replace_all(&re(r"\[[^\]]*\]\([^)]*\)").replace_all(t, " "), " ").to_string();
+    let body = re(r"https?://\S+").replace_all(&body, " ").to_string();
+    is(&re(r"(?<![\w./-])(?:/Users/|/home/|[A-Za-z]:\\|(?:[\w.-]+/)+[\w.-]+\.\w{1,5}\b|[\w-]+\.(?:md|py|sh|json|html|yml|yaml|jsx?|tsx?|css|toml)\b)"), &body)
+        || is(&re(r"\b(?=[0-9a-f]*\d)[0-9a-f]{7,40}\b"), &body)
+        || is(&re(r"\bv?\d+\.\d+\.\d+\b"), &body)
+}
 fn worker_news_ok(t: &str) -> bool {
     let lines: Vec<&str> = t.trim().lines().map(|l| l.trim()).filter(|l| !l.is_empty()).collect();
     if lines.len() != 2 || !is(&re("^\\*\\*(READY|PASS|FAIL|DONE|STUCK|NEED) \u{b7} \\S[^*\n]*\\*\\*$"), lines[0]) { return false; }
     let one = lines[1];
-    one.chars().count() <= 300 && !is(&re("^([-*\u{2022}#>]|\\*\\*|\\d+[.)] )"), one) && !empty_news(one)
+    one.chars().count() <= 300 && !news_leaks(one) && !is(&re("^([-*\u{2022}#>]|\\*\\*|\\d+[.)] )"), one) && !empty_news(one)
 }
 /// A report the owner already had a line for gets no second line: the same badge in an earlier reply of this chat (a bounced reply does not count).
 fn news_line_repeated(path: &str, text: &str) -> bool {
@@ -810,7 +818,7 @@ fn stop(c: &Ctx, data: &Value, manager: bool) {
             return;
         }
         if is(&re("^\\*\\*(READY|PASS|FAIL|DONE|STUCK|NEED) \u{b7} \\S[^*\n]*\\*\\*$"), text.trim().lines().next().unwrap_or("").trim()) && peer_started(tpath) && !worker_news_ok(text) {
-            block("a worker's news is the bold badge and ONE plain line under it, nothing more: no bullets, no second news line, no 'needs nothing from you'");
+            block("a worker's news is the bold badge and ONE plain line under it, nothing more: no bullets, no second news line, no saved-version code, version number or bare file path (a link is fine), no 'needs nothing from you'");
             return;
         }
         if empty_news(text) && !owner_asked(tpath) {

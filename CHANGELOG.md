@@ -4,7 +4,7 @@ Each version names which workers it affects.
 
 ## 0.3.146
 Affects: the manager.
-worker-news-line: on a turn a worker's message starts, the manager's reply to the owner is now a bold badge ('READY · login screen') and one plain line saying who did what, never the empty "needs nothing from you" line; the end-of-turn check allows that shape and refuses the empty line, a second news line, bullets and a repeat of a report he already had a line for; the manager page, manager-details and the crew template say so with a made-up example
+worker-news-line: on a turn a worker's message starts, the manager's reply to the owner is now a bold badge ('READY · login screen') and one plain line saying who did what, never the empty "needs nothing from you" line; the end-of-turn check allows that shape and refuses the empty line, a second news line, bullets, a saved-version code, a version number, a bare path and a repeat of a report he already had a line for; the manager page, manager-details and the crew template say so with a made-up example
 
 ## 0.3.145
 Affects: the manager.

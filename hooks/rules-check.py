@@ -1032,6 +1032,17 @@ NEWS_BADGE = re.compile(r"^\*\*(READY|PASS|FAIL|DONE|STUCK|NEED) \u00b7 (\S[^*\n
 EMPTY_NEWS = re.compile(r"\bneeds? nothing from you\b", re.I)
 
 
+NEWS_PATH = re.compile(r"(?<![\w./-])(?:/Users/|/home/|[A-Za-z]:\\|(?:[\w.-]+/)+[\w.-]+\.\w{1,5}\b|[\w-]+\.(?:md|py|sh|json|html|yml|yaml|jsx?|tsx?|css|toml)\b)")
+NEWS_HEX = re.compile(r"\b(?=[0-9a-f]*\d)[0-9a-f]{7,40}\b")
+NEWS_VER = re.compile(r"\bv?\d+\.\d+\.\d+\b")
+
+
+def news_leaks(t):
+    """A saved-version code, a bare path or file name, or a version number in the news line (links are fine)."""
+    body = re.sub(r"https?://\S+", " ", re.sub(r"```.*?```", " ", re.sub(r"\[[^\]]*\]\([^)]*\)", " ", t, flags=re.S), flags=re.S))
+    return bool(NEWS_PATH.search(body) or NEWS_HEX.search(body) or NEWS_VER.search(body))
+
+
 def worker_news_ok(t):
     """Worker-news-line (item 118): on a turn a worker's message started, the manager's reply may be a badge, a bold '**WORD \u00b7 job**'
     (WORD the report's first word), and ONE plain line saying who did what: nothing else, no bullets, no 'needs nothing from you'."""
@@ -1039,7 +1050,7 @@ def worker_news_ok(t):
     if len(lines) != 2 or not NEWS_BADGE.match(lines[0]):
         return False
     one = lines[1]
-    return len(one) <= 300 and not re.match(r"^([-*\u2022#>]|\*\*|\d+[.)] )", one) and not EMPTY_NEWS.search(one) and "\n" not in one
+    return len(one) <= 300 and not news_leaks(one) and not re.match(r"^([-*\u2022#>]|\*\*|\d+[.)] )", one) and not EMPTY_NEWS.search(one) and "\n" not in one
 
 
 def news_line_repeated(path, text):
@@ -1417,7 +1428,7 @@ def stop(data, manager):
                 return block("the owner already had a line for this report (same badge): no second line; end this turn with no text")
             return
         if NEWS_BADGE.match(text.strip().splitlines()[0].strip()) and peer_started(data.get("transcript_path") or "") and not worker_news_ok(text):
-            return block("a worker's news is the bold badge and ONE plain line under it, nothing more: no bullets, no second news line, no 'needs nothing from you'")
+            return block("a worker's news is the bold badge and ONE plain line under it, nothing more: no bullets, no second news line, no saved-version code, version number or bare file path (a link is fine), no 'needs nothing from you'")
         if EMPTY_NEWS.search(text) and not owner_asked(data.get("transcript_path") or ""):
             return block("an empty \"needs nothing from you\" line tells him nothing: when a worker's message needs nothing from him, reply with a bold badge '**WORD \u00b7 job**' "
                          "(WORD is the report's first word: READY, PASS, FAIL, DONE, STUCK or NEED) and ONE plain line saying who did what, like '**READY \u00b7 login screen**' then 'Apps finished the login screen; Build Inspector has it.'")

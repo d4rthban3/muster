@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.149
+Affects: the manager.
+play-back-shortcut: when the owner's own typed message ends with two question marks (??), a prompt hook tells the manager to play back what it heard, order nothing, message no worker, start no chat and change no file, and ask one lettered yes-or-off question; the pre-tool and end-of-turn checks refuse an order, a message, a file change or a reply without the question until his yes; one ?, ?? mid-message, a peer's message and a letter pick do not trigger it; the manager page, manager-details, the crew template and the README say so
+
 ## 0.3.148
 Affects: the owner's chat (the look).
 choices-stay-live: only a real pick answers a question (a click then Enter, or a reply that is just one of its letters); other words the owner sends leave the choices live and unfilled; a pick fills the choice and locks the question everywhere it is drawn and after a reload; an older question stays live (its option line picks it) once a newer one appears; a locked question takes no second pick; undo still returns it to live

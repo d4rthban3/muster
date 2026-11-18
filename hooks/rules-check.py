@@ -878,6 +878,9 @@ def pretool(data, manager):
         why = guard_problem(tool, inp, data.get("cwd") or "", conf)
         if why:
             return deny(why)
+    if manager and playback_turn(data.get("transcript_path") or "") and (tool in PLAYBACK_TOOLS or tool.endswith("start_session")
+                                                                       or (tool == "Bash" and PLAYBACK_BASH.search(str(inp.get("command", ""))))):
+        return deny(PLAYBACK_WHY)
     if tool in ("Agent", "Task"):
         return helper_problem(inp, manager)
     if tool.endswith("start_session"):
@@ -1385,12 +1388,66 @@ def idle_card_ok(t):
     return len(re.findall(r"^\*\*\*[A-D]\.\*\*\*", t, re.M)) >= 2
 
 
+PLAYBACK_END = re.compile(r"(?<!\?)\?\?\s*$")
+PLAYBACK_TOOLS = ("SendMessage", "Write", "Edit", "NotebookEdit", "Agent", "Task")
+PLAYBACK_BASH = re.compile(r"(?:^|[\s;&|(])(?:rm|mv|cp|tee|touch|mkdir|ln|chmod|git\s+(?:add|commit|push|merge|rebase|checkout|switch|reset|apply|cherry-pick|stash)|sed\s+-i|python3?\s+\S*record-\S*)\b|(?<![0-9&>])>>?(?!\s*&?\d?\s*/dev/null)\s*[^\s&>]")
+PLAYBACK_WHY = ("his message ended with ?? (play back): this turn you order nothing, message no worker, start no chat and change no file; "
+                "play back in plain words what you heard, then ask ONE lettered question, ***A.*** yes, that's it (my pick) and ***B.*** something is off. You act only after his yes")
+
+
+def typed_text(path):
+    """The text of his own typed message when it started this turn, else ''. A message from another chat, an app event, hook feedback
+    and a system reminder do not count."""
+    typed = ""
+    try:
+        with open(path, encoding="utf-8") as fh:
+            for line in fh:
+                try:
+                    d = json.loads(line)
+                except ValueError:
+                    continue
+                if d.get("type") != "user":
+                    continue
+                c = (d.get("message") or {}).get("content", "")
+                if isinstance(c, list):
+                    if any(isinstance(b, dict) and b.get("type") == "tool_result" for b in c):
+                        continue
+                    c = " ".join(b.get("text", "") for b in c if isinstance(b, dict))
+                c = str(c)
+                if not c.strip():
+                    continue
+                if ENDS_TURN.search(c):
+                    typed = ""
+                elif not re.match(r"^\s*(<system-reminder|Stop hook feedback|Stop hook blocking error)", c, re.I):
+                    typed = c
+    except OSError:
+        pass
+    return typed
+
+
+def playback_turn(path):
+    """True when this turn was started by his own typed message that ENDS with two question marks (play back, change nothing)."""
+    t = typed_text(path)
+    return bool(t) and PLAYBACK_END.search(t) is not None
+
+
+def playback_start(data):
+    """UserPromptSubmit: when the prompt is his own and ends with ??, give the manager the instruction for this turn."""
+    pr = str(data.get("prompt") or "")
+    if not pr.strip() or ENDS_TURN.search(pr) or re.match(r"^\s*<", pr) or not PLAYBACK_END.search(pr):
+        return
+    print(json.dumps({"hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "additionalContext": "Muster rule: " + PLAYBACK_WHY}}))
+
+
 def stop(data, manager):
     text = data.get("last_assistant_message") or ""
     # Founder orders (item 76): NOT subject to the once-per-turn pass; the only way through is doing it, or one short question
     if manager and text and refuses_order(text) and owner_typed_last(data.get("transcript_path") or ""):
         return block("he gave you an order in his own words, and a coded rule says you do it: no refusing, no \"cannot\", no arguing, no reinterpreting (item 76). "
                      "Do the task now, or if you are unsure ask him ONE short question, nothing else")
+    if manager and not data.get("stop_hook_active") and playback_turn(data.get("transcript_path") or "") \
+            and len(re.findall(r"^\*\*\*[A-D]\.\*\*\*", text, re.M)) < 2:
+        return block(PLAYBACK_WHY)
     # Item 125: a manager's turn ends with the idle card or the Working line when no worker holds an open order on the board (even with no text)
     if manager and not data.get("stop_hook_active") and not bounced_this_turn(data.get("transcript_path") or "") \
             and not owner_typed_last(data.get("transcript_path") or "") and open_order_held(main_folder(data.get("cwd"))) is False and not idle_card_ok(text) \
@@ -1558,6 +1615,8 @@ def main():
         pretool(data, manager)
     elif ev == "Stop":
         stop(data, manager)
+    elif ev == "UserPromptSubmit" and manager:
+        playback_start(data)
     return 0
 
 

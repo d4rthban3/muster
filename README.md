@@ -23,6 +23,8 @@ Add-ons you can pick on the setup page: extra builders (Builder B_<your project>
 ideas), AI Socket_<your project> (for plugging in other AIs), and Agent Teacher_<your project> (train your own agent in Claude Console).
 When three or more workers build, a second inspector, Design Inspector_<your project>, joins to check what people see.
 
+**A shortcut for you:** end a message to the manager with two question marks (`??`) and it plays back what it heard, orders and changes nothing, and waits for your yes.
+
 ## Install
 **In the Claude desktop app:** open the Code tab, start a chat, and send this message:
 ```

@@ -158,6 +158,7 @@ def main():
             restore_recorder(proj, dest)
             os.remove(os.path.join(dest, "profile.json"))
         hooks.setdefault("Stop", []).append({"hooks": [{"type": "command", "command": cmd(n)} for n in ("board-stop.py", "talk-check.py", "rules-check.py", "worker-queue-check.py", "idle-check.py")]})
+        hooks.setdefault("UserPromptSubmit", []).append({"hooks": [{"type": "command", "command": cmd("rules-check.py")}]})
         hooks.setdefault("SessionStart", []).append({"matcher": "compact", "hooks": [{"type": "command", "command": cmd("renew-after-summary.py")}]})
         hooks.setdefault("PreCompact", []).append({"hooks": [{"type": "command", "command": cmd("precompact-board.py")}]})
         hooks.setdefault("PreToolUse", []).append({"matcher": "mcp__ccd_session__start_session|mcp__ccd_turn__wrap_up|AskUserQuestion|Agent|Task|SendMessage|Write|Edit|NotebookEdit|Bash",

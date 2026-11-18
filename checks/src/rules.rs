@@ -498,6 +498,36 @@ fn title_above_choices(text: &str) -> bool {
     false
 }
 
+const PLAYBACK_WHY: &str = "his message ended with ?? (play back): this turn you order nothing, message no worker, start no chat and change no file; play back in plain words what you heard, then ask ONE lettered question, ***A.*** yes, that's it (my pick) and ***B.*** something is off. You act only after his yes";
+/// The text of his own typed message when it started this turn, else "".
+fn typed_text(path: &str) -> String {
+    let ends = rei(r"<cross-session-message|<task-notification|<side-sessions-event|<ci-monitor-event|\[SYSTEM NOTIFICATION");
+    let neutral = rei(r"^\s*(<system-reminder|Stop hook feedback|Stop hook blocking error)");
+    let mut typed = String::new();
+    for d in lines_of(path) {
+        if s(&d, "type") != "user" { continue; }
+        let c = msg_content(&d);
+        if let Value::Array(a) = &c { if a.iter().any(|b| s(b, "type") == "tool_result") { continue; } }
+        let t = content_text(&c);
+        if t.trim().is_empty() { continue; }
+        if is(&ends, &t) { typed.clear(); } else if !is(&neutral, &t) { typed = t; }
+    }
+    typed
+}
+fn playback_end(t: &str) -> bool { let t = t.trim_end(); t.ends_with("??") && !t.ends_with("???") }
+fn playback_turn(path: &str) -> bool { let t = typed_text(path); !t.is_empty() && playback_end(&t) }
+fn playback_bash(cmd: &str) -> bool {
+    let w = re(r"(?:^|[\s;&|(])(?:rm|mv|cp|tee|touch|mkdir|ln|chmod|git\s+(?:add|commit|push|merge|rebase|checkout|switch|reset|apply|cherry-pick|stash)|sed\s+-i|python3?\s+\S*record-\S*)\b|(?<![0-9&>])>>?(?!\s*&?\d?\s*/dev/null)\s*[^\s&>]");
+    is(&w, cmd)
+}
+/// UserPromptSubmit: when the prompt is his own and ends with ??, give the manager the instruction for this turn.
+fn playback_start(data: &Value) {
+    let pr = s(data, "prompt");
+    let ends = rei(r"<cross-session-message|<task-notification|<side-sessions-event|<ci-monitor-event|\[SYSTEM NOTIFICATION");
+    if pr.trim().is_empty() || is(&ends, pr) || pr.trim_start().starts_with('<') || !playback_end(pr) { return; }
+    say(&format!("{{\"hookSpecificOutput\": {{\"hookEventName\": \"UserPromptSubmit\", \"additionalContext\": {}}}}}", py_str(&format!("Muster rule: {PLAYBACK_WHY}"))));
+}
+
 fn pretool(c: &Ctx, data: &Value, manager: bool) {
     let tool = s(data, "tool_name");
     let empty = Value::Object(Default::default());
@@ -506,6 +536,9 @@ fn pretool(c: &Ctx, data: &Value, manager: bool) {
     if let Some(conf) = c.profile.get("guard").filter(|g| g.is_object()) {
         if let Some(why) = guard_problem(tool, inp, s(data, "cwd"), conf) { return deny(&why); }
     }
+    if manager && playback_turn(s(data, "transcript_path"))
+        && (["SendMessage", "Write", "Edit", "NotebookEdit", "Agent", "Task"].contains(&tool) || tool.ends_with("start_session")
+            || (tool == "Bash" && playback_bash(s(inp, "command")))) { return deny(PLAYBACK_WHY); }
     if tool == "SendMessage" { return send_message(c, data, inp, &root, manager); }
     if tool == "Agent" || tool == "Task" { return helper_problem(inp, manager); }
     if tool.ends_with("start_session") {
@@ -777,6 +810,11 @@ fn stop(c: &Ctx, data: &Value, manager: bool) {
         block("he gave you an order in his own words, and a coded rule says you do it: no refusing, no \"cannot\", no arguing, no reinterpreting (item 76). Do the task now, or if you are unsure ask him ONE short question, nothing else");
         return;
     }
+    if manager && !data.get("stop_hook_active").and_then(Value::as_bool).unwrap_or(false) && playback_turn(s(data, "transcript_path"))
+        && re(r"(?m)^\*\*\*[A-D]\.\*\*\*").find_iter(text).count() < 2 {
+        block(PLAYBACK_WHY);
+        return;
+    }
     // Item 125: a manager's turn ends with the idle card or the Working line when no worker holds an open order on the board (even with no text)
     if manager && !data.get("stop_hook_active").and_then(Value::as_bool).unwrap_or(false) && !bounced_this_turn(s(data, "transcript_path"))
         && !owner_typed_last(s(data, "transcript_path")) && open_order_held(&main_folder(s(data, "cwd"))) == Some(false) && !idle_card_ok(text)
@@ -932,7 +970,7 @@ pub fn run() -> i32 {
     if !is(&c.crew, &first) && std::env::var("MUSTER_ASSUME_CREW").ok().as_deref() != Some("1") { return 0; }
     remember_first(s(&data, "transcript_path"), &first);
     let manager = is_manager(&c, &first) || std::env::var("MUSTER_ASSUME_MANAGER").ok().as_deref() == Some("1");
-    match s(&data, "hook_event_name") { "PreToolUse" => pretool(&c, &data, manager), "Stop" => stop(&c, &data, manager), _ => {} }
+    match s(&data, "hook_event_name") { "PreToolUse" => pretool(&c, &data, manager), "Stop" => stop(&c, &data, manager), "UserPromptSubmit" if manager => playback_start(&data), _ => {} }
     0
 }
 #[allow(dead_code)]

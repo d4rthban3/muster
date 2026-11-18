@@ -490,6 +490,37 @@ cases += [
     ("GROUP: a refused step named with the drag line passes", run("Stop", last_assistant_message="**IDLE · crew**\n\nThe crew is idle. The app refused the move: drag Engine_P_006 into the group.\n\nHere's what's next toward your goal,\n\n***A.*** one (my pick)\n\n***B.*** two", transcript_path=tr(MG, [said("start it"), S(initiation="user_asked")])), False),
     ("GROUP: a worker is not checked", run("Stop", last_assistant_message="**WORKING \u00b7 x**\n- a\n- b", transcript_path=tr("You are Builder A_Muster_002, agents/builder.md", [said("go"), S(initiation="user_asked")])), False),
 ]
+
+# play-back-shortcut: his message ending with ?? gets the instruction; that turn orders and edits nothing until his yes
+def pb(msg, *more):
+    return tr(MG, [said(msg)] + list(more))
+PB_Q = "**PLAYBACK \u00b7 login**\n\nI heard: the login page should remember the user.\n\n***A.*** Yes, that's it (my pick)\n\n***B.*** Something is off"
+PB_ORDER = "To: B\nJob: j\nOwns: a"
+prompt = lambda t, text: run("UserPromptSubmit", prompt=text, transcript_path=t)
+cases += [
+    ("play-back: his message ending ?? gets the instruction", "play back" in prompt(pb("make the login remember me??"), "make the login remember me??"), True),
+    ("play-back: trailing space after ?? still counts", "play back" in prompt(pb("x??  "), "x??  "), True),
+    ("play-back: one ? does not trigger", prompt(pb("remember me?"), "remember me?"), False),
+    ("play-back: ?? in the middle does not trigger", prompt(pb("what?? no way, do it"), "what?? no way, do it"), False),
+    ("play-back: three ? is not the mark", prompt(pb("x???"), "x???"), False),
+    ("play-back: a peer's message ending ?? does not trigger", prompt(pb("x"), '<cross-session-message from="b">ok??</cross-session-message>'), False),
+    ("play-back: a letter pick does not trigger", prompt(pb("B"), "B"), False),
+    ("play-back: a worker chat gets no instruction", prompt(tr("You are Builder A_Muster_002", [said("x??")]), "x??"), False),
+    ("play-back: an order message is refused that turn", run("PreToolUse", tool_name="SendMessage", tool_input={"to": "x", "message": PB_ORDER}, transcript_path=pb("do it??")), True),
+    ("play-back: a file edit is refused that turn", run("PreToolUse", tool_name="Edit", tool_input={"file_path": "/p/a.md", "old_string": "a", "new_string": "b"}, transcript_path=pb("do it??")), True),
+    ("play-back: starting a chat is refused that turn", run("PreToolUse", tool_name="mcp__ccd_session__start_session", tool_input={"title": "Builder A_X_001"}, transcript_path=pb("do it??")), True),
+    ("play-back: a file-writing command is refused that turn", run("PreToolUse", tool_name="Bash", tool_input={"command": "echo hi >> muster/BOARD.md"}, transcript_path=pb("do it??")), True),
+    ("play-back: a git commit is refused that turn", run("PreToolUse", tool_name="Bash", tool_input={"command": "git commit -m x"}, transcript_path=pb("do it??")), True),
+    ("play-back: reading a file is still allowed", run("PreToolUse", tool_name="Read", tool_input={"file_path": "/p/a.md"}, transcript_path=pb("do it??")), False),
+    ("play-back: a read-only command is still allowed", run("PreToolUse", tool_name="Bash", tool_input={"command": "git log --oneline -3 2>&1 | head"}, transcript_path=pb("do it??")), False),
+    ("play-back: a reply with no lettered question is refused", run("Stop", last_assistant_message="Heard it.", transcript_path=pb("do it??")), True),
+    ("play-back: a reply that plays back and asks A or B passes", run("Stop", last_assistant_message=PB_Q, transcript_path=pb("do it??")), False),
+    ("play-back: one ? gets no play-back demand", run("Stop", last_assistant_message="Heard it. On it.", transcript_path=pb("do it?")), False),
+    ("play-back: after his yes a file-writing command is allowed", run("PreToolUse", tool_name="Bash", tool_input={"command": "echo hi >> muster/notes.md"}, transcript_path=pb("do it??", {"type": "assistant", "message": {"content": [{"type": "text", "text": PB_Q}]}}, said("A"))), False),
+    ("play-back: after his yes a file edit is allowed", run("PreToolUse", tool_name="Edit", tool_input={"file_path": "/p/a.md", "old_string": "a", "new_string": "b"}, transcript_path=pb("do it??", said("yes that's it"))), False),
+    ("play-back: a peer's report in the turn clears nothing (still his ??)", run("PreToolUse", tool_name="Edit", tool_input={"file_path": "/p/a.md", "old_string": "a", "new_string": "b"}, transcript_path=pb("do it??", {"type": "user", "message": {"content": "Stop hook feedback: x"}})), True),
+    ("play-back: a worker chat is not held to it", run("PreToolUse", tool_name="Edit", tool_input={"file_path": "/p/a.md", "old_string": "a", "new_string": "b"}, transcript_path=tr("You are Builder A_Muster_002", [said("do it??")])), False),
+]
 bad = 0
 for name, out, should_block in cases:
     ok = bool(out) == should_block

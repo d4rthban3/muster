@@ -1,0 +1,23 @@
+{
+  "version": "0.3.149",
+  "changed_files": [
+    "hooks/rules-check.py",
+    "hooks/hooks.json",
+    "checks/src/rules.rs",
+    "scripts/install-checks.py",
+    "scripts/rules-check-selftest.py",
+    "pages/manager.md",
+    "agents/manager.md",
+    "skills/manager-details/SKILL.md",
+    "templates/CLAUDE.md",
+    "README.md"
+  ],
+  "affected_roles": [
+    "Manager"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "play-back-shortcut: when the owner's own typed message ends with two question marks (??), a prompt hook tells the manager to play back what it heard, order nothing, message no worker, start no chat and change no file, and ask one lettered yes-or-off question; the pre-tool and end-of-turn checks refuse an order, a message, a file change or a reply without the question until his yes; one ?, ?? mid-message, a peer's message and a letter pick do not trigger it; the manager page, manager-details, the crew template and the README say so"
+}

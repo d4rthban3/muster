@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.158
+Affects: the manager and every worker, and the outside-AI pages.
+ask-first-rule (owner's rule D-042): ask before any decision you have no instruction for, build choices included; only the plain steps of doing the order go unasked. The words are now in the project template (templates/CLAUDE.md, replacing "Two kinds of gap"), on every worker's always-page (the page word limit goes from 815 to 910 to hold them), in the Muster Lite prompts and install page (in the owner's own voice), the Cursor builder rule and the manager-details skill. The old allowance to fill a coding gap and say what you chose is removed everywhere it was written. No coded check changed
+
 ## 0.3.157
 Affects: the manager and every worker.
 rust-first-4-worker-queue: the worker queue check (the "do not go idle" refusal at the end of a worker's turn, Muster's board and the line-style board) now also exists in the ready-built program; its shell hook runs the program first and falls back to the Python copy when no program is found (or it is an older one that does not know the check). A new order written as a JSON message is now held at 90% of the week by the Python rules check too, as the program and the text form already did (the standing rule). The self-test runs both copies side by side, and a parity script compares them, in the automatic run on all five systems. Every hook that runs the program first (rules, guard, talk, board stop, renew, precompact, worker queue) now runs its Python copy whenever the program is missing, will not start, crashes, is killed or ends with any exit code but 0 (before, only a missing program or exit 2 did), and never prints half a program answer beside the Python one; a new self-test crashes a stand-in program in every hook. The build-or-buy page for the chrono crate (checks/BUILD-OR-BUY.md) is written. Python stays as the fallback; nothing is removed

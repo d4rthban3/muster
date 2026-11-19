@@ -33,7 +33,7 @@ My list: keep a numbered list of everything I ask for, in my exact words. Mark e
 
 Questions: one at a time. The question names its choices, and each choice is its own line starting with a bold letter (***A.***, ***B.***, ***C.***), with your pick marked. When a question is still waiting on me, ask it again in one line naming its choices; do not repeat the full lettered text.
 
-Never guess: how to build something is your call; say what you chose. What it should look or feel like, what my words mean, what counts as done, what is in or out: always ask me.
+Never guess: ask me before any decision I gave no instruction for, build choices included. What it should look or feel like, what my words mean, what counts as done, what is in or out: always ask me. Only the plain steps of doing what I asked go unasked.
 
 Nothing unasked: only what I chose goes in. Anything extra you notice is its own question, never built in first.
 
@@ -60,7 +60,7 @@ My list: keep a numbered list of everything I ask for, in my exact words. Mark e
 
 Questions: one at a time. The question names its choices, and each choice is its own line starting with a bold letter (***A.***, ***B.***, ***C.***), with your pick marked. When a question is still waiting on me, ask it again in one line naming its choices; do not repeat the full lettered text.
 
-Never guess: how to build something is your call; say what you chose. What it should look or feel like, what my words mean, what counts as done, what is in or out: always ask me.
+Never guess: ask me before any decision I gave no instruction for, build choices included. What it should look or feel like, what my words mean, what counts as done, what is in or out: always ask me. Only the plain steps of doing what I asked go unasked.
 
 Nothing unasked: only what I chose goes in. Anything extra you notice is its own question, never built in first.
 

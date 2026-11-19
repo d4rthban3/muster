@@ -1,0 +1,27 @@
+{
+  "version": "0.3.158",
+  "changed_files": [
+    "templates/CLAUDE.md",
+    "pages/shared.md",
+    "agents/",
+    "scripts/build-pages.py",
+    "MUSTER-LITE.md",
+    "docs/index.html",
+    "docs/lite/",
+    "cursor/rules/muster-builder.mdc",
+    "skills/manager-details/SKILL.md",
+    "directory/",
+    "CHANGELOG.md"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Builder",
+    "Designer",
+    "Inspector"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "ask-first-rule (D-042): ask before any decision you have no instruction for, build choices included; the words are in the project template, every worker page (word limit raised to 910), the Lite prompts, the Cursor builder rule and the manager-details skill; the coding-gap allowance is removed everywhere. No coded check changed"
+}

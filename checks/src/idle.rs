@@ -275,8 +275,8 @@ pub fn run(args: &[String]) -> i32 {
         Some(v) => match v.trim().parse::<i64>() { Ok(n) => n as f64, Err(_) => return 1 }, // Python's int() of text that is not a number ends the script
         None => 120.0,
     };
-    let exe = exe_dir();
-    let cx = Ctx { idle_seconds, installed: exe.file_name().map(|n| n == ".muster-checks").unwrap_or(false), exe: exe.clone(), profile: load_profile() };
+    let here = here_dir();
+    let cx = Ctx { idle_seconds, installed: installed(), exe: here.clone(), profile: load_profile() };
     let mut project = std::env::current_dir().unwrap_or_default();
     if let Some(i) = args.iter().position(|a| a == "--project") {
         match args.get(i + 1) { Some(p) => project = PathBuf::from(p), None => return 1 }

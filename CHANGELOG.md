@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.162
+Affects: the manager and every worker in a project with Muster installed live (as PINR).
+rust-first-6-installed: a project with Muster installed live (as PINR) now runs the ready-built program first for each check, told its project and given the live profile, and falls back to Python when the program will not run. The installer writes the new small shell stand-ins. Plain-copy installs stay on Python. Same answers, nothing removed
+
 ## 0.3.161
 Affects: the owner's chat (the look).
 highlight-round-and-line: the highlight behind a picked choice has rounded corners (8 px) in place of square ones; the yellow-to-purple line beside a question card is drawn as a vector line on every card (the layout-sized glyph line is retired); nothing else changes

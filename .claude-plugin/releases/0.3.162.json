@@ -1,0 +1,28 @@
+{
+  "version": "0.3.162",
+  "changed_files": [
+    "checks/src/common.rs",
+    "checks/src/boardstop.rs",
+    "checks/src/wq.rs",
+    "checks/src/idle.rs",
+    "scripts/live-standin.sh",
+    "scripts/live-standin-selftest.py",
+    "scripts/install-checks.py",
+    "scripts/profile-selftest.py",
+    "scripts/setup-smoke.sh",
+    ".github/workflows/setup-test.yml",
+    "bin/",
+    "CHANGELOG.md"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Builder",
+    "Designer",
+    "Inspector"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "rust-first-6-installed: a project with Muster installed live (as PINR) now runs the ready-built program first for each check, told its project and given the live profile, and falls back to Python when the program will not run. The installer writes the new small shell stand-ins. Plain-copy installs stay on Python. Same answers, nothing removed"
+}

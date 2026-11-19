@@ -105,7 +105,7 @@ pub fn run() -> i32 {
     if cwd.components().any(|c| c.as_os_str() == "worktrees") { return 0; }
     let mut path = cwd.join("muster").join("BOARD.md");
     if let Some(b) = profile.get("board").and_then(Value::as_str).filter(|b| !b.is_empty()) {
-        path = exe_dir().parent().map(Path::to_path_buf).unwrap_or_default().join(b);
+        path = here_dir().parent().map(Path::to_path_buf).unwrap_or_default().join(b);
     }
     if !path.is_file() { return 0; }
     let Ok(text) = fs::read_to_string(&path) else { return 0 };

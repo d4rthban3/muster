@@ -61,12 +61,19 @@ pub fn truthy(v: Option<&Value>) -> bool {
 /// The folders a plugin's own scripts may sit in, relative to the program: bin/<platform>/ (the plugin's copy) puts them two levels up,
 /// a project's .muster-checks/ one level up; the Python copies find them from hooks/.. the same way.
 pub fn script_roots() -> Vec<PathBuf> { vec![exe_dir().join("..").join(".."), exe_dir().join("..")] }
+/// The folder a check counts as sitting in. A project's live stand-in (.muster-checks/<name>.sh) names the project it runs for in MUSTER_PROJECT, and the
+/// program then acts exactly as the installed Python copy does there (here = <project>/.muster-checks); anywhere else it is the program's own folder.
+pub fn here_dir() -> PathBuf {
+    match std::env::var("MUSTER_PROJECT") { Ok(p) if !p.is_empty() => PathBuf::from(p).join(".muster-checks"), _ => exe_dir() }
+}
+/// True when the check runs as a project's installed copy: from a folder named .muster-checks, or for a project a stand-in named.
+pub fn installed() -> bool { here_dir().file_name().map(|n| n == ".muster-checks").unwrap_or(false) }
 pub fn exe_dir() -> PathBuf { std::env::current_exe().ok().and_then(|p| p.parent().map(Path::to_path_buf)).unwrap_or_default() }
 
 pub fn load_profile() -> Value {
     let mut cands: Vec<PathBuf> = vec![];
     if let Ok(p) = std::env::var("MUSTER_PROFILE") { if !p.is_empty() { cands.push(p.into()); } }
-    cands.push(exe_dir().join("profile.json"));
+    cands.push(here_dir().join("profile.json"));
     for c in cands {
         if c.is_file() {
             return fs::read_to_string(&c).ok().and_then(|t| serde_json::from_str::<Value>(&t).ok()).filter(Value::is_object).unwrap_or(Value::Object(Default::default()));
@@ -80,8 +87,7 @@ pub fn pstrings(p: &Value, k: &str) -> Vec<String> {
 
 /// The plugin's copy stands down where the project has its own installed copy (.muster-checks/), so a check never runs twice.
 pub fn stood_down(data: &Value, py_name: &str) -> bool {
-    let dir = exe_dir();
-    if dir.file_name().map(|n| n == ".muster-checks").unwrap_or(false) { return false; }
+    if installed() { return false; }
     let start = std::env::var("CLAUDE_PROJECT_DIR").ok().filter(|x| !x.is_empty()).unwrap_or_else(|| {
         let c = s(data, "cwd"); if c.is_empty() { std::env::current_dir().map(|p| p.to_string_lossy().to_string()).unwrap_or_default() } else { c.to_string() }
     });

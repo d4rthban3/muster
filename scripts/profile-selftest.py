@@ -522,12 +522,12 @@ if shutil.which("git"):
     add("item 94: a folder that is not a git folder runs its own copy", "" if hk(os.path.join(T, "nogit")) == "OWN" else "BAD", False)
 
 LCS = json.load(open(os.path.join(MP, ".claude", "settings.json"))).get("hooks", {}).get("SessionStart", [])
-add("item 99: the install adds the summary hook (SessionStart, compact)", "" if any(g.get("matcher") == "compact" and "renew-after-summary.py" in json.dumps(g) for g in LCS) else "BAD", False)
+add("item 99: the install adds the summary hook (SessionStart, compact)", "" if any(g.get("matcher") == "compact" and "renew-after-summary." in json.dumps(g) for g in LCS) else "BAD", False)
 add("item 99: with the live stand-in installed the plugin's summary hook stands down in the main folder, not in a worktree", "" if subprocess.run(["sh", os.path.join(LM, "hooks", "renew-after-summary.sh")], input="{}", capture_output=True, text=True, cwd=MP).stdout == "" else "BAD", False)
 
 # item 105 (D-039): a crew chat about to compact in place leaves its job, branch, saved version and next step on the board
 LPC = json.load(open(os.path.join(MP, ".claude", "settings.json"))).get("hooks", {}).get("PreCompact", [])
-add("item 105: the install adds the PreCompact hook", "" if any("precompact-board.py" in json.dumps(g) for g in LPC) else "BAD", False)
+add("item 105: the install adds the PreCompact hook", "" if any("precompact-board." in json.dumps(g) for g in LPC) else "BAD", False)
 _pc = os.path.join(T, "pcproj"); os.makedirs(os.path.join(_pc, "muster"))
 open(os.path.join(_pc, "muster", "BOARD.md"), "w").write("# Board\n")
 _job = {"type": "user", "message": {"content": '{"v":1,"kind":"ORDER","job":"approval-relay","note":"ship approval-relay next"}'}}

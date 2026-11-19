@@ -221,7 +221,7 @@ fn stdin_object() -> Option<Value> {
 fn main_lines(args: &[String], cwd: &Path, profile: &Value) -> i32 {
     let list = args.iter().any(|a| a == "--list");
     let Some(rel) = profile.get("board").and_then(Value::as_str) else { return 0 };
-    let root = { let d = exe_dir(); if d.file_name().map(|n| n == ".muster-checks").unwrap_or(false) { d.parent().map(Path::to_path_buf).unwrap_or_default() } else { cwd.to_path_buf() } };
+    let root = { let d = here_dir(); if installed() { d.parent().map(Path::to_path_buf).unwrap_or_default() } else { cwd.to_path_buf() } };
     let board = read(&root.join(rel));
     if board.is_empty() {
         if list { say(&format!("no board found at {}", root.join(rel).display())); }

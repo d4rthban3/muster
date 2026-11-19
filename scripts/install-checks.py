@@ -6,7 +6,7 @@ A profile (profiles/<name>.json, for example pinr) lets another project's own ch
 choice recorder be checked instead of only Muster's; without one, only Muster's own rules apply. --dry-run only says what
 would be written and writes nothing.
 --live <Muster folder> puts small stand-ins (scripts/live-standin.py) in <project>/.muster-checks/ and <project>/manager/ instead of copies: each one
-runs the check of its name straight from that Muster folder every time, so a new Muster version reaches the project with no re-install
+runs the check of its name straight from that Muster folder every time, so a new Muster version reaches the project with no re-install. A live install also writes a shell stand-in per check the ready-built program has (<name>.sh, live.env), and the hooks run those: the program first (told the project in MUSTER_PROJECT, given the Muster folder's live profile), the Python stand-in beside it as the fallback when the program will not run. Plain copies (no --live) stay on Python
 (a hook group installed earlier, even with an older matcher such as one lacking mcp__ccd_turn__wrap_up, is replaced by a re-run in place; the project's own hooks stay; the stand-ins read the rules live but the matcher is written to settings.json, so re-run after a Muster version that adds a tool name) (its profile and message form still apply; a missing Muster folder is said plainly, never silently).
 Copies hooks/rules-check.py, hooks/board-stop.py, hooks/talk-check.py, hooks/renew-after-summary.py (SessionStart after a summary; its crew names come from the profile), scripts/usage.py, scripts/worker-queue-check.py and scripts/idle-check.py into <project>/.muster-checks/,
 and adds the hooks to <project>/.claude/settings.json (existing settings and other hooks are kept). Run it again after a
@@ -32,6 +32,7 @@ FILES = [("hooks/rules-check.py", "rules-check.py"), ("hooks/board-stop.py", "bo
          ("scripts/worker-queue-check.py", "worker-queue-check.py"), ("scripts/idle-check.py", "idle-check.py"),
          ("hooks/renew-after-summary.py", "renew-after-summary.py"), ("hooks/precompact-board.py", "precompact-board.py")]
 MARK = ".muster-checks/"
+SH_NAMES = ["rules-check", "board-stop", "talk-check", "worker-queue-check", "idle-check", "renew-after-summary", "precompact-board"]  # the checks the program also has
 
 
 def cmd(name):
@@ -39,6 +40,15 @@ def cmd(name):
     (not a git folder, or git too old to say) it runs the project's own copy as before."""
     return ("sh -c 'r=$(git -C \"$CLAUDE_PROJECT_DIR\" rev-parse --path-format=absolute --git-common-dir 2>/dev/null); m=${r%/.git}; "
             "[ -f \"$m/.muster-checks/NAME\" ] || m=$CLAUDE_PROJECT_DIR; exec python3 \"$m/.muster-checks/NAME\"'").replace("NAME", name)
+
+
+def cmd_sh(name):
+    """A live install: the hook runs the shell stand-in <name>.sh (program first, the Python live stand-in as the fallback). Same worktree rule as cmd()."""
+    return cmd(name + ".py").replace("exec python3", "exec sh").replace(name + ".py", name + ".sh")
+
+
+def sh_quote(text):
+    return "'" + str(text).replace("'", "'\\''") + "'"
 
 
 def install_recorder(proj, dest, prof, live=False):
@@ -149,20 +159,29 @@ def main():
             with open(livefile, "w", encoding="utf-8") as fh:
                 json.dump({"muster": live, "profile": prof_rel, "files": files, "recorders": recorders}, fh, indent=2)
                 fh.write("\n")
-        elif os.path.exists(livefile):
-            os.remove(livefile)
+            # rust-first piece 6: a small shell stand-in per check that the ready-built program also has; it runs the program first and the .py stand-in beside it as the fallback
+            with open(os.path.join(dest, "live.env"), "w", encoding="utf-8", newline="\n") as fh:
+                fh.write("MUSTER_FOLDER=%s\nMUSTER_LIVE_PROFILE=%s\n" % (sh_quote(live.replace("\\", "/")), sh_quote(prof_rel or "")))
+            for n in SH_NAMES:
+                shutil.copyfile(os.path.join(HERE, "live-standin.sh"), os.path.join(dest, n + ".sh"))
+                os.chmod(os.path.join(dest, n + ".sh"), 0o755)
+        else:
+            for stale in [os.path.join(dest, n + ".sh") for n in SH_NAMES] + [os.path.join(dest, "live.env"), livefile]:
+                if os.path.exists(stale):
+                    os.remove(stale)
         if pfile:
             shutil.copyfile(pfile, os.path.join(dest, "profile.json"))
             install_recorder(proj, dest, json.load(open(pfile, encoding="utf-8")), live=bool(live))
         elif os.path.exists(os.path.join(dest, "profile.json")):
             restore_recorder(proj, dest)
             os.remove(os.path.join(dest, "profile.json"))
-        hooks.setdefault("Stop", []).append({"hooks": [{"type": "command", "command": cmd(n)} for n in ("board-stop.py", "talk-check.py", "rules-check.py", "worker-queue-check.py", "idle-check.py")]})
-        hooks.setdefault("UserPromptSubmit", []).append({"hooks": [{"type": "command", "command": cmd("rules-check.py")}]})
-        hooks.setdefault("SessionStart", []).append({"matcher": "compact", "hooks": [{"type": "command", "command": cmd("renew-after-summary.py")}]})
-        hooks.setdefault("PreCompact", []).append({"hooks": [{"type": "command", "command": cmd("precompact-board.py")}]})
+        run = (lambda n: cmd_sh(n[:-3])) if live else cmd  # a live install runs the shell stand-ins (program first); plain copies stay on Python
+        hooks.setdefault("Stop", []).append({"hooks": [{"type": "command", "command": run(n)} for n in ("board-stop.py", "talk-check.py", "rules-check.py", "worker-queue-check.py", "idle-check.py")]})
+        hooks.setdefault("UserPromptSubmit", []).append({"hooks": [{"type": "command", "command": run("rules-check.py")}]})
+        hooks.setdefault("SessionStart", []).append({"matcher": "compact", "hooks": [{"type": "command", "command": run("renew-after-summary.py")}]})
+        hooks.setdefault("PreCompact", []).append({"hooks": [{"type": "command", "command": run("precompact-board.py")}]})
         hooks.setdefault("PreToolUse", []).append({"matcher": "mcp__ccd_session__start_session|mcp__ccd_turn__wrap_up|AskUserQuestion|Agent|Task|SendMessage|Write|Edit|NotebookEdit|Bash",
-                                                   "hooks": [{"type": "command", "command": cmd("rules-check.py")}]})
+                                                   "hooks": [{"type": "command", "command": run("rules-check.py")}]})
     os.makedirs(os.path.dirname(sfile), exist_ok=True)
     with open(sfile, "w", encoding="utf-8") as fh:
         json.dump(settings, fh, indent=2)

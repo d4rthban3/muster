@@ -6,6 +6,7 @@ Needs MUSTER_CHECKS_BIN. Prints the differences; exit 1 on any. Standard library
 Usage: MUSTER_CHECKS_BIN=<program> python3 scripts/idle-parity-diff.py"""
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -55,7 +56,8 @@ def one(cmd, kw, label):
                     shutil.copy(BIN, exe)
             c = [exe, "idle-check"] + cmd[2:]
         r = real_run(c, **dict(kw, env=e, capture_output=True, text=True, encoding="utf-8"))
-        res.append((r.stdout, r.returncode, state_snapshot(sd)))
+        out = re.sub(r" idle \d+s:", " idle Ns:", r.stdout) if "--list" in cmd else r.stdout  # the seconds idle tick between the two runs
+        res.append((out, r.returncode, state_snapshot(sd)))
     if res[0] != res[1]:
         diffs.append((label, str(kw.get("input", ""))[:300], str(res[0])[:400], str(res[1])[:400]))
 

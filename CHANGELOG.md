@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.163
+Affects: the owner's chat (the look).
+highlight-square-back: the picked choice's highlight is the square row fill again (the rounded pieces drew over its words); the yellow-to-purple side line on every card stays; nothing else changes
+
 ## 0.3.162
 Affects: the manager and every worker in a project with Muster installed live (as PINR).
 rust-first-6-installed: a project with Muster installed live (as PINR) now runs the ready-built program first for each check, told its project and given the live profile, and falls back to Python when the program will not run. The installer writes the new small shell stand-ins. Plain-copy installs stay on Python. Same answers, nothing removed

@@ -1,0 +1,13 @@
+{
+  "version": "0.3.163",
+  "changed_files": [
+    "look/register.tsx",
+    "look/look.test.tsx"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "highlight-square-back: the picked choice's highlight is the square row fill again (the rounded pieces drew over its words); the yellow-to-purple side line on every card stays; nothing else changes"
+}

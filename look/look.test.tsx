@@ -943,7 +943,7 @@ test('the glass scene is built once and kept: a redraw makes no store or file ca
   expect(await sceneSource(w)).toBe(first)
 })
 
-test('a picked choice row carries its square highlight (words on top, no overlay pieces) and every question card has its side line', async ($, on) => {
+test('a picked choice has a rounded highlight laid in the flow (a strip above, the filled words, a strip below), never over the words; every question card has its side line', async ($, on) => {
   on('ui.render', ($, e) => { const { Text } = $.ui.resolve(e); return <Text>engine</Text> })
   on('prompt.submit', ($, e) => ({ text: String((e as any).text) }) as any)
   const first = await $.ui.mount(MSG(Q2, 'desktop'))
@@ -951,10 +951,12 @@ test('a picked choice row carries its square highlight (words on top, no overlay
   const ui = await $.ui.mount(MSG(Q2, 'desktop'))
   await first.unmount()
   const svgs = ((await ui.findAll({ type: 'Svg' })) ?? []) as any[]
-  expect(svgs.filter(v => String(v.props?.source).includes('A8 8 0 0 1')).length).toBe(0)
+  expect(svgs.filter(v => String(v.props?.source).includes('A4 4 0 0 1')).length).toBe(4)
   const boxes = ((await ui.findAll({ type: 'Box' })) ?? []) as any[]
-  expect(boxes.filter(b => b.props?.backgroundColor === '#23262e').length).toBe(1)
-  expect(boxes.some(b => b.props?.backgroundColor === '#23262e' && b.props?.position === 'absolute' && b.props?.top === 0 && b.props?.bottom === 0 && b.props?.left === 8)).toBe(false)
+  const lit = boxes.filter(b => b.props?.backgroundColor === '#23262e')
+  expect(lit.length).toBe(3) // the two strips' fill and the body that holds the words
+  expect(lit.some(b => b.props?.position === 'absolute')).toBe(false) // nothing laid over the words
+  expect(await ui.find({ type: 'Text', text: /Top right/ }) ?? await ui.find({ type: 'Markdown' })).toBeTruthy()
   const line = svgs.filter(v => v.props?.alt === 'line')
   expect(line.length).toBe(1)
   expect(String(line[0].props.source)).toContain('linearGradient')

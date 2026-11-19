@@ -1,0 +1,13 @@
+{
+  "version": "0.3.164",
+  "changed_files": [
+    "look/register.tsx",
+    "look/look.test.tsx"
+  ],
+  "affected_roles": [],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "highlight-round-live (a try, to be seen live): the picked choice's highlight has rounded corners, built in the flow (a rounded strip above, the words on the filled body, a rounded strip below) so nothing is laid over the words; 4 px corners; the row keeps its height; nothing else changes"
+}

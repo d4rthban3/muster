@@ -241,22 +241,47 @@ export const register: Register = (on) => {
         )
       }
       const firstChoice = parsed.pieces[i - 1]?.kind === 'md'
-      const row = (
-        <Box key={`c${i}`} gap={2} alignItems="center" position="relative" backgroundColor={p.letter === picked && !isTerminal ? '#23262e' : undefined} hover={live && !isTerminal && Client !== undefined ? { backgroundColor: '#23262e' } : undefined}>
-          {live && !isTerminal ? (
-            <Box position="relative" flexShrink={0}>
+      // The picked row's highlight is in the flow, never laid over the words: a strip with two rounded
+      // corners above, the words on the filled body, a strip below. The chip's own 4px of air above and
+      // below is given up (pad 0) for the strips' 4px, so the row keeps the height it had.
+      const lit = p.letter === picked && !isTerminal
+      const HL = '#23262e'
+      const HR = 4
+      const corner = (d: string, k: string) => (
+        <Svg key={k} alt="" width={HR} height={HR} source={`<svg xmlns="http://www.w3.org/2000/svg" width="${HR}" height="${HR}"><path d="${d}" fill="${HL}"/></svg>`} />
+      )
+      const strip = (top: boolean) => (
+        <Box key={top ? 'hs-top' : 'hs-bottom'} flexDirection="row">
+          {corner(top ? `M${HR} ${HR}L0 ${HR}A${HR} ${HR} 0 0 1 ${HR} 0Z` : `M${HR} 0L${HR} ${HR}A${HR} ${HR} 0 0 1 0 0Z`, 'l')}
+          <Box flexGrow={1} backgroundColor={HL}>{spacer(HR)}</Box>
+          {corner(top ? `M0 ${HR}L0 0A${HR} ${HR} 0 0 1 ${HR} ${HR}Z` : `M0 0L${HR} 0A${HR} ${HR} 0 0 1 0 ${HR}Z`, 'r')}
+        </Box>
+      )
+      const parts = [
+          live && !isTerminal ? (
+            <Box key="chipw" position="relative" flexShrink={0}>
               {chip(p.letter, CHOICE, letterTw, 4)}
               <Box position="absolute" top={0} left={0} display="none" hover={{ display: 'flex' }}>
                 {chip(p.letter, CHOICE, letterTw, 4, true)}
               </Box>
             </Box>
-          ) : <Box flexShrink={0}>{chip(p.letter, CHOICE, letterTw, 4, p.letter === picked)}</Box>}
-          <Box key={`cb${i}`} flexShrink={1} flexGrow={1}><Markdown key={`cm${i}`} text={p.text} /></Box>
-          {live && !isTerminal && Client !== undefined && (
-            <Box position="absolute" top={0} left={0} right={0} bottom={0} width="100%" height="100%" overflow="hidden">
+          ) : <Box key="chipw" flexShrink={0}>{chip(p.letter, CHOICE, letterTw, lit ? 0 : 4, p.letter === picked)}</Box>,
+          <Box key={`cb${i}`} flexShrink={1} flexGrow={1}><Markdown key={`cm${i}`} text={p.text} /></Box>,
+          live && !isTerminal && Client !== undefined && (
+            <Box key="pickw" position="absolute" top={0} left={0} right={0} bottom={0} width="100%" height="100%" overflow="hidden">
               <Client key={`pick${p.letter}`} module="./choice.tsx" props={{ letter: p.letter, rows: pressRows(p.text), q: hashText(e.props.text), t: e.props.text.length <= 4000 ? e.props.text : '' }} width="100%" height="100%" />
             </Box>
-          )}
+          ),
+      ]
+      const row = lit ? (
+        <Box key={`c${i}`} flexDirection="column">
+          {strip(true)}
+          <Box gap={2} alignItems="center" backgroundColor={HL}>{parts}</Box>
+          {strip(false)}
+        </Box>
+      ) : (
+        <Box key={`c${i}`} gap={2} alignItems="center" position="relative" hover={live && !isTerminal && Client !== undefined ? { backgroundColor: '#23262e' } : undefined}>
+          {parts}
         </Box>
       )
       // the first choice under body text gets 4px more above it (its own 4 + these 4 =

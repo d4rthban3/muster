@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.164
+Affects: the owner's chat (the look).
+highlight-round-live (a try, to be seen live): the picked choice's highlight has rounded corners, built in the flow (a rounded strip above, the words on the filled body, a rounded strip below) so nothing is laid over the words; 4 px corners; the row keeps its height; nothing else changes
+
 ## 0.3.163
 Affects: the owner's chat (the look).
 highlight-square-back: the picked choice's highlight is the square row fill again (the rounded pieces drew over its words); the yellow-to-purple side line on every card stays; nothing else changes

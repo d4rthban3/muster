@@ -957,11 +957,16 @@ test('a picked choice has a rounded highlight laid in the flow (a strip above, t
   expect(lit.length).toBe(3) // the two strips' fill and the body that holds the words
   expect(lit.some(b => b.props?.position === 'absolute')).toBe(false) // nothing laid over the words
   expect(await ui.find({ type: 'Text', text: /Top right/ }) ?? await ui.find({ type: 'Markdown' })).toBeTruthy()
-  const line = svgs.filter(v => v.props?.alt === 'line')
-  expect(line.length).toBe(1)
-  expect(String(line[0].props.source)).toContain('linearGradient')
+  // the line is a stretching column of equal slices, one step of colour each: no guessed height anywhere
+  const slices = boxes.filter(b => String(b.key ?? '').startsWith('ln'))
+  expect(slices.length).toBe(48)
+  const tints = slices.map(b => String(b.children?.find?.((c: any) => c.props?.backgroundColor)?.props?.backgroundColor ?? ''))
+  expect(tints.filter(t => /^#[0-9a-f]{6}$/.test(t)).length).toBe(48)
+  expect(tints[0]).toBe('#feda5a') // almost the top colour
+  expect(tints[47]).toBe('#7d4efd') // almost the bottom colour
+  expect(svgs.filter(v => v.props?.alt === 'line').length).toBe(0)
   expect(((await ui.findAll({ type: 'Client' })) ?? []).some((c: any) => String(c.props?.module).includes('rail'))).toBe(false)
   // a card with nothing picked has the line too
   const open = await $.ui.mount(MSG(Q2.replace('one', 'other'), 'desktop'))
-  expect((((await open.findAll({ type: 'Svg' })) ?? []) as any[]).filter(v => v.props?.alt === 'line').length).toBe(1)
+  expect((((await open.findAll({ type: 'Box' })) ?? []) as any[]).filter(b => String(b.key ?? '').startsWith('ln')).length).toBe(48)
 })

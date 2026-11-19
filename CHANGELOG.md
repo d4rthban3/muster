@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.165
+Affects: the owner's chat (the look).
+side-line-exact (a live try): the yellow-to-purple side line is a column that stretches to the height of the choices beside it, in 48 equal slices that fade from yellow to purple, so it ends where the last choice ends at any window width; the guessed height is gone; nothing else changes
+
 ## 0.3.164
 Affects: the owner's chat (the look).
 highlight-round-live (a try, to be seen live): the picked choice's highlight has rounded corners, built in the flow (a rounded strip above, the words on the filled body, a rounded strip below) so nothing is laid over the words; 4 px corners; the row keeps its height; nothing else changes

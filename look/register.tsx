@@ -298,33 +298,28 @@ export const register: Register = (on) => {
       : 0
     const rule = Array.from({ length: termHeight }, () => '\u258F').join('\n')
 
-    // Apps: the yellow heading chip sits flush left; under it one solid thin
-    // yellow line, and the intro and choices sit to the right of it. The line
-    // is a vector the height of what it sits beside, worked out from line
-    // counts (a text line about 18.5px, a choice row 28px at least), a little
-    // short rather than long so it never runs into the next card.
-    const px = (p: (typeof parsed.pieces)[number]) => {
-      if (p.kind === 'title') return 0
-      if (p.kind === 'status') return 28 + (p.rest === '' ? 0 : 18.5)
-      const wrap = (n: number) => Math.max(1, Math.ceil(n / 80))
-      if (p.kind === 'choice') return Math.max(28, wrap(p.text.length + 5) * 18.5)
-      return p.text.split('\n').reduce((n, l) => n + wrap(l.length) * 18.5, 0)
+    // Apps: the yellow heading chip sits flush left; under it one thin line, and the intro and choices
+    // sit to the right of it. The line is not drawn at a guessed height: it is a column that stretches
+    // to the height of what it sits beside, made of equal slices that share that height, each one pixel
+    // wide and one step further from yellow towards purple, so it ends exactly where the last choice
+    // ends at any window width. 5px stay clear at its top and bottom. Slices may shrink to nothing
+    // (overflow hidden), so a short card never grows to fit them.
+    const SLICES = 48
+    const hexMix = (a: string, b: string, k: number) => {
+      const c = (h: string, i: number) => parseInt(h.slice(i, i + 2), 16)
+      return '#' + [1, 3, 5].map(i => Math.round(c(a, i) * (1 - k) + c(b, i) * k).toString(16).padStart(2, '0')).join('')
     }
-    // The vector is as tall as what it sits beside; the line inside it keeps
-    // 5px clear at the top and at the bottom, so the gap under the yellow chip
-    // equals the gap above the next card's chip. It fades yellow to purple.
-    const lineH = Math.max(
-      14,
-      Math.round(parsed.pieces.slice(parsed.startsAt + 1, lastChoice + 1).reduce((n, p) => n + px(p), 0)),
-    )
     const appLine = (
-      <Box flexShrink={0} alignSelf="flex-start">
-        <Svg
-          alt="line"
-          width={15}
-          height={lineH}
-          source={`<svg xmlns="http://www.w3.org/2000/svg" width="15" height="${lineH}"><defs><linearGradient id="f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${TOP}"/><stop offset="1" stop-color="${BOTTOM}"/></linearGradient></defs><rect x="12" y="5" width="1" height="${lineH - 10}" fill="url(#f)" shape-rendering="crispEdges"/></svg>`}
-        />
+      <Box flexShrink={0} flexDirection="column">
+        {spacer(5)}
+        {Array.from({ length: SLICES }, (_, n) => (
+          <Box key={`ln${n}`} flexDirection="row" flexGrow={1} flexShrink={1} overflow="hidden">
+            {spacerW(12)}
+            <Box backgroundColor={hexMix(TOP, BOTTOM, (n + 0.5) / SLICES)}>{spacerW(1)}</Box>
+            {spacerW(2)}
+          </Box>
+        ))}
+        {spacer(5)}
       </Box>
     )
 

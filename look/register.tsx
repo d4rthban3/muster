@@ -302,24 +302,24 @@ export const register: Register = (on) => {
     // sit to the right of it. The line is not drawn at a guessed height: it is a column that stretches
     // to the height of what it sits beside, made of equal slices that share that height, each one pixel
     // wide and one step further from yellow towards purple, so it ends exactly where the last choice
-    // ends at any window width. 5px stay clear at its top and bottom. Slices may shrink to nothing
-    // (overflow hidden), so a short card never grows to fit them.
+    // ends at any window width. 5px stay clear at its top and bottom. Slices start at zero height and only share
+    // what is left over, so a short card never grows to fit them.
     const SLICES = 48
     const hexMix = (a: string, b: string, k: number) => {
       const c = (h: string, i: number) => parseInt(h.slice(i, i + 2), 16)
       return '#' + [1, 3, 5].map(i => Math.round(c(a, i) * (1 - k) + c(b, i) * k).toString(16).padStart(2, '0')).join('')
     }
     const appLine = (
-      <Box flexShrink={0} flexDirection="column">
-        {spacer(5)}
-        {Array.from({ length: SLICES }, (_, n) => (
-          <Box key={`ln${n}`} flexDirection="row" flexGrow={1} flexShrink={1} overflow="hidden">
-            {spacerW(12)}
-            <Box backgroundColor={hexMix(TOP, BOTTOM, (n + 0.5) / SLICES)}>{spacerW(1)}</Box>
-            {spacerW(2)}
-          </Box>
-        ))}
-        {spacer(5)}
+      <Box flexShrink={0} flexDirection="row">
+        {spacerW(12)}
+        <Box flexDirection="column">
+          {spacer(5)}
+          {Array.from({ length: SLICES }, (_, n) => (
+            <Box key={`ln${n}`} height={0} flexGrow={1} flexShrink={1} overflow="hidden" backgroundColor={hexMix(TOP, BOTTOM, (n + 0.5) / SLICES)} />
+          ))}
+          {spacer(5)}
+        </Box>
+        {spacerW(2)}
       </Box>
     )
 

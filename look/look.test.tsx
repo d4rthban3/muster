@@ -960,7 +960,9 @@ test('a picked choice has a rounded highlight laid in the flow (a strip above, t
   // the line is a stretching column of equal slices, one step of colour each: no guessed height anywhere
   const slices = boxes.filter(b => String(b.key ?? '').startsWith('ln'))
   expect(slices.length).toBe(48)
-  const tints = slices.map(b => String(b.children?.find?.((c: any) => c.props?.backgroundColor)?.props?.backgroundColor ?? ''))
+  const tints = slices.map(b => String(b.props?.backgroundColor ?? ''))
+  expect(slices.every(b => b.props?.height === 0 && b.props?.flexGrow === 1)).toBe(true) // start at nothing, share what is left: a short card never grows
+  expect(svgs.filter(v => String(v.props?.source).includes('width="12"') || String(v.props?.source).includes('width="2"')).length).toBeLessThanOrEqual(4) // no picture per slice
   expect(tints.filter(t => /^#[0-9a-f]{6}$/.test(t)).length).toBe(48)
   expect(tints[0]).toBe('#feda5a') // almost the top colour
   expect(tints[47]).toBe('#7d4efd') // almost the bottom colour

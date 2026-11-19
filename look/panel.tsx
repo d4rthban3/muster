@@ -132,7 +132,7 @@ export function panel(on: any) {
     return (
       <Box flexDirection="column" gap={1}>
         <Box flexDirection="column">
-          <Text bold>Look</Text>
+          <Text bold>Change your look</Text>
           <Text color={MUTED}>{`For the group \u201c${groupName(gid)}\u201d only (${gid}). Other groups keep their own.`}</Text>
         </Box>
         {!kept && <Text color="#ff6b6b">{'Not saved between sessions: this host would not keep the look, so your colours and font last only until Claude Code closes.'}</Text>}

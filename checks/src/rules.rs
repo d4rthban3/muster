@@ -219,16 +219,10 @@ fn goal_problem(root: &str, job: &str) -> Option<String> {
 }
 
 fn usage_at_limit(root: &str) -> bool {
-    let cands = [exe_dir().join("..").join("scripts").join("usage.py"), Path::new(root).join(".muster-checks").join("usage.py")];
-    for cand in cands {
-        if cand.is_file() {
-            for py in ["python3", "python"] {
-                if let Ok(st) = Command::new(py).arg(&cand).output() { return st.status.code() == Some(3); }
-            }
-            return false;
-        }
-    }
-    false
+    // the Python check runs scripts/usage.py when the plugin or the project has it; the program asks its own usage code for the same answer
+    let mut cands: Vec<PathBuf> = script_roots().into_iter().map(|r| r.join("scripts").join("usage.py")).collect();
+    cands.push(Path::new(root).join(".muster-checks").join("usage.py"));
+    cands.into_iter().any(|c| c.is_file()) && crate::small::usage_line(&[]).1 == 3
 }
 
 fn segments(cmd: &str) -> Vec<&str> { cmd.split(|c| c == ';' || c == '&' || c == '|' || c == '\n').collect() }
@@ -689,7 +683,9 @@ fn send_message(c: &Ctx, data: &Value, inp: &Value, root: &str, manager: bool) {
 // ---- Stop ----
 /// Where the choice recorder really is: the project's own scripts folder, else this plugin's, else just its name.
 fn recorder_path(root: &str, name: &str) -> String {
-    for cand in [Path::new(root).join("scripts").join(name), exe_dir().join("..").join("scripts").join(name)] {
+    let mut cands: Vec<PathBuf> = vec![Path::new(root).join("scripts").join(name)];
+    cands.extend(script_roots().into_iter().map(|r| r.join("scripts").join(name)));
+    for cand in cands {
         if cand.is_file() { return normalise(&std::fs::canonicalize(&cand).unwrap_or(cand)).to_string_lossy().to_string(); }
     }
     name.to_string()
@@ -810,19 +806,19 @@ fn stop(c: &Ctx, data: &Value, manager: bool) {
         block("he gave you an order in his own words, and a coded rule says you do it: no refusing, no \"cannot\", no arguing, no reinterpreting (item 76). Do the task now, or if you are unsure ask him ONE short question, nothing else");
         return;
     }
-    if manager && !data.get("stop_hook_active").and_then(Value::as_bool).unwrap_or(false) && playback_turn(s(data, "transcript_path"))
+    if manager && !truthy(data.get("stop_hook_active")) && playback_turn(s(data, "transcript_path"))
         && re(r"(?m)^\*\*\*[A-D]\.\*\*\*").find_iter(text).count() < 2 {
         block(PLAYBACK_WHY);
         return;
     }
     // Item 125: a manager's turn ends with the idle card or the Working line when no worker holds an open order on the board (even with no text)
-    if manager && !data.get("stop_hook_active").and_then(Value::as_bool).unwrap_or(false) && !bounced_this_turn(s(data, "transcript_path"))
+    if manager && !truthy(data.get("stop_hook_active")) && !bounced_this_turn(s(data, "transcript_path"))
         && !owner_typed_last(s(data, "transcript_path")) && open_order_held(&main_folder(s(data, "cwd"))) == Some(false) && !idle_card_ok(text)
         && idle_changed(s(data, "transcript_path"), &main_folder(s(data, "cwd"))) {
         block("no worker holds an open order on the board, and the owner has not been told (item 125): end this turn with the idle card, a bold 'IDLE \u{b7} crew' title, then 'The crew is idle. Here's what's next toward your goal,' and the top next steps as lettered lines (***A.*** ... with your pick marked); or give a worker its next order first");
         return;
     }
-    if text.is_empty() || data.get("stop_hook_active").and_then(Value::as_bool).unwrap_or(false) || bounced_this_turn(s(data, "transcript_path")) { return; }
+    if text.is_empty() || truthy(data.get("stop_hook_active")) || bounced_this_turn(s(data, "transcript_path")) { return; }
     let tpath = s(data, "transcript_path");
     let uses = turn_blocks(tpath);
     if manager && group_unfiled(&uses) && !is(&rei(r"\bdrag\b"), text) {

@@ -1,0 +1,36 @@
+{
+  "version": "0.3.157",
+  "changed_files": [
+    "checks/src/wq.rs",
+    "checks/src/main.rs",
+    "checks/BUILD-OR-BUY.md",
+    "hooks/worker-queue-check.sh",
+    "hooks/rules-check.py",
+    "scripts/worker-queue-check-selftest.py",
+    "scripts/worker-queue-parity-diff.py",
+    "scripts/rules-check-selftest.py",
+    ".github/workflows/setup-test.yml",
+    "hooks/rules-check.sh",
+    "hooks/guard-check.sh",
+    "hooks/talk-check.sh",
+    "hooks/board-stop.sh",
+    "hooks/renew-after-summary.sh",
+    "hooks/precompact-board.sh",
+    "scripts/try-program.sh",
+    "scripts/program-fallback-selftest.py",
+    "scripts/profile-selftest.py",
+    "scripts/setup-smoke.sh",
+    "CHANGELOG.md"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Builder",
+    "Designer",
+    "Inspector"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "rust-first-4-worker-queue: the worker queue check now also exists in the ready-built program (worker-queue); its shell hook uses the program first and falls back to the Python copy when no program is found or the program is an older one (exit 2). The Python rules check now holds a JSON-form ORDER at 90% of the week, as the program and the text form do. Self-test runs Python and the program side by side plus the hook fallbacks; a parity script compares them; both run in the automatic run on all five programs. chrono build-or-buy page written. Python stays as the fallback; nothing is removed; every hook that runs the program first now falls back to Python on any crash, no-start, kill or exit other than 0, with a stand-in-program self-test"
+}

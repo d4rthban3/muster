@@ -10,5 +10,8 @@ while [ -n "$d" ] && [ "$d" != "/" ]; do
 done
 [ -n "$found" ] || exit 0
 here=$(dirname "$0")
+ev=$(cat)
+# the ready-built program first; no program, one that will not start, or one that ends with anything but exit 0 leaves it to the Python copy
+out=$(printf '%s' "$ev" | sh "$here/../scripts/try-program.sh" "$(cd "$here/.." && pwd)" renew) && { [ -z "$out" ] || printf '%s\n' "$out"; exit 0; }
 py=$(sh "$here/../scripts/find-python.sh" 2>/dev/null) || exit 0
-exec $py "$here/renew-after-summary.py"
+printf '%s' "$ev" | $py "$here/renew-after-summary.py"

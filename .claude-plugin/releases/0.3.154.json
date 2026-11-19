@@ -1,12 +1,26 @@
 {
   "version": "0.3.154",
   "changed_files": [
-    "look/panel.tsx"
+    "checks/src/common.rs",
+    "checks/src/rules.rs",
+    "checks/src/talk.rs",
+    "checks/src/boardstop.rs",
+    "scripts/rules-check-selftest.py",
+    "scripts/profile-selftest.py",
+    "scripts/rules-parity-diff.py",
+    "scripts/rules-parity-fuzz.py",
+    "scripts/rules-parity-stop.py",
+    "scripts/rules-parity-tools.py"
   ],
-  "affected_roles": [],
+  "affected_roles": [
+    "Manager",
+    "Builder",
+    "Designer",
+    "Inspector"
+  ],
   "affected_platforms": [
     "claude-code"
   ],
   "records_change": false,
-  "note": "look-panel-properties: the look panel is laid out as a tidy properties panel, with small titled sections (Type, Background, one per colour group), aligned rows and a colour swatch beside every colour; every setting is the same and works the same"
+  "note": "rust-first-1-parity: the Rust program now answers the way the Python checks do where it differed: it finds the choice recorder and the usage script from where the plugin keeps its programs, the board check remembers what the manager was told under the same fingerprint (fenced lines and the blank line after an entry count), a profile that only names managers still knows a summary-first manager chat by its title, and a hook field or profile switch that Python reads as true or false is read the same way; four parity scripts compare the two copies on the self-test events, on message records, on end-of-turn replies and on tool calls. Python stays as the fallback; nothing is removed"
 }

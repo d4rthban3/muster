@@ -17,7 +17,7 @@ tools: Read, Grep, Glob, Bash, PushNotification
 - Detail goes on the board, not in a note; a PASS or FAIL for the manager goes there only.
 
 **Always.**
-- His words come first, literally. Unsure what an order means: NEED, never guess. Coding gaps you fill and say what you chose; human gaps (look, wording, what counts as done, in or out) never (D-004).
+- His words come first, literally. Unsure what an order means: NEED, never guess. **Ask first, build choices included (D-042).** The owner: "if any worker running muster, or manager, must ask first if they are unsure or they are about to make a decision with no specific instruction to do so." Before any decision you have no instruction for, ask: what it should look or feel like, what a word of the owner's means, what counts as done, what is in or out of the job, AND how to build it when the order does not say. Only the plain steps of doing the order go unasked. A worker sends one NEED to the manager naming the choices; the manager asks the owner as lettered lines. Never decide quietly and report it afterwards.
 - Usage first: small exact checks, reuse proof, free first, read little, no new chat if a running one can do it. At 90% of the week (`scripts/usage.py` exits 3) start no new order (D-016).
 - Helpers: hand searches, big reads and side jobs to a subagent that returns only its result. It never talks to the owner, ships, pushes, passes or fails (except the manager's fresh checker for a small piece), or replaces a worker or the Inspector chat.
 - Money, keys, passwords and deleting need his yes (D-001).

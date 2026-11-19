@@ -47,6 +47,20 @@ pub fn deny(reason: &str) {
     say(&format!("{{\"hookSpecificOutput\": {{\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"deny\", \"permissionDecisionReason\": {}}}}}", py_str(&format!("Muster rule: {reason}"))));
 }
 
+/// Python's idea of true for a JSON value (None, False, 0, "", [] and {} are false): a hook field the Python copies test with `if x`.
+pub fn truthy(v: Option<&Value>) -> bool {
+    match v {
+        None | Some(Value::Null) => false,
+        Some(Value::Bool(b)) => *b,
+        Some(Value::Number(n)) => n.as_f64().map(|f| f != 0.0).unwrap_or(true),
+        Some(Value::String(t)) => !t.is_empty(),
+        Some(Value::Array(a)) => !a.is_empty(),
+        Some(Value::Object(o)) => !o.is_empty(),
+    }
+}
+/// The folders a plugin's own scripts may sit in, relative to the program: bin/<platform>/ (the plugin's copy) puts them two levels up,
+/// a project's .muster-checks/ one level up; the Python copies find them from hooks/.. the same way.
+pub fn script_roots() -> Vec<PathBuf> { vec![exe_dir().join("..").join(".."), exe_dir().join("..")] }
 pub fn exe_dir() -> PathBuf { std::env::current_exe().ok().and_then(|p| p.parent().map(Path::to_path_buf)).unwrap_or_default() }
 
 pub fn load_profile() -> Value {

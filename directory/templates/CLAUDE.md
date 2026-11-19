@@ -82,10 +82,7 @@ owner the top open NEED, STUCK or OWNER CALL (and every `Paused: yes` chat) as l
 
 ## 5. When you are not sure, ask; never guess
 - Not sure what an order means? Send one NEED report to the manager. Do not guess.
-- **Two kinds of gap.** Coding gaps (how to build it, what can and cannot be done, what it would take): fill them
-  and say what you chose on the How line. Human gaps (what it should look or feel like, what a word of the owner's
-  means, what counts as done, what matters more, what is in or out of the job): never fill them, however sure you
-  feel. One NEED report instead.
+- **Ask first, build choices included (D-042).** The owner: "if any worker running muster, or manager, must ask first if they are unsure or they are about to make a decision with no specific instruction to do so." Before any decision you have no instruction for, ask: what it should look or feel like, what a word of the owner's means, what counts as done, what is in or out of the job, AND how to build it when the order does not say. Only the plain steps of doing the order go unasked. A worker sends one NEED to the manager naming the choices; the manager asks the owner as lettered lines. Never decide quietly and report it afterwards.
 - **Nothing the owner did not choose goes in.** A gap or an extra you notice goes to the owner (through the manager)
   as its own question that names its choices, each a lettered line. Never write it in first and offer to take it out.
 

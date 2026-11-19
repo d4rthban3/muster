@@ -159,7 +159,7 @@ json.dump({"name": "P", "crew_names": ["\\bManager_P_\\d{3}\\b"], "guard": {"pro
 subprocess.run(["git", "init", "-q", _pp], capture_output=True)
 _plug = os.path.join(T, "plug"); os.makedirs(os.path.join(_plug, "scripts"))   # a plugin copy with no ready-made program: the Python copy runs
 shutil.copytree(os.path.join(ROOT, "hooks"), os.path.join(_plug, "hooks"))
-for _f in ("find-binary.sh", "find-python.sh"):
+for _f in ("find-binary.sh", "find-python.sh", "try-program.sh"):
     shutil.copy(os.path.join(ROOT, "scripts", _f), os.path.join(_plug, "scripts", _f))
 _pt = tr("You are Manager_P_001, the go-between")
 _penv = {k: v for k, v in ENV.items() if k != "MUSTER_PROFILE"}
@@ -230,6 +230,38 @@ write_board(PA)
 add("4c a summary-first chat titled Manager_PINR is the manager for the board check", bs("Fine.", t=titled("Manager_PINR")), True)
 add("4c a worker-titled chat whose first message names its manager is not nagged", bs("Fine.", t=titled("Site_PINR_002", "You are Site_PINR_002. Reports go to Manager_PINR_002.")), False)
 add("4c a summary-first chat with no title stays silent", bs("Fine.", t=tr("carry on")), False)
+# rust-first piece 1 (parity): the Python and Rust copies answer these the same way
+def fnv64(t):
+    h = 0xcbf29ce484222325
+    for b in t.encode("utf-8"):
+        h = ((h ^ b) * 0x100000001b3) & 0xFFFFFFFFFFFFFFFF
+    return h
+
+
+def board_stop_with(profile, said, t, state, board_text, cwd=None, **extra):
+    """board-stop run straight (no installed copy), with an own profile and board; returns what it printed"""
+    d = cwd or tempfile.mkdtemp(dir=T)
+    os.makedirs(os.path.join(d, "muster"), exist_ok=True)
+    open(os.path.join(d, "muster", "BOARD.md"), "w").write(board_text)
+    pf = os.path.join(T, "pf%d.json" % len(os.listdir(T)))
+    json.dump(profile, open(pf, "w"))
+    env = dict(ENV, MUSTER_STATE_DIR=state, MUSTER_PROFILE=pf)
+    return subprocess.run(cmd_for(NOPROF, "board-stop.py"), input=json.dumps(dict({"hook_event_name": "Stop", "cwd": d, "last_assistant_message": said, "transcript_path": t}, **extra)),
+                          capture_output=True, text=True, env=env).stdout.strip()
+
+
+NEED_BOARD = "### 2026-11-08 | NEED | Site_X -> Manager_X | job\nStatus: open\n```\nfenced line\n```\n\n### 2026-11-09 | PASS | Inspector_X -> Manager_X | other\nStatus: done\n"
+_st = tempfile.mkdtemp(dir=T)
+add("4d a board with an open NEED is said once (the pretend profile has no names of its own)", board_stop_with({}, "Fine.", mgr, _st, NEED_BOARD), True)
+_told = "".join(open(os.path.join(_st, f)).read() for f in os.listdir(_st))
+_want = "%016x" % fnv64("|".join(["Site_X", "NEED", "job", "open", "False", "Status: open\n```\nfenced line\n```\n"]))
+add("4d what the manager was told is remembered under the same fingerprint in both copies (fenced lines and the blank line after the entry count)", "" if _told.split() == [_want] else "BAD " + _told, False)
+add("4d a stop_hook_active of 1 (not only true) stays silent", board_stop_with({}, "Fine.", mgr, tempfile.mkdtemp(dir=T), NEED_BOARD, stop_hook_active=1), False)
+add("4d a profile whose board_kinds_open is null counts as off", board_stop_with({"board_kinds_open": None}, "Fine.", mgr, tempfile.mkdtemp(dir=T), NEED_BOARD), False)
+add("4d ...and 0 counts as off", board_stop_with({"board_kinds_open": 0}, "Fine.", mgr, tempfile.mkdtemp(dir=T), NEED_BOARD), False)
+add("4d ...and 1 counts as on", board_stop_with({"board_kinds_open": 1}, "Fine.", mgr, tempfile.mkdtemp(dir=T), NEED_BOARD), True)
+add("4d a profile with only manager_names knows a summary-first chat titled that way", board_stop_with({"manager_names": ["\\bBoss_X\\b"]}, "Fine.", titled("Boss_X"), tempfile.mkdtemp(dir=T), NEED_BOARD), True)
+add("4d ...and a chat titled something else stays silent", board_stop_with({"manager_names": ["\\bBoss_X\\b"]}, "Fine.", titled("Clerk_X"), tempfile.mkdtemp(dir=T), NEED_BOARD), False)
 add("5 talk-check knows a summary-first crew chat by its title", run("talk-check.py", "Stop", plain=True, last_assistant_message=bare, transcript_path=titled("Builder A_Muster_003")), True)
 add("5 talk-check leaves a summary-first chat with another title alone", run("talk-check.py", "Stop", plain=True, last_assistant_message=bare, transcript_path=titled("my own chat")), False)
 add("4 a worker chat is never nagged", (write_board("2026-11-08 | LIVE | Site_PINR_002 -> Manager | Paused: yes | x") or bs("Fine.", t=site)), False)

@@ -9,6 +9,8 @@ while [ -n "$d" ] && [ "$d" != "/" ]; do
 done
 [ -n "$found" ] || exit 0
 here=$(dirname "$0")
-bin=$(sh "$here/../scripts/find-binary.sh" "$(cd "$here/.." && pwd)" 2>/dev/null) && exec "$bin" rules
+ev=$(cat)
+# the ready-built program first; no program, one that will not start, or one that ends with anything but exit 0 leaves it to the Python copy
+out=$(printf '%s' "$ev" | sh "$here/../scripts/try-program.sh" "$(cd "$here/.." && pwd)" rules) && { [ -z "$out" ] || printf '%s\n' "$out"; exit 0; }
 py=$(sh "$here/../scripts/find-python.sh" 2>/dev/null) || exit 0
-exec $py "$here/rules-check.py"
+printf '%s' "$ev" | $py "$here/rules-check.py"

@@ -182,5 +182,5 @@ Design Inspector_<project>.
 Every chat runs on medium effort. When the owner asks to speed things up, move yourself and the inspectors to high.
 
 Every message you send to a worker is the data record (`muster/REPORT.md`) or an order. Not sure what the owner
-means? It is an inquiry: look, then ask. Coding gaps you may fill and say what you chose; human gaps (look, wording,
-what counts as done, what is in or out) go to the owner as a question, never filled.
+means? It is an inquiry: look, then ask. Ask the owner before any decision you have no instruction for, build choices included; look, wording,
+what counts as done and what is in or out go to him as a question, never filled.

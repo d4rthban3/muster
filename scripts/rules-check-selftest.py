@@ -264,6 +264,7 @@ cases = [
     ("item 103: a manager waiting line is refused", run("Stop", last_assistant_message="Builder A is waiting for you: type in Builder A_Muster_002.", transcript_path=m), True),
     ("item 103: 'type it in the chat' is refused", run("Stop", last_assistant_message="Please type it in the Builder A chat.", transcript_path=m), True),
     ("an unrecorded choice answer blocks the manager", run("Stop", last_assistant_message="ok", transcript_path=tr("You are Manager_Muster_002", [use("AskUserQuestion", questions=[])])), True),
+    ("rust-first 1: an answered card names the recorder by its full path, wherever the program runs from", "" if os.path.normpath(os.path.join(HERE, "record-choice.py")) in run("Stop", last_assistant_message="ok", transcript_path=tr("You are Manager_Muster_002", [use("AskUserQuestion", questions=[])])).replace("\\\\", "\\") else "x", False),
     ("a recorded choice answer passes", run("Stop", last_assistant_message="ok", transcript_path=tr("You are Manager_Muster_002", [use("AskUserQuestion", questions=[]), use("Bash", command="python3 scripts/record-choice.py p 3 --picked A")])), False),
     ("a worker card passes", run("Stop", last_assistant_message="**WORKING · x**\n- a\n- b", transcript_path=b), False),
     ("REPORT: a READY card with no message to the manager is blocked (item 65)", run("Stop", last_assistant_message="**READY · x**\n- a\n- b", transcript_path=b), True),
@@ -320,6 +321,17 @@ cases += [
     ("item 115: an instruction he typed is not a question", q_order(36, [said("fix the menu now")]), False),
     ("item 115: a turn a worker's message started is not his question", q_order(36, [said("why is the engine waiting?"), said("<cross-session-message from=x>PASS</cross-session-message>")]), False),
     ("item 115: a builder's order-shaped message is not this check's business", q_order(36, [said("why is the engine waiting?")], mgr=False), False),
+]
+def week_order(pct):
+    cfg = os.path.join(T, "cfg%s" % pct); os.makedirs(os.path.join(cfg, "muster-usage"), exist_ok=True)
+    json.dump({"week_used_percent": pct, "saved_at": 1}, open(os.path.join(cfg, "muster-usage", "a.json"), "w"))
+    env = dict(os.environ, CLAUDE_CONFIG_DIR=cfg); env.pop("MUSTER_MESSAGE_FORM", None)
+    o = ORD.replace('"item":35', '"item":35') % ("menu-fix", "menu-fix")
+    r = subprocess.run([BIN, "rules"] if BIN else [sys.executable, HOOK], input=json.dumps(dict(hook_event_name="PreToolUse", cwd=QD, tool_name="SendMessage", tool_input={"to": "builder-a", "message": o}, transcript_path=tr("You are Manager_Muster_002"))), capture_output=True, text=True, env=env)
+    return r.stdout.strip()
+cases += [
+    ("rust-first 4: a JSON order is held when the week is at 90% (the standing rule), by the reason", "" if "the week is at 90% or more" in week_order(95) else "x", False),
+    ("rust-first 4: ...and goes through at 89%", week_order(89), False),
 ]
 cases.append(("GOAL: with no goal set every order goes through", order("weekly-goal"), False))
 goal("set", "--words", "finish muster", "--done", "the crew is live", "--list", "lean-rebuild,weekly-goal", "--parked", "site looks")

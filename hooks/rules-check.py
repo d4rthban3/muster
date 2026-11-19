@@ -956,6 +956,8 @@ def pretool(data, manager):
                 why = goal_problem(root, str(rec.get("job", "")))
                 if why:
                     return deny(why)
+                if usage_at_limit(root):  # the standing rule: at 90% of the week no new order (D-016); the text form has always held it
+                    return deny("the week is at 90% or more (scripts/usage.py exits 3): start no new order; finish and park what is running")
             if dup_report(str(inp.get("to", "")), msg, data.get("transcript_path") or ""):
                 return deny(DUP_WHY)
             return

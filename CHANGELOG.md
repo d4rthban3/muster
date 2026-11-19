@@ -2,9 +2,29 @@
 
 Each version names which workers it affects.
 
-## 0.3.154
+## 0.3.159
 Affects: the owner's chat (the look).
-look-panel-properties: the look panel is laid out as a tidy properties panel, with small titled sections (Type, Background, one per colour group), aligned rows and a colour swatch beside every colour; every setting is the same and works the same
+look-panel-properties: the look panel is laid out as a tidy properties panel, with small titled sections (Type, Background, one per colour group), aligned rows and a colour swatch beside every colour; the title stays Change your look; every setting is the same and works the same
+
+## 0.3.158
+Affects: the manager and every worker, and the outside-AI pages.
+ask-first-rule (owner's rule D-042): ask before any decision you have no instruction for, build choices included; only the plain steps of doing the order go unasked. The words are now in the project template (templates/CLAUDE.md, replacing "Two kinds of gap"), on every worker's always-page (the page word limit goes from 815 to 910 to hold them), in the Muster Lite prompts and install page (in the owner's own voice), the Cursor builder rule and the manager-details skill. The old allowance to fill a coding gap and say what you chose is removed everywhere it was written. No coded check changed
+
+## 0.3.157
+Affects: the manager and every worker.
+rust-first-4-worker-queue: the worker queue check (the "do not go idle" refusal at the end of a worker's turn, Muster's board and the line-style board) now also exists in the ready-built program; its shell hook runs the program first and falls back to the Python copy when no program is found (or it is an older one that does not know the check). A new order written as a JSON message is now held at 90% of the week by the Python rules check too, as the program and the text form already did (the standing rule). The self-test runs both copies side by side, and a parity script compares them, in the automatic run on all five systems. Every hook that runs the program first (rules, guard, talk, board stop, renew, precompact, worker queue) now runs its Python copy whenever the program is missing, will not start, crashes, is killed or ends with any exit code but 0 (before, only a missing program or exit 2 did), and never prints half a program answer beside the Python one; a new self-test crashes a stand-in program in every hook. The build-or-buy page for the chrono crate (checks/BUILD-OR-BUY.md) is written. Python stays as the fallback; nothing is removed
+
+## 0.3.156
+Affects: the manager and every worker.
+rust-first-3-small-hooks: the notice after a conversation is compacted, the board entry written before it, and the Usage line now also exist in the ready-built program; the two shell hooks run the program first and fall back to the Python copy when no program is found (or it is an older one that does not know the check); the 90% week stop in the rules check asks the program's own usage code. Same words and board entry as before; a new self-test runs both copies side by side, in the automatic run on all five systems. Python stays as the fallback; nothing is removed
+
+## 0.3.155
+Affects: the manager and every worker.
+rust-first-2-all-five: the automatic run now runs the full self-tests against the shipped program of all five systems, the older-Mac (Intel) one included; the record fuzz can print why the program refuses each odd record that the Python copy lets through (every one is a field that breaks the written record rules: wrong type, empty, unknown key, wrong id form). No program or rule changed
+
+## 0.3.154
+Affects: the manager and every worker.
+rust-first-1-parity: the Rust program now answers the way the Python checks do where it differed: it finds the choice recorder and the usage script from where the plugin keeps its programs, the board check remembers what the manager was told under the same fingerprint, a profile that only names managers still knows a summary-first manager chat by its title, and a hook field or profile switch that Python reads as true or false is read the same way; four parity scripts compare the two copies. Python stays as the fallback; nothing is removed
 
 ## 0.3.153
 Affects: the owner's chat (the look).

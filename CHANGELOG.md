@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.160
+Affects: the manager.
+rust-first-5-idle: the idle-crew check (the manager's stop check: idle chats with open work, the idle card, the crew sweep, held workers) now also exists in the ready-built program; its hook runs the program first and falls back to Python on any failure. Self-test runs both copies; a parity script compares them. Same answers, nothing added. Python stays as the fallback; nothing is removed
+
 ## 0.3.159
 Affects: the owner's chat (the look).
 look-panel-properties: the look panel is laid out as a tidy properties panel, with small titled sections (Type, Background, one per colour group), aligned rows and a colour swatch beside every colour; the title stays Change your look; every setting is the same and works the same

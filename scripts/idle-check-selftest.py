@@ -1,8 +1,18 @@
 #!/usr/bin/env python3
-"""Self-test for scripts/idle-check.py on a made-up project. Prints PASS/FAIL lines; exit 1 on any failure."""
+"""Self-test for scripts/idle-check.py on a made-up project. Prints PASS/FAIL lines; exit 1 on any failure.
+With MUSTER_CHECKS_BIN set to the Rust program, the whole test runs twice: on the Python copy, then on the program's idle-check command."""
 import json, os, subprocess, sys, tempfile, time
 HERE = os.path.dirname(os.path.abspath(__file__))
 CHK = os.path.join(HERE, "idle-check.py")
+BIN = os.environ.get("MUSTER_CHECKS_BIN")
+PASS = os.environ.get("MUSTER_IDLE_PASS")
+if BIN and not PASS:
+    worst = 0
+    for which in ("python", "program"):
+        print("== idle-check on the %s ==" % which, flush=True)
+        worst |= subprocess.run([sys.executable, os.path.abspath(__file__)], env=dict(os.environ, MUSTER_IDLE_PASS=which)).returncode
+    sys.exit(1 if worst else 0)
+CMD = [BIN, "idle-check"] if PASS == "program" else [sys.executable, CHK]
 now = int(time.time() * 1000)
 tmp = tempfile.mkdtemp()
 os.makedirs(os.path.join(tmp, "muster")); os.makedirs(os.path.join(tmp, "s", "a", "b"))
@@ -18,7 +28,7 @@ rec(1, 5); rec(2, 600); rec(3, 600); rec(4, 600, True); rec(5, 5, summ={"status_
 env = dict(os.environ, MUSTER_SESSIONS_DIR=os.path.join(tmp, "s"), MUSTER_NO_SWEEP="1")
 def run(inp, state=None):
     e = dict(env, MUSTER_STATE_DIR=state or tempfile.mkdtemp())  # a fresh memory of what was said, unless a test shares one
-    return subprocess.run([sys.executable, CHK, "--project", tmp], input=json.dumps(inp), capture_output=True, text=True, env=e).stdout
+    return subprocess.run(CMD + ["--project", tmp], input=json.dumps(inp), capture_output=True, text=True, env=e).stdout
 bad = 0
 def t(name, ok):
     global bad; bad += (not ok); print(("PASS " if ok else "FAIL ") + name)
@@ -32,7 +42,7 @@ t("a running chat that says it waits on the manager is named", "Builder T_X_001 
 o2 = run({"last_assistant_message": "Builder Q_X_001 and Builder R_X_001 are on it"})
 t("a waiting chat alone blocks until named", "Builder T_X_001 says" in o2 and "Builder Q_X_001 has been" not in o2)
 t("never loops", run({"stop_hook_active": True}) == "")
-t("silent outside a manager folder", subprocess.run([sys.executable, CHK, "--project", tempfile.mkdtemp()], input="{}", capture_output=True, text=True, env=env).stdout == "")
+t("silent outside a manager folder", subprocess.run(CMD + ["--project", tempfile.mkdtemp()], input="{}", capture_output=True, text=True, env=env).stdout == "")
 
 # a manager's hold must rest on his word (item 74)
 def hproj(board, style=None):
@@ -41,7 +51,7 @@ def hproj(board, style=None):
     open(os.path.join(d, "muster", "CREW.md"), "w").write("## Running now\n\n## Archived\n")
     return d
 def hrun(d, msg, extra_env=None):
-    return subprocess.run([sys.executable, CHK, "--project", d], input=json.dumps({"last_assistant_message": msg}),
+    return subprocess.run(CMD + ["--project", d], input=json.dumps({"last_assistant_message": msg}),
                           capture_output=True, text=True, env=dict(env, MUSTER_STATE_DIR=tempfile.mkdtemp(), **(extra_env or {}))).stdout
 d1 = hproj("### 2026-11-12 | ORDER | Manager_X_001 -> Builder U_X_001 | quiet\nStatus: open\nAction: hold\nNeed: wait for the measurement.\n")
 t("a manager's hold with no owner basis is refused", "holds Builder U_X_001" in hrun(d1, "ok"))
@@ -85,7 +95,7 @@ def cproj(idle_ago, items=""):
         json.dump({"isArchived": False, "lastActivityAt": now - ago * 1000, "postTurnSummary": {}}, open(os.path.join(sd, cid(i) + ".json"), "w"))
     return d, os.path.join(d, "s")
 def crun(d, sd, msg):
-    return subprocess.run([sys.executable, CHK, "--project", d], input=json.dumps({"last_assistant_message": msg}), capture_output=True, text=True,
+    return subprocess.run(CMD + ["--project", d], input=json.dumps({"last_assistant_message": msg}), capture_output=True, text=True,
                           env=dict(os.environ, MUSTER_SESSIONS_DIR=sd, MUSTER_STATE_DIR=tempfile.mkdtemp(), MUSTER_NO_SWEEP="1")).stdout
 CARD = ("**IDLE \u00b7 crew**\n- Builder A_Y_001: idle since 14:02, why: its piece passed and nothing is open, unblocked by: a new order from his list\n"
         "- Builder B_Y_001: idle since 14:10, why: waits for the owner's ship allowance, unblocked by: his typed yes\n\n"
@@ -102,13 +112,13 @@ d2, sd2 = cproj([600, 600, 5], "1. \"x\"\n   Stands: with Builder A_Y_001\n")
 o2 = crun(d2, sd2, "ok")
 t("idle card: an idle worker with open work and no order blocks, named, before the card", "Builder A_Y_001 has been idle" in o2)
 st2 = tempfile.mkdtemp()
-a1 = subprocess.run([sys.executable, CHK, "--project", d], input=json.dumps({"last_assistant_message": "ok", "transcript_path": "/t/c"}), capture_output=True, text=True, env=dict(os.environ, MUSTER_SESSIONS_DIR=sd, MUSTER_STATE_DIR=st2, MUSTER_NO_SWEEP="1")).stdout
-a2 = subprocess.run([sys.executable, CHK, "--project", d], input=json.dumps({"last_assistant_message": "ok", "transcript_path": "/t/c"}), capture_output=True, text=True, env=dict(os.environ, MUSTER_SESSIONS_DIR=sd, MUSTER_STATE_DIR=st2, MUSTER_NO_SWEEP="1")).stdout
+a1 = subprocess.run(CMD + ["--project", d], input=json.dumps({"last_assistant_message": "ok", "transcript_path": "/t/c"}), capture_output=True, text=True, env=dict(os.environ, MUSTER_SESSIONS_DIR=sd, MUSTER_STATE_DIR=st2, MUSTER_NO_SWEEP="1")).stdout
+a2 = subprocess.run(CMD + ["--project", d], input=json.dumps({"last_assistant_message": "ok", "transcript_path": "/t/c"}), capture_output=True, text=True, env=dict(os.environ, MUSTER_SESSIONS_DIR=sd, MUSTER_STATE_DIR=st2, MUSTER_NO_SWEEP="1")).stdout
 t("idle card: said once, unchanged, it is not asked again", "block" in a1 and a2 == "")
 
 # item 103: the idle card is said once per idle stretch, and never while a goal is set and a worker is on it
 def srun(d, sd, st, msg="ok"):
-    return subprocess.run([sys.executable, CHK, "--project", d], input=json.dumps({"last_assistant_message": msg, "transcript_path": "/t/stretch"}), capture_output=True, text=True,
+    return subprocess.run(CMD + ["--project", d], input=json.dumps({"last_assistant_message": msg, "transcript_path": "/t/stretch"}), capture_output=True, text=True,
                           env=dict(os.environ, MUSTER_SESSIONS_DIR=sd, MUSTER_STATE_DIR=st, MUSTER_NO_SWEEP="1")).stdout
 def setrec(sd, i, ago):
     json.dump({"isArchived": False, "lastActivityAt": int(time.time() * 1000) - ago * 1000, "postTurnSummary": {}}, open(os.path.join(sd, "a", "b", cid(i) + ".json"), "w"))
@@ -139,7 +149,7 @@ def sproj(titles, board, names=("Manager_Z_001", "Builder A_Z_001", "Builder B_Z
         json.dump({"title": title, "sessionId": cid(i), "isArchived": arch, "lastActivityAt": now - 5000, "postTurnSummary": {}}, open(os.path.join(sd, cid(i) + ".json"), "w"))
     return d, os.path.join(d, "s")
 def srun(d, sd, st=None, msg="ok"):
-    return subprocess.run([sys.executable, CHK, "--project", d], input=json.dumps({"last_assistant_message": msg, "transcript_path": "/t/s"}), capture_output=True, text=True,
+    return subprocess.run(CMD + ["--project", d], input=json.dumps({"last_assistant_message": msg, "transcript_path": "/t/s"}), capture_output=True, text=True,
                           env=dict(os.environ, MUSTER_SESSIONS_DIR=sd, MUSTER_STATE_DIR=st or tempfile.mkdtemp())).stdout
 BOARD_OK = "### %s | ORDER | Manager_Z_001 -> Builder A_Z_001 | j\nStatus: open\n### %s | READY | Builder B_Z_001 -> Inspector_Z_001 | k\nStatus: open\n" % (TODAY, TODAY)
 d, sd = sproj([("Manager_Z_001", False), ("Builder A_Z_001", False), ("Builder A_Z_002", False), ("Builder B_Z_001", False)], BOARD_OK)
@@ -163,7 +173,7 @@ def tpath(*msgs):
             f.write(json.dumps({"type": "user", "message": {"content": m}}) + "\n")
     return pth
 def qrun(tp, msg):
-    return subprocess.run([sys.executable, CHK, "--project", tmp], input=json.dumps({"last_assistant_message": msg, "transcript_path": tp}), capture_output=True, text=True,
+    return subprocess.run(CMD + ["--project", tmp], input=json.dumps({"last_assistant_message": msg, "transcript_path": tp}), capture_output=True, text=True,
                           env=dict(env, MUSTER_STATE_DIR=tempfile.mkdtemp())).stdout
 t("quiet: an empty reply to a worker's message is not asked for a line", qrun(tpath("You are Manager_X_001", "<cross-session-message from=\"b\">DONE: x [ID b-1]</cross-session-message>"), "") == "")
 t("quiet: an empty reply to HIS typed words is still asked", "block" in qrun(tpath("You are Manager_X_001", "<cross-session-message from=\"b\">x</cross-session-message>", "status?"), ""))
@@ -172,7 +182,10 @@ t("quiet: a worker-started turn that wrote text is still checked", "block" in qr
 # idle-card-manager-only: in an installed project the chat's OWN TITLE decides, never first-message text
 import shutil
 inst = os.path.join(tmp, ".muster-checks"); os.makedirs(inst)
-shutil.copy(CHK, os.path.join(inst, "idle-check.py"))
+if PASS == "program":
+    shutil.copy(BIN, os.path.join(inst, "muster-checks" + (".exe" if os.name == "nt" else ""))); INST_CMD = [os.path.join(inst, "muster-checks" + (".exe" if os.name == "nt" else "")), "idle-check"]
+else:
+    shutil.copy(CHK, os.path.join(inst, "idle-check.py")); INST_CMD = [sys.executable, os.path.join(inst, "idle-check.py")]
 def titled(title, first):
     pth = os.path.join(tempfile.mkdtemp(), "t.jsonl")
     with open(pth, "w") as f:
@@ -181,7 +194,7 @@ def titled(title, first):
             f.write(json.dumps({"type": "custom-title", "customTitle": title, "sessionId": "x"}) + "\n")
     return pth
 def irun(tp):
-    return subprocess.run([sys.executable, os.path.join(inst, "idle-check.py")], input=json.dumps({"last_assistant_message": "done", "transcript_path": tp}),
+    return subprocess.run(INST_CMD, input=json.dumps({"last_assistant_message": "done", "transcript_path": tp}),
                           capture_output=True, text=True, env=dict(env, MUSTER_STATE_DIR=tempfile.mkdtemp())).stdout
 t("installed: a chat titled Manager_X_001 gets the idle card", "block" in irun(titled("Manager_X_001", "hello")))
 t("installed: a worker whose first message names its manager is silent", irun(titled("Builder A_X_001", "You are Builder A_X_001. Manager_X_001 gives you orders.")) == "")

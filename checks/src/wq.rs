@@ -10,10 +10,10 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 /// A text file as Python's text mode reads it: every line ending (CRLF, a lone CR) becomes a newline, so a file saved on Windows reads the same.
-fn read(p: &Path) -> String { fs::read(p).map(|b| String::from_utf8_lossy(&b).replace("\r\n", "\n").replace('\r', "\n")).unwrap_or_default() }
+pub(crate) fn read(p: &Path) -> String { fs::read(p).map(|b| String::from_utf8_lossy(&b).replace("\r\n", "\n").replace('\r', "\n")).unwrap_or_default() }
 
 /// Python's str.splitlines for the separators that can show up in a text file.
-fn py_lines(t: &str) -> Vec<&str> {
+pub(crate) fn py_lines(t: &str) -> Vec<&str> {
     let mut out = vec![];
     let (mut start, mut it) = (0usize, t.char_indices().peekable());
     while let Some((i, c)) = it.next() {
@@ -29,7 +29,7 @@ fn py_lines(t: &str) -> Vec<&str> {
 }
 
 /// re.split(r"\n(?=<ahead>)", text): the text cut at each newline that is followed by the pattern.
-fn split_before(text: &str, ahead: &str) -> Vec<String> {
+pub(crate) fn split_before(text: &str, ahead: &str) -> Vec<String> {
     let r = re(&format!(r"\n(?={ahead})"));
     let mut parts = vec![];
     let mut last = 0;
@@ -152,7 +152,7 @@ fn tail(path: &str, n: u64) -> Option<String> {
     Some(String::from_utf8_lossy(&b).to_string())
 }
 
-fn last_message(data: &Value) -> String {
+pub(crate) fn last_message(data: &Value) -> String {
     if let Some(m) = data.get("last_assistant_message").and_then(Value::as_str) { return m.to_string(); }
     let Some(text) = tail(s(data, "transcript_path"), 200000) else { return String::new() };
     for line in py_lines(&text).into_iter().rev() {

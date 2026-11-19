@@ -16,7 +16,7 @@ WIN = os.name == "nt"
 HOOKS = [  # hook script, program check, Python copy the hook runs (relative to the plugin folder)
     ("rules-check.sh", "rules", "hooks/rules-check.py"), ("guard-check.sh", "guard", "hooks/rules-check.py"), ("talk-check.sh", "talk", "hooks/talk-check.py"),
     ("board-stop.sh", "board-stop", "hooks/board-stop.py"), ("renew-after-summary.sh", "renew", "hooks/renew-after-summary.py"),
-    ("precompact-board.sh", "precompact", "hooks/precompact-board.py"), ("worker-queue-check.sh", "worker-queue", "scripts/worker-queue-check.py"),
+    ("precompact-board.sh", "precompact", "hooks/precompact-board.py"), ("worker-queue-check.sh", "worker-queue", "scripts/worker-queue-check.py"), ("idle-check.sh", "idle-check", "scripts/idle-check.py"),
 ]
 PROJECT = os.path.join(T, "proj")
 os.makedirs(os.path.join(PROJECT, "muster"))

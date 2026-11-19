@@ -40,7 +40,7 @@ fn line_entries(text: &str) -> Vec<Entry> {
 }
 
 /// FNV-1a 64-bit (the same hash as the Python copy).
-fn fnv(t: &str) -> u64 { let mut h: u64 = 0xcbf29ce484222325; for b in t.bytes() { h = (h ^ b as u64).wrapping_mul(0x100000001b3); } h }
+pub(crate) fn fnv(t: &str) -> u64 { let mut h: u64 = 0xcbf29ce484222325; for b in t.bytes() { h = (h ^ b as u64).wrapping_mul(0x100000001b3); } h }
 
 fn told_file(tpath: &str, cwd: &str) -> PathBuf {
     let d = std::env::var("MUSTER_STATE_DIR").ok().filter(|d| !d.is_empty()).map(PathBuf::from).unwrap_or_else(std::env::temp_dir);

@@ -1,0 +1,27 @@
+{
+  "version": "0.3.160",
+  "changed_files": [
+    "checks/src/idle.rs",
+    "checks/src/main.rs",
+    "checks/src/wq.rs",
+    "checks/src/boardstop.rs",
+    "hooks/idle-check.sh",
+    "scripts/idle-check-selftest.py",
+    "scripts/idle-parity-diff.py",
+    "scripts/program-fallback-selftest.py",
+    ".github/workflows/setup-test.yml",
+    "bin/",
+    "CHANGELOG.md"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Builder",
+    "Designer",
+    "Inspector"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "rust-first-5-idle: the idle-crew check (the manager's stop check: idle chats with open work, the idle card, the crew sweep, held workers) now also exists in the ready-built program; its hook runs the program first and falls back to Python on any failure. Self-test runs both copies; a parity script compares them. Same answers, nothing added"
+}

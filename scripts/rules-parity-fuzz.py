@@ -18,6 +18,8 @@ if not BIN:
 T = tempfile.mkdtemp()
 ENV = dict((k, v) for k, v in os.environ.items() if k not in ("MUSTER_PROFILE", "MUSTER_MESSAGE_FORM"))
 ENV["MUSTER_STATE_DIR"] = T
+if os.environ.get("MUSTER_PARITY_PROFILE"):  # run the same cases under a project profile (for example pinr): the program and Python must still answer alike
+    ENV["MUSTER_PROFILE"] = os.path.join(HERE, "..", "profiles", os.environ["MUSTER_PARITY_PROFILE"] + ".json")
 FIRSTS = {"manager": "You are Manager_Muster_002", "builder": "You are Builder A_Muster_002, agents/builder.md", "inspector": "You are Inspector_Muster_002"}
 TRANS = {}
 for k, v in FIRSTS.items():

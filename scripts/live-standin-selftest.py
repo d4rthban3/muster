@@ -161,6 +161,21 @@ if BIN:
             continue
         t("real program: %s -> %s.sh answers as the Python stand-in does" % (label, name), a == b, (a, b))
     t("real program: the PINR profile is in force (the choice card is refused by the program)", "Muster rule" in run(pr_, "rules-check", events[0][1])[1])
+    # PINR-shaped replies (real ones from a PINR manager chat): the program with the live profile and the Python stand-in must answer alike, block or not, word for word
+    pinr_texts = [
+        "**ASK \u00b7 coverage now**\n\nOn the live list 280 coins show coverage, average 45%.\n- ***A.*** Keep the order as it stands. *(my pick)*\n- ***B.*** Put the X scan ahead.",
+        "**ASK \u00b7 coverage now**\n\nWhich first?\n\n***A.*** Keep the order. *(my pick)* because it is small\n\n***B.*** Put the X scan ahead.",
+        "Coverage order: A (bot signs next, as ordered) or B (X scan and callouts first)?",
+        "Working: Apps_PINR on ios-build-34.",
+        "Working: Look Cards on the Gill Sans badge fix, and Engine on sources piece 1. The Evidence Web names question is waiting for you.",
+        "Working: Engine on new-data-keys, waiting for your save.",
+        "Noted.", "**YES NEEDED \u00b7 fonts**\n\nType A in its own chat.",
+    ]
+    for tx in pinr_texts:
+        e = {"hook_event_name": "Stop", "cwd": pr_, "last_assistant_message": tx, "transcript_path": mgr}
+        for nm in ("rules-check", "board-stop", "talk-check"):
+            a = run(pr_, nm + "", e); b = run(pr_, nm, e, ext="py")
+            t("real program: PINR reply %r, %s: same answer as the Python stand-in" % (tx[:36], nm), a == b, (a, b))
     # the idle check as an installed copy: the chat's own title decides (the program is told the project, so it is "installed" without sitting in .muster-checks)
     now = int(time.time() * 1000)
     sd = os.path.join(T, "sess", "a", "b"); os.makedirs(sd)

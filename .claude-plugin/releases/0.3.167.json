@@ -15,5 +15,5 @@
     "claude-code"
   ],
   "records_change": false,
-  "note": "pinr-rust-difference-2: item 114 now also recognises a short plain question of up to three lines with a '?' (not only one line or a lettered card), so it is not put to him twice. Python and program both, with tests."
+  "note": "pinr-rust-difference-2: item 114 now also recognises a short plain question of a plain question of any length with a '?' (not inside a web address), not only one line or a lettered card, so it is not put to him twice. Python and program both, with tests."
 }

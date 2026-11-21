@@ -319,10 +319,9 @@ pub fn question_key(text: &str) -> HashSet<String> {
     if n >= 2 { opts } else { HashSet::new() }
 }
 
-/// A one-line question: a reply of a single line that holds a "?" (for example "Coverage order: A (...) or B (...)?").
+/// A plain question of any length (the owner said any form): a reply holding a "?" outside a web address (for example "Coverage order: A (...) or B (...)?").
 pub fn one_line_question(text: &str) -> bool {
-    let lines: Vec<&str> = text.lines().filter(|l| !l.trim().is_empty()).collect();
-    (1..=3).contains(&lines.len()) && lines.iter().any(|l| l.contains('?'))
+    sub(&re(r"https?://\S+"), text, " ").contains('?')
 }
 
 /// What a reply asks him, in any form (item 114): (the lettered choices' key or empty, its content words, whether it is a one-line question); None when it asks nothing.

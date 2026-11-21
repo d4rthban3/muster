@@ -117,6 +117,8 @@ compacted_b = compacted("Builder A_Muster, agents/builder.md")
 
 Q = "**ASK \u00b7 q**\nWhich first?\n\n***A.*** ship the menu fix *(my pick)* because it is small\n\n***B.*** wait for the next piece"
 QM = "Coverage order?\nA: bot signs next, as ordered.\nB: X scan and callouts first."
+QM6 = "Coverage order?\nA: bot signs next, as ordered.\nB: X scan and callouts first.\nA is smaller.\nB is wider.\nTell me which."
+QU = "See https://example.com/a?b=1 for the notes on the coverage order and what comes next."
 QL = "Coverage order: A (bot signs next, as ordered) or B (X scan and callouts first)?"
 QC = "**ASK \u00b7 coverage now**\n\nOn the live list 280 coins show coverage.\n\n***A.*** Keep the order: bot signs next, as ordered. *(my pick)*\n\n***B.*** Put the X scan and callouts first."
 asst = lambda t: {"type": "assistant", "message": {"content": [{"type": "text", "text": t}]}}
@@ -163,6 +165,9 @@ cases = [
     ("item 114: a three-line plain question already put to him is not asked again", run("Stop", last_assistant_message=QM, transcript_path=tr(mgr_first, [asst(QM), usr("<cross-session-message from=x>PASS</cross-session-message>")])), True),
     ("item 114: a three-line question after the same one-liner is not asked again", run("Stop", last_assistant_message=QM, transcript_path=tr(mgr_first, [asst(QL), usr("<cross-session-message from=x>PASS</cross-session-message>")])), True),
     ("item 114: a three-line question the first time is allowed", run("Stop", last_assistant_message=QM, transcript_path=tr(mgr_first, [usr("<cross-session-message from=x>PASS</cross-session-message>")])), False),
+    ("item 114: a six-line plain question already put to him is not asked again (any length)", run("Stop", last_assistant_message=QM6, transcript_path=tr(mgr_first, [asst(QM6), usr("<cross-session-message from=x>PASS</cross-session-message>")])), True),
+    ("item 114: a six-line question after the same one-liner is not asked again", run("Stop", last_assistant_message=QM6, transcript_path=tr(mgr_first, [asst(QL), usr("<cross-session-message from=x>PASS</cross-session-message>")])), True),
+    ("item 114: a '?' inside a web address is not a question", run("Stop", last_assistant_message=QU, transcript_path=tr(mgr_first, [asst(QU), usr("<cross-session-message from=x>PASS</cross-session-message>")])), False),
     ("item 114: a one-line question the Stop hook bounced is not counted as asked", run("Stop", last_assistant_message=QL, transcript_path=tr(mgr_first, [asst(QL), usr("Stop hook feedback: fix it"), asst(QL)])), False),
     ("item 103: 'is waiting for you' in a Working line is allowed", run("Stop", last_assistant_message="Working: Look Cards on the badge fix, and Engine on sources piece 1. The Evidence Web names question is waiting for you.", transcript_path=tr(mgr_first, [usr("<cross-session-message from=x>PASS</cross-session-message>")])), False),
     ("item 114: news riding along with a question is refused", run("Stop", last_assistant_message="The menu fix has PASS and is shipped.\n\n" + Q, transcript_path=tr(mgr_first, [usr("<cross-session-message from=x>PASS</cross-session-message>")])), True),

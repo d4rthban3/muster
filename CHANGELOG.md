@@ -4,7 +4,7 @@ Each version names which workers it affects.
 
 ## 0.3.167
 Affects: the manager (every project, PINR included).
-pinr-rust-difference-2: item 114 now also recognises a short plain question of up to three lines with a '?' (not only one line or a lettered card), so it is not put to him twice. Python and program both, with tests.
+pinr-rust-difference-2: item 114 now also recognises a short plain question of a plain question of any length with a '?' (not inside a web address), not only one line or a lettered card, so it is not put to him twice. Python and program both, with tests.
 
 ## 0.3.166
 Affects: the manager (every project, PINR included).

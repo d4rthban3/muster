@@ -319,15 +319,42 @@ pub fn question_key(text: &str) -> HashSet<String> {
     if n >= 2 { opts } else { HashSet::new() }
 }
 
-/// Item 114: this lettered question (nearly) matches one already put to him since his last typed words. A reply the Stop hook bounced does
-/// not count; his typed message clears the list.
+/// A one-line question: a reply of a single line that holds a "?" (for example "Coverage order: A (...) or B (...)?").
+pub fn one_line_question(text: &str) -> bool {
+    let lines: Vec<&str> = text.lines().filter(|l| !l.trim().is_empty()).collect();
+    lines.len() == 1 && lines[0].contains('?')
+}
+
+/// What a reply asks him, in any form (item 114): (the lettered choices' key or empty, its content words, whether it is a one-line question); None when it asks nothing.
+pub type QInfo = (HashSet<String>, HashSet<String>, bool);
+pub fn question_info(text: &str) -> Option<QInfo> {
+    let key = question_key(text);
+    if key.is_empty() && !one_line_question(text) { return None; }
+    let pick = rei(r"\(?\*?my pick\*?\)?");
+    let lower = sub(&pick, text, " ").to_lowercase();
+    let toks: HashSet<String> = re(r"[a-z0-9]{3,}").find_iter(&lower).flatten().map(|m| m.as_str().to_string()).filter(|w| w != "pick").collect();
+    let one = key.is_empty();
+    Some((key, toks, one))
+}
+
+/// The same question put again, whatever its form: two lettered ones by their choices; otherwise the one-liner's words (three or more) found 70% or more in the other reply.
+pub fn same_question(a: &QInfo, b: &QInfo) -> bool {
+    if !a.0.is_empty() && !b.0.is_empty() {
+        let i = a.0.intersection(&b.0).count() as f64; let u = a.0.union(&b.0).count() as f64;
+        return i / u >= 0.7;
+    }
+    let (small, big) = if a.2 && (!b.2 || a.1.len() <= b.1.len()) { (a, b) } else { (b, a) };
+    small.1.len() >= 3 && small.1.intersection(&big.1).count() as f64 / small.1.len() as f64 >= 0.7
+}
+
+/// Item 114: this question, in any form (lettered, one-line, a long card), matches one already put to him since his last typed words and not yet
+/// answered. A reply the Stop hook bounced does not count; his typed message clears the list; a message from another chat does not.
 pub fn question_repeated(path: &str, text: &str) -> bool {
-    let mine = question_key(text);
-    if mine.is_empty() { return false; }
+    let mine = match question_info(text) { Some(m) => m, None => return false };
     let ends = rei(r"<cross-session-message|<task-notification|<side-sessions-event|<ci-monitor-event|\[SYSTEM NOTIFICATION");
     let neutral = rei(r"^\s*(<system-reminder|Stop hook feedback)");
     let bounce = re(r"^\s*Stop hook (feedback|blocking error)");
-    let mut seen: Vec<(HashSet<String>, String)> = vec![];
+    let mut seen: Vec<(QInfo, String)> = vec![];
     let mut user_after = false;
     for d in lines_of(path) {
         let c = msg_content(&d);
@@ -335,8 +362,7 @@ pub fn question_repeated(path: &str, text: &str) -> bool {
             "assistant" => if let Value::Array(a) = &c {
                 let t: Vec<&str> = a.iter().filter(|b| s(b, "type") == "text").map(|b| s(b, "text")).collect();
                 let t = t.join("\n");
-                let k = question_key(&t);
-                if !k.is_empty() { seen.push((k, t)); user_after = false; }
+                if let Some(k) = question_info(&t) { seen.push((k, t)); user_after = false; }
             },
             "user" => {
                 if let Value::Array(a) = &c { if a.iter().any(|b| s(b, "type") == "tool_result") { continue; } }
@@ -351,7 +377,7 @@ pub fn question_repeated(path: &str, text: &str) -> bool {
         }
     }
     if !user_after { if let Some((_, t)) = seen.last() { if t.trim() == text.trim() { seen.pop(); } } }
-    seen.iter().any(|(k, _)| { let i = mine.intersection(k).count() as f64; let u = mine.union(k).count() as f64; i / u >= 0.7 })
+    seen.iter().any(|(k, _)| same_question(&mine, k))
 }
 
 /// Item 114: news words on a line that is neither a choice nor a question, in a reply that carries a lettered question.

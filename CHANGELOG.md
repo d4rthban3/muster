@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.166
+Affects: the manager (every project, PINR included).
+pinr-rust-difference: (1) the item 103 rule now refuses only telling the owner to type in another chat or window; 'is waiting for you' is allowed everywhere. (2) item 114 now stops any question he has not answered being put to him again in any form (lettered, one line, long card) until he types something; one-line questions stay allowed the first time. Python and program both; parity runs also under the PINR profile
+
 ## 0.3.165
 Affects: the owner's chat (the look).
 side-line-exact (a live try): the yellow-to-purple side line is a column that stretches to the height of the choices beside it, in 48 equal slices that fade from yellow to purple, so it ends where the last choice ends at any window width; the guessed height is gone; nothing else changes

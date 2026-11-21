@@ -40,6 +40,9 @@ TEXTS = [
     "pictures: [screenshot](a.png)", "I made a picture and saved it.", "**PASS · job**\n- ok\n- 3/3\n- none", "Which first?\n\n***A.*** a\n\n***B.*** b\n\n***C.*** c\n\n***D.*** d\n\n***E.*** e",
     "¿Cuál?\n\n***A.*** uno\n\n***B.*** dos *(my pick)*", "**ASK · q**\n\nOne question?\n\n***A.*** yes *(my pick)*", "(A) one\n(B) two", "Should I go on? ***A.*** yes ***B.*** no",
 ]
+QL = "Coverage order: A (bot signs next, as ordered) or B (X scan and callouts first)?"
+QC = "**ASK \u00b7 coverage**\n\nWhich first?\n\n***A.*** Bot signs next, as ordered *(my pick)* because it is small\n\n***B.*** X scan and callouts first"
+TEXTS += [QL, QC, "Coverage order: A (menu fix first) or B (footer first)?", "Ship it?", "Which one, A (red) or B (blue)?"]
 TEXTS = list(dict.fromkeys(TEXTS))
 
 
@@ -59,6 +62,10 @@ SHAPES = {
     "typed-letter": lambda: [asst(Q), usr("A")],
     "typed-letter-card": lambda: [asst(Q), usr("A"), asst("Good, going ahead.")],
     "peer": lambda: [usr(PEER)],
+    "asked-oneline": lambda: [asst(QL), usr(PEER)],
+    "asked-oneline-bounced": lambda: [asst(QL), usr("Stop hook feedback: fix it")],
+    "asked-card-then-typed": lambda: [asst(Q), usr("go on"), usr(PEER)],
+    "asked-oneline-card": lambda: [asst(QC), usr(PEER)],
     "hook-feedback": lambda: [usr("Stop hook feedback: fix the card")],
     "ask-card": lambda: [usr("go"), {"type": "assistant", "message": {"content": [{"type": "tool_use", "id": "a", "name": "AskUserQuestion", "input": {}}]}}],
 }

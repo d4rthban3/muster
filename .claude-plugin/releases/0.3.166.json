@@ -1,0 +1,23 @@
+{
+  "version": "0.3.166",
+  "changed_files": [
+    "hooks/rules-check.py",
+    "checks/src/rules.rs",
+    "checks/src/common.rs",
+    "scripts/rules-check-selftest.py",
+    "scripts/rules-parity-stop.py",
+    "scripts/rules-parity-fuzz.py",
+    "scripts/live-standin-selftest.py",
+    ".github/workflows/setup-test.yml",
+    "bin/",
+    "CHANGELOG.md"
+  ],
+  "affected_roles": [
+    "Manager"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "pinr-rust-difference: (1) the item 103 rule now refuses only telling the owner to type in another chat or window; 'is waiting for you' is allowed everywhere. (2) item 114 now stops any question he has not answered being put to him again in any form (lettered, one line, long card) until he types something; one-line questions stay allowed the first time. Python and program both; parity runs also under the PINR profile"
+}

@@ -843,7 +843,7 @@ fn stop(c: &Ctx, data: &Value, manager: bool) {
             block("write each choice letter bold and italic, like ***A.*** red, one line per choice with a blank line between (item 80)");
             return;
         }
-        if is(&rei(r"\bis waiting for you\b|\btype (?:it |your \w+ |anything )?in (?:the |that |this )?[\w .-]*\b(?:chat|window)\b"), text) {
+        if is(&rei(r"\btype (?:it |your \w+ |anything )?in (?:the |that |this )?[\w .-]*\b(?:chat|window)\b"), text) {
             block("never send the owner to type in a worker's chat (item 103): carrying his approval is your job; forward his quoted go to the worker that asked, by message, and say nothing to him");
             return;
         }

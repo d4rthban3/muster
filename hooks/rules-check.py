@@ -1153,14 +1153,41 @@ def question_key(text):
     return frozenset(opts) if len(opts) >= 2 else frozenset()
 
 
+QTOK = re.compile(r"[a-z0-9]{3,}")
+
+
+def one_line_question(text):
+    """A one-line question: a reply of a single line that holds a '?' (for example 'Coverage order: A (...) or B (...)?')."""
+    lines = [l for l in text.splitlines() if l.strip()]
+    return len(lines) == 1 and "?" in lines[0]
+
+
+def question_info(text):
+    """What a reply asks him, in any form (item 114): (the lettered choices' key or empty, its content words, whether it is a one-line question); None when it asks nothing."""
+    key = question_key(text)
+    if not key and not one_line_question(text):
+        return None
+    toks = frozenset(w for w in QTOK.findall(re.sub(r"\(?\*?my pick\*?\)?", " ", text.lower())) if w != "pick")
+    return key, toks, (not key)
+
+
+def same_question(a, b):
+    """The same question put again, whatever its form: two lettered ones by their choices; otherwise the one-liner's words (three or more) found 70% or more in the other reply."""
+    if a[0] and b[0]:
+        return len(a[0] & b[0]) / len(a[0] | b[0]) >= 0.7
+    small, big = (a, b) if (a[2] and (not b[2] or len(a[1]) <= len(b[1]))) else (b, a)
+    return len(small[1]) >= 3 and len(small[1] & big[1]) / len(small[1]) >= 0.7
+
+
 def question_repeated(path, text):
-    """Item 114: True when this lettered question (nearly) matches one already put to him since his last typed words. A reply the
-    Stop hook bounced does not count (the rewrite is the same question); his typed message clears the list."""
-    mine = question_key(text)
+    """Item 114: True when this question, in any form (a lettered one, a one-line one, a long card), matches one already put to him since his
+    last typed words and not yet answered. A reply the Stop hook bounced does not count (the rewrite is the same question); his typed message
+    clears the list; a message from another chat does not."""
+    mine = question_info(text)
     if not mine:
         return False
-    seen = []  # (key, text) of the manager's earlier lettered messages since he last typed
-    user_after = False  # a message came in after the last lettered reply
+    seen = []  # (info, text) of the manager's earlier questions since he last typed
+    user_after = False  # a message came in after the last question
     try:
         with open(path, encoding="utf-8") as fh:
             for line in fh:
@@ -1171,7 +1198,7 @@ def question_repeated(path, text):
                 c = (d.get("message") or {}).get("content", "")
                 if d.get("type") == "assistant" and isinstance(c, list):
                     t = "\n".join(b.get("text", "") for b in c if isinstance(b, dict) and b.get("type") == "text")
-                    k = question_key(t)
+                    k = question_info(t)
                     if k:
                         seen.append((k, t))
                         user_after = False
@@ -1195,7 +1222,7 @@ def question_repeated(path, text):
         return False
     if seen and not user_after and seen[-1][1].strip() == text.strip():
         seen.pop()  # this very reply, already in the file
-    return any(len(mine & k) / len(mine | k) >= 0.7 for k, _ in seen)
+    return any(same_question(mine, k) for k, _ in seen)
 
 
 def news_with_question(text):
@@ -1515,7 +1542,7 @@ def stop(data, manager):
             return block("every lettered question carries your pick: mark one choice *(my pick)* and give a one-line reason, looks included; a pick is advice only and nothing is ordered until he answers (item 100)")
         if len(re.findall(r"^\*\*\*[A-D]\.\*\*\*", text, re.M)) >= 2 and not title_above_choices(text):
             return block("a question to the owner opens with a bold heading line 'WORD \u00b7 job' (like **ASK \u00b7 score-audit**) above the lettered choices, so it draws as a card (item 120)")
-        if re.search(r"\bis waiting for you\b|\btype (?:it |your \w+ |anything )?in (?:the |that |this )?[\w .-]*\b(?:chat|window)\b", text, re.I):
+        if re.search(r"\btype (?:it |your \w+ |anything )?in (?:the |that |this )?[\w .-]*\b(?:chat|window)\b", text, re.I):
             return block("never send the owner to type in a worker's chat (item 103): carrying his approval is your job; forward his quoted go to the worker that asked, by message, and say nothing to him")
         if worker_news_ok(text) and peer_started(data.get("transcript_path") or ""):  # worker-news-line: the badge and one plain line
             if news_line_repeated(data.get("transcript_path") or "", text):

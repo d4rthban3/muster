@@ -42,6 +42,9 @@ TEXTS = [
 ]
 QL = "Coverage order: A (bot signs next, as ordered) or B (X scan and callouts first)?"
 QC = "**ASK \u00b7 coverage**\n\nWhich first?\n\n***A.*** Bot signs next, as ordered *(my pick)* because it is small\n\n***B.*** X scan and callouts first"
+ANSW = "**ANSWER \u00b7 slow**\n\nIt is slow because the first step reads every file in the folder, one at a time."
+VIEWT = "**VIEW \u00b7 slow**\n\nI would split the folder first. " + "It reads every file. " * 20
+TEXTS += [ANSW, VIEWT, ANSW.replace("ANSWER", "VIEW"), "I cannot do that.", "**VIEW \u00b7 x**\n\nI disagree with it.", "That is not possible as asked.\n\n***A.*** use the cache *(my pick)* because it is near\n\n***B.*** split it", "**ASK \u00b7 q**\nWhich?\n\n***A.*** red *(my pick)* because near\n\n**B.** blue"]
 QM = "Coverage order?\nA: bot signs next, as ordered.\nB: X scan and callouts first."
 QM6 = QM + "\nA is smaller.\nB is wider.\nTell me which."
 QU = "See https://example.com/a?b=1 for the notes on the coverage order and what comes next."
@@ -62,6 +65,7 @@ SHAPES = {
     "bare": lambda: [],
     "typed": lambda: [usr("do the thing please")],
     "typed-question": lambda: [usr("what is up?")],
+    "typed-order": lambda: [usr("make it faster")],
     "typed-letter": lambda: [asst(Q), usr("A")],
     "typed-letter-card": lambda: [asst(Q), usr("A"), asst("Good, going ahead.")],
     "peer": lambda: [usr(PEER)],
@@ -103,18 +107,26 @@ def norm(out):
 
 
 def one(job):
+    """Each side gets its own copy of the transcript, so the note a hook keeps beside it (a note is not a refusal) can be compared too."""
     role, shape, text, p, cwd = job
-    ev = json.dumps({"hook_event_name": "Stop", "cwd": cwd, "transcript_path": p, "last_assistant_message": text})
     out = []
     for hook, sub in SUBS:
         st = tempfile.mkdtemp(dir=T)
+        pa, pb = os.path.join(st, "a.jsonl"), os.path.join(st, "b.jsonl")
+        for q in (pa, pb):
+            with open(p, "rb") as src, open(q, "wb") as dst:
+                dst.write(src.read())
+        ev = lambda q: json.dumps({"hook_event_name": "Stop", "cwd": cwd, "transcript_path": q, "last_assistant_message": text})
         env = dict(ENV, MUSTER_STATE_DIR=st)
-        py = subprocess.run([sys.executable, os.path.join(ROOT, hook)], input=ev, capture_output=True, text=True, env=env)
-        st2 = tempfile.mkdtemp(dir=T)
-        rs = subprocess.run([BIN, sub], input=ev, capture_output=True, text=True, env=dict(ENV, MUSTER_STATE_DIR=st2))
+        py = subprocess.run([sys.executable, os.path.join(ROOT, hook)], input=ev(pa), capture_output=True, text=True, env=env)
+        rs = subprocess.run([BIN, sub], input=ev(pb), capture_output=True, text=True, env=dict(ENV, MUSTER_STATE_DIR=st))
         a, b = norm(py.stdout), norm(rs.stdout)
+        na = open(pa + ".muster-notes", encoding="utf-8").read() if os.path.exists(pa + ".muster-notes") else ""
+        nb = open(pb + ".muster-notes", encoding="utf-8").read() if os.path.exists(pb + ".muster-notes") else ""
         if a != b:
             out.append((sub, a[:260], b[:260]))
+        if na != nb:
+            out.append((sub + " note", na[:260], nb[:260]))
     return job, out
 
 

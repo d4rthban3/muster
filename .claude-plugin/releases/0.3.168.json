@@ -1,0 +1,28 @@
+{
+  "version": "0.3.168",
+  "changed_files": [
+    "hooks/rules-check.py",
+    "hooks/talk-check.py",
+    "checks/src/rules.rs",
+    "checks/src/talk.rs",
+    "checks/src/common.rs",
+    "pages/manager.md",
+    "agents/manager.md",
+    "templates/CLAUDE.md",
+    "directory/",
+    "scripts/build-pages.py",
+    "scripts/rules-check-selftest.py",
+    "scripts/profile-selftest.py",
+    "scripts/rules-parity-stop.py",
+    "bin/",
+    "CHANGELOG.md"
+  ],
+  "affected_roles": [
+    "Manager"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "right-hand-answer-view (part 2 of the right-hand page, item 128): a manager reply titled ANSWER on a turn the owner started with a question, or VIEW on any turn, is let through at any length; the wording checks (card shape, a second news line, letter style, bare paths and saved-version codes, title above choices) become notes told once instead of refusals; the hard stops stay; 'cannot' with lettered choices is allowed, without choices still refused. The manager page and the rules text say so; Python and program alike."
+}

@@ -26,7 +26,8 @@ pub fn run() -> i32 {
         (_, Some(h)) => format!("a saved-version code (\"{h}\")"),
         _ => String::new(),
     };
-    say(&py_obj(&[("decision", "block".into()), ("reason", format!("Your reply to the owner has {what}. Send just the corrected line or lines, in plain words with each file as a clickable link and no saved-version codes.{NOREPEAT}"))]));
+    // a note, not a refusal: told to the chat once at its next prompt or tool call (read by rules-check)
+    note_add(s(&data, "transcript_path"), &format!("your reply to the owner had {what}: next time write it in plain words, each file as a clickable link, no saved-version codes."));
     0
 }
 

@@ -367,11 +367,17 @@ fn group_unfiled(uses: &[Value]) -> bool {
     !uses.iter().skip(last + 1 + moved + 1).any(|u| s(u, "name").ends_with("list_sessions"))
 }
 
-/// Founder orders (item 76): a reply that says it cannot or will not do a task, or argues with it, when he typed it.
-fn refuses_order(t: &str) -> bool {
+/// Founder orders (item 76): a reply that says it cannot or will not do a task, or argues with it, when he typed it. A reply titled ANSWER or VIEW may
+/// give its view (the arguing words pass); one with two or more lettered choices may say an order is not possible as asked (2e).
+fn refuses_order(t: &str, titled: bool, choices: bool) -> bool {
     // "I can't tell which one" is a question's lead-in, not a refusal
     let t = &sub(&rei(r"\bi\s+(?:can(?:'|’)?t|cannot)\s+(?:tell|know|see|find|work\s+out|be\s+sure|understand|decide)\b"), t, " ");
-    is(&rei(r"\b(i\s+can(?:'|’)?t|i\s+cannot|i\s+won(?:'|’)?t|i(?:'|’)?m\s+unable|i\s+am\s+unable|i(?:'|’)?m\s+not\s+able|i\s+am\s+not\s+able|i\s+(?:would|'d)\s+advise\s+against|i\s+don(?:'|’)?t\s+think\s+(?:we|you)\s+should|i\s+(?:am\s+)?not\s+going\s+to|that\s+is\s+not\s+possible|that(?:'|’)?s\s+not\s+possible|i\s+disagree|i\s+don(?:'|’)?t\s+agree|that(?:'|’)?s\s+a\s+bad\s+idea|would\s+be\s+a\s+mistake|i\s+took\s+(?:that|this)\s+to\s+mean|i\s+assumed|i\s+interpreted|you\s+(?:probably|likely|really)\s+mean|what\s+you\s+(?:really|probably)\s+mean|i\s+read\s+(?:that|this)\s+as|i(?:'|’)ll\s+do\s+[^.]{0,60}\s+instead|i\s+will\s+do\s+[^.]{0,60}\s+instead)\b"), t)
+    (!choices && is(&rei(r"\b(i\s+can(?:'|’)?t|i\s+cannot|i\s+won(?:'|’)?t|i(?:'|’)?m\s+unable|i\s+am\s+unable|i(?:'|’)?m\s+not\s+able|i\s+am\s+not\s+able|i\s+(?:am\s+)?not\s+going\s+to|that\s+is\s+not\s+possible|that(?:'|’)?s\s+not\s+possible)\b"), t)) || (!titled && is(&rei(r"\b(i\s+(?:would|'d)\s+advise\s+against|i\s+don(?:'|’)?t\s+think\s+(?:we|you)\s+should|i\s+disagree|i\s+don(?:'|’)?t\s+agree|that(?:'|’)?s\s+a\s+bad\s+idea|would\s+be\s+a\s+mistake|i\s+took\s+(?:that|this)\s+to\s+mean|i\s+assumed|i\s+interpreted|you\s+(?:probably|likely|really)\s+mean|what\s+you\s+(?:really|probably)\s+mean|i\s+read\s+(?:that|this)\s+as|i(?:'|’)ll\s+do\s+[^.]{0,60}\s+instead|i\s+will\s+do\s+[^.]{0,60}\s+instead)\b"), t))
+}
+
+fn reply_title(t: &str) -> &'static str {
+    let first = t.trim().lines().find(|l| !l.trim().is_empty()).unwrap_or("");
+    match re(r"^\s*\*\*(ANSWER|VIEW) \u{b7} \S[^*\n]*\*\*\s*$").captures(first) { Ok(Some(c)) if &c[1] == "ANSWER" => "ANSWER", Ok(Some(_)) => "VIEW", _ => "" }
 }
 
 // ---- blocking guards (item 117): a project's own "guard" config says which folders are protected and which public repos it may push to ----
@@ -802,8 +808,9 @@ fn stop(c: &Ctx, data: &Value, manager: bool) {
     let text = s(data, "last_assistant_message");
     // Founder orders (item 76): NOT subject to the once-per-turn pass. A manager reply that refuses, says it cannot, argues with or
     // reinterprets a task he typed is refused every time; the only way through is doing it, or one short question to him.
-    if manager && !text.is_empty() && refuses_order(text) && owner_typed_last(s(data, "transcript_path")) {
-        block("he gave you an order in his own words, and a coded rule says you do it: no refusing, no \"cannot\", no arguing, no reinterpreting (item 76). Do the task now, or if you are unsure ask him ONE short question, nothing else");
+    let title = if manager { reply_title(text) } else { "" };
+    if manager && !text.is_empty() && refuses_order(text, !title.is_empty(), re(r"(?m)^\*\*\*[A-D]\.\*\*\*").find_iter(text).count() >= 2) && owner_typed_last(s(data, "transcript_path")) {
+        block("he gave you an order in his own words, and a coded rule says you do it: no refusing, no \"cannot\", no arguing, no reinterpreting (item 76). Do the task now, or if you are unsure ask him ONE short question, nothing else; if it is not possible as asked, say so in one plain line with the reason and the nearest thing that is possible as lettered choices");
         return;
     }
     if manager && !truthy(data.get("stop_hook_active")) && playback_turn(s(data, "transcript_path"))
@@ -840,11 +847,21 @@ fn stop(c: &Ctx, data: &Value, manager: bool) {
             return;
         }
         if letters_not_bold_italic(text) {
-            block("write each choice letter bold and italic, like ***A.*** red, one line per choice with a blank line between (item 80)");
-            return;
+            note_add(tpath, "write each choice letter bold and italic, like ***A.*** red, one line per choice with a blank line between (item 80)");
         }
         if is(&rei(r"\btype (?:it |your \w+ |anything )?in (?:the |that |this )?[\w .-]*\b(?:chat|window)\b"), text) {
             block("never send the owner to type in a worker's chat (item 103): carrying his approval is your job; forward his quoted go to the worker that asked, by message, and say nothing to him");
+            return;
+        }
+        if title == "VIEW" || (title == "ANSWER" && owner_asked(tpath)) {
+            // right-hand part 2: an answer to his question (on a turn he started with one) and a view (on any turn) are let through at any length; the hard stops stay
+            if title == "VIEW" && question_repeated(tpath, text) {
+                block("he has already been asked this question and has not answered (item 114): do not put it to him again; keep working on what does not depend on his answer, and end this turn with no text");
+                return;
+            }
+            if re(r"(?m)^\*\*\*[A-D]\.\*\*\*").find_iter(text).count() >= 2 && !is(&rei(r"\bmy pick\b"), text) {
+                block("every lettered question carries your pick: mark one choice *(my pick)* and give a one-line reason, looks included; a pick is advice only and nothing is ordered until he answers (item 100)");
+            }
             return;
         }
         if worker_news_ok(text) && peer_started(tpath) { // worker-news-line: the badge and one plain line
@@ -852,8 +869,8 @@ fn stop(c: &Ctx, data: &Value, manager: bool) {
             return;
         }
         if is(&re("^\\*\\*(READY|PASS|FAIL|DONE|STUCK|NEED) \u{b7} \\S[^*\n]*\\*\\*$"), text.trim().lines().next().unwrap_or("").trim()) && peer_started(tpath) && !worker_news_ok(text) {
-            block("a worker's news is the bold badge and ONE plain line under it, nothing more: no bullets, no second news line, no saved-version code, version number or bare file path (a link is fine), no 'needs nothing from you'");
-            return;
+            note_add(tpath, "a worker's news is the bold badge and ONE plain line under it, nothing more: no bullets, no second news line, no saved-version code, version number or bare file path (a link is fine), no 'needs nothing from you'");
+            if !empty_news(text) { return; } // the empty line is still refused below
         }
         if empty_news(text) && !owner_asked(tpath) {
             block("an empty \"needs nothing from you\" line tells him nothing: when a worker's message needs nothing from him, reply with a bold badge '**WORD \u{b7} job**' (WORD is the report's first word: READY, PASS, FAIL, DONE, STUCK or NEED) and ONE plain line saying who did what, like '**READY \u{b7} login screen**' then 'Apps finished the login screen; Build Inspector has it.'");
@@ -876,8 +893,7 @@ fn stop(c: &Ctx, data: &Value, manager: bool) {
             return;
         }
         if re(r"(?m)^\*\*\*[A-D]\.\*\*\*").find_iter(text).count() >= 2 && !title_above_choices(text) {
-            block("a question to the owner opens with a bold heading line 'WORD \u{b7} job' (like **ASK \u{b7} score-audit**) above the lettered choices, so it draws as a card (item 120)");
-            return;
+            note_add(tpath, "a question to the owner opens with a bold heading line 'WORD \u{b7} job' (like **ASK \u{b7} score-audit**) above the lettered choices, so it draws as a card (item 120)");
         }
         if text.contains('?') && look_unshown(&question_part(text), &uses) {
             block("a question about how something looks comes after the pictures: show them to him first in this turn (send-file with render, or card previews), then ask");
@@ -894,8 +910,7 @@ fn stop(c: &Ctx, data: &Value, manager: bool) {
     let nb = body.lines().filter(|l| is(&bullet, l)).count();
     let title_ok = body.lines().next().map(|l| is(&re(r"^\s*\*\*[^*\n]+\s[·.]\s[^*\n]+\*\*\s*$"), l)).unwrap_or(false);
     if !title_ok || !(2..=3).contains(&nb) {
-        block("your end-of-turn reply is a card: a bold title line 'WORD · job', then two or three '- ' bullets (what, the result with real numbers, what is left or what you need)");
-        return;
+        note_add(tpath, "your end-of-turn reply is a card: a bold title line 'WORD · job', then two or three '- ' bullets (what, the result with real numbers, what is left or what you need)");
     }
     if is(&re(r"^\s*\*\*(DONE|READY|PASS|FAIL|STUCK|NEED)\b"), body) { // item 65: every report reaches the manager as a message
         let root = main_folder(s(data, "cwd"));
@@ -972,7 +987,10 @@ pub fn run() -> i32 {
     if !is(&c.crew, &first) && std::env::var("MUSTER_ASSUME_CREW").ok().as_deref() != Some("1") { return 0; }
     if !from_title { remember_first(s(&data, "transcript_path"), &first); }
     let manager = is_manager(&c, &first) || std::env::var("MUSTER_ASSUME_MANAGER").ok().as_deref() == Some("1");
-    match s(&data, "hook_event_name") { "PreToolUse" => pretool(&c, &data, manager), "Stop" => stop(&c, &data, manager), "UserPromptSubmit" if manager => playback_start(&data), _ => {} }
+    match s(&data, "hook_event_name") { "PreToolUse" => { pretool(&c, &data, manager); if !SAID.load(std::sync::atomic::Ordering::SeqCst) { notes_out(s(&data, "transcript_path"), "PreToolUse"); } }
+        "Stop" => stop(&c, &data, manager),
+        "UserPromptSubmit" => { if manager { playback_start(&data); } if !SAID.load(std::sync::atomic::Ordering::SeqCst) { notes_out(s(&data, "transcript_path"), "UserPromptSubmit"); } }
+        _ => {} }
     0
 }
 #[allow(dead_code)]

@@ -2,7 +2,7 @@
 """Muster's rules as code (D-027): one self-contained file, so a project that does not load the plugin can copy just this.
 
 It reads one hook event from standard input and acts only in a crew chat (the chat's FIRST message names agents/<role>.md
-or <Role>_<project>_<digits>); it is silent in the owner's own chats and on any error. It writes nothing and sends nothing.
+or <Role>_<project>_<digits>); it is silent in the owner's own chats and on any error. It sends nothing; the only thing it writes is a one-line note beside a chat's transcript (a note is told to the chat once, never a refusal).
 
 PreToolUse (a chat is about to act):
   SendMessage    a message between chats must be a six-line report (FIRST WORD, What, Where with touches:, Why, How, Need,
@@ -16,6 +16,8 @@ Stop (a chat is about to end its turn; blocks at most once, never loops):
                  needs a message to the manager in the same turn (item 65).
 Exit 0 always; a refusal is printed as the hook's JSON.
 """
+import contextlib
+import io
 import json
 import os
 import re
@@ -1327,12 +1329,15 @@ def group_unfiled(uses):
     return not any(n.endswith("list_sessions") for n, _ in names[moved + 1:])
 
 
-REFUSES = re.compile(r"\b(i\s+can['\u2019]?t|i\s+cannot|i\s+won['\u2019]?t|i['\u2019]?m\s+unable|i\s+am\s+unable|i['\u2019]?m\s+not\s+able|i\s+am\s+not\s+able|i\s+(?:would|'d)\s+advise\s+against|i\s+don['\u2019]?t\s+think\s+(?:we|you)\s+should|i\s+(?:am\s+)?not\s+going\s+to|that\s+is\s+not\s+possible|that['\u2019]?s\s+not\s+possible|i\s+disagree|i\s+don['\u2019]?t\s+agree|that['\u2019]?s\s+a\s+bad\s+idea|would\s+be\s+a\s+mistake|i\s+took\s+(?:that|this)\s+to\s+mean|i\s+assumed|i\s+interpreted|you\s+(?:probably|likely|really)\s+mean|what\s+you\s+(?:really|probably)\s+mean|i\s+read\s+(?:that|this)\s+as|i['\u2019]ll\s+do\s+[^.]{0,60}\s+instead|i\s+will\s+do\s+[^.]{0,60}\s+instead)\b", re.I)
+CANNOT = re.compile(r"\b(i\s+can['’]?t|i\s+cannot|i\s+won['’]?t|i['’]?m\s+unable|i\s+am\s+unable|i['’]?m\s+not\s+able|i\s+am\s+not\s+able|i\s+(?:am\s+)?not\s+going\s+to|that\s+is\s+not\s+possible|that['’]?s\s+not\s+possible)\b", re.I)  # "cannot" and its kin (item 76; 2e: allowed in a reply that gives the reason and lettered choices)
+ARGUE = re.compile(r"\b(i\s+(?:would|'d)\s+advise\s+against|i\s+don['’]?t\s+think\s+(?:we|you)\s+should|i\s+disagree|i\s+don['’]?t\s+agree|that['’]?s\s+a\s+bad\s+idea|would\s+be\s+a\s+mistake|i\s+took\s+(?:that|this)\s+to\s+mean|i\s+assumed|i\s+interpreted|you\s+(?:probably|likely|really)\s+mean|what\s+you\s+(?:really|probably)\s+mean|i\s+read\s+(?:that|this)\s+as|i['’]ll\s+do\s+[^.]{0,60}\s+instead|i\s+will\s+do\s+[^.]{0,60}\s+instead)\b", re.I)  # arguing with or reinterpreting the order
 
 
-def refuses_order(text):
-    """True when the reply refuses, argues with or reinterprets a task (item 76). "I can't tell which one" is a question's lead-in, not a refusal."""
-    return bool(REFUSES.search(re.sub(r"\bi\s+(?:can['\u2019]?t|cannot)\s+(?:tell|know|see|find|work\s+out|be\s+sure|understand|decide)\b", " ", text, flags=re.I)))
+def refuses_order(text, titled=False, choices=False):
+    """True when the reply refuses, argues with or reinterprets a task (item 76). "I can't tell which one" is a question's lead-in, not a refusal.
+    A reply titled ANSWER or VIEW may give its view (the arguing words pass); one with two or more lettered choices may say an order is not possible as asked (2e)."""
+    t = re.sub(r"\bi\s+(?:can['\u2019]?t|cannot)\s+(?:tell|know|see|find|work\s+out|be\s+sure|understand|decide)\b", " ", text, flags=re.I)
+    return bool((CANNOT.search(t) and not choices) or (ARGUE.search(t) and not titled))
 
 
 def owner_typed_last(path):
@@ -1498,16 +1503,60 @@ def playback_start(data):
     """UserPromptSubmit: when the prompt is his own and ends with ??, give the manager the instruction for this turn."""
     pr = str(data.get("prompt") or "")
     if not pr.strip() or ENDS_TURN.search(pr) or re.match(r"^\s*<", pr) or not PLAYBACK_END.search(pr):
-        return
+        return False
     print(json.dumps({"hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "additionalContext": "Muster rule: " + PLAYBACK_WHY}}))
+    return True
+
+
+TITLED = re.compile(r"^\s*\*\*(ANSWER|VIEW) \u00b7 \S[^*\n]*\*\*\s*$")
+
+
+def reply_title(text):
+    """ANSWER or VIEW when the reply's first line is the bold title '**ANSWER \u00b7 job**' or '**VIEW \u00b7 job**' (right-hand part 2), else ''."""
+    lines = [l for l in text.strip().splitlines() if l.strip()]
+    m = TITLED.match(lines[0]) if lines else None
+    return m.group(1) if m else ""
+
+
+def note_add(path, text):
+    """A note is not a refusal: it is kept beside the transcript and told to the chat once, at its next prompt or tool call."""
+    side = path + ".muster-notes"
+    try:
+        if path:
+            old = open(side, encoding="utf-8").read().split("\n") if os.path.exists(side) else []
+            if text not in old:
+                with open(side, "a", encoding="utf-8") as fh:
+                    fh.write(text + "\n")
+    except OSError:
+        pass
+
+
+def note_take(path):
+    side = path + ".muster-notes"
+    try:
+        if path and os.path.exists(side):
+            out = [l for l in open(side, encoding="utf-8").read().split("\n") if l.strip()]
+            os.remove(side)
+            return out
+    except OSError:
+        pass
+    return []
+
+
+def notes_out(data, event):
+    """Tell the chat its pending notes (once) as added context; prints nothing when there are none."""
+    notes = note_take(data.get("transcript_path") or "")
+    if notes:
+        print(json.dumps({"hookSpecificOutput": {"hookEventName": event, "additionalContext": "Muster note (your reply was let through, nothing was refused; do it this way next time): " + " ".join(notes)}}))
 
 
 def stop(data, manager):
     text = data.get("last_assistant_message") or ""
     # Founder orders (item 76): NOT subject to the once-per-turn pass; the only way through is doing it, or one short question
-    if manager and text and refuses_order(text) and owner_typed_last(data.get("transcript_path") or ""):
+    title = reply_title(text) if manager else ""
+    if manager and text and refuses_order(text, bool(title), len(re.findall(r"^\*\*\*[A-D]\.\*\*\*", text, re.M)) >= 2) and owner_typed_last(data.get("transcript_path") or ""):
         return block("he gave you an order in his own words, and a coded rule says you do it: no refusing, no \"cannot\", no arguing, no reinterpreting (item 76). "
-                     "Do the task now, or if you are unsure ask him ONE short question, nothing else")
+                     "Do the task now, or if you are unsure ask him ONE short question, nothing else; if it is not possible as asked, say so in one plain line with the reason and the nearest thing that is possible as lettered choices")
     if manager and not data.get("stop_hook_active") and playback_turn(data.get("transcript_path") or "") \
             and len(re.findall(r"^\*\*\*[A-D]\.\*\*\*", text, re.M)) < 2:
         return block(PLAYBACK_WHY)
@@ -1536,19 +1585,26 @@ def stop(data, manager):
                 return block("a choice card was answered but not recorded: run %s with his exact answer%s under its list item before ending the turn" % (recorder_path(main_folder(data.get("cwd"))), " (or --no-pick if he skipped the card or typed his own words)" if RECORDER == "record-choice.py" else ""))
             return
         if letters_not_bold_italic(text):
-            return block("write each choice letter bold and italic, like ***A.*** red, one line per choice with a blank line between (item 80)")
+            note_add(data.get("transcript_path") or "", "write each choice letter bold and italic, like ***A.*** red, one line per choice with a blank line between (item 80)")
         if len(re.findall(r"^\*\*\*[A-D]\.\*\*\*", text, re.M)) >= 2 and not re.search(r"\bmy pick\b", text, re.I):
             return block("every lettered question carries your pick: mark one choice *(my pick)* and give a one-line reason, looks included; a pick is advice only and nothing is ordered until he answers (item 100)")
         if len(re.findall(r"^\*\*\*[A-D]\.\*\*\*", text, re.M)) >= 2 and not title_above_choices(text):
-            return block("a question to the owner opens with a bold heading line 'WORD \u00b7 job' (like **ASK \u00b7 score-audit**) above the lettered choices, so it draws as a card (item 120)")
+            note_add(data.get("transcript_path") or "", "a question to the owner opens with a bold heading line 'WORD \u00b7 job' (like **ASK \u00b7 score-audit**) above the lettered choices, so it draws as a card (item 120)")
         if re.search(r"\btype (?:it |your \w+ |anything )?in (?:the |that |this )?[\w .-]*\b(?:chat|window)\b", text, re.I):
             return block("never send the owner to type in a worker's chat (item 103): carrying his approval is your job; forward his quoted go to the worker that asked, by message, and say nothing to him")
+        if title == "VIEW" or (title == "ANSWER" and owner_asked(data.get("transcript_path") or "")):
+            # right-hand part 2: an answer to his question (on a turn he started with one) and a view (on any turn) are let through at any length; the hard stops above and below stay
+            if title == "VIEW" and question_repeated(data.get("transcript_path") or "", text):
+                return block("he has already been asked this question and has not answered (item 114): do not put it to him again; keep working on what does not depend on his answer, and end this turn with no text")
+            return
         if worker_news_ok(text) and peer_started(data.get("transcript_path") or ""):  # worker-news-line: the badge and one plain line
             if news_line_repeated(data.get("transcript_path") or "", text):
                 return block("the owner already had a line for this report (same badge): no second line; end this turn with no text")
             return
         if NEWS_BADGE.match(text.strip().splitlines()[0].strip()) and peer_started(data.get("transcript_path") or "") and not worker_news_ok(text):
-            return block("a worker's news is the bold badge and ONE plain line under it, nothing more: no bullets, no second news line, no saved-version code, version number or bare file path (a link is fine), no 'needs nothing from you'")
+            note_add(data.get("transcript_path") or "", "a worker's news is the bold badge and ONE plain line under it, nothing more: no bullets, no second news line, no saved-version code, version number or bare file path (a link is fine), no 'needs nothing from you'")
+            if not EMPTY_NEWS.search(text):  # the empty line is still refused below
+                return
         if EMPTY_NEWS.search(text) and not owner_asked(data.get("transcript_path") or ""):
             return block("an empty \"needs nothing from you\" line tells him nothing: when a worker's message needs nothing from him, reply with a bold badge '**WORD \u00b7 job**' "
                          "(WORD is the report's first word: READY, PASS, FAIL, DONE, STUCK or NEED) and ONE plain line saying who did what, like '**READY \u00b7 login screen**' then 'Apps finished the login screen; Build Inspector has it.'")
@@ -1571,7 +1627,7 @@ def stop(data, manager):
     bullets = [l for l in body.splitlines() if re.match(r"^\s*[-*•] \S", l)]
     title_ok = bool(re.match(r"^\s*\*\*[^*\n]+\s[·.]\s[^*\n]+\*\*\s*$", body.splitlines()[0])) if body else False
     if not title_ok or not 2 <= len(bullets) <= 3:
-        return block("your end-of-turn reply is a card: a bold title line 'WORD · job', then two or three '- ' bullets (what, the result with real numbers, what is left or what you need)")
+        note_add(data.get("transcript_path") or "", "your end-of-turn reply is a card: a bold title line 'WORD · job', then two or three '- ' bullets (what, the result with real numbers, what is left or what you need)")
     if re.match(r"^\s*\*\*(DONE|READY|PASS|FAIL|STUCK|NEED)\b", body):  # item 65: every report reaches the manager as a message
         root = main_folder(data.get("cwd"))
         # SendMessage (to) or the app's older send_message tool (session_id); either reaches the manager
@@ -1676,11 +1732,18 @@ def main():
     manager = is_manager(first) or os.environ.get("MUSTER_ASSUME_MANAGER") == "1"
     ev = data.get("hook_event_name", "")
     if ev == "PreToolUse":
-        pretool(data, manager)
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            pretool(data, manager)
+        if buf.getvalue():
+            sys.stdout.write(buf.getvalue())  # a refusal goes first; the notes wait for the next event
+        else:
+            notes_out(data, "PreToolUse")
     elif ev == "Stop":
         stop(data, manager)
-    elif ev == "UserPromptSubmit" and manager:
-        playback_start(data)
+    elif ev == "UserPromptSubmit":
+        if not (manager and playback_start(data)):
+            notes_out(data, "UserPromptSubmit")
     return 0
 
 

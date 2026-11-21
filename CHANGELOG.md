@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.168
+Affects: the manager (every project, PINR included).
+right-hand-answer-view (part 2 of the right-hand page, item 128): a manager reply titled ANSWER on a turn the owner started with a question, or VIEW on any turn, is let through at any length; the wording checks (card shape, a second news line, letter style, bare paths and saved-version codes, title above choices) become notes told once instead of refusals; the hard stops stay; 'cannot' with lettered choices is allowed, without choices still refused. The manager page and the rules text say so; Python and program alike.
+
 ## 0.3.167
 Affects: the manager (every project, PINR included).
 pinr-rust-difference-2: item 114 now also recognises a short plain question of a plain question of any length with a '?' (not inside a web address), not only one line or a lettered card, so it is not put to him twice. Python and program both, with tests.

@@ -73,7 +73,7 @@ Between chats a message is a data record, never a sentence: one JSON object with
 a code from a set list or a list of codes (`muster/REPORT.md` has the keys and a made-up example). The program `muster-checks`
 refuses anything else. Detail goes on the board or in a file; every report also goes to the manager as a message (item 65).
 In their own window workers post a short card for the owner: a bold title "WORD · job", then two or three bullets in plain words,
-every file a clickable link, no saved-version codes. The manager does not relay these cards.
+every file a clickable link, no saved-version codes. The manager does not relay these cards: it tells the owner an answer to their question, its view on a decision, a question, a yes they must give, or "the crew is idle".
 **Messages paused?** Write your report on the board yourself, addressed to its reader, with the line `Paused: yes` under its Status
 line, and tell the owner in one line to type in your chat. When you can act again, your first act is to close it (`Status: done`,
 `Paused: no`). If the board refuses your write, leave a one-line file `.muster-paused` in your own folder and delete it on resume.

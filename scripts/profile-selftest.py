@@ -69,6 +69,12 @@ def run(script, ev, plain=False, cwd=None, state=None, **kw):
     return r.stdout.strip()
 
 
+def talk_note(transcript, **kw):
+    """talk-check refuses nothing now: a bare path or a saved-version code is a note kept beside the transcript (told once by rules-check). Returns 'note' when one was kept, the hook's output if it printed anything, else ''."""
+    out = run("talk-check.py", "Stop", last_assistant_message=bare, transcript_path=transcript, **kw)
+    return out if out else ("note" if os.path.exists(transcript + ".muster-notes") else "")
+
+
 site = tr("You are Site_PINR_002. Job: Site_PINR_002, builds the site.")
 teacher = tr("You are PINRai_teacher_001.")
 mgr = tr("You are Manager_PINR_002. Job: Manager_PINR_002.")
@@ -262,15 +268,15 @@ add("4d ...and 0 counts as off", board_stop_with({"board_kinds_open": 0}, "Fine.
 add("4d ...and 1 counts as on", board_stop_with({"board_kinds_open": 1}, "Fine.", mgr, tempfile.mkdtemp(dir=T), NEED_BOARD), True)
 add("4d a profile with only manager_names knows a summary-first chat titled that way", board_stop_with({"manager_names": ["\\bBoss_X\\b"]}, "Fine.", titled("Boss_X"), tempfile.mkdtemp(dir=T), NEED_BOARD), True)
 add("4d ...and a chat titled something else stays silent", board_stop_with({"manager_names": ["\\bBoss_X\\b"]}, "Fine.", titled("Clerk_X"), tempfile.mkdtemp(dir=T), NEED_BOARD), False)
-add("5 talk-check knows a summary-first crew chat by its title", run("talk-check.py", "Stop", plain=True, last_assistant_message=bare, transcript_path=titled("Builder A_Muster_003")), True)
-add("5 talk-check leaves a summary-first chat with another title alone", run("talk-check.py", "Stop", plain=True, last_assistant_message=bare, transcript_path=titled("my own chat")), False)
+add("5 talk-check knows a summary-first crew chat by its title (a note, no refusal)", talk_note(titled("Builder A_Muster_003"), plain=True) == "note", True)
+add("5 talk-check leaves a summary-first chat with another title alone", talk_note(titled("my own chat"), plain=True), False)
 add("4 a worker chat is never nagged", (write_board("2026-11-08 | LIVE | Site_PINR_002 -> Manager | Paused: yes | x") or bs("Fine.", t=site)), False)
 add("4 no board at the path is silent", (os.remove(board) or bs("Fine.")), False)
 # 5 no second talk check
-add("5 talk-check is off under the PINR profile", run("talk-check.py", "Stop", last_assistant_message=bare, transcript_path=site), False)
-add("5 talk-check still works without the profile", run("talk-check.py", "Stop", plain=True, last_assistant_message=bare, transcript_path=tr("You are Builder A_Muster_003")), True)
+add("5 talk-check is off under the PINR profile", talk_note(site), False)
+add("5 talk-check still works without the profile (a note)", talk_note(tr("You are Builder A_Muster_003"), plain=True) == "note", True)
 # the plugin's own copy stands down where .muster-checks is installed; the board path is joined to the folder holding it
-add("6 the plugin's talk-check stands down in a project with its own copy", run("talk-check.py", "Stop", plain=True, cwd=PROJ, last_assistant_message=bare, transcript_path=tr("You are Builder A_Muster_003")), False)
+add("6 the plugin's talk-check stands down in a project with its own copy", talk_note(tr("You are Builder A_Muster_003"), plain=True, cwd=PROJ), False)
 add("6 the plugin's rules-check stands down too", run("rules-check.py", "PreToolUse", plain=True, cwd=PROJ, tool_name="SendMessage", tool_input={"to": "x", "message": "noted"}, transcript_path=tr("You are Builder A_Muster_003")), False)
 add("6 ...and from a sub-folder of that project", run("rules-check.py", "PreToolUse", plain=True, cwd=os.path.join(PROJ, "sub"), tool_name="SendMessage", tool_input={"to": "x", "message": "noted"}, transcript_path=tr("You are Builder A_Muster_003")), False)
 # item 93: the Muster folder runs its checks live from .muster-checks; a builder's linked worktree under it has no such copy, so the plugin's own checks must still run there
@@ -361,15 +367,15 @@ NR = "do not write it again"
 def nr_sites(path, start, end):
     src = open(os.path.join(ROOT, path), encoding="utf-8").read()
     return [m.start() for m in _re.finditer(start, src)], [("NOREPEAT" in src[m.start():src.index(end, m.start())]) for m in _re.finditer(start, src)]
-for path in ("hooks/rules-check.py", "hooks/board-stop.py", "hooks/talk-check.py", "scripts/idle-check.py", "scripts/worker-queue-check.py"):
+for path in ("hooks/rules-check.py", "hooks/board-stop.py", "scripts/idle-check.py", "scripts/worker-queue-check.py"):
     n, ok = nr_sites(path, r'"decision": "block"', "}))")
     add("87 every Stop block in %s (%d) carries the no-repeat line" % (path, len(n)), "" if n and all(ok) else "BAD %s" % ok, False)
-for path in ("checks/src/common.rs", "checks/src/boardstop.rs", "checks/src/talk.rs"):
+for path in ("checks/src/common.rs", "checks/src/boardstop.rs"):
     n, ok = nr_sites(path, r'\("decision", "block"\.into\(\)\)', "]));")
     add("87 every Stop block in %s (%d) carries the no-repeat line" % (path, len(n)), "" if n and all(ok) else "BAD %s" % ok, False)
 add("87 a live rules-check block says so", "" if NR in letout else "BAD", False)
 add("87 a live board-stop block says so", "" if NR in (write_board("2026-11-08 | LIVE | Look Header_PINR_002 -> Manager | Paused: yes | fix") or bs("Fine.")) else "BAD", False)
-add("87 a live talk-check block says so", "" if NR in run("talk-check.py", "Stop", plain=True, last_assistant_message=bare, transcript_path=tr("You are Builder A_Muster_003")) else "BAD", False)
+add("87 talk-check refuses nothing (it keeps a note instead of a block)", run("talk-check.py", "Stop", plain=True, last_assistant_message=bare, transcript_path=tr("You are Builder A_Muster_003")), False)
 # install-checks and check-report
 IC = os.path.join(T, "ic")
 os.makedirs(IC)

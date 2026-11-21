@@ -40,7 +40,30 @@ pub fn py_str(t: &str) -> String {
     o.push('"');
     o
 }
-pub fn say(line: &str) { let _ = writeln!(std::io::stdout(), "{line}"); }
+pub static SAID: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+pub fn say(line: &str) { SAID.store(true, std::sync::atomic::Ordering::SeqCst); let _ = writeln!(std::io::stdout(), "{line}"); }
+
+/// A note is not a refusal: it is kept beside the transcript (`<transcript>.muster-notes`) and told to the chat once, at its next prompt or tool call.
+pub fn note_add(path: &str, text: &str) {
+    if path.is_empty() { return; }
+    let side = format!("{path}.muster-notes");
+    let old = fs::read_to_string(&side).unwrap_or_default();
+    if old.split('\n').any(|l| l == text) { return; }
+    if let Ok(mut f) = fs::OpenOptions::new().create(true).append(true).open(&side) { let _ = writeln!(f, "{text}"); }
+}
+pub fn note_take(path: &str) -> Vec<String> {
+    if path.is_empty() { return vec![]; }
+    let side = format!("{path}.muster-notes");
+    let Ok(t) = fs::read_to_string(&side) else { return vec![] };
+    let _ = fs::remove_file(&side);
+    t.split('\n').filter(|l| !l.trim().is_empty()).map(|l| l.to_string()).collect()
+}
+/// Tell the chat its pending notes (once) as added context; prints nothing when there are none.
+pub fn notes_out(path: &str, event: &str) {
+    let notes = note_take(path);
+    if notes.is_empty() { return; }
+    say(&format!("{{\"hookSpecificOutput\": {{\"hookEventName\": {}, \"additionalContext\": {}}}}}", py_str(event), py_str(&format!("Muster note (your reply was let through, nothing was refused; do it this way next time): {}", notes.join(" ")))));
+}
 pub const NOREPEAT: &str = " Your reply already reached the owner: do not write it again. Do what this asks, then end with at most one new line, or nothing.";
 pub fn block(reason: &str) { say(&py_obj(&[("decision", "block".into()), ("reason", format!("Muster rule: {reason}{NOREPEAT}"))])); }
 pub fn deny(reason: &str) {

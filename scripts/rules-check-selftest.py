@@ -57,9 +57,15 @@ def big(n):
 
 
 
-def run(ev, **kw):
+def run_raw(ev, **kw):
     r = subprocess.run([BIN, "rules"] if BIN else [sys.executable, HOOK], input=json.dumps(dict(dict(hook_event_name=ev, cwd=T), **kw)), capture_output=True, text=True, env=RUN_ENV)
     return r.stdout.strip()
+
+
+def run(ev, **kw):
+    """The hook's answer; a pending note (told once at the next event, never a refusal) is not an answer here: run_raw shows it."""
+    out = run_raw(ev, **kw)
+    return "" if out.startswith('{"hookSpecificOutput": {"hookEventName": "%s", "additionalContext": "Muster note' % ev) else out
 
 
 
@@ -234,10 +240,10 @@ cases = [
     ("his question, then hook feedback inside his turn: the answer still passes", run("Stop", last_assistant_message="Yes, it is shipped.", transcript_path=tr("You are Manager_Muster_002", [said("well?"), said("Stop hook feedback: rewrite it"), said("<system-reminder>note</system-reminder>")])), False),
     ("his question, then an app event (task notification): long narration blocked", run("Stop", last_assistant_message="The task finished and the result was written to the file and then checked against every one of the notes. " * 4, transcript_path=tr("You are Manager_Muster_002", [said("well?"), said("<system-reminder>[SYSTEM NOTIFICATION] <task-notification>x</task-notification></system-reminder>")])), True),
     ("a question mark in hook feedback or a system note is not his (long reply)", run("Stop", last_assistant_message="Yes, it is shipped and live on the site now, with the new version and every check green on all three systems. " * 4, transcript_path=tr("You are Manager_Muster_002", [said("[SYSTEM NOTIFICATION - NOT USER INPUT] ready?"), said("<system-reminder>really?")])), True),
-    ("item 120: a lettered owner question with no heading line is flagged", run("Stop", last_assistant_message="Which one?\n\n***A.*** yes (my pick)\n\n***B.*** no", transcript_path=m), True),
-    ("item 120: a bold line that is not 'WORD \u00b7 job' is no heading", run("Stop", last_assistant_message="**Score Audit and Monetization chats.**\n\nWhich one?\n\n***A.*** yes (my pick)\n\n***B.*** no", transcript_path=m), True),
+    ("item 120: a lettered owner question with no heading line is a note, not a refusal", run("Stop", last_assistant_message="Which one?\n\n***A.*** yes (my pick)\n\n***B.*** no", transcript_path=m), False),
+    ("item 120: a bold line that is not 'WORD \u00b7 job' is no heading (a note)", run("Stop", last_assistant_message="**Score Audit and Monetization chats.**\n\nWhich one?\n\n***A.*** yes (my pick)\n\n***B.*** no", transcript_path=m), False),
     ("item 120: a heading line above the choices passes", run("Stop", last_assistant_message="**ASK \u00b7 score-audit**\n\nWhich one?\n\n***A.*** yes (my pick)\n\n***B.*** no", transcript_path=m), False),
-    ("item 120: a heading below the choices does not count", run("Stop", last_assistant_message="Which one?\n\n***A.*** yes (my pick)\n\n***B.*** no\n\n**ASK \u00b7 score-audit**", transcript_path=m), True),
+    ("item 120: a heading below the choices does not count (a note)", run("Stop", last_assistant_message="Which one?\n\n***A.*** yes (my pick)\n\n***B.*** no\n\n**ASK \u00b7 score-audit**", transcript_path=m), False),
     ("a manager question as lettered lines passes", run("Stop", last_assistant_message="**ASK \u00b7 q**\nWhich one?\n\n***A.*** yes (my pick)\n\n***B.*** no", transcript_path=m), False),
     ("a manager idle line passes", run("Stop", last_assistant_message="**IDLE · crew**\n\nThe crew is idle. Here's what's next.\n\nHere's what's next toward your goal,\n\n***A.*** one (my pick)\n\n***B.*** two", transcript_path=m), False),
     # item 125: with no worker holding an open order on the board, the manager's turn ends with the idle card or the Working line
@@ -249,12 +255,12 @@ cases = [
     ("news-line: a PASS badge and one plain line passes", run("Stop", last_assistant_message="**PASS \u00b7 login screen**\nBuild Inspector passed the login screen.", transcript_path=tr(MG, [said(PEER)])), False),
     ("news-line: the empty 'needs nothing from you' line is refused", run("Stop", last_assistant_message="Apps' message needs nothing from you.", transcript_path=tr(MG, [said(PEER)])), True),
     ("news-line: ...and the badge with that empty line under it is refused", run("Stop", last_assistant_message="**READY \u00b7 login screen**\nApps' message needs nothing from you.", transcript_path=tr(MG, [said(PEER)])), True),
-    ("news-line: a badge and two news lines is refused", run("Stop", last_assistant_message="**READY \u00b7 login screen**\nApps finished it.\nBuild Inspector has it.", transcript_path=tr(MG, [said(PEER)])), True),
-    ("news-line: a badge and a bullet is refused", run("Stop", last_assistant_message="**READY \u00b7 login screen**\n- Apps finished it", transcript_path=tr(MG, [said(PEER)])), True),
-    ("news-line: a saved-version code in the line is refused", run("Stop", last_assistant_message="**READY \u00b7 login screen**\nApps finished the login screen at sha 4227291.", transcript_path=tr(MG, [said(PEER)])), True),
-    ("news-line: a bare /Users path in the line is refused", run("Stop", last_assistant_message="**READY \u00b7 login screen**\nApps finished it, see /Us" "ers/sam/login.py", transcript_path=tr(MG, [said(PEER)])), True),
-    ("news-line: a bare file name in the line is refused", run("Stop", last_assistant_message="**READY \u00b7 login screen**\nApps changed rules-check.py for it.", transcript_path=tr(MG, [said(PEER)])), True),
-    ("news-line: a version number in the line is refused", run("Stop", last_assistant_message="**READY \u00b7 login screen**\nApps finished it as version 0.3.146.", transcript_path=tr(MG, [said(PEER)])), True),
+    ("news-line: a badge and two news lines is a note, not a refusal", run("Stop", last_assistant_message="**READY \u00b7 login screen**\nApps finished it.\nBuild Inspector has it.", transcript_path=tr(MG, [said(PEER)])), False),
+    ("news-line: a badge and a bullet is a note, not a refusal", run("Stop", last_assistant_message="**READY \u00b7 login screen**\n- Apps finished it", transcript_path=tr(MG, [said(PEER)])), False),
+    ("news-line: a saved-version code in the line is a note, not a refusal", run("Stop", last_assistant_message="**READY \u00b7 login screen**\nApps finished the login screen at sha 4227291.", transcript_path=tr(MG, [said(PEER)])), False),
+    ("news-line: a bare /Users path in the line is a note, not a refusal", run("Stop", last_assistant_message="**READY \u00b7 login screen**\nApps finished it, see /Us" "ers/sam/login.py", transcript_path=tr(MG, [said(PEER)])), False),
+    ("news-line: a bare file name in the line is a note, not a refusal", run("Stop", last_assistant_message="**READY \u00b7 login screen**\nApps changed rules-check.py for it.", transcript_path=tr(MG, [said(PEER)])), False),
+    ("news-line: a version number in the line is a note, not a refusal", run("Stop", last_assistant_message="**READY \u00b7 login screen**\nApps finished it as version 0.3.146.", transcript_path=tr(MG, [said(PEER)])), False),
     ("news-line: a file shown as a link is fine", run("Stop", last_assistant_message="**READY \u00b7 login screen**\nApps finished the [login page](login.html).", transcript_path=tr(MG, [said(PEER)])), False),
     ("news-line: a repeat of the same badge gets no second line", run("Stop", last_assistant_message="**READY \u00b7 login screen**\nApps finished the login screen again.", transcript_path=tr(MG, [said(PEER), {"type": "assistant", "message": {"content": [{"type": "text", "text": "**READY \u00b7 login screen**\nApps finished the login screen; Build Inspector has it."}]}}, said(PEER)])), True),
     ("news-line: a badge the hook bounced does not count as a repeat", run("Stop", last_assistant_message="**READY \u00b7 login screen**\nApps finished the login screen; Build Inspector has it.", transcript_path=tr(MG, [said(PEER), {"type": "assistant", "message": {"content": [{"type": "text", "text": "**READY \u00b7 login screen**\nApps finished the login screen; Build Inspector has it."}]}}, said("Stop hook feedback: rewrite it")])), False),
@@ -290,7 +296,7 @@ cases = [
     ("REPORT: a READY card sent only to the inspector is blocked", run("Stop", last_assistant_message="**READY · x**\n- a\n- b", transcript_path=tr("You are Builder A_Muster_002, agents/builder.md", [said("go"), use("SendMessage", "s1", to="Inspector_Muster_002", message="m")])), True),
     ("REPORT: a READY card after a message to the manager passes", run("Stop", last_assistant_message="**READY · x**\n- a\n- b", transcript_path=tr("You are Builder A_Muster_002, agents/builder.md", [said("go"), use("SendMessage", "s1", to="Manager_Muster_002", message="m")])), False),
     ("REPORT: a READY card after the app's send_message to the manager passes", run("Stop", last_assistant_message="**READY · x**\n- a\n- b", transcript_path=tr("You are Builder A_Muster_002, agents/builder.md", [said("go"), use("mcp__ccd_session_mgmt__send_message", "s1", session_id="Manager_Muster_002", message="m")])), False),
-    ("a worker reply that is not a card is blocked", run("Stop", last_assistant_message="Done.", transcript_path=b), True),
+    ("a worker reply that is not a card is a note, not a refusal", run("Stop", last_assistant_message="Done.", transcript_path=b), False),
     ("a stop already continued is let through", run("Stop", last_assistant_message="Done.", stop_hook_active=True, transcript_path=b), False),
     ("the owner's own chat is silent at stop", run("Stop", last_assistant_message="Done.", transcript_path=owner), False),
 ]
@@ -299,7 +305,8 @@ REC = '{"v":1,"kind":"PASS","id":"inspector-x-1","job":"x","from":"inspector","t
 def send_rec(msg, to="x", cwd=T):
     env = dict(os.environ); env.pop("MUSTER_MESSAGE_FORM", None)
     r = subprocess.run([BIN, "rules"] if BIN else [sys.executable, HOOK], input=json.dumps(dict(hook_event_name="PreToolUse", cwd=cwd, tool_name="SendMessage", tool_input={"to": to, "message": msg}, transcript_path=b)), capture_output=True, text=True, env=env)
-    return r.stdout.strip()
+    out = r.stdout.strip()
+    return "" if out.startswith('{"hookSpecificOutput": {"hookEventName": "PreToolUse", "additionalContext": "Muster note') else out  # a pending note is not an answer
 cases += [
     ("RECORDS: a data record goes through", send_rec(REC), False),
     ("RECORDS: a sentence is refused", send_rec("Please check my branch when you can."), True),
@@ -452,8 +459,7 @@ cases += [
     ("item 80: a bold-italic lettered question passes", run("Stop", last_assistant_message="**ASK \u00b7 q**\nWhich?\n\n***A.*** red (my pick)\n\n***B.*** blue", transcript_path=tr(MG, [said("hi")])), False),
     ("item 80: a bold-only lettered question is flagged", run("Stop", last_assistant_message="Which?\n\n**A.** red\n\n**B.** blue", transcript_path=tr(MG, [said("hi")])), True),
     ("item 80: an italic-only or plain lettered question is flagged", run("Stop", last_assistant_message="Which?\n\n*A.* red\n\n*B.* blue", transcript_path=tr(MG, [said("hi")])), True),
-    ("item 80: one wrong letter among right ones is flagged", run("Stop", last_assistant_message="**ASK \u00b7 q**\nWhich?\n\n***A.*** red\n\n**B.** blue", transcript_path=tr(MG, [said("hi")])), True),
-    ("item 80: the flag says bold and italic", "" if "bold and italic" in run("Stop", last_assistant_message="Which?\n\n**A.** red\n\n**B.** blue", transcript_path=tr(MG, [said("hi")])) else "BAD", False),
+    ("item 80: one wrong letter among right ones is a note, not a refusal", run("Stop", last_assistant_message="**ASK \u00b7 q**\nWhich?\n\n***A.*** red\n\n**B.** blue", transcript_path=tr(MG, [said("hi")])), False),
     ("item 80: his letter after a bold-italic question needs the record", run("Stop", last_assistant_message="Going ahead.", transcript_path=tr(MG, [{"type": "assistant", "message": {"content": [{"type": "text", "text": "***A.*** x (my pick)\n\n***B.*** y"}]}}, said("b")])), True),
     ("item 80: ...and passes once recorded", run("Stop", last_assistant_message="Going ahead.", transcript_path=tr(MG, [{"type": "assistant", "message": {"content": [{"type": "text", "text": "***A.*** x (my pick)\n\n***B.*** y"}]}}, said("b"), use("Bash", command="python3 scripts/record-choice.py x 5 --question q --option 'A. x' --option 'B. y' --picked 'B. y'")])), False),
     ("SHOWFIRST/D-037: a look question card is refused", ask(tr(MG, [said("hi")]), questions=LQ), True),
@@ -579,6 +585,64 @@ cases += [
     ("title: a worker whose first message only mentions Manager_PINR is decided by its title (no play-back)", runp("UserPromptSubmit", prompt="do it??", transcript_path=titled("Builder A_PINR", "report to Manager_PINR_001", "do it??")), False),
     ("title: a chat with no crew title and no crew name stays silent", runp("UserPromptSubmit", prompt="do it??", transcript_path=titled("my own chat", "hello", "do it??")), False),
     ("title: no title record at all stays silent", runp("UserPromptSubmit", prompt="do it??", transcript_path=titled(None, "carry on", "do it??")), False),
+]
+
+# right-hand part 2 (item 128): an ANSWER and a VIEW are let through; the wording checks become notes (told once, never a refusal); the hard stops stay
+LONG = " ".join("The build is slow because the first step waits for the whole folder, and that step reads every file." for _ in range(12))
+ANS = "**ANSWER \u00b7 slow-build**\n\n" + LONG
+VIEW = "**VIEW \u00b7 slow-build**\n\n" + LONG
+WRONGLETTER = "**ASK \u00b7 q**\nWhich?\n\n***A.*** red *(my pick)* because it is nearest\n\n**B.** blue"
+ASKED = [said("why is the build slow?")]
+TYPED = [said("make the build faster")]
+PEERT = [said(PEER)]
+def told(t, ev="UserPromptSubmit", **kw):
+    """what the chat is told (as added context) at its next event; '' when nothing"""
+    return run_raw(ev, prompt="go on", transcript_path=t, **kw)
+def stop_then_told(first, extra, text, ev="UserPromptSubmit", **kw):
+    t = tr(first, extra)
+    out = run_raw("Stop", last_assistant_message=text, transcript_path=t)
+    return out, told(t, ev, **kw), told(t, ev, **kw)
+_n1 = stop_then_told(MG, [said("hi")], WRONGLETTER)
+NOTE_LETTERS = "" if (_n1[0] == "" and "bold and italic" in _n1[1] and "Muster note" in _n1[1] and _n1[2] == "") else "BAD"
+_n2 = stop_then_told("You are Builder A_Muster_002, agents/builder.md", [said("go")], "Done.")
+_n3 = stop_then_told(MG, PEERT, "**READY \u00b7 login screen**\n- Apps finished it\nsee rules-check.py")
+_n4 = stop_then_told(MG, [said("hi")], WRONGLETTER, ev="PreToolUse", tool_name="Read", tool_input={"file_path": "/p/a"})
+_n5t = tr(MG, [said("hi")])
+run_raw("Stop", last_assistant_message=WRONGLETTER, transcript_path=_n5t)
+_n5 = run_raw("PreToolUse", tool_name="SendMessage", tool_input={"to": "x", "message": "noted"}, transcript_path=_n5t)  # a refusal comes first
+_n5b = told(_n5t)  # ...and the note waits for the next event
+cases += [
+    ("right-hand 2c: an ANSWER on a turn he started with a question is let through at any length", run("Stop", last_assistant_message=ANS, transcript_path=tr(MG, ASKED)), False),
+    ("right-hand 2c: ...the same long reply with no title is refused", run("Stop", last_assistant_message=LONG, transcript_path=tr(MG, ASKED + [said("ok")] + PEERT)), True),
+    ("right-hand 2c: an ANSWER on a turn he started with an instruction (no question) is not let through", run("Stop", last_assistant_message=ANS, transcript_path=tr(MG, TYPED)), True),
+    ("right-hand 2c: an ANSWER on a turn another chat started is not let through", run("Stop", last_assistant_message=ANS, transcript_path=tr(MG, ASKED + PEERT)), True),
+    ("right-hand 2c: a VIEW is let through on a turn he started with a question", run("Stop", last_assistant_message=VIEW, transcript_path=tr(MG, ASKED)), False),
+    ("right-hand 2c: a VIEW is let through on a turn he started with an instruction", run("Stop", last_assistant_message=VIEW, transcript_path=tr(MG, TYPED)), False),
+    ("right-hand 2c: a VIEW is let through on a turn another chat started", run("Stop", last_assistant_message=VIEW, transcript_path=tr(MG, PEERT)), False),
+    ("right-hand 2c: a title with no job is no title", run("Stop", last_assistant_message="**VIEW**\n\n" + LONG, transcript_path=tr(MG, PEERT)), True),
+    ("right-hand 2c: a turn another chat started still ends with no text: long news is refused", run("Stop", last_assistant_message="The build passed and it is shipped. " + LONG, transcript_path=tr(MG, PEERT)), True),
+    ("right-hand 2c: ...one short news line per job is still allowed", run("Stop", last_assistant_message="**READY \u00b7 login screen**\nApps finished the login screen; Build Inspector has it.", transcript_path=tr(MG, PEERT)), False),
+    ("right-hand 2d hard stop: a VIEW that sends him to type in a worker's chat is refused (item 103)", run("Stop", last_assistant_message=VIEW + "\n\nPlease type in the Builder chat.", transcript_path=tr(MG, PEERT)), True),
+    ("right-hand 2d hard stop: a VIEW that puts a waiting question to him again is refused (item 114)", run("Stop", last_assistant_message="**VIEW \u00b7 order**\n\n" + QL, transcript_path=tr(MG, [asst(QL), said(PEER)])), True),
+    ("right-hand 2d hard stop: ...the first time it is let through", run("Stop", last_assistant_message="**VIEW \u00b7 order**\n\n" + QL, transcript_path=tr(MG, PEERT)), False),
+    ("right-hand 2d hard stop: a VIEW with lettered choices and no pick is refused (item 100)", run("Stop", last_assistant_message="**VIEW \u00b7 order**\n\nWhich?\n\n***A.*** one\n\n***B.*** two", transcript_path=tr(MG, PEERT)), True),
+    ("right-hand 2d hard stop: an answered choice card not recorded is still refused", run("Stop", last_assistant_message=VIEW, transcript_path=tr(MG, [said("hi"), use("AskUserQuestion", "q1", questions=[{"question": "Which?", "options": [{"label": "A"}, {"label": "B"}]}]), res("q1", "A")])), True),
+    ("right-hand 2d hard stop: a choice card is still refused (it locks his chat)", ask(tr(MG, [said("hi")]), questions=LQ), True),
+    ("right-hand 2d hard stop: an order in a turn his question started without his recorded choice is still refused (item 115)", q_order(36, [said("why is the engine waiting?")]), True),
+    ("right-hand 2d hard stop: a worker's report that does not reach the manager as a message is still refused (item 65)", run("Stop", last_assistant_message="**DONE \u00b7 job**\n- a\n- b", transcript_path=tr("You are Builder A_Muster_002, agents/builder.md", [said("go")])), True),
+    ("right-hand 2d hard stop: the manager-only files stay manager-only", run("PreToolUse", tool_name="Edit", tool_input={"file_path": "/p/muster/OWNERS-LIST.md", "old_string": "a", "new_string": "b"}, transcript_path=tr("You are Builder A_Muster_002, agents/builder.md", [said("go")])), True),
+    ("right-hand 2d notes: a letter style not bold and italic is let through, and the chat is told once at its next prompt", NOTE_LETTERS, False),
+    ("right-hand 2d notes: a worker's card with no title and bullets is let through, then told once", "" if (_n2[0] == "" and "end-of-turn reply is a card" in _n2[1] and _n2[2] == "") else "BAD", False),
+    ("right-hand 2d notes: a news line with a second line, a bullet and a bare path is let through, then told once", "" if (_n3[0] == "" and "ONE plain line" in _n3[1] and _n3[2] == "") else "BAD", False),
+    ("right-hand 2d notes: the note also arrives at the next tool call", "" if (_n4[0] == "" and "Muster note" in _n4[1] and '"hookEventName": "PreToolUse"' in _n4[1]) else "BAD", False),
+    ("right-hand 2d notes: a refusal at the next tool call comes first and the note waits", "" if ("deny" in _n5 and "Muster note" not in _n5 and "bold and italic" in _n5b) else "BAD", False),
+    ("right-hand 2d notes: a chat with nothing pending is told nothing", told(tr(MG, [said("hi")])), False),
+    ("right-hand 2d notes: the owner's own chat is told nothing", told(tr("hello there", [said("hi")])), False),
+    ("right-hand 2e: 'I cannot' with no choices is still refused", run("Stop", last_assistant_message="I cannot do that, sorry.", transcript_path=tr(MG, TYPED)), True),
+    ("right-hand 2e: not possible as asked, with the reason and lettered choices, is let through", run("Stop", last_assistant_message="**ASK \u00b7 build**\n\nThat is not possible as asked: the build tool reads the whole folder.\n\n***A.*** use the cache *(my pick)* because it is nearest\n\n***B.*** split the folder", transcript_path=tr(MG, TYPED)), False),
+    ("right-hand 2e: arguing with the order is still refused even with choices", run("Stop", last_assistant_message="**ASK \u00b7 build**\n\nI disagree with this.\n\n***A.*** use the cache *(my pick)* because it is nearest\n\n***B.*** split the folder", transcript_path=tr(MG, TYPED)), True),
+    ("right-hand 2e: a VIEW may say 'I disagree' (that is a view)", run("Stop", last_assistant_message="**VIEW \u00b7 build**\n\nI disagree with splitting the folder: " + LONG, transcript_path=tr(MG, TYPED)), False),
+    ("right-hand 2e: a VIEW that only says 'I cannot' with no choices is still refused", run("Stop", last_assistant_message="**VIEW \u00b7 build**\n\nI cannot do that.", transcript_path=tr(MG, TYPED)), True),
 ]
 bad = 0
 for name, out, should_block in cases:

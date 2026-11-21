@@ -2,8 +2,8 @@
 """Stop hook for crew chats: flag, once, a reply that names a file as a bare path or file name (not a link) or carries a
 saved-version code (a long hex word), because the owner reads these replies (muster/CLAUDE.md section 4).
 Acts only in a crew chat (the first user message in the transcript names agents/<role>.md or <Role>_<project>_<digits>);
-silent for the owner's own chats and any other project. Blocks at most once: with stop_hook_active it lets the stop through.
-Reads only the hook JSON and the transcript's first message; writes nothing; any error means silence.
+silent for the owner's own chats and any other project. It refuses nothing: it keeps a one-line note beside the transcript, which rules-check tells the chat once at its next prompt or tool call.
+Reads the hook JSON and the transcript's first message; any error means silence.
 """
 import json
 import os
@@ -154,7 +154,17 @@ def main():
     if not CREW_RE.search(first_message(data.get("transcript_path") or "")) and not CREW_RE.match(chat_title(data.get("transcript_path") or "")):
         return 0  # the owner's own chat or another project
     what = ("a bare file path or file name (\"%s\")" % bad_path.group(0)) if bad_path else ("a saved-version code (\"%s\")" % bad_hex.group(0))
-    print(json.dumps({"decision": "block", "reason": "Your reply to the owner has %s. Send just the corrected line or lines, in plain words with each file as a clickable link and no saved-version codes." % what + NOREPEAT}))
+    # a note, not a refusal: told to the chat once at its next prompt or tool call (kept beside the transcript, read by rules-check)
+    side = (data.get("transcript_path") or "") + ".muster-notes"
+    note = "your reply to the owner had %s: next time write it in plain words, each file as a clickable link, no saved-version codes." % what
+    try:
+        if data.get("transcript_path"):
+            old = open(side, encoding="utf-8").read().split("\n") if os.path.exists(side) else []
+            if note not in old:
+                with open(side, "a", encoding="utf-8") as fh:
+                    fh.write(note + "\n")
+    except OSError:
+        pass
     return 0
 
 

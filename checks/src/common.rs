@@ -322,7 +322,7 @@ pub fn question_key(text: &str) -> HashSet<String> {
 /// A one-line question: a reply of a single line that holds a "?" (for example "Coverage order: A (...) or B (...)?").
 pub fn one_line_question(text: &str) -> bool {
     let lines: Vec<&str> = text.lines().filter(|l| !l.trim().is_empty()).collect();
-    lines.len() == 1 && lines[0].contains('?')
+    (1..=3).contains(&lines.len()) && lines.iter().any(|l| l.contains('?'))
 }
 
 /// What a reply asks him, in any form (item 114): (the lettered choices' key or empty, its content words, whether it is a one-line question); None when it asks nothing.

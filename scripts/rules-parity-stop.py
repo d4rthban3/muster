@@ -42,7 +42,8 @@ TEXTS = [
 ]
 QL = "Coverage order: A (bot signs next, as ordered) or B (X scan and callouts first)?"
 QC = "**ASK \u00b7 coverage**\n\nWhich first?\n\n***A.*** Bot signs next, as ordered *(my pick)* because it is small\n\n***B.*** X scan and callouts first"
-TEXTS += [QL, QC, "Coverage order: A (menu fix first) or B (footer first)?", "Ship it?", "Which one, A (red) or B (blue)?"]
+QM = "Coverage order?\nA: bot signs next, as ordered.\nB: X scan and callouts first."
+TEXTS += [QM, QL, QC, "Coverage order: A (menu fix first) or B (footer first)?", "Ship it?", "Which one, A (red) or B (blue)?"]
 TEXTS = list(dict.fromkeys(TEXTS))
 
 
@@ -65,6 +66,7 @@ SHAPES = {
     "asked-oneline": lambda: [asst(QL), usr(PEER)],
     "asked-oneline-bounced": lambda: [asst(QL), usr("Stop hook feedback: fix it")],
     "asked-card-then-typed": lambda: [asst(Q), usr("go on"), usr(PEER)],
+    "asked-three-lines": lambda: [asst(QM), usr(PEER)],
     "asked-oneline-card": lambda: [asst(QC), usr(PEER)],
     "hook-feedback": lambda: [usr("Stop hook feedback: fix the card")],
     "ask-card": lambda: [usr("go"), {"type": "assistant", "message": {"content": [{"type": "tool_use", "id": "a", "name": "AskUserQuestion", "input": {}}]}}],

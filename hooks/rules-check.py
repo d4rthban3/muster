@@ -1157,9 +1157,9 @@ QTOK = re.compile(r"[a-z0-9]{3,}")
 
 
 def one_line_question(text):
-    """A one-line question: a reply of a single line that holds a '?' (for example 'Coverage order: A (...) or B (...)?')."""
+    """A short plain question: a reply of one to three non-empty lines that holds a '?' (for example 'Coverage order: A (...) or B (...)?')."""
     lines = [l for l in text.splitlines() if l.strip()]
-    return len(lines) == 1 and "?" in lines[0]
+    return 1 <= len(lines) <= 3 and any("?" in l for l in lines)
 
 
 def question_info(text):

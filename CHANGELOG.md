@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.167
+Affects: the manager (every project, PINR included).
+pinr-rust-difference-2: item 114 now also recognises a short plain question of up to three lines with a '?' (not only one line or a lettered card), so it is not put to him twice. Python and program both, with tests.
+
 ## 0.3.166
 Affects: the manager (every project, PINR included).
 pinr-rust-difference: (1) the item 103 rule now refuses only telling the owner to type in another chat or window; 'is waiting for you' is allowed everywhere. (2) item 114 now stops any question he has not answered being put to him again in any form (lettered, one line, long card) until he types something; one-line questions stay allowed the first time. Python and program both; parity runs also under the PINR profile

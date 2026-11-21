@@ -1,0 +1,19 @@
+{
+  "version": "0.3.167",
+  "changed_files": [
+    "hooks/rules-check.py",
+    "checks/src/common.rs",
+    "scripts/rules-check-selftest.py",
+    "scripts/rules-parity-stop.py",
+    "bin/",
+    "CHANGELOG.md"
+  ],
+  "affected_roles": [
+    "Manager"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "pinr-rust-difference-2: item 114 now also recognises a short plain question of up to three lines with a '?' (not only one line or a lettered card), so it is not put to him twice. Python and program both, with tests."
+}

@@ -343,9 +343,12 @@ def q_order(item, turn, mgr=True):
 # right-hand-vision (Part 7): an order that cites a decision number or a vision line is let through in a turn his question started
 QV = os.path.join(T, "qvision"); os.makedirs(os.path.join(QV, "muster")); QN = os.path.join(T, "qnovision"); os.makedirs(os.path.join(QN, "muster"))
 for _d in (QV, QN):
-    open(os.path.join(_d, "muster", "OWNERS-LIST.md"), "w").write("## Open\n\n36. \"why is it waiting\"\n   Kind: question\n")
-    open(os.path.join(_d, "muster", "DECISIONS-LOG.md"), "w").write("# Decisions log\n\n### D-050 \u00b7 2026-11-01 \u00b7 speed first\nDecision: x\n")
+    open(os.path.join(_d, "muster", "OWNERS-LIST.md"), "w", encoding="utf-8", newline="").write("## Open\n\n36. \"why is it waiting\"\n   Kind: question\n")
+    open(os.path.join(_d, "muster", "DECISIONS-LOG.md"), "w", encoding="utf-8", newline="").write("# Decisions log\n\n### D-050 \u00b7 2026-11-01 \u00b7 speed first\nDecision: x\n")
 open(os.path.join(QV, "muster", "VISION.md"), "w").write("# Vision\n")
+QC = os.path.join(T, "qcrlf"); os.makedirs(os.path.join(QC, "muster"))
+open(os.path.join(QC, "muster", "OWNERS-LIST.md"), "w", encoding="utf-8", newline="").write("## Open\n\n36. \"why is it waiting\"\n   Kind: question\n")
+open(os.path.join(QC, "muster", "DECISIONS-LOG.md"), "wb").write(b"# Decisions log\r\n\r\n### D-050 \xb7 2026-11-01 \xb7 speed first\r\nDecision: x\r\n")
 def cite_order(proj, owner_words, note=None, text=None):
     t = tr("You are Manager_Muster_002", [said("why is the engine waiting?")])
     env = dict(os.environ); env.pop("MUSTER_MESSAGE_FORM", None)
@@ -359,6 +362,7 @@ def cite_order(proj, owner_words, note=None, text=None):
     return "his question gets an answer" in r.stdout
 cases += [
     ("right-hand 7: an order citing a decision number in the log is let through in a turn his question started (item 115)", not cite_order(QV, {"decision": "D-050"}), True),
+    ("right-hand 7: a decision log with Windows line ends and a non-UTF-8 byte is still read", not cite_order(QC, {"decision": "D-050"}), True),
     ("right-hand 7: ...a decision number that is not in the log is still refused", cite_order(QV, {"decision": "D-099"}), True),
     ("right-hand 7: an order citing a vision line (a Serves: line) is let through when the project has a vision page", not cite_order(QV, {"item": 36}, note="Serves: what the product is for"), True),
     ("right-hand 7: ...a Serves: line with a project that has no vision page is still refused", cite_order(QN, {"item": 36}, note="Serves: what the product is for"), True),

@@ -642,7 +642,7 @@ fn order_cites(c: &Ctx, root: &str, msg: &str, rec: Option<&Value>) -> bool {
         None => (re(r"\bD-\d{3}\b").find_iter(msg).filter_map(|m| m.ok()).map(|m| m.as_str().to_string()).collect(), msg.to_string()),
     };
     let rel = c.profile.get("decision_log").and_then(Value::as_str).unwrap_or("muster/DECISIONS-LOG.md");
-    let log = std::fs::read_to_string(Path::new(if root.is_empty() { "." } else { root }).join(rel)).unwrap_or_default();
+    let log = std::fs::read(Path::new(if root.is_empty() { "." } else { root }).join(rel)).map(|b| String::from_utf8_lossy(&b).to_string()).unwrap_or_default();
     if ds.iter().any(|d| is(&re(&format!(r"(?m)^###\s+{}\b", fancy_regex::escape(d))), &log)) { return true; }
     let m = if rec.is_some() { caps(&rei(r"\bServes\s*:\s*([^\n.;]+)"), &text) } else { caps(&rei(r"(?m)^\s*Serves\s*:\s*(.+)$"), &text) };
     match m {

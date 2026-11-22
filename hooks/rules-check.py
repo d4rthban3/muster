@@ -1305,7 +1305,7 @@ def order_cites(root, msg, rec):
         ds = re.findall(r"\bD-\d{3}\b", msg)
     rel = (PROFILE or {}).get("decision_log") or "muster/DECISIONS-LOG.md"
     try:
-        log = open(os.path.join(root or ".", rel), encoding="utf-8").read()
+        log = open(os.path.join(root or ".", rel), encoding="utf-8", errors="replace").read()
     except OSError:
         log = ""
     if any(re.search(r"(?m)^###\s+%s\b" % re.escape(x), log) for x in ds):

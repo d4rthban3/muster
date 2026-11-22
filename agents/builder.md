@@ -24,7 +24,7 @@ tools: Read, Grep, Glob, Edit, Write, Bash, PushNotification
 - Computer use only on an order naming his words and the one app; never the whole screen or the clipboard; else STUCK.
 - Messages paused: report on the board with `Paused: yes`; set `Paused: no` when you can act.
 - The Muster files are your only rulebook (item 108): write no crew rules into your own memory; never mix one project's rules with another's.
-- Before each new order re-read `muster/rules/<your role>.md`. A long chat compacts in place at 250k tokens and carries on; it does not renew (D-039).
+- Before each new order re-read `muster/rules/<your role>.md`. A long chat compacts in place at 130k tokens (160k for a manager) and carries on; it does not renew (D-039).
 
 ---
 

@@ -9,7 +9,7 @@
       Exit 1 if the folder is not named for that chat's role (a renewed chat never runs in another role's old copy).
   crew-plan.py pin-compact "<Role>_<project>" <folder> [--profile FILE]
       Item 113: writes only autoCompactWindow into <folder>/.claude/settings.local.json (any folder, the manager's main folder too):
-      the profile's compact_tokens_manager (250000) for a manager, compact_tokens (250000) for every other role. Nothing else changes.
+      the profile's compact_tokens_manager (default 160000) for a manager, compact_tokens (default 130000) for every other role. Nothing else changes.
   crew-plan.py size <base> <head> [--repo DIR]
       SMALL or BIG for a piece of work: small = at most 3 files and 60 changed lines, nothing in engine, data, database or
       deploy folders, nothing a visitor sees (site pages, styles, scripts, pictures), no rules or protocol file. Anything else, or
@@ -18,7 +18,7 @@
       Item 102: a crew chat's own copy (a git worktree, never the main folder, never the owner's own chats) gets a
       .claude/settings.local.json that keeps the app's tool lists the crew never uses out of the chat's first call:
       permissions.deny names whole tool servers (browser, phone simulator, blockchain, email and similar). The designer keeps the
-      ones that show a page; autoCompactWindow (the profile's compact_tokens, default 250000) makes the chat compact in place (D-039). Names come from the profile's "crew_deny" (else the built-in list); other settings already in the file stay.
+      ones that show a page; autoCompactWindow (the profile's compact_tokens, default 130000; 160000 for a manager) makes the chat compact in place (D-039). Names come from the profile's "crew_deny" (else the built-in list); other settings already in the file stay.
 """
 import json
 import math
@@ -91,14 +91,14 @@ DESIGNER_KEEPS = ["mcp__Claude_Browser", "mcp__claude-in-chrome", "mcp__computer
 
 
 def window_for(role, profile_path=None):
-    """Item 113: a manager chat compacts at the profile's compact_tokens_manager (250000); every other crew chat at compact_tokens (250000)."""
-    window = 250000
+    """Item 132: a manager chat compacts at the profile's compact_tokens_manager (built-in default 160000: a manager's chat starts near 100000 after a
+    compaction, so a lower line would compact it over and over); every other crew chat at compact_tokens (built-in default 130000)."""
+    manager = slug(role) == "manager"
+    window = 160000 if manager else 130000
     if profile_path and os.path.isfile(profile_path):
         try:
             prof = json.load(open(profile_path, encoding="utf-8"))
-            window = int(prof.get("compact_tokens") or window)
-            if slug(role) == "manager":
-                window = int(prof.get("compact_tokens_manager") or window)
+            window = int(prof.get("compact_tokens_manager" if manager else "compact_tokens") or window)
         except Exception:
             pass
     return max(100000, min(1000000, window))  # the app accepts 100000 to 1000000

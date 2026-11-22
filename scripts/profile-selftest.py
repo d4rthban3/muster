@@ -561,6 +561,14 @@ def _pre(first, extra=()):
 _pre("You are Site_PINR_002. Job: Site_PINR_002, builds the site.", [_job])
 _b = open(os.path.join(_pc, "muster", "BOARD.md")).read()
 add("item 105: a crew chat's board entry names the chat, its job and its next step", "" if "Site_PINR_002 -> Manager | compaction" in _b and "approval-relay" in _b and "ship approval-relay next" in _b and "Status: done" in _b else "BAD", False)
+add("item 132: PINR's own profile still gives its chat a 250k line in the note", "" if "size line, 250k tokens" in _b else "BAD", False)
+_pc2 = os.path.join(T, "pcproj2"); os.makedirs(os.path.join(_pc2, "muster")); open(os.path.join(_pc2, "muster", "BOARD.md"), "w").write("# Board\n")
+def _pre2(first):
+    return subprocess.run([PY, os.path.join(ROOT, "hooks", "precompact-board.py")], input=json.dumps({"transcript_path": tr(first, [_job]), "cwd": _pc2}), capture_output=True, text=True,
+                          env=dict(ENV, MUSTER_PROFILE=os.path.join(ROOT, "profiles", "muster.json"))).returncode
+_pre2("You are Builder A_Muster_002. Job: builds."); _pre2("You are Manager_Muster_001. Job: manages.")
+_b2 = open(os.path.join(_pc2, "muster", "BOARD.md")).read()
+add("item 132: the note names 130k for a worker and 160k for a manager under Muster's profile", "" if _b2.count("size line, 130k tokens") == 1 and _b2.count("size line, 160k tokens") == 1 else "BAD", False)
 _n = _b.count("compaction")
 add("item 105: the owner's own chat leaves nothing on the board", "" if _pre("hello there") == 0 and open(os.path.join(_pc, "muster", "BOARD.md")).read().count("compaction") == _n else "BAD", False)
 add("item 105: a chat with no board leaves nothing and never blocks", "" if subprocess.run([PY, os.path.join(ROOT, "hooks", "precompact-board.py")], input=json.dumps({"transcript_path": tr("You are Site_PINR_002. Job: Site_PINR_002, builds the site."), "cwd": os.path.join(T, "nope")}), capture_output=True, text=True, env=dict(ENV, MUSTER_PROFILE=os.path.join(ROOT, "profiles", "pinr.json"))).returncode == 0 else "BAD", False)
@@ -572,10 +580,16 @@ def _trim(role, folder):
     r = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "crew-plan.py"), "trim", role, folder, "--profile", os.path.join(ROOT, "profiles", "muster.json")], capture_output=True, text=True)
     return r.returncode, r.stdout
 _rc, _ = _trim("Builder A_Muster_002", _wt)
-cases.append(("item 105: a crew copy compacts in place at 250000 tokens", "" if json.load(open(os.path.join(_wt, ".claude", "settings.local.json"))).get("autoCompactWindow") == 250000 else "x", False))
+cases.append(("item 132: a crew copy compacts in place at 130000 tokens (Muster's profile)", "" if json.load(open(os.path.join(_wt, ".claude", "settings.local.json"))).get("autoCompactWindow") == 130000 else "x", False))
 _wm = os.path.join(T, "wt-mgr"); os.makedirs(_wm); open(os.path.join(_wm, ".git"), "w").write("gitdir: x\n")
 _trim("Manager_Muster_001", _wm)
-cases.append(("item 113: a manager copy compacts in place at 250000 tokens", "" if json.load(open(os.path.join(_wm, ".claude", "settings.local.json"))).get("autoCompactWindow") == 250000 else "x", False))
+cases.append(("item 132: a manager copy compacts in place at 160000 tokens (Muster's profile)", "" if json.load(open(os.path.join(_wm, ".claude", "settings.local.json"))).get("autoCompactWindow") == 160000 else "x", False))
+_wd = os.path.join(T, "wt-default"); os.makedirs(_wd); open(os.path.join(_wd, ".git"), "w").write("gitdir: x\n")
+_wdm = os.path.join(T, "wt-default-m"); os.makedirs(_wdm); open(os.path.join(_wdm, ".git"), "w").write("gitdir: x\n")
+subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "crew-plan.py"), "trim", "Builder A_X_002", _wd], capture_output=True, text=True)
+subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "crew-plan.py"), "trim", "Manager_X_001", _wdm], capture_output=True, text=True)
+cases.append(("item 132: with no profile a worker's built-in line is 130000 and a manager's 160000", "" if json.load(open(os.path.join(_wd, ".claude", "settings.local.json"))).get("autoCompactWindow") == 130000 and json.load(open(os.path.join(_wdm, ".claude", "settings.local.json"))).get("autoCompactWindow") == 160000 else "x", False))
+cases.append(("item 132: Muster's profile says 130000 and 160000, PINR's own profile still says 250000 for both", "" if (lambda m, p: m["compact_tokens"] == 130000 and m["compact_tokens_manager"] == 160000 and p["compact_tokens"] == 250000 and p["compact_tokens_manager"] == 250000)(json.load(open(os.path.join(ROOT, "profiles", "muster.json"))), json.load(open(os.path.join(ROOT, "profiles", "pinr.json")))) else "x", False))
 _pm = os.path.join(T, "pin-main"); os.makedirs(os.path.join(_pm, ".claude")); open(os.path.join(_pm, ".claude", "settings.local.json"), "w").write('{"model": "x"}')
 def _pin(role, folder, prof):
     return subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "crew-plan.py"), "pin-compact", role, folder, "--profile", os.path.join(ROOT, "profiles", prof)], capture_output=True, text=True)

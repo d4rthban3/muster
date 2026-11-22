@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.180
+Affects: every crew that runs Muster's own profile (PINR: unchanged, its profile keeps 250 000).
+compact-line-lower (item 132): a crew chat compacts in place at 130 000 tokens for a worker and 160 000 for a manager (was 250 000), so it stops re-reading a quarter-million tokens of its own history on every step. Changed in crew-plan's built-in default, Muster's profile, the worker and manager pages, the templates and skills, and the before-compact note in both copies (it names the number for the chat's role). The line reaches an existing crew folder with: python3 scripts/crew-plan.py pin-compact "<Role>_<project>" <folder> --profile profiles/muster.json
+
 ## 0.3.179
 Affects: every crew (wording only).
 shared-line-guard (item 128): the approved guard, never use "what they meant" to do something they did not ask for, is back word for word wherever the owner's-words line appears (workers' shared line, templates, Cursor core rule, Muster Lite). The page word cap rose from 1400 to 1420 to make room.

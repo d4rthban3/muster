@@ -87,15 +87,17 @@ def main():
     branch = git(cwd, "rev-parse", "--abbrev-ref", "HEAD") or "unknown"
     sha = git(cwd, "rev-parse", "--short", "HEAD") or "unknown"
     job, note = last_facts(path)
+    mgr = re.match(r"Manager_", who) or any(re.search(x, who) for x in h.PROFILE_MANAGER)
+    line = int((h.PROFILE.get("compact_tokens_manager") if mgr else h.PROFILE.get("compact_tokens")) or (160000 if mgr else 130000))
     now = datetime.datetime.now()
     slug = re.sub(r"[^a-z0-9]+", "-", who.lower()).strip("-")
     entry = ("\n### %s | DONE | %s -> Manager | compaction\nStatus: done\nDONE: compacted in place [ID compact-%s-%s]\n"
              "What:  this chat is compacting in place (D-039); it carries on, no renewal.\n"
              "Where: open job %s; branch %s at %s.\n"
-             "Why:   the chat reached its size line, 250k tokens (compact window, items 105 and 118).\n"
+             "Why:   the chat reached its size line, %dk tokens (compact window, items 105, 118 and 132).\n"
              "How:   next step, from its last message: %s\n"
              "Need:  none\n") % (now.strftime("%Y-%m-%d"), who, slug, now.strftime("%H%M%S"),
-                                job or "none named in its last messages", branch, sha, note or "read its summary and the board entries addressed to it")
+                                job or "none named in its last messages", branch, sha, line // 1000, note or "read its summary and the board entries addressed to it")
     with open(board, "a", encoding="utf-8") as fh:
         fh.write(entry)
     return 0

@@ -1,0 +1,28 @@
+{
+  "version": "0.3.180",
+  "changed_files": [
+    "scripts/crew-plan.py",
+    "scripts/profile-selftest.py",
+    "profiles/muster.json",
+    "agents/",
+    "pages/shared.md",
+    "templates/CLAUDE.md",
+    "skills/",
+    "hooks/precompact-board.py",
+    "checks/src/small.rs",
+    "bin/",
+    "directory/",
+    "CHANGELOG.md"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Builder",
+    "Designer",
+    "Inspector"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "compact-line-lower (item 132): a crew chat compacts in place at 130 000 tokens for a worker and 160 000 for a manager (was 250 000). Changed in crew-plan's built-in default, Muster's profile, the worker and manager pages, templates and skills, and the before-compact note (both copies; it names the number for the chat's role). PINR's profile is untouched and keeps 250 000. The line reaches an existing crew folder with: python3 scripts/crew-plan.py pin-compact \"<Role>_<project>\" <folder> --profile profiles/muster.json"
+}

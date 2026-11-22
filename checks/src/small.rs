@@ -80,7 +80,8 @@ fn last_facts(path: &str) -> (String, String) {
 
 pub fn precompact() -> i32 {
     let Some(data) = read_stdin() else { return 0 };
-    let Some(c) = crew(&load_profile()) else { return 0 };
+    let profile = load_profile();
+    let Some(c) = crew(&profile) else { return 0 };
     let path = s(&data, "transcript_path");
     let first = crew_first(&c, path);
     let name = find(&c.name, &first).map(|m| m.as_str().to_string());
@@ -96,17 +97,20 @@ pub fn precompact() -> i32 {
     let branch = or(git(&cwd, &["rev-parse", "--abbrev-ref", "HEAD"]), "unknown");
     let sha = or(git(&cwd, &["rev-parse", "--short", "HEAD"]), "unknown");
     let (job, note) = last_facts(path);
+    let mgr = who.starts_with("Manager_") || pstrings(&profile, "manager_names").iter().any(|x| find(&re(x), &who).is_some());
+    let key = if mgr { "compact_tokens_manager" } else { "compact_tokens" };
+    let line = match profile.get(key).and_then(|v| v.as_i64()).filter(|&n| n != 0) { Some(n) => n, None => if mgr { 160000 } else { 130000 } };
     let now = Local::now();
     let slug = re(r"[^a-z0-9]+").replace_all(&who.to_lowercase(), "-").trim_matches('-').to_string();
     let entry = format!(
         "\n### {} | DONE | {} -> Manager | compaction\nStatus: done\nDONE: compacted in place [ID compact-{}-{}]\n\
          What:  this chat is compacting in place (D-039); it carries on, no renewal.\n\
          Where: open job {}; branch {} at {}.\n\
-         Why:   the chat reached its size line, 250k tokens (compact window, items 105 and 118).\n\
+         Why:   the chat reached its size line, {}k tokens (compact window, items 105, 118 and 132).\n\
          How:   next step, from its last message: {}\n\
          Need:  none\n",
         now.format("%Y-%m-%d"), who, slug, now.format("%H%M%S"),
-        or(job, "none named in its last messages"), branch, sha, or(note, "read its summary and the board entries addressed to it"));
+        or(job, "none named in its last messages"), branch, sha, line / 1000, or(note, "read its summary and the board entries addressed to it"));
     if let Ok(mut f) = fs::OpenOptions::new().append(true).open(&board) { let _ = f.write_all(entry.as_bytes()); }
     0
 }

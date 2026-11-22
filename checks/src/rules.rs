@@ -634,6 +634,23 @@ fn dup_report(to: &str, msg: &str, path: &str) -> bool {
 }
 const DUP_WHY: &str = "this report (same job and first word) was already sent to this chat with nothing changed; send it again only when something changed (item 97)";
 
+/// Part 7 (right-hand-vision): an order that cites a decision number (one that stands in the project's decision log) or a vision line (a
+/// "Serves:" line of three or more words, with a muster/VISION.md in the project) is a fix against a decision or the vision, and is let through.
+fn order_cites(c: &Ctx, root: &str, msg: &str, rec: Option<&Value>) -> bool {
+    let (ds, text): (Vec<String>, String) = match rec {
+        Some(r) => (r.get("owner_words").and_then(|o| o.get("decision")).and_then(Value::as_str).map(|d| vec![d.to_string()]).unwrap_or_default(), s(r, "note").to_string()),
+        None => (re(r"\bD-\d{3}\b").find_iter(msg).filter_map(|m| m.ok()).map(|m| m.as_str().to_string()).collect(), msg.to_string()),
+    };
+    let rel = c.profile.get("decision_log").and_then(Value::as_str).unwrap_or("muster/DECISIONS-LOG.md");
+    let log = std::fs::read_to_string(Path::new(if root.is_empty() { "." } else { root }).join(rel)).unwrap_or_default();
+    if ds.iter().any(|d| is(&re(&format!(r"(?m)^###\s+{}\b", fancy_regex::escape(d))), &log)) { return true; }
+    let m = if rec.is_some() { caps(&rei(r"\bServes\s*:\s*([^\n.;]+)"), &text) } else { caps(&rei(r"(?m)^\s*Serves\s*:\s*(.+)$"), &text) };
+    match m {
+        Some(m) => m[1].split_whitespace().count() >= 3 && Path::new(if root.is_empty() { "." } else { root }).join("muster").join("VISION.md").is_file(),
+        None => false,
+    }
+}
+
 /// Item 115: his question gets an answer, not an order. A manager's order to a worker in a turn his question started is refused unless it
 /// cites his recorded choice (owner_words item with a Choice line under it).
 fn question_order_problem(c: &Ctx, manager: bool, root: &str, msg: &str, rec: Option<&Value>, path: &str) -> Option<String> {
@@ -647,7 +664,8 @@ fn question_order_problem(c: &Ctx, manager: bool, root: &str, msg: &str, rec: Op
     };
     let rel = c.profile.get("founder_list").and_then(Value::as_str).unwrap_or("muster/OWNERS-LIST.md");
     if let Some(i) = item { if choice_recorded(root, rel, i) { return None; } }
-    Some("his question gets an answer, not an order (item 115): answer it in plain words; any action it might lead to goes back to him as lettered choices with your pick, and an order follows only after his recorded choice (cite that list item, with its Choice line)".to_string())
+    if order_cites(c, root, msg, rec) { return None; }
+    Some("his question gets an answer, not an order (item 115): answer it in plain words; any action it might lead to goes back to him as lettered choices with your pick, and an order follows only after his recorded choice (cite that list item, with its Choice line); a fix that cites a decision number or a vision line (a Serves: line) is let through".to_string())
 }
 
 fn send_message(c: &Ctx, data: &Value, inp: &Value, root: &str, manager: bool) {

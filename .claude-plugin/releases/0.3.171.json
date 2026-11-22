@@ -1,0 +1,32 @@
+{
+  "version": "0.3.171",
+  "changed_files": [
+    "templates/VISION.md",
+    "commands/setup.md",
+    "cursor/setup.py",
+    "skills/one-order-per-piece/SKILL.md",
+    "pages/manager.md",
+    "pages/inspector.md",
+    "pages/design-inspector.md",
+    "agents/",
+    "hooks/rules-check.py",
+    "checks/src/rules.rs",
+    "bin/",
+    "directory/",
+    "scripts/rules-check-selftest.py",
+    "scripts/setup-smoke.sh",
+    "scripts/build-pages.py",
+    "CHANGELOG.md"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Builder",
+    "Designer",
+    "Inspector"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "right-hand-vision (parts 6 and 7 of the right-hand page, item 128): setup makes an empty muster/VISION.md (its words are the owner's); the order skill adds a Serves: line and the inspector reads the real result against it; the Inspector and Design Inspector judge the real, running thing and hold it against the vision page; the manager does a weekly vision look and orders plain faults fixed at once. The check that holds an order in a turn the owner's question started lets through an order that cites a decision number in the log or a Serves: line with a vision page; Python and program alike."
+}

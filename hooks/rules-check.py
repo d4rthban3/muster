@@ -1293,6 +1293,27 @@ def choice_recorded(root, item):
     return any(re.match(r"^\s+Choice \(", l) for l in lines[start:end])
 
 
+def order_cites(root, msg, rec):
+    """Part 7 (right-hand-vision): an order that cites a decision number (one that stands in the project's decision log) or a vision line (a
+    'Serves:' line of three or more words, with a muster/VISION.md in the project) is a fix against a decision or the vision, and is let through."""
+    if rec is not None:
+        d = (rec.get("owner_words") or {}).get("decision")
+        text = rec.get("note") or ""
+        ds = [d] if isinstance(d, str) else []
+    else:
+        text = msg
+        ds = re.findall(r"\bD-\d{3}\b", msg)
+    rel = (PROFILE or {}).get("decision_log") or "muster/DECISIONS-LOG.md"
+    try:
+        log = open(os.path.join(root or ".", rel), encoding="utf-8").read()
+    except OSError:
+        log = ""
+    if any(re.search(r"(?m)^###\s+%s\b" % re.escape(x), log) for x in ds):
+        return True
+    m = re.search(r"(?i)\bServes\s*:\s*([^\n.;]+)", text) if rec is not None else re.search(r"(?mi)^\s*Serves\s*:\s*(.+)$", text)
+    return bool(m) and len(m.group(1).split()) >= 3 and os.path.isfile(os.path.join(root or ".", "muster", "VISION.md"))
+
+
 def question_order_problem(manager, root, msg, rec, path):
     """Item 115: his question gets an answer, not an order. A manager's order to a worker in a turn his question started is refused unless
     it cites his recorded choice (owner_words item with a Choice line under it)."""
@@ -1309,8 +1330,10 @@ def question_order_problem(manager, root, msg, rec, path):
         item = int(m.group(1)) if m else None
     if isinstance(item, int) and choice_recorded(root, item):
         return None
+    if order_cites(root, msg, rec):
+        return None
     return ("his question gets an answer, not an order (item 115): answer it in plain words; any action it might lead to goes back to him as "
-            "lettered choices with your pick, and an order follows only after his recorded choice (cite that list item, with its Choice line)")
+            "lettered choices with your pick, and an order follows only after his recorded choice (cite that list item, with its Choice line); a fix that cites a decision number or a vision line (a Serves: line) is let through")
 
 
 def group_unfiled(uses):

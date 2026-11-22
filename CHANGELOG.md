@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.171
+Affects: the manager, the inspectors and every new project (the vision page).
+right-hand-vision (parts 6 and 7 of the right-hand page, item 128): setup makes an empty muster/VISION.md (its words are the owner's); the order skill adds a Serves: line and the inspector reads the real result against it; the Inspector and Design Inspector judge the real, running thing and hold it against the vision page; the manager does a weekly vision look and orders plain faults fixed at once. The check that holds an order in a turn the owner's question started lets through an order that cites a decision number in the log or a Serves: line with a vision page; Python and program alike.
+
 ## 0.3.170
 Affects: the manager (every project, PINR included) and every chat that loads the project rules.
 right-hand-wording (parts 1, 5 and 8a of the right-hand page, item 128): the manager is the owner's right hand (answers, gives its view, sorts a question apart, says when an instruction will not get them what they want); what the owner says is followed by meaning, and a clash with an earlier decision is asked at once naming both; the owner's list and rules pages carry what each thing is for; every decision carries a For: line (decide.py takes --for, writes and reads it back; the decision-log skill and log template say so); every question carries the crew's view. The item 76 quote is unchanged.

@@ -8,7 +8,7 @@ import re
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-WORD_CAP = 1300  # raised from 1100 for right-hand-wording (Parts 1, 5 and 8a add 195 words to the manager page); 1010 -> 1100 for right-hand-ask-first (Part 3 and 8b word for word add 80 words to the manager page); earlier 910 -> 1010 for right-hand-answer-view
+WORD_CAP = 1400  # raised from 1300 for right-hand-vision (Parts 6 and 7 add 100 words to the manager page); 1100 -> 1300 for right-hand-wording (Parts 1, 5 and 8a add 195 words to the manager page); 1010 -> 1100 for right-hand-ask-first (Part 3 and 8b word for word add 80 words to the manager page); earlier 910 -> 1010 for right-hand-answer-view
 shared = open(os.path.join(ROOT, "pages", "shared.md"), encoding="utf-8").read().strip()
 bad = 0
 for fn in sorted(os.listdir(os.path.join(ROOT, "pages"))):

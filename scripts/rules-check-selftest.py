@@ -340,6 +340,34 @@ def q_order(item, turn, mgr=True):
     env = dict(os.environ); env.pop("MUSTER_MESSAGE_FORM", None)
     r = subprocess.run([BIN, "rules"] if BIN else [sys.executable, HOOK], input=json.dumps(dict(hook_event_name="PreToolUse", cwd=QD, tool_name="SendMessage", tool_input={"to": "builder-a", "message": o}, transcript_path=t)), capture_output=True, text=True, env=env)
     return r.stdout.strip()
+# right-hand-vision (Part 7): an order that cites a decision number or a vision line is let through in a turn his question started
+QV = os.path.join(T, "qvision"); os.makedirs(os.path.join(QV, "muster")); QN = os.path.join(T, "qnovision"); os.makedirs(os.path.join(QN, "muster"))
+for _d in (QV, QN):
+    open(os.path.join(_d, "muster", "OWNERS-LIST.md"), "w").write("## Open\n\n36. \"why is it waiting\"\n   Kind: question\n")
+    open(os.path.join(_d, "muster", "DECISIONS-LOG.md"), "w").write("# Decisions log\n\n### D-050 \u00b7 2026-11-01 \u00b7 speed first\nDecision: x\n")
+open(os.path.join(QV, "muster", "VISION.md"), "w").write("# Vision\n")
+def cite_order(proj, owner_words, note=None, text=None):
+    t = tr("You are Manager_Muster_002", [said("why is the engine waiting?")])
+    env = dict(os.environ); env.pop("MUSTER_MESSAGE_FORM", None)
+    if text is None:
+        o = json.loads(ORD % ("menu-fix", "menu-fix")); o["owner_words"] = owner_words
+        if note is not None: o["note"] = note
+        msg = json.dumps(o)
+    else:
+        msg = text; env["MUSTER_MESSAGE_FORM"] = "text"
+    r = subprocess.run([BIN, "rules"] if BIN else [sys.executable, HOOK], input=json.dumps(dict(hook_event_name="PreToolUse", cwd=proj, tool_name="SendMessage", tool_input={"to": "builder-a", "message": msg}, transcript_path=t)), capture_output=True, text=True, env=env)
+    return "his question gets an answer" in r.stdout
+cases += [
+    ("right-hand 7: an order citing a decision number in the log is let through in a turn his question started (item 115)", not cite_order(QV, {"decision": "D-050"}), True),
+    ("right-hand 7: ...a decision number that is not in the log is still refused", cite_order(QV, {"decision": "D-099"}), True),
+    ("right-hand 7: an order citing a vision line (a Serves: line) is let through when the project has a vision page", not cite_order(QV, {"item": 36}, note="Serves: what the product is for"), True),
+    ("right-hand 7: ...a Serves: line with a project that has no vision page is still refused", cite_order(QN, {"item": 36}, note="Serves: what the product is for"), True),
+    ("right-hand 7: ...a Serves: line of two words is still refused", cite_order(QV, {"item": 36}, note="Serves: speed"), True),
+    ("right-hand 7: an order with no cite is still refused", cite_order(QV, {"item": 36}), True),
+    ("right-hand 7: a written order citing a decision number is let through (item 115)", not cite_order(QV, None, text="Job: menu-fix\nOwner's words: item 36, D-050\nDo: x"), True),
+    ("right-hand 7: a written order with a Serves: line is let through when the project has a vision page", not cite_order(QV, None, text="Job: menu-fix\nOwner's words: item 36\nServes: what the product is for\nDo: x"), True),
+    ("right-hand 7: a written order with neither is still refused", cite_order(QV, None, text="Job: menu-fix\nOwner's words: item 36\nDo: x"), True),
+]
 cases += [
     ("item 115: an order in a turn his question started is refused", q_order(36, [said("why is the engine waiting?")]), True),
     ("item 115: ...a question word with no question mark counts", q_order(36, [said("why is the engine waiting")]), True),

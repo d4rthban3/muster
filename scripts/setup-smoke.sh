@@ -261,6 +261,8 @@ AC="Pâtisserie"; CP="$ROOT/scripts/crew-plan.py"
 ACD="$SCRATCH/accent"; mkdir -p "$ACD"
 $PY "$ROOT/cursor/setup.py" "$(native "$ACD")/$AC" --name "$AC" --vision "a café: crème brûlée" > "$ACD/setup.out" 2>&1 || { cat "$ACD/setup.out"; fail "setup with an accented project name failed"; }
 AM="$ACD/$AC"
+[ -f "$AM/muster/VISION.md" ] && grep -q "^## What must never happen" "$AM/muster/VISION.md" || fail "a new project's setup did not make the empty vision page"
+cmp -s "$ROOT/templates/VISION.md" "$AM/muster/VISION.md" || fail "the vision page is not the empty template: it holds words nobody gave"
 [ -d "$AM/muster" ] && [ -f "$AM/muster/start-notes/Builder A_${AC}_001.md" ] || fail "the accented project's crew folder or starting note is missing"
 grep -q "$AC" "$AM/muster/start-notes/Builder A_${AC}_001.md" || fail "the starting note does not hold the accented name"
 [ -f "$ACD/${AC}_copies/builder-a-001/.cursor/rules/muster-builder.mdc" ] || fail "the accented project's worker copy is missing"

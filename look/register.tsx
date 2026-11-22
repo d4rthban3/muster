@@ -4,7 +4,7 @@ import { cutFont, fromBase64, type Cut } from './font'
 import { labelWidth } from './metrics'
 import { panel, registerLook } from './panel'
 import { glass, glassOn, applyGlass, resetScene } from './glass'
-import { pickName, loadGroup, pickedOn, typedOn, savePick, hashText, answerLine, optionLine, fullestText, clearPick, answerStands, sent, resetCaches, dropMessages } from './group'
+import { pickName, loadGroup, pickedOn, typedOn, savePick, hashText, answerLine, optionLine, fullestText, clearPick, answerStands, sent, resetCaches, dropMessages, warmUp } from './group'
 import { migrateLook } from './migrate'
 import { svgChip, pillOf, colourOr, YELLOW } from './chip'
 
@@ -123,38 +123,56 @@ export const register: Register = (on) => {
   })
   const cuts: Record<string, Cut | null> = {}
 
+  // Opening a chat does the look's work after the chat is up: nothing here waits for a read. The first draw
+  // waits only on the one batch of saved values (warmUp); the background, the old-plugin copy, the command and
+  // the app's font follow beside it, and the font redraws the chips once it is in.
   on('session.start', async ($, e, next) => {
-    await migrateLook($)
     resetCaches()
     resetScene()
-    // the background goes first: nothing else waits ahead of it
-    if (await glassOn($)) await applyGlass($, true)
-    await registerLook($)
-    {
+    void warmUp($)
+    void (async () => {
       try {
-        const { base64 } = (await $.fs.read(APP_FONT, { as: 'bytes' })) as { base64: string }
-        fontBytes = fromBase64(base64)
-      } catch {
-        fontBytes = null
-      }
-    }
+        // the background goes first of the follow-ups
+        if (await glassOn($)) await applyGlass($, true)
+      } catch { /* no theme here */ }
+      await Promise.all([
+        migrateLook($).catch(() => 0),
+        registerLook($).catch(() => undefined),
+        (async () => {
+          try {
+            const { base64 } = (await $.fs.read(APP_FONT, { as: 'bytes' })) as { base64: string }
+            fontBytes = fromBase64(base64)
+            $.ui.invalidate('ui.render')
+          } catch {
+            fontBytes = null
+          }
+        })(),
+      ])
+    })()
     return next(e)
   })
   on('ui.render', { component: 'AssistantMessage' }, async ($, e, next) => {
     const parsed = parse(e.props.text)
     if (parsed === null) return next(e)
-    // this group's own look; a group with none gets the defaults
+    // this group's own look; a group with none gets the defaults (one batch of reads, shared by every card)
+    await warmUp($)
     const opts = await loadGroup($)
     let picked = parsed.isQuestion ? (pending.get(e.props.text) ?? await pickedOn($, e.props.text)) : undefined
     let typed = parsed.isQuestion ? await typedOn($, e.props.text) : undefined
-    // the answer message is gone from the chat (the rewind button): back to unpicked and live again
+    // the saved answer is drawn at once; whether the chat still holds it (the rewind button) is checked after the
+    // draw, off the drawing path, and a rewound answer goes back to unpicked and live again
     const mark = picked ?? (typed !== undefined ? '=' + typed : undefined)
-    if (mark !== undefined && !(await answerStands($, e.props.text, mark))) {
-      picked = undefined
-      typed = undefined
-      answered.delete(e.props.text)
-      pending.delete(e.props.text)
-      await clearPick($, e.props.text)
+    if (mark !== undefined) {
+      const q = e.props.text
+      void (async () => {
+        try {
+          if (await answerStands($, q, mark)) return
+          answered.delete(q)
+          pending.delete(q)
+          await clearPick($, q)
+          $.ui.invalidate('ui.render')
+        } catch { /* the saved answer stays drawn */ }
+      })()
     }
     const QUESTION = pillOf('question', opts)
     const CARD = pillOf('card', opts)

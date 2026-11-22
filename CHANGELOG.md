@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.178
+Affects: everyone who sees the look (PINR included).
+look-fast-load (item 131): the look no longer waits on reads when a chat opens or a card is drawn. Opening the chat waits on nothing (the glass background, the old-plugin copy, the /look command and the app font load beside it). The first card draws after one batch of saved values only (the group's id, then its look beside the saved picks); it no longer waits on the chat's history, a git process or a file. A saved answer is drawn at once and checked against the chat after the draw; a rewound answer goes back to unpicked and the card redraws. With 20 ms reads the first card drew in about 70-200 ms instead of 220-650 ms on a loaded machine, and chat open went from about 140 ms to under 3 ms. Nothing changes in how a card looks, except that the chips may draw in the fallback font for a moment until the app font is in.
+
 ## 0.3.176
 Affects: every crew (wording only).
 right-hand-wording-rest (item 128): the README, setup page, Cursor rules, CREW.md, PROTOCOL.md and COMPUTER2-START.md templates, setup command, the workers' shared line and Muster Lite (pages and downloads) say the manager is the owner's right hand and give the approved wording on the owner's words; the Cursor manager rule and CREW.md carry the For: line wording. No check changes.

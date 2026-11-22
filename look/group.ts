@@ -17,10 +17,10 @@ export async function kvDel($: any, k: string): Promise<void> { try { await $.st
 // project's name and the conversation. A save or setting change made here updates or drops its own entry;
 // a new message (the owner's submit, an undo, or a card whose question the kept conversation does not yet hold)
 // drops the conversation. A redraw that finds everything warm makes no session, process or file call.
-type Warm = { ids?: { id: string; legacy: string }; group?: Record<string, string>; picks?: Record<string, string>; name?: string; nameEpoch?: number; msgs?: Said[] | null; msgsAt?: number; epoch: number; missing: Set<string> }
+type Warm = { ids?: Promise<{ id: string; legacy: string }>; group?: Promise<Record<string, string>>; picks?: Promise<Record<string, string>>; up?: Promise<void>; name?: string; nameEpoch?: number; msgs?: Said[] | null; msgsAt?: number; epoch: number; missing: Set<string> }
 const warm: Warm = { epoch: 0, missing: new Set() }
 export function resetCaches(): void {
-  warm.ids = undefined; warm.group = undefined; warm.picks = undefined; warm.name = undefined; warm.nameEpoch = undefined; warm.msgs = undefined
+  warm.ids = undefined; warm.group = undefined; warm.picks = undefined; warm.up = undefined; warm.name = undefined; warm.nameEpoch = undefined; warm.msgs = undefined
   warm.epoch++; warm.missing = new Set()
 }
 // the conversation changed (a message was sent, or taken back): read it again when it is next needed
@@ -53,21 +53,29 @@ export function groupKey(remote: string | null | undefined, root: string): strin
   return root
 }
 // The key this plugin used before groups followed the remote: the repository's own folder.
-async function ids($: any): Promise<{ id: string; legacy: string }> {
-  if (warm.ids !== undefined) return warm.ids
-  let root = ''
-  let remote: string | null = null
-  try {
-    const repo = await $.session.repo()
-    if (repo && typeof repo.root === 'string' && repo.root !== '') { root = repo.root; remote = typeof repo.remote === 'string' ? repo.remote : null }
-  } catch { /* not a repository */ }
-  if (root === '') {
-    try { root = String(await $.session.root()) } catch {
-      try { root = String(await $.session.cwd()) } catch { root = 'unknown' }
+function ids($: any): Promise<{ id: string; legacy: string }> {
+  warm.ids ??= (async () => {
+    let root = ''
+    let remote: string | null = null
+    try {
+      const repo = await $.session.repo()
+      if (repo && typeof repo.root === 'string' && repo.root !== '') { root = repo.root; remote = typeof repo.remote === 'string' ? repo.remote : null }
+    } catch { /* not a repository */ }
+    if (root === '') {
+      try { root = String(await $.session.root()) } catch {
+        try { root = String(await $.session.cwd()) } catch { root = 'unknown' }
+      }
     }
-  }
-  warm.ids = { id: groupKey(remote, root), legacy: root }
+    return { id: groupKey(remote, root), legacy: root }
+  })()
   return warm.ids
+}
+// Everything the first draw of a card needs, asked for once and all at the same time (the group's id, then its look
+// beside the saved picks), so a card waits for the slowest single read and nothing chained beyond the id. It is begun
+// when the chat starts and shared by every card; it never reads the chat's history, starts a process or reads a file.
+export function warmUp($: any): Promise<void> {
+  warm.up ??= Promise.all([loadGroup($), loadPicks($)]).then(() => undefined, () => undefined)
+  return warm.up
 }
 // The project's name for the owner's words is the name typed at setup, which every crew chat carries as the
 // suffix of its name (Manager_Muster, Builder A_PINR). The project's muster/CREW.md lists those chats.
@@ -140,8 +148,7 @@ export async function keptFor($: any, prefix: string, id?: string): Promise<Reco
 
 export const groupName = (id: string) => id.split('/').filter(Boolean).pop() ?? id
 
-export async function loadGroup($: any, id?: string): Promise<Record<string, string>> {
-  if (id === undefined && warm.group !== undefined) return { ...warm.group }
+async function readGroup($: any, id?: string): Promise<Record<string, string>> {
   const out: Record<string, string> = {}
   try {
     const raw = await keptFor($, 'group:', id)
@@ -152,8 +159,12 @@ export async function loadGroup($: any, id?: string): Promise<Record<string, str
       }
     }
   } catch { /* no store: defaults */ }
-  if (id === undefined) warm.group = { ...out }
   return out
+}
+export async function loadGroup($: any, id?: string): Promise<Record<string, string>> {
+  if (id !== undefined) return readGroup($, id)
+  warm.group ??= readGroup($)
+  return { ...(await warm.group) }
 }
 
 export async function saveGroup($: any, key: string, value: string | null, id?: string): Promise<void> {
@@ -192,18 +203,18 @@ export async function storeWorks($: any): Promise<boolean> {
 // by the question's text (a short hash), the newest 200 only.
 export const hashText = (t: string) => { let h = 5381; for (let i = 0; i < t.length; i++) h = ((h * 33) ^ t.charCodeAt(i)) >>> 0; return h.toString(36) + t.length.toString(36) }
 export async function loadPicks($: any): Promise<Record<string, string>> {
-  if (warm.picks === undefined) {
+  warm.picks ??= (async () => {
     let got: Record<string, string> = {}
     try {
       const raw = await kvGet($, 'picks')
       if (raw && typeof raw === 'object') got = raw as Record<string, string>
     } catch { /* none kept */ }
-    warm.picks = got
-  }
-  return { ...warm.picks }
+    return got
+  })()
+  return { ...(await warm.picks) }
 }
 // the kept picks as they stand, read only once (a copy, so a caller cannot change what is kept)
-function setPicks(all: Record<string, string>): void { warm.picks = { ...all } }
+function setPicks(all: Record<string, string>): void { warm.picks = Promise.resolve({ ...all }) }
 export async function pickedOn($: any, text: string): Promise<string | undefined> {
   const v = (await loadPicks($))[hashText(text)]
   return typeof v === 'string' && /^[A-Z]$/.test(v) ? v : undefined

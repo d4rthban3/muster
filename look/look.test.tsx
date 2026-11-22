@@ -1,7 +1,7 @@
 import { expect, test as rawTest } from 'claude-code/testing'
 import { sceneOf, sceneSource, resetScene, glassOn, setGlassFlag, glassSettings, setGlassSetting } from './glass'
 import { parse } from './parse'
-import { isOwnerSubmit, findPick } from './register'
+import { isOwnerSubmit, findPick, register } from './register'
 import { clock, FRESH_MS, resetCaches, dropMessages, hashText, mainFromCommonDir, nameFromCrew, nameFromChat, nameFromSummary, pickName, rename, optionLine } from './group'
 import { migrateLook } from './migrate'
 
@@ -986,4 +986,70 @@ test('a picked choice has a rounded highlight laid in the flow (a strip above, t
   // a card with nothing picked has the line too
   const open = await $.ui.mount(MSG(Q2.replace('one', 'other'), 'desktop'))
   expect((((await open.findAll({ type: 'Box' })) ?? []) as any[]).filter(b => String(b.key ?? '').startsWith('ln')).length).toBe(48)
+})
+
+// ---- look-fast-load: what the look costs from chat open to the first drawn card, with slow reads ----
+// The look's hooks are called directly with a host whose every store, file, process and session read takes
+// SLOW ms, so any read the first draw waits on shows. The first draw may wait on one batch of saved values only
+// (the group's id, then its look beside the saved picks); never on the chat's history, a process or a file.
+const SLOW = 20
+async function openAndDraw(chatLen: number, picked: boolean, rewound = false) {
+  const hooks: Record<string, any> = {}
+  register(((ev: string, a: any, b?: any) => { hooks[(typeof a === 'string' ? ev : ev) + (typeof a === 'object' && a?.component ? ':' + a.component : '')] = b ?? a }) as any)
+  const calls: string[] = []
+  const done: string[] = []
+  const slow = async <T,>(what: string, v: T): Promise<T> => { calls.push(what); await new Promise(r => setTimeout(r, SLOW)); done.push(what); return v }
+  const Q = '**WAITING · item 7**\nHow should the menu look?\n\n***A.*** Top right. *(my pick)*\n\n***B.*** Fixed at the bottom.'
+  const chat: any[] = [{ role: 'user', text: 'You are Manager_PINR_001' }, { role: 'assistant', text: Q }]
+  if (!rewound) chat.push({ role: 'user', text: optionLine(Q, 'A', 'PINR') })
+  let redraws = 0
+  for (let i = 0; i < chatLen; i++) chat.push({ role: i % 2 ? 'assistant' : 'user', text: 'filler message number ' + i + ' with some ordinary words in it' })
+  const kept = new Map<string, unknown>(picked ? [['picks', { [hashText(Q)]: 'A' }], ['migrated:muster-look', { at: 1 }]] : [['migrated:muster-look', { at: 1 }]])
+  const host: any = {
+    session: { repo: () => slow('session.repo', { root: '/p/w', remote: 'git@h:o/r.git' }), root: () => slow('session.root', '/p/w'), cwd: () => slow('session.cwd', '/p/w'), messages: () => slow('session.messages', chat) },
+    process: { run: () => slow('process.run', { exitCode: 1, stdout: '' }) },
+    fs: { read: (p: string) => slow('fs.read', null).then(() => { throw new Error('missing') }), list: () => slow('fs.list', []) },
+    store: { get: (k: string) => slow('store.get', kept.get(k)), set: async (k: string, v: unknown) => { kept.set(k, v) }, delete: async (k: string) => { kept.delete(k) } },
+    env: { get: () => slow('env.get', '/home/x') },
+    command: { register: () => slow('command.register', undefined) },
+    theme: { set: async () => undefined, clear: async () => undefined },
+    ui: { resolve: () => new Proxy({}, { get: (_t, n) => (typeof n === 'string' ? n : undefined) }), invalidate: () => { redraws++ }, toast: () => undefined },
+  }
+  resetCaches()
+  const t0 = performance.now()
+  await hooks['session.start']!(host, { surface: 'desktop' }, async (x: any) => x)
+  const opened = performance.now() - t0
+  const out = await hooks['ui.render:AssistantMessage']!(host, MSG(Q, 'desktop'), async (x: any) => x)
+  const firstDraw = performance.now() - t0
+  const before = [...calls]
+  return { opened, firstDraw, before, finished: [...done], out, kept, redraws: () => redraws, Q }
+}
+test('look-fast-load: the first card draws without waiting on the chat history, a process or a file; open and first draw are quick on a short and on a 6000-message chat', async ($) => {
+  void $
+  for (const [len, picked] of [[3, true], [6000, true], [6000, false]] as const) {
+    const r = await openAndDraw(len, picked)
+        expect(r.out).toBeTruthy()
+    console.log(`FAST-LOAD ${len} messages, picked ${picked}: chat open ${r.opened.toFixed(1)} ms, first card drawn ${r.firstDraw.toFixed(1)} ms with ${SLOW} ms reads (two chained reads = ${2 * SLOW} ms of waiting); reads finished by then: ${r.finished.join(', ')}`)
+    // opening waits on no read at all
+    expect(r.opened).toBeLessThan(SLOW)
+    // the first draw never waits on the chat's history, and no process or file read is even started before it
+    expect(r.finished.includes('session.messages')).toBe(false)
+    expect(r.before.filter(c => c === 'process.run' || c === 'fs.read' || c === 'fs.list' || c === 'session.root' || c === 'session.cwd')).toEqual([])
+    // the chain it does wait on is the group's id, then its look beside the saved picks: three reads at most before it, never more
+    expect(r.finished.filter(c => c === 'session.repo' || c === 'store.get').length).toBeLessThanOrEqual(8)
+    // a quiet machine draws in about 40 ms of waiting plus a few ms; this bound allows a loaded one
+    expect(r.firstDraw).toBeLessThan(2 * SLOW + 200)
+  }
+})
+
+test('look-fast-load: an answer saved as picked is drawn at once; if the chat no longer holds it (rewound), the check after the draw clears it and asks for a redraw', async ($) => {
+  void $
+  const held = await openAndDraw(3, true)
+  await new Promise(r => setTimeout(r, 400))
+  expect(held.redraws()).toBe(0)
+  expect(Object.keys((held.kept.get('picks') as any) ?? {}).length).toBe(1)
+  const gone = await openAndDraw(3, true, true)
+  for (let i = 0; i < 40 && gone.redraws() === 0; i++) await new Promise(r => setTimeout(r, 50))
+  expect(gone.redraws()).toBeGreaterThan(0)
+  expect(Object.keys((gone.kept.get('picks') as any) ?? {}).length).toBe(0)
 })

@@ -274,13 +274,13 @@ $PY "$AM/muster/tools/board_digest.py" "Manager_${AC}_001" "$(native "$AM")" > "
 grep -q "Crème brûlée" "$ACD/digest.out" && grep -q "1 entries concern" "$ACD/digest.out" || fail "the board did not read back the accented entry: $(cat "$ACD/digest.out")"
 # the coded rules: the accented manager is the manager, the accented builder is not, and an accented report passes
 jl() { $PY -c 'import json,sys;print(json.dumps({"type":"user","message":{"content":sys.argv[1]}}))' "$1"; }   # a one-message transcript
-jl "You are Manager_${AC}_001" > "$ACD/mgr.txt"; jl "You are Builder A_${AC}_001, agents/builder.md. Report to Manager_${AC}_001." > "$ACD/bld.txt"
+jl "You are Manager_${AC}_001" > "$ACD/mgr.txt"; jl "You are Builder A_${AC}_001, agents/builder.md. Report to Manager_${AC}_001." > "$ACD/bld.txt"; jl "You are Inspector_${AC}_001, agents/inspector.md." > "$ACD/ins.txt"
 ac_stop() { printf '{"hook_event_name":"Stop","cwd":"%s","last_assistant_message":"All done, nice.","transcript_path":"%s"}' "$(native "$ACD")" "$(native "$ACD")/$1" | $PY "$ROOT/hooks/rules-check.py"; }
 ac_stop mgr.txt | grep -q '"decision": "block"' || fail "the accented manager was not held to the manager's reply rule"
 ac_stop bld.txt | grep -q '"decision": "block"' && fail "the accented builder was held to the manager's reply rule"
 [ -s "$ACD/bld.txt.muster-notes" ] || fail "the accented builder's non-card reply was not noted"
 REP='{\"v\":1,\"kind\":\"PASS\",\"id\":\"inspector-creme-brulee-1\",\"job\":\"creme-brulee\",\"from\":\"inspector\",\"to\":\"builder-a\",\"sha\":\"abcdef1\",\"need\":\"none\"}'
-printf '{"hook_event_name":"PreToolUse","cwd":"%s","tool_name":"SendMessage","tool_input":{"to":"x","message":"%s"},"transcript_path":"%s"}' "$(native "$ACD")" "$REP" "$(native "$ACD")/bld.txt" | $PY "$ROOT/hooks/rules-check.py" | grep -q deny && fail "an accented project's correct record was refused"
+printf '{"hook_event_name":"PreToolUse","cwd":"%s","tool_name":"SendMessage","tool_input":{"to":"x","message":"%s"},"transcript_path":"%s"}' "$(native "$ACD")" "$REP" "$(native "$ACD")/ins.txt" | $PY "$ROOT/hooks/rules-check.py" | grep -q deny && fail "an accented project's correct record was refused"
 cp "$ACD/mgr.txt" "$ACD/mgr2.txt"
 (cd "$AM" && printf '{"cwd":"%s","last_assistant_message":"Fine.","transcript_path":"%s"}' "$(native "$AM")" "$(native "$ACD")/mgr2.txt" | $PY "$ROOT/hooks/board-stop.py") | grep -q "Builder A_P.*tisserie_001 (NEED)" || fail "board-stop did not recognise the accented manager"
 

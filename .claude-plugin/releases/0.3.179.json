@@ -1,0 +1,26 @@
+{
+  "version": "0.3.179",
+  "changed_files": [
+    "pages/shared.md",
+    "agents/",
+    "templates/",
+    "cursor/rules/",
+    "MUSTER-LITE.md",
+    "docs/index.html",
+    "docs/lite/",
+    "scripts/build-pages.py",
+    "directory/",
+    "CHANGELOG.md"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Builder",
+    "Designer",
+    "Inspector"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "shared-line-guard (item 128): the approved guard sentence, never use \"what they meant\" to do something they did not ask for, is back word for word in the workers' shared line, the CREW.md and PROTOCOL.md and COMPUTER2-START.md templates, the Cursor core rule and Muster Lite (pages and downloads rebuilt). Room made by raising the page word cap from 1400 to 1420 (build-pages.py)."
+}

@@ -2,7 +2,7 @@
 
 Read this before every session; it is short on purpose. The full rules are `muster/CLAUDE.md`.
 
-- **The owner's words come first.** Follow what they mean: when their words and their plain purpose point the same way, act; when the words would work against what they have said they want, say so and ask. Nobody picks for them.
+- **The owner's words come first.** Follow what they mean: when their words and their plain purpose point the same way, act; when the words would work against what they have said they want, say so and ask. Never use "what they meant" to do something they did not ask for. Nobody picks for them.
 - **One writer per file.** Only the manager changes the owner's list, the decisions log, the crew list and the rules pages. A second computer reads them and writes only in its own workspace.
 - **Reports** are six lines: `FIRST WORD: job [ID ...]`, What, Where (with `touches:`), Why, How (real numbers), Need. A READY shows a test count and a Usage line.
 - **Orders** name the job, quote the owner's words, say what is owned and what is out, and what done looks like.

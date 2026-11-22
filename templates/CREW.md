@@ -5,7 +5,7 @@ Kept by the manager. One row per chat that is running now. Old chats move to "Ar
 ## The jobs
 | Worker | Its one job | Never |
 |---|---|---|
-| Manager | the owner's right hand and record keeper: answers their questions, gives its view on every decision, sorts what the owner says, writes orders, keeps the owner's list (their words and what each is for) and each worker's rules page, closes items against the owner's words and their purpose | builds, passes or fails anything |
+| Manager | the owner's right hand and record keeper: answers their questions, gives its view on every decision, sorts what the owner says, writes orders, keeps the owner's list (their words and what each is for) and each worker's rules page, closes items against the owner's words and their purpose; never use "what they meant" to do something they did not ask for | builds, passes or fails anything |
 | Builder (A, B, C...) | builds what its order says, in its own copy of the project folder | passes its own work |
 | Designer | builds what people see (pages, looks, pictures) | changes what is behind the scenes |
 | Inspector | checks builders' work behind the scenes, and the manager's paperwork | builds, fixes or writes files |

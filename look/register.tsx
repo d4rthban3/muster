@@ -4,8 +4,8 @@ import { cutFont, fromBase64, type Cut } from './font'
 import { labelWidth } from './metrics'
 import { panel, registerLook } from './panel'
 import { glass, glassOn, applyGlass, resetScene } from './glass'
-import { pickName, loadGroup, pickedOn, typedOn, savePick, hashText, answerLine, optionLine, fullestText, clearPick, answerStands, sent, resetCaches, dropMessages, warmUp } from './group'
-import { migrateLook } from './migrate'
+import { pickName, loadGroup, pickedOn, typedOn, savePick, hashText, answerLine, optionLine, fullestText, clearPick, answerStands, sent, resetCaches, dropMessages, warmUp, dropSaved } from './group'
+import { migrateLook, wrote } from './migrate'
 import { svgChip, pillOf, colourOr, YELLOW } from './chip'
 
 
@@ -130,23 +130,32 @@ export const register: Register = (on) => {
     resetCaches()
     resetScene()
     void warmUp($)
+    // the app font is asked for at once and beside everything else
+    void (async () => {
+      try {
+        const { base64 } = (await $.fs.read(APP_FONT, { as: 'bytes' })) as { base64: string }
+        fontBytes = fromBase64(base64)
+        $.ui.invalidate('ui.render')
+      } catch {
+        fontBytes = null
+      }
+    })()
     void (async () => {
       try {
         // the background goes first of the follow-ups
         if (await glassOn($)) await applyGlass($, true)
       } catch { /* no theme here */ }
       await Promise.all([
-        migrateLook($).catch(() => 0),
+        // the one-time copy from the old plugin runs beside the first draw: when it copied anything, what the
+        // draw read (and the background) is read again and the cards redraw
+        migrateLook($).then(async () => {
+          if (wrote.n === 0) return
+          wrote.n = 0
+          dropSaved(); resetScene(); void warmUp($)
+          try { if (await glassOn($)) await applyGlass($, true) } catch { /* no theme here */ }
+          $.ui.invalidate('ui.render')
+        }, () => undefined),
         registerLook($).catch(() => undefined),
-        (async () => {
-          try {
-            const { base64 } = (await $.fs.read(APP_FONT, { as: 'bytes' })) as { base64: string }
-            fontBytes = fromBase64(base64)
-            $.ui.invalidate('ui.render')
-          } catch {
-            fontBytes = null
-          }
-        })(),
       ])
     })()
     return next(e)

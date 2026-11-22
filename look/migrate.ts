@@ -6,6 +6,8 @@
 // never deletes or changes the old file, and a failed read is tried again at the next start.
 const DONE = 'migrated:muster-look'
 
+// every value this run wrote (new keys and merged picks), so the look knows when what it read is out of date
+export const wrote = { n: 0 }
 export async function migrateLook($: any): Promise<number> {
   let copied = 0
   try {
@@ -34,9 +36,11 @@ export async function migrateLook($: any): Promise<number> {
         if (have === undefined || have === null) {
           await $.store.set(k, data[k])
           copied++
+          wrote.n++
         } else if (k === 'picks' && typeof have === 'object' && typeof data[k] === 'object' && data[k] !== null) {
           // picked answers: add the ones this store does not have yet
           await $.store.set(k, { ...(data[k] as object), ...(have as object) })
+          wrote.n++
         }
       }
     }

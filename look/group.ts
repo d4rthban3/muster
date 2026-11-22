@@ -19,6 +19,8 @@ export async function kvDel($: any, k: string): Promise<void> { try { await $.st
 // drops the conversation. A redraw that finds everything warm makes no session, process or file call.
 type Warm = { ids?: Promise<{ id: string; legacy: string }>; group?: Promise<Record<string, string>>; picks?: Promise<Record<string, string>>; up?: Promise<void>; name?: string; nameEpoch?: number; msgs?: Said[] | null; msgsAt?: number; epoch: number; missing: Set<string> }
 const warm: Warm = { epoch: 0, missing: new Set() }
+// what was saved changed under the look (the one-time copy from the old plugin): read it again at the next draw
+export function dropSaved(): void { warm.group = undefined; warm.picks = undefined; warm.up = undefined }
 export function resetCaches(): void {
   warm.ids = undefined; warm.group = undefined; warm.picks = undefined; warm.up = undefined; warm.name = undefined; warm.nameEpoch = undefined; warm.msgs = undefined
   warm.epoch++; warm.missing = new Set()

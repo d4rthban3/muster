@@ -12,6 +12,9 @@ const TITLE = /^\*\*([A-Za-z][A-Za-z_ ]{1,24}) · (.{1,80}?)\*\*\s*$/
 // A status line: "Working: ..." gets a Working badge, "The crew is idle ..." an Idle badge; the rest stays plain text.
 const WORKING = /^Working:\s*(.*)$/
 const IDLE = /^The crew is idle[\s.,;:\u2014-]*(.*)$/
+// A choice line may be led by indent or a list mark ("- ", "* ", "+ ", "• ", "1. ", "1) "): the mark is
+// dropped, the choice is drawn and filled as for a bare letter line.
+const LEAD = /^[ \t]*(?:(?:[-*+\u2022]|\d{1,2}[.)])[ \t]+)?/
 const CHOICE = /^\*\*\*([A-Z])\.\*\*\*\s*(.*)$/
 
 const MARK = /(?:^|\s)\*\*\*([A-Z])\.\*\*\*\s*/g
@@ -39,7 +42,8 @@ export function parse(text: string): Parsed | null {
     if (t) pieces.push({ kind: 'md', text: t })
     buf = []
   }
-  for (const line of text.split('\n')) {
+  for (const raw of text.split('\n')) {
+    const line = LEAD.test(raw) && /^\*\*\*[A-Z]\.\*\*\*/.test(raw.replace(LEAD, '')) ? raw.replace(LEAD, '') : raw
     const t = TITLE.exec(line)
     const c = CHOICE.exec(line)
     const w = t ? null : WORKING.exec(line)

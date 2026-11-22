@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.174
+Affects: everyone who sees a question card (PINR's manager included).
+choice-bullet-lines (item 128): a lettered choice written as a list line ("- ***A.*** ...", "* ", "+ ", a bullet dot, "1. ", "2) ", or an indent) is drawn in the choice design exactly like a bare letter line; the list mark is dropped and a click fills the box with the same words without it. News bullets before the choices stay plain. A bare letter line is unchanged.
+
 ## 0.3.173
 Affects: every project that runs Muster's checks (PINR included; its behaviour is unchanged).
 right-hand-rules-apart (part 4 of the right-hand page, item 128): every check is listed on one page, docs/checks.md, as a safety stop (on for every project, no switch) or a house rule (its own switch per project, "house_rules" in the project's profile). A house rule switched off never reaches that project (no refusal, no note); a new house rule starts off for every project but Muster; a refusal names its group and the rule. A profile with no house_rules key answers exactly as before.

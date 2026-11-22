@@ -1,0 +1,20 @@
+{
+  "version": "0.3.174",
+  "changed_files": [
+    "look/parse.ts",
+    "look/look.test.tsx",
+    "directory/",
+    "CHANGELOG.md"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Builder",
+    "Designer",
+    "Inspector"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "choice-bullet-lines (item 128): a lettered choice written as a list line (\"- ***A.*** ...\", \"* \", \"+ \", a bullet dot, \"1. \", \"2) \", or an indent) is drawn in the choice design exactly like a bare letter line; the list mark is dropped and a click fills the box with the same words without it. News bullets before the choices stay plain. A bare letter line is unchanged."
+}

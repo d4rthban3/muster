@@ -336,6 +336,21 @@ test('a question resent on one line splits into one choice per letter', () => {
   expect((q.pieces.filter(x => x.kind === 'choice') as any[]).map(c => `${c.letter}:${c.text}`)).toEqual(['A:yes', 'B:no', 'C:later'])
   expect(parse('***A.*** one\n\n***B.*** two')!.pieces.length).toBe(2)
   expect(parse('See ***A.*** here and nothing else')).toBe(null)
+  // a choice led by a list mark or indent is drawn the same, without the mark; a bare letter line is unchanged
+  for (const lead of ['- ', '* ', '+ ', '\u2022 ', '1. ', '2) ', '  ', '    - ', '\t- ']) {
+    const b = parse(`${lead}***A.*** one\n${lead}***B.*** two`)!
+    expect(b.pieces.map(x => x.kind)).toEqual(['choice', 'choice'])
+    expect((b.pieces[0] as any).text).toBe('one')
+    expect((b.pieces[1] as any).letter).toBe('B')
+  }
+  const mix = parse('**WAITING · item 7**\n- news one\n- news two\n\n- ***A.*** yes\n- ***B.*** no\n- ***C.*** later')!
+  expect(mix.pieces.filter(x => x.kind === 'choice').length).toBe(3)
+  expect(mix.pieces.filter(x => x.kind === 'choice').map((x: any) => x.text)).toEqual(['yes', 'no', 'later'])
+  expect((mix.pieces.find(x => x.kind === 'md') as any).text).toContain('- news one') // the news stays plain
+  expect((mix.pieces.find(x => x.kind === 'md') as any).text).not.toContain('***')
+  expect(mix.startsAt).toBe(0)
+  expect(parse('- ***A.*** one or ***B.*** two')!.pieces.map(x => x.kind)).toEqual(['choice', 'choice'])
+  expect(parse('- plain bullet and nothing else')).toBe(null)
 })
 
 test('the one-line form draws one clickable circle per letter', async ($, on) => {

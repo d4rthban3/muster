@@ -1575,6 +1575,64 @@ def reply_title(text):
     return m.group(1) if m else ""
 
 
+TOLD = re.compile(r"\b(?:(?:tell|let) me(?: know)?|ping me|notify me|message me) when\b([^.?!\n]*)", re.I)
+TOLD_STOP = {"live", "done", "ready", "finished", "shipped", "when", "that", "this", "with", "have", "been", "deployed", "fixed", "working", "there", "they", "their",
+             "then", "from", "into", "about", "goes", "going", "gets", "ship", "published", "publish", "released", "release", "complete", "completed", "happens", "happen", "starts", "start"}
+
+
+def told_words(s):
+    return {w for w in re.findall(r"[a-z][a-z0-9-]{3,}", s.lower()) if w not in TOLD_STOP}
+
+
+def told_when_asked(path, text):
+    """True when the owner once typed a standing request to be told ("tell me when the safari fix is live", "let me know when ...", "ping me when ...")
+    and this ANSWER reply is about it (shares a key word of the request) and no earlier ANSWER of this chat already answered that request (a reply
+    the Stop hook bounced does not count). One reply per request. A request with no key word (only words like "live" or "done") ties to nothing (told-when-asked)."""
+    events = []
+    try:
+        with open(path, encoding="utf-8") as fh:
+            for line in fh:
+                try:
+                    d = json.loads(line)
+                except ValueError:
+                    continue
+                c = (d.get("message") or {}).get("content", "")
+                if d.get("type") == "assistant" and isinstance(c, list):
+                    t = "\n".join(b.get("text", "") for b in c if isinstance(b, dict) and b.get("type") == "text")
+                    if t.strip():
+                        events.append(("a", t))
+                elif d.get("type") == "user":
+                    if isinstance(c, list):
+                        if any(isinstance(b, dict) and b.get("type") == "tool_result" for b in c):
+                            continue
+                        c = " ".join(b.get("text", "") for b in c if isinstance(b, dict))
+                    c = str(c)
+                    if c.strip():
+                        events.append(("u", c))
+    except OSError:
+        return False
+    if events and events[-1][0] == "a" and events[-1][1].strip() == text.strip():
+        events.pop()  # this very reply, if the transcript already holds it
+    reqs, last = [], []
+    for kind, t in events:
+        if kind == "u":
+            if re.match(r"^\s*(Stop hook feedback|Stop hook blocking error)", t, re.I):
+                for r in last:
+                    r[1] = False
+            elif not ENDS_TURN.search(t) and not NEUTRAL.match(t):
+                m = TOLD.search(t)
+                if m and told_words(m.group(1)):
+                    reqs.append([told_words(m.group(1)), False])
+            last = []
+        elif reply_title(t) == "ANSWER":
+            have = told_words(t)
+            last = [r for r in reqs if not r[1] and r[0] & have]
+            for r in last:
+                r[1] = True
+    have = told_words(text)
+    return any(not r[1] and r[0] & have for r in reqs)
+
+
 def note_add(path, rid, text):
     """A note is not a refusal: it is kept beside the transcript and told to the chat once, at its next prompt or tool call.
     A note whose house rule is switched off is never kept."""
@@ -1652,7 +1710,7 @@ def stop(data, manager):
             note_add(data.get("transcript_path") or "", "note-heading", "a question to the owner opens with a bold heading line 'WORD \u00b7 job' (like **ASK \u00b7 score-audit**) above the lettered choices, so it draws as a card (item 120)")
         if re.search(r"\btype (?:it |your \w+ |anything )?in (?:the |that |this )?[\w .-]*\b(?:chat|window)\b", text, re.I):
             if block("no-send-owner", "never send the owner to type in a worker's chat (item 103): carrying his approval is your job; forward his quoted go to the worker that asked, by message, and say nothing to him"): return
-        if title == "VIEW" or (title == "ANSWER" and owner_asked(data.get("transcript_path") or "")):
+        if title == "VIEW" or (title == "ANSWER" and (owner_asked(data.get("transcript_path") or "") or told_when_asked(data.get("transcript_path") or "", text))):
             # right-hand part 2: an answer to his question (on a turn he started with one) and a view (on any turn) are let through at any length; the hard stops above and below stay
             if title == "VIEW" and question_repeated(data.get("transcript_path") or "", text):
                 if block("asked-twice", "he has already been asked this question and has not answered (item 114): do not put it to him again; keep working on what does not depend on his answer, and end this turn with no text"): return

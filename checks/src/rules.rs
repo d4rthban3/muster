@@ -4,6 +4,7 @@
 use crate::common::*;
 use crate::talk::{crew_re, ROLE};
 use serde_json::Value;
+use std::collections::HashSet;
 use std::path::{Component, Path, PathBuf};
 use std::process::Command;
 
@@ -357,6 +358,51 @@ fn news_line_repeated(path: &str, text: &str) -> bool {
         } else if s(&d, "type") == "user" && is(&bounce, &content_text(&c)) { seen = false; }
     }
     seen
+}
+const TOLD_STOP: [&str; 30] = ["live", "done", "ready", "finished", "shipped", "when", "that", "this", "with", "have", "been", "deployed", "fixed", "working", "there", "they", "their",
+    "then", "from", "into", "about", "goes", "going", "gets", "ship", "published", "publish", "released", "release", "complete"];
+fn told_words(t: &str) -> HashSet<String> {
+    let stop: HashSet<&str> = TOLD_STOP.iter().copied().chain(["completed", "happens", "happen", "starts", "start"]).collect();
+    re(r"[a-z][a-z0-9-]{3,}").find_iter(&t.to_lowercase()).filter_map(|m| m.ok()).map(|m| m.as_str().to_string()).filter(|w| !stop.contains(w.as_str())).collect()
+}
+/// A standing request of the owner to be told ("tell me when ...") and an ANSWER about it, once (told-when-asked); the Python copy has the same words.
+fn told_when_asked(path: &str, text: &str) -> bool {
+    let told = rei(r"\b(?:(?:tell|let) me(?: know)?|ping me|notify me|message me) when\b([^.?!\n]*)");
+    let ends = rei(r"<cross-session-message|<task-notification|<side-sessions-event|<ci-monitor-event|\[SYSTEM NOTIFICATION");
+    let neutral = rei(r"^\s*(<system-reminder|Stop hook feedback)");
+    let bounce = rei(r"^\s*(Stop hook feedback|Stop hook blocking error)");
+    let mut events: Vec<(bool, String)> = vec![]; // (is assistant, text)
+    for d in lines_of(path) {
+        let c = msg_content(&d);
+        if s(&d, "type") == "assistant" {
+            if let Value::Array(a) = &c {
+                let t = a.iter().filter(|b| s(b, "type") == "text").map(|b| s(b, "text")).collect::<Vec<_>>().join("\n");
+                if !t.trim().is_empty() { events.push((true, t)); }
+            }
+        } else if s(&d, "type") == "user" {
+            if let Value::Array(a) = &c { if a.iter().any(|b| s(b, "type") == "tool_result") { continue; } }
+            let t = content_text(&c);
+            if !t.trim().is_empty() { events.push((false, t)); }
+        }
+    }
+    if events.last().map(|(a, t)| *a && t.trim() == text.trim()).unwrap_or(false) { events.pop(); }
+    let mut reqs: Vec<(HashSet<String>, bool)> = vec![];
+    let mut last: Vec<usize> = vec![];
+    for (asst, t) in &events {
+        if !asst {
+            if is(&bounce, t) { for &i in &last { reqs[i].1 = false; } }
+            else if !is(&ends, t) && !is(&neutral, t) {
+                if let Some(m) = caps(&told, t) { let w = told_words(m.get(1).map(|x| x.as_str()).unwrap_or("")); if !w.is_empty() { reqs.push((w, false)); } }
+            }
+            last.clear();
+        } else if reply_title(t) == "ANSWER" {
+            let have = told_words(t);
+            last = (0..reqs.len()).filter(|&i| !reqs[i].1 && !reqs[i].0.is_disjoint(&have)).collect();
+            for &i in &last { reqs[i].1 = true; }
+        }
+    }
+    let have = told_words(text);
+    reqs.iter().any(|r| !r.1 && !r.0.is_disjoint(&have))
 }
 fn is_news(t: &str) -> bool { is(&re(r"\b(PASS|LIVE|DONE)\b"), t) || is(&rei(r"\b(shipped|passed|merged|released|progress|landed|finished)\b"), t) }
 
@@ -866,7 +912,7 @@ fn stop(c: &Ctx, data: &Value, manager: bool) {
         if is(&rei(r"\btype (?:it |your \w+ |anything )?in (?:the |that |this )?[\w .-]*\b(?:chat|window)\b"), text) {
             if block("no-send-owner", "never send the owner to type in a worker's chat (item 103): carrying his approval is your job; forward his quoted go to the worker that asked, by message, and say nothing to him") { return; }
         }
-        if title == "VIEW" || (title == "ANSWER" && owner_asked(tpath)) {
+        if title == "VIEW" || (title == "ANSWER" && (owner_asked(tpath) || told_when_asked(tpath, text))) {
             // right-hand part 2: an answer to his question (on a turn he started with one) and a view (on any turn) are let through at any length; the hard stops stay
             if title == "VIEW" && question_repeated(tpath, text) {
                 if block("asked-twice", "he has already been asked this question and has not answered (item 114): do not put it to him again; keep working on what does not depend on his answer, and end this turn with no text") { return; }

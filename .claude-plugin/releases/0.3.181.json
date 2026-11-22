@@ -1,0 +1,23 @@
+{
+  "version": "0.3.181",
+  "changed_files": [
+    "hooks/rules-check.py",
+    "checks/src/rules.rs",
+    "docs/checks.md",
+    "scripts/rules-check-selftest.py",
+    "bin/",
+    "directory/",
+    "CHANGELOG.md"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Builder",
+    "Designer",
+    "Inspector"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "told-when-asked (item 128): when the owner types \"tell me when X\" (or \"let me know when\", \"ping me when\"), the manager's later reply titled ANSWER about X passes the no-news and manager-says checks once, on any turn, whoever started it. A request with no key word, an ANSWER about something else, an untitled reply and a second reply for the same request stay refused. Both copies; listed on docs/checks.md."
+}

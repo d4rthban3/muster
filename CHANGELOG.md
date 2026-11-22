@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.181
+Affects: every project that runs Muster's checks (PINR included: its manager's ANSWER about a thing the founder asked to be told now passes once).
+told-when-asked (item 128): when the owner types "tell me when X" (or "let me know when", "ping me when"), the manager's later reply titled ANSWER about X passes the no-news and manager-says checks once, on any turn. A request with no key word, an ANSWER about something else, an untitled reply and a second reply for the same request stay refused.
+
 ## 0.3.180
 Affects: every crew that runs Muster's own profile (PINR: unchanged, its profile keeps 250 000).
 compact-line-lower (item 132): a crew chat compacts in place at 130 000 tokens for a worker and 160 000 for a manager (was 250 000), so it stops re-reading a quarter-million tokens of its own history on every step. Changed in crew-plan's built-in default, Muster's profile, the worker and manager pages, the templates and skills, and the before-compact note in both copies (it names the number for the chat's role). The line reaches an existing crew folder with: python3 scripts/crew-plan.py pin-compact "<Role>_<project>" <folder> --profile profiles/muster.json

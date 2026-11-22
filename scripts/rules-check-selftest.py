@@ -746,6 +746,20 @@ for _rid, _first, _extra, _text, _phrase in (("note-letters", MG, [said("hi")], 
     _rcases.append(("right-hand 4: the note '%s' is kept by default" % _rid, "" if _phrase in _note_after(RUN_ENV, _first, _extra, _text) else "BAD", False))
     _rcases.append(("right-hand 4: ...and never kept with its switch off (%s)" % _rid, "" if _note_after(_off_env(_rid), _first, _extra, _text) == "" else "BAD", False))
     _rcases.append(("right-hand 4: ...a different switch off keeps it (%s)" % _rid, "" if _phrase in _note_after(_off_env("no-thanks"), _first, _extra, _text) else "BAD", False))
+# told-when-asked: the owner's standing "tell me when X" lets one ANSWER about X through on a later turn, whoever started it
+SAF = "**ANSWER \u00b7 safari-fix**\n\nThe safari fix is LIVE and shipped. " + LONG
+def _said_asst(t): return {"type": "assistant", "message": {"content": [{"type": "text", "text": t}]}}
+_TELL = said("tell me when the safari fix is live")
+cases += [
+    ("told-when-asked: his 'tell me when the safari fix is live', then a peer-started turn with an ANSWER about it, passes", run("Stop", last_assistant_message=SAF, transcript_path=tr(MG, [_TELL, _said_asst("ok"), said(PEER)])), False),
+    ("told-when-asked: 'let me know when ...' and 'ping me when ...' work the same", run("Stop", last_assistant_message=SAF, transcript_path=tr(MG, [said("let me know when safari is fixed"), said(PEER)])), False),
+    ("told-when-asked: the same reply with no such request is still refused", run("Stop", last_assistant_message=SAF, transcript_path=tr(MG, [said("fix safari"), said(PEER)])), True),
+    ("told-when-asked: a second reply for the same request is refused", run("Stop", last_assistant_message=SAF, transcript_path=tr(MG, [_TELL, _said_asst(SAF), said(PEER)])), True),
+    ("told-when-asked: a reply the Stop hook bounced does not use up the request", run("Stop", last_assistant_message=SAF, transcript_path=tr(MG, [_TELL, _said_asst(SAF), said("Stop hook feedback: Muster rule: no"), said(PEER)])), False),
+    ("told-when-asked: an ANSWER about something else is still refused", run("Stop", last_assistant_message=SAF.replace("safari", "android"), transcript_path=tr(MG, [_TELL, said(PEER)])), True),
+    ("told-when-asked: a reply with no ANSWER title is still refused", run("Stop", last_assistant_message=SAF.replace("**ANSWER \u00b7 safari-fix**\n\n", ""), transcript_path=tr(MG, [_TELL, said(PEER)])), True),
+    ("told-when-asked: a request with no key word (only 'live') ties to nothing", run("Stop", last_assistant_message=SAF, transcript_path=tr(MG, [said("tell me when it is live"), said(PEER)])), True),
+]
 # right-hand choice-bullet-note: a letter written inside a list line is noted; bare letter lines are not
 BULLETED = "**ASK \u00b7 q**\nWhich first?\n\n- ***A.*** ship the fix *(my pick)* because it is small\n- ***B.*** wait"
 BARELETTERS = "**ASK \u00b7 q**\nWhich first?\n\n***A.*** ship the fix *(my pick)* because it is small\n\n***B.*** wait"

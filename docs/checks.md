@@ -42,10 +42,10 @@ Kinds: refuses = the tool call or the end of the turn is refused; note = the rep
 | `asked-twice` | house rule | refuses | A question he has not answered is not put to him again (item 114). |
 | `news-repeat` | house rule | refuses | The owner gets one line per report, not two. |
 | `empty-line` | house rule | refuses | No empty "needs nothing from you" line. |
-| `no-news` | house rule | refuses | No PASS, DONE or progress news to the owner (item 97). |
+| `no-news` | house rule | refuses | No PASS, DONE or progress news to the owner (item 97). An ANSWER about a thing the owner asked to be told about ("tell me when ...", "let me know when ...", "ping me when ...") passes once, on any turn. |
 | `news-with-question` | house rule | refuses | News does not ride along with a question (item 114). |
 | `pictures-first` | house rule | refuses | A question about how something looks comes after the pictures. |
-| `manager-says` | house rule | refuses | To the owner the manager says only a question, a yes he must give, or the idle card. |
+| `manager-says` | house rule | refuses | To the owner the manager says only a question, a yes he must give, or the idle card. An ANSWER about a thing the owner asked to be told about passes once, on any turn. |
 | `report-to-manager` | house rule | refuses | A report reaches the manager as a message as well as the board (item 65). |
 | `board-open-items` | house rule | refuses | The manager tells the owner of open board items before it stops. |
 | `board-pick-claim` | house rule | refuses | The manager does not say it chose or recorded for the owner before he picked. |

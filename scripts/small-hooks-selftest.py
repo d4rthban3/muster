@@ -149,6 +149,11 @@ pre_both("precompact: the owner's own chat leaves nothing", "hello there", lambd
 pre_both("precompact: a chat with no board leaves nothing and never blocks", "You are Builder A_Muster_002", lambda rc, out, board, side: rc == 0 and out == "", board=False)
 pre_both("precompact: a PINR-named chat is crew with the profile", "You are Site_PINR_002. Job: Site_PINR_002.",
          lambda rc, out, board, side: "Site_PINR_002 -> Manager | compaction" in board, prof=PINR)
+MUSTER_PROF = os.path.join(ROOT, "profiles", "muster.json")
+pre_both("precompact (item 132): a worker's note names 130k under Muster's profile", "You are Builder A_Muster_002", lambda rc, out, board, side: "size line, 130k tokens" in board, prof=MUSTER_PROF)
+pre_both("precompact (item 132): a manager's note names 160k under Muster's profile", "You are Manager_Muster_001", lambda rc, out, board, side: "size line, 160k tokens" in board, prof=MUSTER_PROF)
+pre_both("precompact (item 132): with no profile the same two numbers", "You are Manager_Muster_001", lambda rc, out, board, side: "size line, 160k tokens" in board)
+pre_both("precompact (item 132): PINR's own profile still names 250k for its chat", "You are Site_PINR_002. Job: Site_PINR_002.", lambda rc, out, board, side: "size line, 250k tokens" in board, prof=PINR)
 pre_both("precompact: ...and not without it", "You are Site_PINR_002. Job: Site_PINR_002.", lambda rc, out, board, side: board == "# Board\n")
 pre_both("precompact: a chat that opens with a summary is known by its title", "x",
          lambda rc, out, board, side: "Builder A_Muster_002 -> Manager | compaction" in board, title="Builder A_Muster_002", summary_first=True)

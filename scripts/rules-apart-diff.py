@@ -6,7 +6,6 @@ refusal is left out of the comparison. Exit 1 on any difference. Writes only in 
 usage: rules-apart-diff.py --calls FILE --before-hooks DIR [--profile profiles/pinr.json] [--before-bin FILE --after-bin FILE]
   DIR holds the older hooks/rules-check.py and hooks/board-stop.py; the two programs are the older and the newer muster-checks."""
 import argparse
-import glob
 import json
 import os
 import re
@@ -17,15 +16,18 @@ import tempfile
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 LABEL = re.compile(r' \[(?:safety stop|house rule) \\?"[a-z-]+\\?"[^\]]*?\]')
 
+PATH = re.compile(r'/[^\s"]*/((?:scripts/)?[a-z-]+\.(?:py|sh))')
+
 
 def go(cmd, inp, env, profile, state):
-    for f in glob.glob(os.path.join(tempfile.gettempdir(), "tmp*", "*.muster-notes")):  # a note kept by the first run must not reach the second
-        try:
-            os.remove(f)
-        except OSError:
-            pass
-    e = dict(os.environ, **env, MUSTER_PROFILE=profile, MUSTER_STATE_DIR=state)
-    return LABEL.sub("", subprocess.run(cmd, input=inp, capture_output=True, text=True, env=e).stdout.strip())
+    try:  # a note kept by the first run must not reach the second
+        os.remove((json.loads(inp).get("transcript_path") or "-") + ".muster-notes")
+    except (OSError, ValueError):
+        pass
+    e = dict(os.environ, **env)
+    e.update(MUSTER_PROFILE=profile, MUSTER_STATE_DIR=state)
+    out = subprocess.run(cmd, input=inp, capture_output=True, text=True, env=e).stdout.strip()
+    return PATH.sub(r"\1", LABEL.sub("", out))  # the folder a script is named from is where the copy sits, not a change
 
 
 def main():

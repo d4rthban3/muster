@@ -7,7 +7,7 @@
   "plugins": [
     {
       "name": "muster",
-      "version": "0.3.181",
+      "version": "0.3.182",
       "source": "./",
       "description": "Crew roles, a numbered decisions log, a board with a digest script, the two checks before READY, and habits for spend and usage."
     }

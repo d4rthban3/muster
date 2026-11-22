@@ -509,7 +509,7 @@ NOREPEAT = " Your reply already reached the owner: do not write it again. Do wha
 # talks, asks, reports and orders) has its own switch per project, "house_rules": {"<name>": false} in the project's profile. A house rule
 # switched off never reaches that project. A house rule made after this list starts off for every project but Muster (NEW_HOUSE).
 SAFETY = {"guard", "helper-ships", "note-secret", "usage-limit", "muster-not-saved"}
-NEW_HOUSE = set()
+NEW_HOUSE = {"ready-to-inspector", "verdict-from-inspector"}
 
 
 def rule_on(rid):
@@ -938,6 +938,26 @@ def guard_problem(tool, inp, cwd, conf):
     return None
 
 
+def news_route_problem(manager, first, to, msg, root):
+    """One-message-once: news reaches each chat once. A READY goes to the inspector, never the manager's chat (the inspector copies
+    the manager with its verdict); a PASS or FAIL comes only from an inspector (or the manager), never relayed by a builder or designer.
+    Returns (rule id, plain reason) or None. A chat whose own name is not known is let through."""
+    if manager:
+        return None
+    try:
+        kind = str(json.loads(msg).get("kind", ""))
+    except (ValueError, AttributeError):
+        m = re.match(r"^\s*\**(READY|PASS|FAIL)\b", msg)
+        kind = m.group(1) if m else ""
+    if kind == "READY" and recipient_is_manager(to, root):
+        return ("ready-to-inspector", "a READY goes to the inspector only, never to the manager's chat: the inspector sends the manager its copy with its verdict, so the manager's chat wakes once, not three times; send this READY to the inspector")
+    if kind in ("PASS", "FAIL"):
+        tok = _own_token(first)
+        if tok and "inspector" not in tok.lower():
+            return ("verdict-from-inspector", "only an inspector sends PASS or FAIL, and never as a relay: the inspector's own message already reaches the manager, so do not pass it on; send nothing, or a READY to the inspector for new work")
+    return None
+
+
 def pretool(data, manager):
     tool = data.get("tool_name", "")
     inp = data.get("tool_input") or {}
@@ -969,6 +989,11 @@ def pretool(data, manager):
         msg = str(inp.get("message", ""))
         if SOCIAL.match(msg):
             if deny("no-thanks", "no 'noted' or 'thanks' replies; send a message only when someone must act"): return
+        route = news_route_problem(manager, first_message(data.get("transcript_path") or ""), str(inp.get("to", "")), msg, root)
+        if route and route[0] == "ready-to-inspector":
+            if deny("ready-to-inspector", route[1]): return
+        if route and route[0] == "verdict-from-inspector":
+            if deny("verdict-from-inspector", route[1]): return
         if not TEXT_FORM:
             try:
                 ok = isinstance(json.loads(msg), dict)
@@ -1746,7 +1771,7 @@ def stop(data, manager):
     title_ok = bool(re.match(r"^\s*\*\*[^*\n]+\s[·.]\s[^*\n]+\*\*\s*$", body.splitlines()[0])) if body else False
     if not title_ok or not 2 <= len(bullets) <= 3:
         note_add(data.get("transcript_path") or "", "note-card", "your end-of-turn reply is a card: a bold title line 'WORD · job', then two or three '- ' bullets (what, the result with real numbers, what is left or what you need)")
-    if re.match(r"^\s*\*\*(DONE|READY|PASS|FAIL|STUCK|NEED)\b", body):  # item 65: every report reaches the manager as a message
+    if re.match(r"^\s*\*\*(DONE|READY|PASS|FAIL|STUCK|NEED)\b", body) and not (re.match(r"^\s*\*\*READY\b", body) and rule_on("ready-to-inspector")):  # item 65; a READY goes to the inspector, who copies the manager: every report reaches the manager as a message
         root = main_folder(data.get("cwd"))
         # SendMessage (to) or the app's older send_message tool (session_id); either reaches the manager
         if not any((u.get("name") == "SendMessage" and recipient_is_manager((u.get("input") or {}).get("to", ""), root))

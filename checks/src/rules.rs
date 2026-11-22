@@ -714,9 +714,34 @@ fn question_order_problem(c: &Ctx, manager: bool, root: &str, msg: &str, rec: Op
     Some("his question gets an answer, not an order (item 115): answer it in plain words; any action it might lead to goes back to him as lettered choices with your pick, and an order follows only after his recorded choice (cite that list item, with its Choice line); a fix that cites a decision number or a vision line (a Serves: line) is let through".to_string())
 }
 
+/// One-message-once: a READY goes to the inspector, never the manager's chat (the inspector copies the manager with its verdict); a PASS or
+/// FAIL comes only from an inspector (or the manager), never relayed. A chat whose own name is not known is let through.
+fn news_route_problem(c: &Ctx, manager: bool, first: &str, to: &str, msg: &str, root: &str) -> Option<(&'static str, String)> {
+    if manager { return None; }
+    let kind = match serde_json::from_str::<Value>(msg) {
+        Ok(v) => v.get("kind").and_then(Value::as_str).unwrap_or("").to_string(),
+        Err(_) => caps(&re(r"^\s*\**(READY|PASS|FAIL)\b"), msg).map(|m| m[1].to_string()).unwrap_or_default(),
+    };
+    if kind == "READY" && recipient_is_manager(to, root) {
+        return Some(("ready-to-inspector", "a READY goes to the inspector only, never to the manager's chat: the inspector sends the manager its copy with its verdict, so the manager's chat wakes once, not three times; send this READY to the inspector".to_string()));
+    }
+    if kind == "PASS" || kind == "FAIL" {
+        if let Some(tok) = own_token(c, first) {
+            if !tok.to_lowercase().contains("inspector") {
+                return Some(("verdict-from-inspector", "only an inspector sends PASS or FAIL, and never as a relay: the inspector's own message already reaches the manager, so do not pass it on; send nothing, or a READY to the inspector for new work".to_string()));
+            }
+        }
+    }
+    None
+}
+
 fn send_message(c: &Ctx, data: &Value, inp: &Value, root: &str, manager: bool) {
     let msg = s(inp, "message");
     if is(&social_re(), msg) { if deny("no-thanks", "no 'noted' or 'thanks' replies; send a message only when someone must act") { return; } }
+    if let Some((rid, why)) = news_route_problem(c, manager, &first_message(s(data, "transcript_path")), s(inp, "to"), msg, root) {
+        if rid == "ready-to-inspector" { if deny("ready-to-inspector", &why) { return; } }
+        if rid == "verdict-from-inspector" { if deny("verdict-from-inspector", &why) { return; } }
+    }
     let sent = || all_sent_text(s(data, "transcript_path"));
     if !c.text_form {
         // a data record: one JSON object, fixed keys, set values, no sentences
@@ -964,7 +989,7 @@ fn stop(c: &Ctx, data: &Value, manager: bool) {
     if !title_ok || !(2..=3).contains(&nb) {
         note_add(tpath, "note-card", "your end-of-turn reply is a card: a bold title line 'WORD · job', then two or three '- ' bullets (what, the result with real numbers, what is left or what you need)");
     }
-    if is(&re(r"^\s*\*\*(DONE|READY|PASS|FAIL|STUCK|NEED)\b"), body) { // item 65: every report reaches the manager as a message
+    if is(&re(r"^\s*\*\*(DONE|READY|PASS|FAIL|STUCK|NEED)\b"), body) && !(is(&re(r"^\s*\*\*READY\b"), body) && rule_on("ready-to-inspector")) { // item 65: every report reaches the manager as a message; a READY goes to the inspector, who copies the manager
         let root = main_folder(s(data, "cwd"));
         // SendMessage (to) or the app's older send_message tool (session_id); either reaches the manager
         if !uses.iter().any(|u| u.get("input").map(|i| (s(u, "name") == "SendMessage" && recipient_is_manager(s(i, "to"), &root)) || (s(u, "name").ends_with("send_message") && recipient_is_manager(s(i, "session_id"), &root))).unwrap_or(false)) {

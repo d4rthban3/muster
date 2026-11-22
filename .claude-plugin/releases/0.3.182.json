@@ -1,0 +1,24 @@
+{
+  "version": "0.3.182",
+  "changed_files": [
+    "hooks/rules-check.py",
+    "checks/src/rules.rs",
+    "checks/src/common.rs",
+    "docs/checks.md",
+    "scripts/rules-check-selftest.py",
+    "bin/",
+    "directory/",
+    "CHANGELOG.md"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Builder",
+    "Designer",
+    "Inspector"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "one-message-once (item 132): in Muster a builder's or designer's READY to the manager's chat is refused (it goes to the inspector, who copies the manager with its verdict), and a PASS or FAIL from anyone but an inspector or the manager is refused, relays included. A READY card no longer needs a message to the manager. Two new house rules, on in Muster by default and off for other projects (PINR unchanged); both copies; listed on docs/checks.md."
+}

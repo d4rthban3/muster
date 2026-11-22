@@ -46,7 +46,9 @@ Kinds: refuses = the tool call or the end of the turn is refused; note = the rep
 | `news-with-question` | house rule | refuses | News does not ride along with a question (item 114). |
 | `pictures-first` | house rule | refuses | A question about how something looks comes after the pictures. |
 | `manager-says` | house rule | refuses | To the owner the manager says only a question, a yes he must give, or the idle card. An ANSWER about a thing the owner asked to be told about passes once, on any turn. |
-| `report-to-manager` | house rule | refuses | A report reaches the manager as a message as well as the board (item 65). |
+| `report-to-manager` | house rule | refuses | A report reaches the manager as a message as well as the board (item 65). A READY is the exception in Muster: it goes to the inspector, who copies the manager (see `ready-to-inspector`). |
+| `ready-to-inspector` | house rule | refuses | A builder's or designer's READY is never sent to the manager's chat; it goes to the inspector, who sends the manager its copy with the verdict, so each piece of news reaches each chat once. On in Muster by default; another project switches it on in its profile. |
+| `verdict-from-inspector` | house rule | refuses | A PASS or FAIL is sent only by an inspector (or the manager); a builder's or designer's PASS or FAIL, including a relay of the inspector's, is refused. On in Muster by default. |
 | `board-open-items` | house rule | refuses | The manager tells the owner of open board items before it stops. |
 | `board-pick-claim` | house rule | refuses | The manager does not say it chose or recorded for the owner before he picked. |
 | `queue-waiting` | house rule | refuses | A worker who says it waits on the manager has sent the manager a message. |

@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.182
+Affects: every crew that runs Muster's own profile (PINR: unchanged, the two new rules are off there).
+one-message-once (item 132): each piece of news reaches each chat once. A builder's or designer's READY sent to the manager's chat is refused with the way to the inspector, who copies the manager with its verdict; a PASS or FAIL sent by anyone but an inspector or the manager (a relay) is refused. A READY card no longer needs a message to the manager. House rules ready-to-inspector and verdict-from-inspector, both copies, listed on docs/checks.md.
+
 ## 0.3.181
 Affects: every project that runs Muster's checks (PINR included: its manager's ANSWER about a thing the founder asked to be told now passes once).
 told-when-asked (item 128): when the owner types "tell me when X" (or "let me know when", "ping me when"), the manager's later reply titled ANSWER about X passes the no-news and manager-says checks once, on any turn. A request with no key word, an ANSWER about something else, an untitled reply and a second reply for the same request stay refused.

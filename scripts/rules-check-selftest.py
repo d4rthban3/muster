@@ -205,7 +205,7 @@ cases = [
     ("a refused send does not use up its ID", send(good, tr("You are Builder A_Muster_002, agents/builder.md", [use("SendMessage", "s1", message=good), res("s1", "Muster rule: this report is wrong", True)])), False),
     ("a send that failed in the app does not use up its ID", send(good, tr("You are Builder A_Muster_002, agents/builder.md", [use("SendMessage", "s1", message=good), res("s1", "could not deliver", True)])), False),
     ("two parallel sends with different IDs both go through", send(good.replace("x-1", "x-2").replace("builder-x-1", "builder-x-2"), tr("You are Builder A_Muster_002, agents/builder.md", [use("SendMessage", "s1", message=good), use("SendMessage", "s2", message=good.replace("builder-x-1", "builder-x-2"))])), False),
-    ("a PASS copy to the manager as a message goes through (item 65)", send(good.replace("READY", "PASS").replace("Usage: n", "") .replace("\n\n", "\n").strip(), b, "Manager_Muster_002"), False),
+    ("a PASS copy to the manager as a message goes through (item 65)", send(good.replace("READY", "PASS").replace("Usage: n", "") .replace("\n\n", "\n").strip(), tr("You are Inspector_Muster_002, agents/inspector.md"), "Manager_Muster_002"), False),
     ("the owner's own chat is never touched", send("noted", owner), False),
     ("a worker cannot write the owner's list", run("PreToolUse", tool_name="Write", tool_input={"file_path": "/p/muster/OWNERS-LIST.md"}, transcript_path=b), True),
     ("the manager can write the owner's list", run("PreToolUse", tool_name="Write", tool_input={"file_path": "/p/muster/OWNERS-LIST.md"}, transcript_path=m), False),
@@ -241,7 +241,7 @@ cases = [
     ("item 123: 'Working:' with no job named is refused", run("Stop", last_assistant_message="Working: shipped all of it, PASS", transcript_path=tr("You are Manager_Muster_002", [said("<cross-session-message from=\"b\">PASS: x [ID b-9]</cross-session-message>")])), True),
     ("item 97: his own question may be answered with the news he asked for", run("Stop", last_assistant_message="It is shipped: 0.3.80 is live.", transcript_path=tr("You are Manager_Muster_002", [said("is it shipped yet?")])), False),
     ("item 97: the same report to the same chat unchanged is refused", run("PreToolUse", tool_name="SendMessage", tool_input={"to": "Inspector_Muster_002", "message": good.replace("x-1", "x-2")}, transcript_path=tr("You are Builder A_Muster_002, agents/builder.md", [use("SendMessage", "s1", to="Inspector_Muster_002", message=good), res("s1")])), True),
-    ("item 97: the same report to the manager as a copy goes through", run("PreToolUse", tool_name="SendMessage", tool_input={"to": "Manager_Muster_002", "message": good.replace("x-1", "x-2")}, transcript_path=tr("You are Builder A_Muster_002, agents/builder.md", [use("SendMessage", "s1", to="Inspector_Muster_002", message=good), res("s1")])), False),
+    ("item 97: the same report to another chat as a copy goes through", run("PreToolUse", tool_name="SendMessage", tool_input={"to": "Designer_Muster_002", "message": good.replace("x-1", "x-2")}, transcript_path=tr("You are Builder A_Muster_002, agents/builder.md", [use("SendMessage", "s1", to="Inspector_Muster_002", message=good), res("s1")])), False),
     ("item 97: a changed report to the same chat goes through", run("PreToolUse", tool_name="SendMessage", tool_input={"to": "Inspector_Muster_002", "message": good.replace("x-1", "x-2").replace("a\n", "a changed\n", 1)}, transcript_path=tr("You are Builder A_Muster_002, agents/builder.md", [use("SendMessage", "s1", to="Inspector_Muster_002", message=good), res("s1")])), False),
     ('item 105: a worker over 300000 tokens is no longer told to renew (it compacts in place)', run("Stop", last_assistant_message="**WORKING \u00b7 x**\n- a\n- b", transcript_path=tr("You are Builder A_Muster_002, agents/builder.md", [big(350000)])), False),
     ('item 105: a manager over 300000 tokens is not told to hand over by size', run("Stop", last_assistant_message="**ASK \u00b7 q**\nWhich first?\n\n***A.*** a *(my pick)* reason\n\n***B.*** b", transcript_path=tr("You are Manager_Muster_002", [big(350000)])), False),
@@ -301,8 +301,9 @@ cases = [
     ("rust-first 1: an answered card names the recorder by its full path, wherever the program runs from", "" if os.path.normpath(os.path.join(HERE, "record-choice.py")) in run("Stop", last_assistant_message="ok", transcript_path=tr("You are Manager_Muster_002", [use("AskUserQuestion", questions=[])])).replace("\\\\", "\\") else "x", False),
     ("a recorded choice answer passes", run("Stop", last_assistant_message="ok", transcript_path=tr("You are Manager_Muster_002", [use("AskUserQuestion", questions=[]), use("Bash", command="python3 scripts/record-choice.py p 3 --picked A")])), False),
     ("a worker card passes", run("Stop", last_assistant_message="**WORKING · x**\n- a\n- b", transcript_path=b), False),
-    ("REPORT: a READY card with no message to the manager is blocked (item 65)", run("Stop", last_assistant_message="**READY · x**\n- a\n- b", transcript_path=b), True),
-    ("REPORT: a READY card sent only to the inspector is blocked", run("Stop", last_assistant_message="**READY · x**\n- a\n- b", transcript_path=tr("You are Builder A_Muster_002, agents/builder.md", [said("go"), use("SendMessage", "s1", to="Inspector_Muster_002", message="m")])), True),
+    ("REPORT: a READY card with no message to the manager passes (one-message-once: it goes to the inspector)", run("Stop", last_assistant_message="**READY · x**\n- a\n- b", transcript_path=b), False),
+    ("REPORT: a PASS card with no message to the manager is blocked (item 65)", run("Stop", last_assistant_message="**PASS · x**\n- a\n- b", transcript_path=tr("You are Inspector_Muster_002, agents/inspector.md")), True),
+    ("REPORT: a READY card sent only to the inspector passes", run("Stop", last_assistant_message="**READY · x**\n- a\n- b", transcript_path=tr("You are Builder A_Muster_002, agents/builder.md", [said("go"), use("SendMessage", "s1", to="Inspector_Muster_002", message="m")])), False),
     ("REPORT: a READY card after a message to the manager passes", run("Stop", last_assistant_message="**READY · x**\n- a\n- b", transcript_path=tr("You are Builder A_Muster_002, agents/builder.md", [said("go"), use("SendMessage", "s1", to="Manager_Muster_002", message="m")])), False),
     ("REPORT: a READY card after the app's send_message to the manager passes", run("Stop", last_assistant_message="**READY · x**\n- a\n- b", transcript_path=tr("You are Builder A_Muster_002, agents/builder.md", [said("go"), use("mcp__ccd_session_mgmt__send_message", "s1", session_id="Manager_Muster_002", message="m")])), False),
     ("a worker reply that is not a card is a note, not a refusal", run("Stop", last_assistant_message="Done.", transcript_path=b), False),
@@ -311,9 +312,10 @@ cases = [
 ]
 # the message form of the lean rebuild (records): the same cases for the Python copy and the Rust copy, key checks in Rust only
 REC = '{"v":1,"kind":"PASS","id":"inspector-x-1","job":"x","from":"inspector","to":"builder-a","sha":"abcdef1","need":"none"}'
+BI = tr("You are Inspector_Muster_002, agents/inspector.md")  # the sender of a PASS record is an inspector
 def send_rec(msg, to="x", cwd=T):
     env = dict(os.environ); env.pop("MUSTER_MESSAGE_FORM", None)
-    r = subprocess.run([BIN, "rules"] if BIN else [sys.executable, HOOK], input=json.dumps(dict(hook_event_name="PreToolUse", cwd=cwd, tool_name="SendMessage", tool_input={"to": to, "message": msg}, transcript_path=b)), capture_output=True, text=True, env=env)
+    r = subprocess.run([BIN, "rules"] if BIN else [sys.executable, HOOK], input=json.dumps(dict(hook_event_name="PreToolUse", cwd=cwd, tool_name="SendMessage", tool_input={"to": to, "message": msg}, transcript_path=BI)), capture_output=True, text=True, env=env)
     out = r.stdout.strip()
     return "" if out.startswith('{"hookSpecificOutput": {"hookEventName": "PreToolUse", "additionalContext": "Muster note') else out  # a pending note is not an answer
 cases += [
@@ -628,6 +630,32 @@ cases += [
     ("title: no title record at all stays silent", runp("UserPromptSubmit", prompt="do it??", transcript_path=titled(None, "carry on", "do it??")), False),
 ]
 
+
+# one-message-once: a READY goes to the inspector only; a PASS or FAIL comes only from an inspector (house rules, on in Muster by default)
+def _rec(kind, to):
+    return json.dumps({"v": 1, "kind": kind, "id": "x-" + kind.lower() + "-1", "job": "x", "to": to, "need": "pass_or_fail", "note": "n"})
+def _route(first, kind, to, runner=None):
+    out = (runner or run)("PreToolUse", tool_name="SendMessage", tool_input={"to": to, "message": _rec(kind, to)}, transcript_path=tr(first))
+    return "goes to the inspector only" in out or "only an inspector sends PASS or FAIL" in out
+BLD, INS, DSG = "You are Builder A_Muster_002, agents/builder.md", "You are Inspector_Muster_002, agents/inspector.md", "You are Designer_Muster_002, agents/designer.md"
+_once = [
+    ("one-message-once: a builder's READY to the manager is refused", _route(BLD, "READY", "Manager_Muster_002"), True),
+    ("one-message-once: a builder's READY to the inspector goes through", _route(BLD, "READY", "Inspector_Muster_002"), False),
+    ("one-message-once: a designer's READY to the manager is refused", _route(DSG, "READY", "Manager_Muster_002"), True),
+    ("one-message-once: a builder's PASS is refused", _route(BLD, "PASS", "Manager_Muster_002"), True),
+    ("one-message-once: a builder's relayed FAIL is refused", _route(BLD, "FAIL", "Manager_Muster_002"), True),
+    ("one-message-once: a designer's PASS is refused", _route(DSG, "PASS", "Builder_Muster_002"), True),
+    ("one-message-once: an inspector's PASS to the builder goes through", _route(INS, "PASS", "Builder A_Muster_002"), False),
+    ("one-message-once: an inspector's PASS to the manager goes through", _route(INS, "PASS", "Manager_Muster_002"), False),
+    ("one-message-once: a design inspector's FAIL goes through", _route("You are Design Inspector_Muster_002, agents/design-inspector.md", "FAIL", "Manager_Muster_002"), False),
+    ("one-message-once: the manager's own PASS copy goes through", _route(MG, "PASS", "Builder A_Muster_002"), False),
+    ("one-message-once: a builder's NEED to the manager goes through", _route(BLD, "NEED", "Manager_Muster_002"), False),
+    ("one-message-once: a chat whose name is not known is let through", _route("hello there", "PASS", "Manager_Muster_002"), False),
+    ("one-message-once: the refusal says where the news goes", "inspector sends the manager its copy" in run("PreToolUse", tool_name="SendMessage", tool_input={"to": "Manager_Muster_002", "message": _rec("READY", "Manager_Muster_002")}, transcript_path=tr(BLD)), True),
+    ("one-message-once: PINR is not touched (a builder's READY to the manager still goes)", _route("You are Builder A_PINR_002, agents/builder.md", "READY", "Manager_PINR_002", runp), False),
+    ("one-message-once: PINR is not touched (a builder's PASS still goes)", _route("You are Builder A_PINR_002, agents/builder.md", "PASS", "Manager_PINR_002", runp), False),
+    ("one-message-once: PINR still needs a READY card's message to the manager", runp("Stop", last_assistant_message="**READY · x**\n- a\n- b", transcript_path=tr("You are Builder A_PINR_002, agents/builder.md")), True),
+]
 # right-hand part 2 (item 128): an ANSWER and a VIEW are let through; the wording checks become notes (told once, never a refusal); the hard stops stay
 LONG = " ".join("The build is slow because the first step waits for the whole folder, and that step reads every file." for _ in range(12))
 ANS = "**ANSWER \u00b7 slow-build**\n\n" + LONG
@@ -818,6 +846,7 @@ _safe_rs = _re.search(r"pub const SAFETY: \[&str; \d+\] = \[([^\]]*)\]", open(os
 _sp = set(_re.findall(r'"([a-z-]+)"', _safe_py)); _sr = set(_re.findall(r'"([a-z-]+)"', _safe_rs))
 _rcases.append(("right-hand 4: the safety stops in both copies are exactly the page's safety stops", "" if _sp == _sr == {k for k, g in LISTED.items() if g == "safety stop"} else "BAD %s %s" % (sorted(_sp), sorted(_sr)), False))
 _ntemp = {}
+cases += _once
 cases += _rcases
 if os.environ.get("MUSTER_CALLS_OUT"):  # for scripts/rules-apart-diff.py: every call of the rules and board-stop checks, to be replayed under a profile
     json.dump([[("bin" if (BIN and c[0][0] == BIN) else "py"), c[0][1], c[1], {k: v for k, v in (c[2] or os.environ).items() if k.startswith("MUSTER_") or k == "CLAUDE_CONFIG_DIR"}] for c in CALLS], open(os.environ["MUSTER_CALLS_OUT"], "w"))

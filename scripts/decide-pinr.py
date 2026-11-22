@@ -3,8 +3,10 @@
 
 This is Muster's decide.py for PINR's layout. install-checks.py --profile pinr copies it to <project>/manager/decide.py.
 Usage (the same flags PINR's recorder always had, plus --item and --manager):
-  python3 manager/decide.py --title "..." --question "..." --picked "A. Go live" [--body "..."]
-  python3 manager/decide.py --title "..." --question "..." --said "<the founder's whole line>" [--chose "C"] [--body "..."] [--item N]
+  python3 manager/decide.py --title "..." --question "..." --for "<what it is for>" --picked "A. Go live" [--body "..."]
+  python3 manager/decide.py --title "..." --question "..." --for "<what it is for>" --said "<the founder's whole line>" [--chose "C"] [--body "..."] [--item N]
+Every decision carries a For: line (--for, required): one plain sentence on what the decision is meant to achieve. It is written into the entry
+and shown back, to be read to the founder with the decision (PINR rule 12b; Muster right-hand-wording). Decisions already in the log are not touched.
 What it takes as the founder's word:
   --picked          the founder's click, exactly as the app returned it.
   --said "c"        a bare typed letter answering a lettered question; it names that lettered choice (--chose may name its option).
@@ -48,10 +50,13 @@ def main():
     ap.add_argument("--picked", help="the founder's click, exactly as the app returned it")
     ap.add_argument("--said", help="the founder's whole line, word for word")
     ap.add_argument("--chose", help="the choice the founder's line names (with --said)")
+    ap.add_argument("--for", dest="purpose", help="one plain sentence on what the decision is meant to achieve (required)")
     ap.add_argument("--body", default="")
     ap.add_argument("--item", type=int, help="the founder's list item; the founder's whole line must be quoted there")
     ap.add_argument("--manager", default="the manager", help="the manager's chat name, for the entry")
     a = ap.parse_args()
+    if not a.purpose or len(a.purpose.split()) < 3:
+        sys.exit("decide: refused. Add --for \"<one plain sentence on what this decision is meant to achieve>\" (at least three words); ask the founder if you do not know what it is for.")
     if bool(a.picked) == bool(a.said):
         sys.exit("decide: give exactly one of --picked or --said")
     words = a.picked or a.said
@@ -92,12 +97,13 @@ def main():
     nums = [int(n) for n in re.findall(r"^\*\*(\d+)\.", text, re.M)]
     n = (max(nums) if nums else 0) + 1
     day = datetime.date.today().isoformat()
-    body = ((" " + a.body) if a.body else "") + ((" (Recorded as: " + how + ".)") if how else "")
+    body = (" For: " + a.purpose.strip().rstrip(".") + ".") + ((" " + a.body) if a.body else "") + ((" (Recorded as: " + how + ".)") if how else "")
     entry = '\n\n**%d. %s (founder, %s: "%s", to %s\'s question %s).**%s\n' % (
         n, a.title.rstrip("."), day, words, a.manager, a.question, body)
     with open(LOG, "a", encoding="utf-8") as fh:
         fh.write(entry)
     print(n)
+    sys.stderr.write("For: %s (read this back to the founder with the decision)\n" % a.purpose.strip())
 
 
 if __name__ == "__main__":

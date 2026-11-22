@@ -3,6 +3,7 @@
 and that Muster's own behaviour does not change without a profile. Prints 'N of M passed'; exit 1 on any miss.
 Writes only in a temporary folder. Standard library only."""
 import json
+import re
 import os
 import shutil
 import subprocess
@@ -414,7 +415,7 @@ ic(RP, "--profile", "pinr")
 ic(RP, "--profile", "pinr")
 DP = os.path.join(RP, "manager", "decide.py")
 add("item 86: install put the PINR recorder in place, kept PINR's own once", "" if "for PINR's layout" in open(DP).read() and open(os.path.join(RP, ".muster-checks", "recorder.before")).read() == OLD else "BAD", False)
-dec = lambda *a: subprocess.run([PY, DP, "--title", "T", "--question", "Q?", *a], capture_output=True, text=True)
+dec = lambda *a: subprocess.run([PY, DP, "--title", "T", "--question", "Q?", "--for", "so the site reads right for the founder", *a], capture_output=True, text=True)
 r = dec("--said", "b", "--chose", "B. blue")
 add("item 86: his bare typed letter is recorded", "" if r.returncode == 0 and r.stdout.strip() == "720" else "BAD " + r.stderr, False)
 r = dec("--said", "whatever muster manager tells you to do.", "--item", "1")
@@ -425,7 +426,21 @@ add("item 86: a line that does not name the choice is refused", "" if dec("--sai
 add("item 86: a handover line that also hedges is refused", "" if dec("--said", "whatever muster manager tells you to do or maybe not").returncode == 1 else "BAD", False)
 r = dec("--said", "make the header blue", "--chose", "blue")
 add("item 86: a whole clear line naming the choice is recorded", "" if r.returncode == 0 else "BAD " + r.stderr, False)
-import re
+# right-hand 5c: PINR's recorder takes a For: line, writes it in the entry, shows it back, and refuses a decision without one
+_before = open(RLOG).read()
+_n0 = len(re.findall(r"^\*\*\d+\.", _before, re.M))
+r = subprocess.run([PY, DP, "--title", "Fit", "--question", "Q?", "--for", "so every page loads fast for visitors", "--said", "go with blue", "--chose", "blue"], capture_output=True, text=True)
+_after = open(RLOG).read()
+_entry = _after[len(_before):]
+add("right-hand 5c: a decision with a For: line is recorded and the entry shows it", "" if r.returncode == 0 and "For: so every page loads fast for visitors." in _entry else "BAD " + r.stderr + _entry, False)
+add("right-hand 5c: ...and the For: line is shown back to read to the founder", "" if "For: so every page loads fast for visitors" in r.stderr and "founder" in r.stderr else "BAD " + r.stderr, False)
+add("right-hand 5c: decisions already in the log are untouched", "" if _after.startswith(_before) and _before.split("\n\n")[1].startswith("**719. Old") else "BAD", False)
+_log2 = open(RLOG).read()
+r = subprocess.run([PY, DP, "--title", "NoFor", "--question", "Q?", "--said", "go with blue", "--chose", "blue"], capture_output=True, text=True)
+add("right-hand 5c: a decision with no For: line is refused, saying what to add, and nothing is written", "" if r.returncode == 1 and "--for" in r.stderr and open(RLOG).read() == _log2 else "BAD " + r.stderr, False)
+r = subprocess.run([PY, DP, "--title", "Short", "--question", "Q?", "--for", "speed", "--said", "go with blue", "--chose", "blue"], capture_output=True, text=True)
+add("right-hand 5c: a For: line of one word is refused", "" if r.returncode == 1 and open(RLOG).read() == _log2 else "BAD " + r.stderr, False)
+add("right-hand 5c: the refusal says 'the founder', never he, him or his", "" if not re.search(r"\b(he|him|his)\b", r.stderr, re.I) else "BAD " + r.stderr, False)
 _rec = [l for l in open(RLOG).read().splitlines() if "Recorded as:" in l]
 add("PINR rule 21: every recorded line says 'the founder', never he, him or his", "" if _rec and all("the founder" in l and not re.search(r"\b(he|him|his)\b", l.split("Recorded as:")[1], re.I) for l in _rec) else "BAD " + str(_rec[-2:]), False)
 add("PINR rule 21: decide's own help text never says he, him or his", "" if not re.search(r"\b(he|him|his)\b", subprocess.run([PY, DP, "--help"], capture_output=True, text=True).stdout, re.I) else "BAD", False)
@@ -461,13 +476,13 @@ seen = subprocess.run([PY, os.path.join(LC, "rules-check.py")], input="{}", capt
 add("item 90: a change in the Muster folder reaches the project with no re-install", "" if "LIVE-CHANGE-SEEN" in seen else "BAD " + seen[:200], False)
 open(rcp, "w", encoding="utf-8", newline="").write(src)
 # the recorder stand-in records under the project's own log
-rd = subprocess.run([PY, os.path.join(LP, "manager", "decide.py"), "--title", "T", "--question", "Q?", "--said", "b", "--chose", "B"], capture_output=True, text=True)
+rd = subprocess.run([PY, os.path.join(LP, "manager", "decide.py"), "--title", "T", "--question", "Q?", "--for", "so the site reads right for the founder", "--said", "b", "--chose", "B"], capture_output=True, text=True)
 add("item 90: the recorder stand-in records in the project's own log", "" if rd.returncode == 0 and rd.stdout.strip() == "6" else "BAD " + rd.stdout + rd.stderr, False)
 # a missing Muster folder is said plainly, never silently
 shutil.move(LM, LM + ".gone")
 miss = subprocess.run([PY, os.path.join(LC, "rules-check.py")], input="{}", capture_output=True, text=True, env=dict(ENV, CLAUDE_PROJECT_DIR=LP))
 add("item 90: a missing Muster folder is said plainly by a hook and lets the turn go on", "" if miss.returncode == 0 and LM in json.loads(miss.stdout).get("systemMessage", "") and "decision" not in json.loads(miss.stdout) else "BAD " + miss.stdout, False)
-missr = subprocess.run([PY, os.path.join(LP, "manager", "decide.py"), "--title", "T", "--question", "Q?", "--said", "b", "--chose", "B"], capture_output=True, text=True)
+missr = subprocess.run([PY, os.path.join(LP, "manager", "decide.py"), "--title", "T", "--question", "Q?", "--for", "so the site reads right for the founder", "--said", "b", "--chose", "B"], capture_output=True, text=True)
 add("item 90: ...and a recorder stops with the same plain message", "" if missr.returncode == 1 and LM in missr.stderr else "BAD " + missr.stderr, False)
 shutil.move(LM + ".gone", LM)
 icl(LP)

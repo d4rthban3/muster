@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.172
+Affects: PINR's manager (the recorder stand-in).
+pinr-recorder-for-line: PINR's recorder stand-in takes a required --for line, writes it as "For: ..." in the log entry and shows it back to read to the founder; a decision with no For: line is refused with a plain message saying what to add. Old log entries are untouched. Nothing else in PINR's settings changes. Install step (Manager_PINR): python3 scripts/install-checks.py --profile pinr
+
 ## 0.3.171
 Affects: the manager, the inspectors and every new project (the vision page).
 right-hand-vision (parts 6 and 7 of the right-hand page, item 128): setup makes an empty muster/VISION.md (its words are the owner's); the order skill adds a Serves: line and the inspector reads the real result against it; the Inspector and Design Inspector judge the real, running thing and hold it against the vision page; the manager does a weekly vision look and orders plain faults fixed at once. The check that holds an order in a turn the owner's question started lets through an order that cites a decision number in the log or a Serves: line with a vision page; Python and program alike.

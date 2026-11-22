@@ -1,0 +1,17 @@
+{
+  "version": "0.3.172",
+  "changed_files": [
+    "scripts/decide-pinr.py",
+    "scripts/profile-selftest.py",
+    "directory/",
+    "CHANGELOG.md"
+  ],
+  "affected_roles": [
+    "Manager"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "pinr-recorder-for-line: PINR's recorder stand-in (scripts/decide-pinr.py, installed as manager/decide.py through profiles/pinr.json) takes a required --for line (one plain sentence, at least three words), writes it as 'For: ...' in the log entry and shows it back to read to the founder; a decision with no For: line is refused with a plain message saying what to add and nothing is written. Entries already in PINR's log are untouched. Reaches PINR by the usual install step, run by Manager_PINR."
+}

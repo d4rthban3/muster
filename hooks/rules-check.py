@@ -433,7 +433,7 @@ LETTER_ANSWER = re.compile(r"^\s*\(?([A-Da-d])\)?[.:!]*\s*$")
 LETTERED = re.compile(r"^\s*\*{2,3}[A-D]\.\*{2,3}", re.M)
 
 
-LETTER_LINE = re.compile(r"^\s*(?:\*{1,3}|_)?\(?([A-D])[.)]\*{0,3}\s", re.M)
+LETTER_LINE = re.compile(r"^\s*(?:[-+*]\s+)?(?:\*{1,3}|_)?\(?([A-D])[.)]\*{0,3}\s", re.M)  # a list marker before the letter counts as a letter line, and never a good one
 GOOD_LETTER_LINE = re.compile(r"^\s*\*\*\*[A-D]\.\*\*\*\s")
 
 
@@ -1645,7 +1645,7 @@ def stop(data, manager):
                 if block("record-answer", "a choice card was answered but not recorded: run %s with his exact answer%s under its list item before ending the turn" % (recorder_path(main_folder(data.get("cwd"))), " (or --no-pick if he skipped the card or typed his own words)" if RECORDER == "record-choice.py" else "")): return
             return
         if letters_not_bold_italic(text):
-            note_add(data.get("transcript_path") or "", "note-letters", "write each choice letter bold and italic, like ***A.*** red, one line per choice with a blank line between (item 80)")
+            note_add(data.get("transcript_path") or "", "note-letters", "write each choice letter bold and italic, like ***A.*** red, one line per choice, starting with the letter (no bullet), with a blank line between (item 80)")
         if len(re.findall(r"^\*\*\*[A-D]\.\*\*\*", text, re.M)) >= 2 and not re.search(r"\bmy pick\b", text, re.I):
             if block("pick-marked", "every lettered question carries your pick: mark one choice *(my pick)* and give a one-line reason, looks included; a pick is advice only and nothing is ordered until he answers (item 100)"): return
         if len(re.findall(r"^\*\*\*[A-D]\.\*\*\*", text, re.M)) >= 2 and not title_above_choices(text):

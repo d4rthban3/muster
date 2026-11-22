@@ -746,6 +746,13 @@ for _rid, _first, _extra, _text, _phrase in (("note-letters", MG, [said("hi")], 
     _rcases.append(("right-hand 4: the note '%s' is kept by default" % _rid, "" if _phrase in _note_after(RUN_ENV, _first, _extra, _text) else "BAD", False))
     _rcases.append(("right-hand 4: ...and never kept with its switch off (%s)" % _rid, "" if _note_after(_off_env(_rid), _first, _extra, _text) == "" else "BAD", False))
     _rcases.append(("right-hand 4: ...a different switch off keeps it (%s)" % _rid, "" if _phrase in _note_after(_off_env("no-thanks"), _first, _extra, _text) else "BAD", False))
+# right-hand choice-bullet-note: a letter written inside a list line is noted; bare letter lines are not
+BULLETED = "**ASK \u00b7 q**\nWhich first?\n\n- ***A.*** ship the fix *(my pick)* because it is small\n- ***B.*** wait"
+BARELETTERS = "**ASK \u00b7 q**\nWhich first?\n\n***A.*** ship the fix *(my pick)* because it is small\n\n***B.*** wait"
+_rcases.append(("choice-bullet-note: Manager_PINR's reply shape (letters in list lines) gets the note", "" if "no bullet" in _note_after(RUN_ENV, MG, [said("hi")], BULLETED) else "BAD", False))
+_rcases.append(("choice-bullet-note: star bullets and plain letters in a list get it too", "" if "no bullet" in _note_after(RUN_ENV, MG, [said("hi")], "Which?\n\n* **A.** red\n* **B.** blue") else "BAD", False))
+_rcases.append(("choice-bullet-note: bare bold-italic letter lines get no note", "" if "no bullet" not in _note_after(RUN_ENV, MG, [said("hi")], BARELETTERS) else "BAD", False))
+_rcases.append(("choice-bullet-note: one bulleted line alone (not a choice) gets none", "" if _note_after(RUN_ENV, MG, [said("hi")], "Done.\n\n- A. one thing") == "" or "no bullet" not in _note_after(RUN_ENV, MG, [said("hi")], "Done.\n\n- A. one thing") else "BAD", False))
 # talk-note: the owner's reply with a bare path
 TALKCMD = [BIN, "talk"] if BIN else [sys.executable, os.path.join(HERE, "..", "hooks", "talk-check.py")]
 def _talk(env):

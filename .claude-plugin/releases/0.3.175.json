@@ -1,0 +1,22 @@
+{
+  "version": "0.3.175",
+  "changed_files": [
+    "hooks/rules-check.py",
+    "scripts/rules-check-selftest.py",
+    "checks/src/",
+    "bin/",
+    "directory/",
+    "CHANGELOG.md"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Builder",
+    "Designer",
+    "Inspector"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "choice-bullet-note (item 128): the note about choice letters (note-letters) also fires when the letters are written inside list lines (- ***A.*** ...), and says to start each choice line with the letter, no bullet, one blank line between. A note, not a refusal. Bare letter lines get none. Both copies."
+}

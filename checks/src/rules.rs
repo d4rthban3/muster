@@ -861,7 +861,7 @@ fn stop(c: &Ctx, data: &Value, manager: bool) {
             return;
         }
         if letters_not_bold_italic(text) {
-            note_add(tpath, "note-letters", "write each choice letter bold and italic, like ***A.*** red, one line per choice with a blank line between (item 80)");
+            note_add(tpath, "note-letters", "write each choice letter bold and italic, like ***A.*** red, one line per choice, starting with the letter (no bullet), with a blank line between (item 80)");
         }
         if is(&rei(r"\btype (?:it |your \w+ |anything )?in (?:the |that |this )?[\w .-]*\b(?:chat|window)\b"), text) {
             if block("no-send-owner", "never send the owner to type in a worker's chat (item 103): carrying his approval is your job; forward his quoted go to the worker that asked, by message, and say nothing to him") { return; }

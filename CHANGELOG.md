@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.175
+Affects: every project that runs Muster's checks (PINR included; a reply with choices in list lines now gets a note, never a refusal).
+choice-bullet-note (item 128): the note-letters note also fires when choice letters are written inside list lines (- ***A.*** ...), and says to start each choice line with the letter, no bullet, one blank line between. Bare letter lines get no note. Both copies.
+
 ## 0.3.174
 Affects: everyone who sees a question card (PINR's manager included).
 choice-bullet-lines (item 128): a lettered choice written as a list line ("- ***A.*** ...", "* ", "+ ", a bullet dot, "1. ", "2) ", or an indent) is drawn in the choice design exactly like a bare letter line; the list mark is dropped and a click fills the box with the same words without it. News bullets before the choices stay plain. A bare letter line is unchanged.

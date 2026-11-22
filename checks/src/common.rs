@@ -352,7 +352,7 @@ pub fn typed_letter_answer(path: &str) -> Option<String> {
 
 /// True when the reply writes two or more lettered choice lines and any of them is not ***A.*** (bold and italic) (item 80).
 pub fn letters_not_bold_italic(text: &str) -> bool {
-    let any = re(r"^\s*(?:\*{1,3}|_)?\(?[A-D][.)]\*{0,3}\s");
+    let any = re(r"^\s*(?:[-+*]\s+)?(?:\*{1,3}|_)?\(?[A-D][.)]\*{0,3}\s"); // a list marker before the letter counts, and is never good
     let good = re(r"^\s*\*\*\*[A-D]\.\*\*\*\s");
     let lines: Vec<&str> = text.lines().filter(|l| is(&any, l)).collect();
     lines.len() >= 2 && lines.iter().any(|l| !is(&good, l))

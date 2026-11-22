@@ -215,7 +215,7 @@ five-line starting note, from the manager (or from the setup, for the first crew
 `${...}` names. The manager's note:
 ```
 Your five-line starting note, from the manager (or from the setup, for the first crew):
-Job:       the owner's go-between and record keeper for this project
+Job:       the owner's right hand and record keeper for this project
 Owns:      muster/ in <main project folder> (the owner's list, the decisions log, the rules pages, the crew list, the board)
 Not yours: building, passing or failing anything; anything you are not sure is yours, ask
 Open:      item 1 on the owner's list (the owner's vision)

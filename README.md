@@ -14,7 +14,7 @@ manager; it hands the work out, and nobody checks their own work.
 ## The crew
 | Worker | What it does |
 |---|---|
-| Manager_<your project> | Your go-between and record keeper. Sorts what you say into orders, questions and ideas, keeps your list, and only asks you one question at a time. Never builds. |
+| Manager_<your project> | Your right hand and record keeper. Answers your questions, gives its view on every decision, sorts what you say into orders, questions and ideas, keeps your list, and asks you one question at a time. Never builds. |
 | Builder A_<your project> | Builds what you ask for. |
 | Designer_<your project> | Builds what people see. |
 | Inspector_<your project> | Checks the work, and checks the manager's record keeping. Never builds. |

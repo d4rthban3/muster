@@ -1,0 +1,28 @@
+{
+  "version": "0.3.176",
+  "changed_files": [
+    "README.md",
+    "setup/index.html",
+    "cursor/rules/",
+    "templates/",
+    "commands/setup.md",
+    "pages/shared.md",
+    "agents/",
+    "MUSTER-LITE.md",
+    "docs/index.html",
+    "docs/lite/",
+    "directory/",
+    "CHANGELOG.md"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Builder",
+    "Designer",
+    "Inspector"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "right-hand-wording-rest (item 128, picked A): the pages outside a crew's loaded files say the manager is the owner's right hand, not a go-between, and no longer say the owner's words are taken literally: README, setup page, Cursor manager and core rules, CREW.md and PROTOCOL.md and COMPUTER2-START.md templates, setup command, the workers' shared line, and Muster Lite (pages and both downloads, rebuilt by script). Cursor manager rule and CREW.md carry the For: line wording. Words only; no check changes."
+}

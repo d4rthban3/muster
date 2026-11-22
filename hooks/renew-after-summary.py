@@ -120,8 +120,7 @@ def main():
     else:
         is_manager = bool(re.search(r"You are (?:the )?Manager_", first)) or any(re.search(r"You are (?:the )?(?:%s)" % x, first) for x in PROFILE_MANAGER)
     # D-039 (item 105): chats compact in place; nobody renews because of a summary or a size
-    msg = ("Muster: your conversation was just compacted in place (D-039); carry on, no renewal. Your open job, branch and saved version were written "
-           "to the board just before it. Re-read your rules page (muster/rules/<your role>.md) and the board entries addressed to you.")
+    msg = "Muster: compacted in place (D-039); carry on, no renewal. Re-read muster/rules/<your role>.md and your board entries."
     print(msg)
     try:  # the talking rules fade in a long or summarized chat: put them back, once per summary
         with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "talk-block.txt"), encoding="utf-8") as fh:

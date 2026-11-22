@@ -1,6 +1,6 @@
 ---
 name: held-work
-description: Keep held work off the shared main line and check what else is waiting before any push. Use whenever work is finished but must not go out yet, and before every push or deploy. Prevents held commits riding out on another chat's push.
+description: Keep held work off the shared main line; check what else is waiting before any push or deploy.
 ---
 
 # held-work

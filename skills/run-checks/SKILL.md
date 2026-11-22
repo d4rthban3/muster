@@ -1,6 +1,6 @@
 ---
 name: run-checks
-description: Run the project's test commands and report the real result. Use when asked to "run the checks" or "run the tests", to confirm a change did not break anything, or before posting READY. It reads the printed counts and result lines itself, because an exit code alone can say "fine" when a test failed.
+description: Run the project's tests and report the real result from the printed counts; use before READY.
 ---
 
 # run-checks

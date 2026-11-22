@@ -42,7 +42,7 @@ pub fn renew() -> i32 {
     let Some(c) = crew(&load_profile()) else { return 0 };
     let first = crew_first(&c, s(&data, "transcript_path"));
     if !(is(&c.role, &first) || is(&c.name, &first) || c.profile.iter().any(|p| is(p, &first))) { return 0; } // not a crew chat
-    say("Muster: your conversation was just compacted in place (D-039); carry on, no renewal. Your open job, branch and saved version were written to the board just before it. Re-read your rules page (muster/rules/<your role>.md) and the board entries addressed to you.");
+    say("Muster: compacted in place (D-039); carry on, no renewal. Re-read muster/rules/<your role>.md and your board entries.");
     let mut cands: Vec<PathBuf> = script_roots().into_iter().map(|r| r.join("hooks").join("talk-block.txt")).collect();
     cands.insert(0, exe_dir().join("talk-block.txt"));
     for cand in cands {

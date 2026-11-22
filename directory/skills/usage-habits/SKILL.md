@@ -1,6 +1,6 @@
 ---
 name: usage-habits
-description: Keep a chat's usage low without losing required work. Use at the start of a session, before reading a big file, before taking screenshots, before a long run of tool calls, and when a chat has run long or a stage just finished. Says what to read in part, what to batch, when to hand over to a fresh chat, and what is never skipped.
+description: Keep a chat's usage low; use at session start, before a big read or a long run.
 ---
 
 # usage-habits

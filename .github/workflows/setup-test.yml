@@ -29,6 +29,8 @@ jobs:
           fi
       - name: Each worker's one page is current and short (build-pages.py)
         run: python3 scripts/build-pages.py --check
+      - name: Muster's own start and compaction text stays within its budget (item 132)
+        run: python3 scripts/start-weight.py
       - name: The directory edition is current and holds only allowed files (build-directory.py)
         run: |
           python3 scripts/build-directory.py --check

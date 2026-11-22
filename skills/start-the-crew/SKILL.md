@@ -1,6 +1,6 @@
 ---
 name: start-the-crew
-description: How the manager (or the setup) starts, replaces and archives the crew's chats. Use at setup, when adding a worker, and when three workers build so a second inspector is needed.
+description: How the manager (or setup) starts, replaces and archives the crew's chats.
 ---
 
 # start-the-crew

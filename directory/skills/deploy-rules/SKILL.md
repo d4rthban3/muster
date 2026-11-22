@@ -1,6 +1,6 @@
 ---
 name: deploy-rules
-description: How a builder or designer deploys its own work safely. Use before any deploy or release step. Front-end/site work may be merged and deployed by its own builder after a dry run; engine, data or back-end changes never are. Covers the lock, the dry run, and deploying from a fresh clone.
+description: How a builder or designer deploys its own work safely; use before any deploy or release.
 ---
 
 # deploy-rules

@@ -1,6 +1,6 @@
 ---
 name: manager-details
-description: The manager's full standing rules, section by section (welcome card, sorting, orders, the owner's list, the board, talking to the owner, what the manager decides alone, rules pages, starting and replacing chats, speed). Read the section you need; the short Manager checklist in the manager's definition points here.
+description: The manager's full standing rules, section by section; read the section you need.
 ---
 
 # manager-details

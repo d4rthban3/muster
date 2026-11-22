@@ -1,6 +1,6 @@
 ---
 name: spend-diligence
-description: Be diligent and efficient with paid spend and model usage. Use before any paid API call, paid test, long agent run, or repeat check, and when planning work that could be done cheaper.
+description: Be frugal with paid spend and usage; use before any paid call or long agent run.
 ---
 
 # spend-diligence

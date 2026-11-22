@@ -1,6 +1,6 @@
 ---
 name: one-order-per-piece
-description: How the manager writes orders. Use whenever the manager hands work to a worker. One order per finished piece of work, with a job name every report repeats, and only what the owner chose.
+description: How the manager writes orders: one per finished piece, a job name each report repeats.
 ---
 
 # one-order-per-piece

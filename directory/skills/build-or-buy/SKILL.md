@@ -1,6 +1,6 @@
 ---
 name: build-or-buy
-description: Before building any new reader, parser, integration, job or other plumbing, check once whether a free ready-made library or service already does it, and record the choice on one page. Use as a standing step whenever a chat is about to build NEW plumbing (not the project's own core logic). Time-boxed and free-first; checking never blocks the schedule.
+description: Before building new plumbing, check once for a free ready-made library or service.
 ---
 
 # build-or-buy

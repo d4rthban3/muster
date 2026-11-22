@@ -1,6 +1,6 @@
 ---
 name: ready-checks
-description: The two checks a builder or the designer runs before sending READY, and the READY report itself. Use when finishing a piece of work, before sending READY, and when an inspector decides whether a READY is complete.
+description: The two checks before READY, and the READY report; use when finishing work or judging a READY.
 ---
 
 # ready-checks

@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.183
+Affects: every chat that loads Muster (PINR chats too: the plugin's pages and descriptions are shared; PINR's profile is untouched).
+start-weight-lower (item 132): what Muster itself adds to a chat's start is about a third lighter: the manager's page and a worker's page say each rule once in fewer words (the message keys live in muster/REPORT.md), the skills' and agents' descriptions are shorter, and the text printed after a compaction is a third shorter. scripts/start-weight.py checks the budget in CI.
+
 ## 0.3.182
 Affects: every crew that runs Muster's own profile (PINR: unchanged, the two new rules are off there).
 one-message-once (item 132): each piece of news reaches each chat once. A builder's or designer's READY sent to the manager's chat is refused with the way to the inspector, who copies the manager with its verdict; a PASS or FAIL sent by anyone but an inspector or the manager (a relay) is refused. A READY card no longer needs a message to the manager. House rules ready-to-inspector and verdict-from-inspector, both copies, listed on docs/checks.md.

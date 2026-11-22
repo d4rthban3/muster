@@ -1,6 +1,6 @@
 ---
 name: decision-log
-description: Record or look up a numbered owner decision, and keep each worker's rules page in step. Use when the owner states a rule, picks between choices, or changes an earlier decision.
+description: Record or look up a numbered owner decision; keep each rules page in step when a rule or decision changes.
 ---
 
 # decision-log

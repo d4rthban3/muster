@@ -8,6 +8,7 @@ One line per test command: `<folder> | <command> | <expected count>`.
 . | bash scripts/version-check.sh | ok
 . | python3 scripts/rules-check-selftest.py (also with MUSTER_CHECKS_BIN set to the built program) | all pass
 . | python3 scripts/profile-selftest.py | all pass
+. | python3 scripts/start-weight.py | every line ok (Muster's own text at start and after a compaction within its budget)
 . | python3 scripts/idle-check-selftest.py | all pass
 . | python3 scripts/worker-queue-check-selftest.py | all pass
 checks | cargo test | all pass

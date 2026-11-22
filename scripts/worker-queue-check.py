@@ -30,6 +30,19 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 
 NOREPEAT = " Your reply already reached the owner: do not write it again. Do what this asks, then end with at most one new line, or nothing."
 
+def say_block(rid, reason):
+    """A house rule (docs/checks.md): refuse, naming the rule and whose it is, unless this project's profile has switched it off
+    ("house_rules": {"%s": false}); then say nothing."""
+    sw = PROFILE.get("house_rules")
+    if isinstance(sw, dict) and rid in sw and not sw[rid]:
+        return
+    if reason.endswith(NOREPEAT):
+        reason = reason[:-len(NOREPEAT)] + " [house rule \"%s\" of Muster; a project's profile can switch it off]" % rid + NOREPEAT
+    else:
+        reason += " [house rule \"%s\" of Muster; a project's profile can switch it off]" % rid
+    print(json.dumps({"decision": "block", "reason": reason}))
+
+
 
 def load_profile():
     for cand in (os.environ.get("MUSTER_PROFILE"), os.path.join(HERE, "profile.json")):
@@ -308,7 +321,7 @@ def main_lines(argv, cwd):
         return 0
     why = waiting_unreported(data)
     if why:
-        print(json.dumps({"decision": "block", "reason": why + NOREPEAT}))
+        say_block("queue-waiting", why + NOREPEAT)
         return 0
     if not work:
         return 0
@@ -316,9 +329,9 @@ def main_lines(argv, cwd):
     missing = [l for l, keys in work if not any(k.lower() in msg for k in keys)]
     if not missing:
         return 0
-    print(json.dumps({"decision": "block", "reason":
+    say_block("queue-idle",
         "Do not go idle: open work is addressed to you (%s). Do it now, or if you are waiting, say in your reply what you are "
-        "waiting for and name who gave it. If it is not yours, tell the manager." % "; ".join(missing) + NOREPEAT}))
+        "waiting for and name who gave it. If it is not yours, tell the manager." % "; ".join(missing) + NOREPEAT)
     return 0
 
 
@@ -348,7 +361,7 @@ def main(argv):
         return 0
     why = waiting_unreported(data)
     if why:
-        print(json.dumps({"decision": "block", "reason": why + NOREPEAT}))
+        say_block("queue-waiting", why + NOREPEAT)
         return 0
     if not work:
         return 0
@@ -356,9 +369,9 @@ def main(argv):
     missing = [l for l, k in work if k.lower() not in msg]
     if not missing:
         return 0
-    print(json.dumps({"decision": "block", "reason":
+    say_block("queue-idle",
         "Do not go idle: open work is addressed to you (%s). Do it now (the next piece), or if you are waiting, say in your reply "
-        "what you are waiting for and name the job. If it is not yours, send the manager one NEED." % "; ".join(missing) + NOREPEAT}))
+        "what you are waiting for and name the job. If it is not yours, send the manager one NEED." % "; ".join(missing) + NOREPEAT)
     return 0
 
 

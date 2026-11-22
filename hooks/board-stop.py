@@ -18,6 +18,19 @@ import sys
 
 NOREPEAT = " Your reply already reached the owner: do not write it again. Do what this asks, then end with at most one new line, or nothing."
 
+def say_block(rid, reason):
+    """A house rule (docs/checks.md): refuse, naming the rule and whose it is, unless this project's profile has switched it off
+    ("house_rules": {"%s": false}); then say nothing."""
+    sw = PROFILE.get("house_rules")
+    if isinstance(sw, dict) and rid in sw and not sw[rid]:
+        return
+    if reason.endswith(NOREPEAT):
+        reason = reason[:-len(NOREPEAT)] + " [house rule \"%s\" of Muster; a project's profile can switch it off]" % rid + NOREPEAT
+    else:
+        reason += " [house rule \"%s\" of Muster; a project's profile can switch it off]" % rid
+    print(json.dumps({"decision": "block", "reason": reason}))
+
+
 
 def load_profile():
     """Optional project profile: profile.json beside this file (or the file named in MUSTER_PROFILE). None means Muster's own rules."""
@@ -331,9 +344,9 @@ def main():
     if not missed and not picks:
         return 0
     if picks and not missed:
-        print(json.dumps({"decision": "block", "reason": "You wrote that you are choosing or recording for the owner, but he "
+        say_block("board-pick-claim", "You wrote that you are choosing or recording for the owner, but he "
                           "has not picked this turn. Do not decide for him: ask him now with lettered lines (***A.*** ...), the option you "
-                          "favour marked \"my pick\", and record nothing until he types a letter." + NOREPEAT}))
+                          "favour marked \"my pick\", and record nothing until he types a letter." + NOREPEAT)
         return 0
     names = "; ".join("%s (%s)" % (e["from"] or "a worker", "paused" if e["paused"] else e["kind"]) for e in missed)
     reason = ("The board holds open items for the owner that you have not told him about: %s. "
@@ -341,7 +354,7 @@ def main():
     if picks:
         reason += (" Also: you wrote that you are choosing or recording for the owner, but he has not picked this turn; "
                    "ask him with lettered lines, the option you favour marked \"my pick\", and record nothing until he types a letter.")
-    print(json.dumps({"decision": "block", "reason": reason + NOREPEAT}))
+    say_block("board-open-items", reason + NOREPEAT)
     return 0
 
 

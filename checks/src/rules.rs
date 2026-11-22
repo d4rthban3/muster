@@ -534,27 +534,27 @@ fn pretool(c: &Ctx, data: &Value, manager: bool) {
     let inp = data.get("tool_input").unwrap_or(&empty);
     let root = main_folder(s(data, "cwd"));
     if let Some(conf) = c.profile.get("guard").filter(|g| g.is_object()) {
-        if let Some(why) = guard_problem(tool, inp, s(data, "cwd"), conf) { return deny(&why); }
+        if let Some(why) = guard_problem(tool, inp, s(data, "cwd"), conf) { if deny("guard", &why) { return; } }
     }
     if manager && playback_turn(s(data, "transcript_path"))
         && (["SendMessage", "Write", "Edit", "NotebookEdit", "Agent", "Task"].contains(&tool) || tool.ends_with("start_session")
-            || (tool == "Bash" && playback_bash(s(inp, "command")))) { return deny(PLAYBACK_WHY); }
+            || (tool == "Bash" && playback_bash(s(inp, "command")))) { if deny("playback", PLAYBACK_WHY) { return; } }
     if tool == "SendMessage" { return send_message(c, data, inp, &root, manager); }
     if tool == "Agent" || tool == "Task" { return helper_problem(inp, manager); }
     if tool.ends_with("start_session") {
         // a started chat's card title is its final name: "Start Engine_PINR_006" would stay (item 69)
         let t = s(inp, "title");
-        if is(&rei(r"^\s*start\s+\S+_\S+?(?:_\d{3})?\s*$"), t) { return deny(&format!("a started chat's card title is its final name: use the worker's full name without a prefix (not \"{t}\")")); }
+        if is(&rei(r"^\s*start\s+\S+_\S+?(?:_\d{3})?\s*$"), t) { if deny("start-title", &format!("a started chat's card title is its final name: use the worker's full name without a prefix (not \"{t}\")")) { return; } }
         return;
     }
     if tool.ends_with("__wrap_up") { // item 119: the app's next-step box is not used; questions go only through Muster's clickable choices
         if !s(inp, "ask").trim().is_empty() || inp.get("actions").map(|a| !a.is_null() && a.as_array().map(|x| !x.is_empty()).unwrap_or(true)).unwrap_or(false) {
-            return deny("no question or buttons in the app's wrap-up call (item 119): leave ask and actions out, so no grey next-step box is drawn; put any question to the owner in the chat as lettered choices (***A.*** ... with a blank line between, your pick marked \"my pick\")");
+            if deny("wrapup-box", "no question or buttons in the app's wrap-up call (item 119): leave ask and actions out, so no grey next-step box is drawn; put any question to the owner in the chat as lettered choices (***A.*** ... with a blank line between, your pick marked \"my pick\")") { return; }
         }
         return;
     }
     if tool == "AskUserQuestion" {
-        if manager { return deny("no choice card (it locks the chat until he answers): write the question in the chat as lettered lines, ***A.*** ... one per line with a blank line between, your pick marked \"my pick\"; he answers by typing a letter. Keep working on anything that does not depend on his answer"); } // item 80, D-037
+        if manager { if deny("choice-card", "no choice card (it locks the chat until he answers): write the question in the chat as lettered lines, ***A.*** ... one per line with a blank line between, your pick marked \"my pick\"; he answers by typing a letter. Keep working on anything that does not depend on his answer") { return; } } // item 80, D-037
         return;
     }
     // item 108, D-027: the Muster files are the only rulebook; no crew chat writes crew rules into its own memory
@@ -564,13 +564,13 @@ fn pretool(c: &Ctx, data: &Value, manager: bool) {
     if matches!(tool, "Write" | "Edit" | "MultiEdit" | "NotebookEdit") {
         let mp = s(inp, "file_path").replace('\\', "/");
         let body = ["content", "new_string", "new_source"].iter().map(|k| s(inp, k)).collect::<Vec<_>>().join(" ");
-        if is(&mem_dir, &mp) && is(&rule_words, &body) { return deny(MEMORY_WHY); }
+        if is(&mem_dir, &mp) && is(&rule_words, &body) { if deny("memory-rules", MEMORY_WHY) { return; } }
     }
     if matches!(tool, "Write" | "Edit" | "NotebookEdit") && !manager {
         let p = s(inp, "file_path").replace('\\', "/");
         if is(&c.protected, &p) {
             let base = p.rsplit('/').next().unwrap_or("");
-            return deny(&format!("only the manager changes the owner's list, decisions, crew list, rules pages and muster/CLAUDE.md ({base})"));
+            if deny("protected-files", &format!("only the manager changes the owner's list, decisions, crew list, rules pages and muster/CLAUDE.md ({base})")) { return; }
         }
     }
     if tool == "Bash" {
@@ -581,14 +581,14 @@ fn pretool(c: &Ctx, data: &Value, manager: bool) {
         for seg in segments(cmd) {
             let Some(mg) = caps(&git, seg) else { continue };
             let args = sub(&quoted, &mg[2], " ");
-            if is(&musterpath, &args) { return deny("nothing under muster/ is ever saved or committed"); }
+            if is(&musterpath, &args) { if deny("muster-not-saved", "nothing under muster/ is ever saved or committed") { return; } }
         }
         let cmd_no_path = sub(&re(r"\S*/\.claude/projects/\S*"), cmd, " ");
         if is(&rule_words, &cmd_no_path) {
             let base = { let cw = s(data, "cwd"); if cw.is_empty() { std::env::current_dir().unwrap_or_default() } else { cw.into() } };
             for tgt in shell_write_targets(cmd) {
                 let full = normalise(&base.join(expand_home(&tgt))).to_string_lossy().replace('\\', "/");
-                if is(&mem_dir, &full) { return deny(MEMORY_WHY); }
+                if is(&mem_dir, &full) { if deny("memory-rules", MEMORY_WHY) { return; } }
             }
         }
         if !manager {
@@ -596,11 +596,11 @@ fn pretool(c: &Ctx, data: &Value, manager: bool) {
                 let base = { let cw = s(data, "cwd"); if cw.is_empty() { std::env::current_dir().unwrap_or_default() } else { cw.into() } };
                 for tgt in shell_write_targets(cmd) {
                     let full = normalise(&base.join(expand_home(&tgt))).to_string_lossy().replace('\\', "/");
-                    if is(pp, &full) { return deny(&format!("only the manager changes this project's manager-only files ({})", full.rsplit('/').next().unwrap_or(""))); }
+                    if is(pp, &full) { if deny("manager-only-files", &format!("only the manager changes this project's manager-only files ({})", full.rsplit('/').next().unwrap_or(""))) { return; } }
                 }
             }
             let redirect = re(r"(>|>>|tee\s+|sed\s+-i\S*\s+(''\s+)?\S*\s*)\s*\S*muster/(OWNERS-LIST|DECISIONS-LOG|CREW|CLAUDE|RULES-PAGE|REPORT)\.md");
-            if is(&redirect, cmd) { return deny("only the manager changes the owner's list, decisions, crew list and muster/CLAUDE.md"); }
+            if is(&redirect, cmd) { if deny("protected-files", "only the manager changes the owner's list, decisions, crew list and muster/CLAUDE.md") { return; } }
         }
     }
 }
@@ -611,13 +611,13 @@ fn helper_problem(inp: &Value, manager: bool) {
     let kind = s(inp, "subagent_type").trim().trim_start_matches("muster:").to_lowercase();
     let roles = ["manager", "builder", "designer", "inspector", "design-inspector", "sketchpad", "ai-socket", "agent-teacher"];
     if roles.contains(&kind.as_str()) && !(manager && kind == "inspector") {
-        return deny(&format!("a helper never stands in for a worker or the Inspector chat ({kind}); use a plain helper for the side job (only the manager's fresh checker for a small piece uses the inspector definition)"));
+        if deny("helper-stand-in", &format!("a helper never stands in for a worker or the Inspector chat ({kind}); use a plain helper for the side job (only the manager's fresh checker for a small piece uses the inspector definition)")) { return; }
     }
     let ask = re(r"(?i)(scripts[/\\]ship\.sh|\bgit\s+push\b|\bSendMessage\b|\bAskUserQuestion\b)");
     let neg = rei(r"\b(never|not|no|without|don't|do not)\b|n't\b");
     for l in s(inp, "prompt").lines() {
         if is(&ask, l) && !is(&neg, l) {
-            return deny("a helper never ships, pushes, messages other chats or talks to the owner; take that out of its brief and do it yourself");
+            if deny("helper-ships", "a helper never ships, pushes, messages other chats or talks to the owner; take that out of its brief and do it yourself") { return; }
         }
     }
 }
@@ -670,38 +670,38 @@ fn question_order_problem(c: &Ctx, manager: bool, root: &str, msg: &str, rec: Op
 
 fn send_message(c: &Ctx, data: &Value, inp: &Value, root: &str, manager: bool) {
     let msg = s(inp, "message");
-    if is(&social_re(), msg) { return deny("no 'noted' or 'thanks' replies; send a message only when someone must act"); }
+    if is(&social_re(), msg) { if deny("no-thanks", "no 'noted' or 'thanks' replies; send a message only when someone must act") { return; } }
     let sent = || all_sent_text(s(data, "transcript_path"));
     if !c.text_form {
         // a data record: one JSON object, fixed keys, set values, no sentences
         let rec0: Value = serde_json::from_str(msg.trim()).unwrap_or(Value::Null);
         let things = project_things(s(data, "cwd"), s(&rec0, "sha")); // the worker's own copy at that sha, not the main folder
-        if let Err(why) = crate::record::validate(msg, &things) { return deny(&format!("a message between chats is a data record (JSON with fixed keys and set values), never sentences, and this one is wrong: {why}")); }
+        if let Err(why) = crate::record::validate(msg, &things) { if deny(if why.contains("never carries a key") { "note-secret" } else { "record-form" }, &format!("a message between chats is a data record (JSON with fixed keys and set values), never sentences, and this one is wrong: {why}")) { return; } }
         let rec: Value = serde_json::from_str(msg.trim()).unwrap_or(Value::Null);
-        if let Some(why) = question_order_problem(c, manager, root, msg, Some(&rec), s(data, "transcript_path")) { return deny(&why); }
+        if let Some(why) = question_order_problem(c, manager, root, msg, Some(&rec), s(data, "transcript_path")) { if deny("question-order", &why) { return; } }
         let (id, kind) = (s(&rec, "id"), s(&rec, "kind"));
-        if sent().iter().any(|t| serde_json::from_str::<Value>(t.trim()).map(|r| s(&r, "id") == id).unwrap_or(false)) { return deny(&format!("this record's id {id} was already sent; a repeat is dropped")); }
-        if kind == "ORDER" { if let Some(why) = goal_problem(root, s(&rec, "job")) { return deny(&why); } }
-        if kind == "ORDER" && usage_at_limit(root) { return deny("the week is at 90% or more (scripts/usage.py exits 3): start no new order; finish and park what is running"); }
-        if dup_report(s(inp, "to"), msg, s(data, "transcript_path")) { return deny(DUP_WHY); }
+        if sent().iter().any(|t| serde_json::from_str::<Value>(t.trim()).map(|r| s(&r, "id") == id).unwrap_or(false)) { if deny("dup-id", &format!("this record's id {id} was already sent; a repeat is dropped")) { return; } }
+        if kind == "ORDER" { if let Some(why) = goal_problem(root, s(&rec, "job")) { if deny("order-goal", &why) { return; } } }
+        if kind == "ORDER" && usage_at_limit(root) { if deny("usage-limit", "the week is at 90% or more (scripts/usage.py exits 3): start no new order; finish and park what is running") { return; } }
+        if dup_report(s(inp, "to"), msg, s(data, "transcript_path")) { if deny("dup-report", DUP_WHY) { return; } }
         return;
     }
-    if let Some(why) = question_order_problem(c, manager, root, msg, None, s(data, "transcript_path")) { return deny(&why); }
+    if let Some(why) = question_order_problem(c, manager, root, msg, None, s(data, "transcript_path")) { if deny("question-order", &why) { return; } }
     if c.orders_free && !is(&re(&format!(r"^\s*{FIRST}\s*:")), msg) { return; }
     let (bad_report, bad_order) = (report_problem(c, msg), order_problem(msg));
     if let (Some(br), Some(bo)) = (&bad_report, &bad_order) {
         let first = msg.trim().lines().next().unwrap_or("");
         if is(&rei(r"^\s*(To|Job)\s*:"), first) || is(&rei(r"(?m)^\s*Job\s*:"), msg) {
-            return deny(&format!("a message between chats is a six-line report or an order, and this order is wrong: {bo}"));
+            if deny("report-shape", &format!("a message between chats is a six-line report or an order, and this order is wrong: {bo}")) { return; }
         }
-        return deny(&format!("a message between chats is a six-line report or an order, and this report is wrong: {br}"));
+        if deny("report-shape", &format!("a message between chats is a six-line report or an order, and this report is wrong: {br}")) { return; }
     }
     if let Some(m) = caps(&re(&format!(r"^\s*{FIRST}: .+ \[ID ([^\]]+)\]")), msg) {
         let idtag = format!("[ID {}]", &m[2]);
-        if sent().iter().any(|t| t.contains(&idtag)) { return deny(&format!("this report's ID [{}] was already sent; a repeat is dropped", &m[2])); }
-        if dup_report(s(inp, "to"), msg, s(data, "transcript_path")) { return deny(DUP_WHY); }
+        if sent().iter().any(|t| t.contains(&idtag)) { if deny("dup-id", &format!("this report's ID [{}] was already sent; a repeat is dropped", &m[2])) { return; } }
+        if dup_report(s(inp, "to"), msg, s(data, "transcript_path")) { if deny("dup-report", DUP_WHY) { return; } }
     }
-    if bad_order.is_none() && usage_at_limit(root) { return deny("the week is at 90% or more (scripts/usage.py exits 3): start no new order; finish and park what is running"); }
+    if bad_order.is_none() && usage_at_limit(root) { if deny("usage-limit", "the week is at 90% or more (scripts/usage.py exits 3): start no new order; finish and park what is running") { return; } }
 }
 
 // ---- Stop ----
@@ -828,97 +828,85 @@ fn stop(c: &Ctx, data: &Value, manager: bool) {
     // reinterprets a task he typed is refused every time; the only way through is doing it, or one short question to him.
     let title = if manager { reply_title(text) } else { "" };
     if manager && !text.is_empty() && refuses_order(text, !title.is_empty(), re(r"(?m)^\*\*\*[A-D]\.\*\*\*").find_iter(text).count() >= 2) && owner_typed_last(s(data, "transcript_path")) {
-        block("he gave you an order in his own words, and a coded rule says you do it: no refusing, no \"cannot\", no arguing, no reinterpreting (item 76). Do the task now, or if you are unsure ask him ONE short question, nothing else; if it is not possible as asked, say so in one plain line with the reason and the nearest thing that is possible as lettered choices");
-        return;
+        if block("owner-order", "he gave you an order in his own words, and a coded rule says you do it: no refusing, no \"cannot\", no arguing, no reinterpreting (item 76). Do the task now, or if you are unsure ask him ONE short question, nothing else; if it is not possible as asked, say so in one plain line with the reason and the nearest thing that is possible as lettered choices") { return; }
     }
     if manager && !truthy(data.get("stop_hook_active")) && playback_turn(s(data, "transcript_path"))
         && re(r"(?m)^\*\*\*[A-D]\.\*\*\*").find_iter(text).count() < 2 {
-        block(PLAYBACK_WHY);
-        return;
+        if block("playback", PLAYBACK_WHY) { return; }
     }
     // Item 125: a manager's turn ends with the idle card or the Working line when no worker holds an open order on the board (even with no text)
     if manager && !truthy(data.get("stop_hook_active")) && !bounced_this_turn(s(data, "transcript_path"))
         && !owner_typed_last(s(data, "transcript_path")) && open_order_held(&main_folder(s(data, "cwd"))) == Some(false) && !idle_card_ok(text)
         && idle_changed(s(data, "transcript_path"), &main_folder(s(data, "cwd"))) {
-        block("no worker holds an open order on the board, and the owner has not been told (item 125): end this turn with the idle card, a bold 'IDLE \u{b7} crew' title, then 'The crew is idle. Here's what's next toward your goal,' and the top next steps as lettered lines (***A.*** ... with your pick marked); or give a worker its next order first");
-        return;
+        if block("idle-card", "no worker holds an open order on the board, and the owner has not been told (item 125): end this turn with the idle card, a bold 'IDLE \u{b7} crew' title, then 'The crew is idle. Here's what's next toward your goal,' and the top next steps as lettered lines (***A.*** ... with your pick marked); or give a worker its next order first") { return; }
     }
     if text.is_empty() || truthy(data.get("stop_hook_active")) || bounced_this_turn(s(data, "transcript_path")) { return; }
     let tpath = s(data, "transcript_path");
     let uses = turn_blocks(tpath);
     if manager && group_unfiled(&uses) && !is(&rei(r"\bdrag\b"), text) {
-        block("you started a chat this turn but did not file it: after start_session call move_sessions into the project's group, then read it back with list_sessions (skill start-the-crew). If the app refuses a step, say so and name what to drag");
-        return;
+        if block("file-started-chat", "you started a chat this turn but did not file it: after start_session call move_sessions into the project's group, then read it back with list_sessions (skill start-the-crew). If the app refuses a step, say so and name what to drag") { return; }
     }
     let asked_at = uses.iter().rposition(|u| s(u, "name") == "AskUserQuestion");
     if manager {
         if let Some(letter) = typed_letter_answer(tpath) {
             let recorded = uses.iter().any(|u| s(u, "name") == "Bash" && u.get("input").map(|i| s(i, "command").contains(&c.recorder)).unwrap_or(false));
             if !recorded {
-                block(&format!("he answered your lettered question by typing \"{letter}\", and it is not recorded: run {} with the question, every option's text and the one he picked (word for word) under its list item before ending the turn", recorder_path(&main_folder(s(data, "cwd")), &c.recorder)));
+                block("record-answer", &format!("he answered your lettered question by typing \"{letter}\", and it is not recorded: run {} with the question, every option's text and the one he picked (word for word) under its list item before ending the turn", recorder_path(&main_folder(s(data, "cwd")), &c.recorder)));
             }
             return; // a turn that answers his typed letter is handled once recorded
         }
         if let Some(idx) = asked_at.filter(|&i| !card_skipped(tpath, s(&uses[i], "id"))) {
             let recorded = uses[idx + 1..].iter().any(|u| s(u, "name") == "Bash" && u.get("input").map(|i| s(i, "command").contains(&c.recorder)).unwrap_or(false));
-            if !recorded { block(&format!("a choice card was answered but not recorded: run {} with his exact answer{} under its list item before ending the turn", recorder_path(&main_folder(s(data, "cwd")), &c.recorder), if c.recorder == "record-choice.py" { " (or --no-pick if he skipped the card or typed his own words)" } else { "" })); } // never name a flag the project's recorder lacks
+            if !recorded { block("record-answer", &format!("a choice card was answered but not recorded: run {} with his exact answer{} under its list item before ending the turn", recorder_path(&main_folder(s(data, "cwd")), &c.recorder), if c.recorder == "record-choice.py" { " (or --no-pick if he skipped the card or typed his own words)" } else { "" })); } // never name a flag the project's recorder lacks
             return;
         }
         if letters_not_bold_italic(text) {
-            note_add(tpath, "write each choice letter bold and italic, like ***A.*** red, one line per choice with a blank line between (item 80)");
+            note_add(tpath, "note-letters", "write each choice letter bold and italic, like ***A.*** red, one line per choice with a blank line between (item 80)");
         }
         if is(&rei(r"\btype (?:it |your \w+ |anything )?in (?:the |that |this )?[\w .-]*\b(?:chat|window)\b"), text) {
-            block("never send the owner to type in a worker's chat (item 103): carrying his approval is your job; forward his quoted go to the worker that asked, by message, and say nothing to him");
-            return;
+            if block("no-send-owner", "never send the owner to type in a worker's chat (item 103): carrying his approval is your job; forward his quoted go to the worker that asked, by message, and say nothing to him") { return; }
         }
         if title == "VIEW" || (title == "ANSWER" && owner_asked(tpath)) {
             // right-hand part 2: an answer to his question (on a turn he started with one) and a view (on any turn) are let through at any length; the hard stops stay
             if title == "VIEW" && question_repeated(tpath, text) {
-                block("he has already been asked this question and has not answered (item 114): do not put it to him again; keep working on what does not depend on his answer, and end this turn with no text");
-                return;
+                if block("asked-twice", "he has already been asked this question and has not answered (item 114): do not put it to him again; keep working on what does not depend on his answer, and end this turn with no text") { return; }
             }
             if re(r"(?m)^\*\*\*[A-D]\.\*\*\*").find_iter(text).count() >= 2 && !is(&rei(r"\bmy pick\b"), text) {
-                block("every lettered question carries your pick: mark one choice *(my pick)* and give a one-line reason, looks included; a pick is advice only and nothing is ordered until he answers (item 100)");
+                block("pick-marked", "every lettered question carries your pick: mark one choice *(my pick)* and give a one-line reason, looks included; a pick is advice only and nothing is ordered until he answers (item 100)");
             }
             return;
         }
         if worker_news_ok(text) && peer_started(tpath) { // worker-news-line: the badge and one plain line
-            if news_line_repeated(tpath, text) { block("the owner already had a line for this report (same badge): no second line; end this turn with no text"); }
+            if news_line_repeated(tpath, text) { block("news-repeat", "the owner already had a line for this report (same badge): no second line; end this turn with no text"); }
             return;
         }
         if is(&re("^\\*\\*(READY|PASS|FAIL|DONE|STUCK|NEED) \u{b7} \\S[^*\n]*\\*\\*$"), text.trim().lines().next().unwrap_or("").trim()) && peer_started(tpath) && !worker_news_ok(text) {
-            note_add(tpath, "a worker's news is the bold badge and ONE plain line under it, nothing more: no bullets, no second news line, no saved-version code, version number or bare file path (a link is fine), no 'needs nothing from you'");
+            note_add(tpath, "note-badge-line", "a worker's news is the bold badge and ONE plain line under it, nothing more: no bullets, no second news line, no saved-version code, version number or bare file path (a link is fine), no 'needs nothing from you'");
             if !empty_news(text) { return; } // the empty line is still refused below
         }
         if empty_news(text) && !owner_asked(tpath) {
-            block("an empty \"needs nothing from you\" line tells him nothing: when a worker's message needs nothing from him, reply with a bold badge '**WORD \u{b7} job**' (WORD is the report's first word: READY, PASS, FAIL, DONE, STUCK or NEED) and ONE plain line saying who did what, like '**READY \u{b7} login screen**' then 'Apps finished the login screen; Build Inspector has it.'");
-            return;
+            if block("empty-line", "an empty \"needs nothing from you\" line tells him nothing: when a worker's message needs nothing from him, reply with a bold badge '**WORD \u{b7} job**' (WORD is the report's first word: READY, PASS, FAIL, DONE, STUCK or NEED) and ONE plain line saying who did what, like '**READY \u{b7} login screen**' then 'Apps finished the login screen; Build Inspector has it.'") { return; }
         }
         if is_news(text) && !owner_form_ok(text) && !owner_asked(tpath) {
-            block("never tell the owner PASS, LIVE, DONE, shipped or progress news (item 97): his chat gets only a lettered question, a yes he must give, or the idle card with its lettered next steps (item 124). When nothing needs him, end this turn with no text at all");
-            return;
+            if block("no-news", "never tell the owner PASS, LIVE, DONE, shipped or progress news (item 97): his chat gets only a lettered question, a yes he must give, or the idle card with its lettered next steps (item 124). When nothing needs him, end this turn with no text at all") { return; }
         }
         if news_with_question(text) && !owner_asked(tpath) {
-            block("news does not ride along with a question (item 114): his chat gets the question alone; the news goes to the board only");
-            return;
+            if block("news-with-question", "news does not ride along with a question (item 114): his chat gets the question alone; the news goes to the board only") { return; }
         }
         if question_repeated(tpath, text) {
-            block("he has already been asked this question and has not answered (item 114): do not put it to him again; keep working on what does not depend on his answer, and end this turn with no text");
-            return;
+            if block("asked-twice", "he has already been asked this question and has not answered (item 114): do not put it to him again; keep working on what does not depend on his answer, and end this turn with no text") { return; }
         }
         if re(r"(?m)^\*\*\*[A-D]\.\*\*\*").find_iter(text).count() >= 2 && !is(&rei(r"\bmy pick\b"), text) {
-            block("every lettered question carries your pick: mark one choice *(my pick)* and give a one-line reason, looks included; a pick is advice only and nothing is ordered until he answers (item 100)");
-            return;
+            if block("pick-marked", "every lettered question carries your pick: mark one choice *(my pick)* and give a one-line reason, looks included; a pick is advice only and nothing is ordered until he answers (item 100)") { return; }
         }
         if re(r"(?m)^\*\*\*[A-D]\.\*\*\*").find_iter(text).count() >= 2 && !title_above_choices(text) {
-            note_add(tpath, "a question to the owner opens with a bold heading line 'WORD \u{b7} job' (like **ASK \u{b7} score-audit**) above the lettered choices, so it draws as a card (item 120)");
+            note_add(tpath, "note-heading", "a question to the owner opens with a bold heading line 'WORD \u{b7} job' (like **ASK \u{b7} score-audit**) above the lettered choices, so it draws as a card (item 120)");
         }
         if text.contains('?') && look_unshown(&question_part(text), &uses) {
-            block("a question about how something looks comes after the pictures: show them to him first in this turn (send-file with render, or card previews), then ask");
-            return;
+            if block("pictures-first", "a question about how something looks comes after the pictures: show them to him first in this turn (send-file with render, or card previews), then ask") { return; }
         }
         if !manager_reply_ok(text) && !owner_asked(tpath) && !(peer_started(tpath) && text.trim().chars().count() <= 300 && text.trim().lines().count() <= 3) { // a short routine reply to another chat's message is not bounced (item 75)
-            block("to the owner the manager says only a question with its choices as lettered lines (***A.*** ...), a yes he must give, 'The crew is idle' with \"Here's what's next toward your goal,\" and the top next steps as two or more lettered lines (a bare idle card is refused, item 124), or the one status line 'Working: <who> on <job>, ...' while the crew works; never send him to type in a worker's chat, relay his answer yourself (item 103). Rewrite the reply as one of those, or put the news on the board");
+            block("manager-says", "to the owner the manager says only a question with its choices as lettered lines (***A.*** ...), a yes he must give, 'The crew is idle' with \"Here's what's next toward your goal,\" and the top next steps as two or more lettered lines (a bare idle card is refused, item 124), or the one status line 'Working: <who> on <job>, ...' while the crew works; never send him to type in a worker's chat, relay his answer yourself (item 103). Rewrite the reply as one of those, or put the news on the board");
         }
         return;
     }
@@ -928,14 +916,14 @@ fn stop(c: &Ctx, data: &Value, manager: bool) {
     let nb = body.lines().filter(|l| is(&bullet, l)).count();
     let title_ok = body.lines().next().map(|l| is(&re(r"^\s*\*\*[^*\n]+\s[·.]\s[^*\n]+\*\*\s*$"), l)).unwrap_or(false);
     if !title_ok || !(2..=3).contains(&nb) {
-        note_add(tpath, "your end-of-turn reply is a card: a bold title line 'WORD · job', then two or three '- ' bullets (what, the result with real numbers, what is left or what you need)");
+        note_add(tpath, "note-card", "your end-of-turn reply is a card: a bold title line 'WORD · job', then two or three '- ' bullets (what, the result with real numbers, what is left or what you need)");
     }
     if is(&re(r"^\s*\*\*(DONE|READY|PASS|FAIL|STUCK|NEED)\b"), body) { // item 65: every report reaches the manager as a message
         let root = main_folder(s(data, "cwd"));
         // SendMessage (to) or the app's older send_message tool (session_id); either reaches the manager
         if !uses.iter().any(|u| u.get("input").map(|i| (s(u, "name") == "SendMessage" && recipient_is_manager(s(i, "to"), &root)) || (s(u, "name").ends_with("send_message") && recipient_is_manager(s(i, "session_id"), &root))).unwrap_or(false)) {
             let w = body.split_whitespace().next().unwrap_or("").trim_matches('*');
-            block(&format!("a report reaches the manager as a message as well as the board (item 65): send the manager your {w} report with SendMessage (a different ID from any copy to someone else), then end the turn with the card{}", manager_now(&root)));
+            block("report-to-manager", &format!("a report reaches the manager as a message as well as the board (item 65): send the manager your {w} report with SendMessage (a different ID from any copy to someone else), then end the turn with the card{}", manager_now(&root)));
         }
     }
 }
@@ -984,7 +972,7 @@ pub fn run_guard() -> i32 {
     let crew = crew_re(&prof);
     if !is(&crew, &first) && title_if_crew(s(&data, "transcript_path"), &crew).is_none() && std::env::var("MUSTER_ASSUME_CREW").ok().as_deref() != Some("1") { return 0; }
     let empty = Value::Object(Default::default());
-    if let Some(why) = guard_problem(s(&data, "tool_name"), data.get("tool_input").unwrap_or(&empty), s(&data, "cwd"), conf) { deny(&why); }
+    if let Some(why) = guard_problem(s(&data, "tool_name"), data.get("tool_input").unwrap_or(&empty), s(&data, "cwd"), conf) { deny("guard", &why); }
     0
 }
 

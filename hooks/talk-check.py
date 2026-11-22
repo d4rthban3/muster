@@ -140,7 +140,7 @@ def main():
         return 0
     if stood_down(data):
         return 0
-    if data.get("stop_hook_active") or PROFILE.get("talk_check") is False:
+    if data.get("stop_hook_active") or PROFILE.get("talk_check") is False or (isinstance(PROFILE.get("house_rules"), dict) and PROFILE["house_rules"].get("talk-note") is False):  # house rule "talk-note"; talk_check is its older name
         return 0  # a profile can switch this off where the project runs its own talk check
     text = data.get("last_assistant_message") or ""
     if not text or bounced_this_turn(data.get("transcript_path") or ""):

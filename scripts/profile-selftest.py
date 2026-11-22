@@ -365,14 +365,17 @@ add("8 a summarized worker ('I am Site_PINR_003', manager named after) is still 
 # item 87: every Stop block says the reply already reached the owner and must not be written again (Python and Rust sources, then live)
 import re as _re
 NR = "do not write it again"
-def nr_sites(path, start, end):
+def nr_sites(path, start, end, cut=None):
     src = open(os.path.join(ROOT, path), encoding="utf-8").read()
+    if cut:
+        src = src[:src.index(cut)]  # the generic say_block helper takes its reason ready-made: its callers carry the line
     return [m.start() for m in _re.finditer(start, src)], [("NOREPEAT" in src[m.start():src.index(end, m.start())]) for m in _re.finditer(start, src)]
-for path in ("hooks/rules-check.py", "hooks/board-stop.py", "scripts/idle-check.py", "scripts/worker-queue-check.py"):
-    n, ok = nr_sites(path, r'"decision": "block"', "}))")
+for path, start, end, cut in (("hooks/rules-check.py", r'"decision": "block"', "}))", None), ("hooks/board-stop.py", r'say_block\("', "return 0", None),
+                              ("scripts/idle-check.py", r'say_block\("', "return 0", None), ("scripts/worker-queue-check.py", r'say_block\("', "return 0", None)):
+    n, ok = nr_sites(path, start, end, cut)
     add("87 every Stop block in %s (%d) carries the no-repeat line" % (path, len(n)), "" if n and all(ok) else "BAD %s" % ok, False)
-for path in ("checks/src/common.rs", "checks/src/boardstop.rs"):
-    n, ok = nr_sites(path, r'\("decision", "block"\.into\(\)\)', "]));")
+for path, start, end, cut in (("checks/src/common.rs", r'\("decision", "block"\.into\(\)\)', "]));", "pub fn say_block"), ("checks/src/boardstop.rs", r'say_block\("', "));", None)):
+    n, ok = nr_sites(path, start, end, cut)
     add("87 every Stop block in %s (%d) carries the no-repeat line" % (path, len(n)), "" if n and all(ok) else "BAD %s" % ok, False)
 add("87 a live rules-check block says so", "" if NR in letout else "BAD", False)
 add("87 a live board-stop block says so", "" if NR in (write_board("2026-11-08 | LIVE | Look Header_PINR_002 -> Manager | Paused: yes | fix") or bs("Fine.")) else "BAD", False)

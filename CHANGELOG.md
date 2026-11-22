@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.173
+Affects: every project that runs Muster's checks (PINR included; its behaviour is unchanged).
+right-hand-rules-apart (part 4 of the right-hand page, item 128): every check is listed on one page, docs/checks.md, as a safety stop (on for every project, no switch) or a house rule (its own switch per project, "house_rules" in the project's profile). A house rule switched off never reaches that project (no refusal, no note); a new house rule starts off for every project but Muster; a refusal names its group and the rule. A profile with no house_rules key answers exactly as before.
+
 ## 0.3.172
 Affects: PINR's manager (the recorder stand-in).
 pinr-recorder-for-line: PINR's recorder stand-in takes a required --for line, writes it as "For: ..." in the log entry and shows it back to read to the founder; a decision with no For: line is refused with a plain message saying what to add. Old log entries are untouched. Nothing else in PINR's settings changes. Install step (Manager_PINR): python3 scripts/install-checks.py --profile pinr

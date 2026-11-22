@@ -44,8 +44,8 @@ pub static SAID: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::
 pub fn say(line: &str) { SAID.store(true, std::sync::atomic::Ordering::SeqCst); let _ = writeln!(std::io::stdout(), "{line}"); }
 
 /// A note is not a refusal: it is kept beside the transcript (`<transcript>.muster-notes`) and told to the chat once, at its next prompt or tool call.
-pub fn note_add(path: &str, text: &str) {
-    if path.is_empty() { return; }
+pub fn note_add(path: &str, rid: &str, text: &str) {
+    if path.is_empty() || !rule_on(rid) { return; }
     let side = format!("{path}.muster-notes");
     let old = fs::read_to_string(&side).unwrap_or_default();
     if old.split('\n').any(|l| l == text) { return; }
@@ -65,9 +65,40 @@ pub fn notes_out(path: &str, event: &str) {
     say(&format!("{{\"hookSpecificOutput\": {{\"hookEventName\": {}, \"additionalContext\": {}}}}}", py_str(event), py_str(&format!("Muster note (your reply was let through, nothing was refused; do it this way next time): {}", notes.join(" ")))));
 }
 pub const NOREPEAT: &str = " Your reply already reached the owner: do not write it again. Do what this asks, then end with at most one new line, or nothing.";
-pub fn block(reason: &str) { say(&py_obj(&[("decision", "block".into()), ("reason", format!("Muster rule: {reason}{NOREPEAT}"))])); }
-pub fn deny(reason: &str) {
-    say(&format!("{{\"hookSpecificOutput\": {{\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"deny\", \"permissionDecisionReason\": {}}}}}", py_str(&format!("Muster rule: {reason}"))));
+/// Two groups (docs/checks.md lists every check). A SAFETY STOP is on for every project, with no switch. A HOUSE RULE (everything about how a
+/// chat talks, asks, reports and orders) has its own switch per project, "house_rules": {"<name>": false} in the project's profile; a house
+/// rule switched off never reaches that project. A house rule made after the list starts off for every project but Muster (NEW_HOUSE).
+pub const SAFETY: [&str; 5] = ["guard", "helper-ships", "note-secret", "usage-limit", "muster-not-saved"];
+pub const NEW_HOUSE: [&str; 0] = [];
+pub fn rule_on(rid: &str) -> bool {
+    if SAFETY.contains(&rid) { return true; }
+    let p = load_profile();
+    if let Some(v) = p.get("house_rules").and_then(Value::as_object).and_then(|m| m.get(rid)) { return truthy(Some(v)); }
+    if NEW_HOUSE.contains(&rid) { return p.get("name").and_then(Value::as_str).filter(|n| !n.is_empty()).unwrap_or("Muster") == "Muster"; }
+    true
+}
+/// Every refusal names its group and the project whose rule it is, so a meshing of two projects' rules is seen at once.
+pub fn group_label(rid: &str) -> String {
+    if SAFETY.contains(&rid) { format!(" [safety stop \"{rid}\": on for every project, no switch]") }
+    else { format!(" [house rule \"{rid}\" of Muster; a project's profile can switch it off]") }
+}
+/// Refuse an end of turn; false (and nothing said) when the rule is a house rule this project has switched off.
+pub fn block(rid: &str, reason: &str) -> bool {
+    if !rule_on(rid) { return false; }
+    say(&py_obj(&[("decision", "block".into()), ("reason", format!("Muster rule: {reason}{}{NOREPEAT}", group_label(rid)))]));
+    true
+}
+/// Refuse a tool call; false (and nothing said) when the rule is a house rule this project has switched off.
+pub fn deny(rid: &str, reason: &str) -> bool {
+    if !rule_on(rid) { return false; }
+    say(&format!("{{\"hookSpecificOutput\": {{\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"deny\", \"permissionDecisionReason\": {}}}}}", py_str(&format!("Muster rule: {reason}{}", group_label(rid)))));
+    true
+}
+/// A house rule's refusal in the other checks (the reason may already end with NOREPEAT): the label goes before it.
+pub fn say_block(rid: &str, reason: &str) {
+    if !rule_on(rid) { return; }
+    let r = match reason.strip_suffix(NOREPEAT) { Some(head) => format!("{head}{}{NOREPEAT}", group_label(rid)), None => format!("{reason}{}", group_label(rid)) };
+    say(&py_obj(&[("decision", "block".into()), ("reason", r)]));
 }
 
 /// Python's idea of true for a JSON value (None, False, 0, "", [] and {} are false): a hook field the Python copies test with `if x`.
@@ -457,4 +488,24 @@ pub fn project_things(dir: &str, rev: &str) -> HashSet<String> {
     };
     let out = (if rev.is_empty() { None } else { run(rev) }).or_else(|| run("HEAD")).unwrap_or_default();
     out.lines().map(|l| crate::record::thing_code(l.trim_matches('"'))).filter(|c| !c.is_empty()).collect()
+}
+
+#[cfg(test)]
+mod rule_groups_tests {
+    use super::*;
+    #[test]
+    fn house_rules_have_a_switch_and_safety_stops_have_none() {
+        let dir = std::env::temp_dir().join(format!("muster-rules-{}", std::process::id()));
+        let _ = fs::create_dir_all(&dir);
+        let all: Vec<String> = ["pick-marked", "record-form", "note-card"].iter().map(|x| format!("\"{x}\": false")).chain(SAFETY.iter().map(|x| format!("\"{x}\": false"))).collect();
+        let prof = dir.join("p.json");
+        fs::write(&prof, format!("{{\"name\": \"Other\", \"house_rules\": {{{}}}}}", all.join(", "))).unwrap();
+        std::env::set_var("MUSTER_PROFILE", &prof);
+        assert!(!rule_on("pick-marked") && !rule_on("record-form") && !rule_on("note-card"), "a house rule switched off is off");
+        assert!(rule_on("asked-twice"), "a house rule the profile does not name stays on");
+        for r in SAFETY { assert!(rule_on(r), "{r} is a safety stop: no switch"); }
+        assert!(group_label("guard").contains("safety stop") && group_label("pick-marked").contains("house rule \"pick-marked\" of Muster"));
+        std::env::remove_var("MUSTER_PROFILE");
+        let _ = fs::remove_dir_all(&dir);
+    }
 }

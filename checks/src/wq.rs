@@ -206,7 +206,7 @@ fn waiting_unreported(data: &Value) -> Option<&'static str> {
     Some("Your reply says you are waiting on, or need, the manager, but this turn sent the manager nothing: a chat reply alone is not seen. Send the manager one message (NEED, STUCK or READY) now, or write the line on the board.")
 }
 
-fn refuse(reason: &str) { say(&py_obj(&[("decision", "block".into()), ("reason", format!("{reason}{NOREPEAT}"))])); }
+fn refuse(rid: &str, reason: &str) { say_block(rid, &format!("{reason}{NOREPEAT}")); }
 
 /// The hook's JSON on standard input: nothing at all is an empty object; anything that is not an object ends the check in silence.
 fn stdin_object() -> Option<Value> {
@@ -248,12 +248,12 @@ fn main_lines(args: &[String], cwd: &Path, profile: &Value) -> i32 {
         return 0;
     }
     if truthy(data.get("stop_hook_active")) { return 0; }
-    if let Some(why) = waiting_unreported(&data) { refuse(why); return 0; }
+    if let Some(why) = waiting_unreported(&data) { refuse("queue-waiting", why); return 0; }
     if work.is_empty() { return 0; }
     let msg = last_message(&data).to_lowercase();
     let missing: Vec<&str> = work.iter().filter(|(_, keys)| !keys.iter().any(|k| msg.contains(&k.to_lowercase()))).map(|w| w.0.as_str()).collect();
     if missing.is_empty() { return 0; }
-    refuse(&format!("Do not go idle: open work is addressed to you ({}). Do it now, or if you are waiting, say in your reply what you are waiting for and name who gave it. If it is not yours, tell the manager.", missing.join("; ")));
+    refuse("queue-idle", &format!("Do not go idle: open work is addressed to you ({}). Do it now, or if you are waiting, say in your reply what you are waiting for and name who gave it. If it is not yours, tell the manager.", missing.join("; ")));
     0
 }
 
@@ -275,11 +275,11 @@ pub fn run(args: &[String]) -> i32 {
     }
     let Some(data) = stdin_object() else { return 0 };
     if truthy(data.get("stop_hook_active")) { return 0; }
-    if let Some(why) = waiting_unreported(&data) { refuse(why); return 0; }
+    if let Some(why) = waiting_unreported(&data) { refuse("queue-waiting", why); return 0; }
     if work.is_empty() { return 0; }
     let msg = last_message(&data).to_lowercase();
     let missing: Vec<&str> = work.iter().filter(|(_, k)| !msg.contains(&k.to_lowercase())).map(|w| w.0.as_str()).collect();
     if missing.is_empty() { return 0; }
-    refuse(&format!("Do not go idle: open work is addressed to you ({}). Do it now (the next piece), or if you are waiting, say in your reply what you are waiting for and name the job. If it is not yours, send the manager one NEED.", missing.join("; ")));
+    refuse("queue-idle", &format!("Do not go idle: open work is addressed to you ({}). Do it now (the next piece), or if you are waiting, say in your reply what you are waiting for and name the job. If it is not yours, send the manager one NEED.", missing.join("; ")));
     0
 }

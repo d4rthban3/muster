@@ -154,12 +154,12 @@ pub fn run() -> i32 {
     if missed.is_empty() && !picks { return 0; }
     let favour = "ask him with lettered lines, the option you favour marked \"my pick\", and record nothing until he types a letter.";
     if picks && missed.is_empty() {
-        say(&py_obj(&[("decision", "block".into()), ("reason", format!("You wrote that you are choosing or recording for the owner, but he has not picked this turn. Do not decide for him: ask him now with lettered lines (***A.*** ...), the option you favour marked \"my pick\", and record nothing until he types a letter.{NOREPEAT}"))]));
+        say_block("board-pick-claim", &format!("You wrote that you are choosing or recording for the owner, but he has not picked this turn. Do not decide for him: ask him now with lettered lines (***A.*** ...), the option you favour marked \"my pick\", and record nothing until he types a letter.{NOREPEAT}"));
         return 0;
     }
     let names: Vec<String> = missed.iter().map(|e| format!("{} ({})", if e.from.is_empty() { "a worker" } else { &e.from }, if e.paused { "paused".to_string() } else { e.kind.clone() })).collect();
     let mut reason = format!("The board holds open items for the owner that you have not told him about: {}. Before you stop, ask him the top one as lettered lines (***A.*** ...), or, for a paused chat, answer it yourself or relay his quoted answer to that chat: never send him to type in it (item 103); then stop.", names.join("; "));
     if picks { reason.push_str(&format!(" Also: you wrote that you are choosing or recording for the owner, but he has not picked this turn; {favour}")); }
-    say(&py_obj(&[("decision", "block".into()), ("reason", format!("{reason}{NOREPEAT}"))]));
+    say_block("board-open-items", &format!("{reason}{NOREPEAT}"));
     0
 }

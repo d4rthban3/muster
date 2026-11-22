@@ -335,15 +335,15 @@ pub fn run(args: &[String]) -> i32 {
         let body = told.iter().cloned().collect::<Vec<_>>().join("\n") + "\n";
         let _ = fs::write(&tfile, body);
     }
-    let reply = |r: String| say(&py_obj(&[("decision", "block".into()), ("reason", r)]));
+    let reply = |rid: &str, r: String| say_block(rid, &r);
     if !sweep.is_empty() && missing.is_empty() && waiting.is_empty() && holds.is_empty() && card.is_empty() {
-        reply(format!("Crew sweep (item 96): {}. Give each quiet member its next order or find out why it has none; name each in your reply.{NOREPEAT}", sweep.join(" | ")));
+        reply("idle-sweep", format!("Crew sweep (item 96): {}. Give each quiet member its next order or find out why it has none; name each in your reply.{NOREPEAT}", sweep.join(" | ")));
         return 0;
     }
     if missing.is_empty() && waiting.is_empty() && holds.is_empty() {
         if !card.is_empty() {
             let who = still.iter().map(|(n, sec)| format!("{n} idle {} min", minutes(*sec))).collect::<Vec<_>>().join("; ");
-            reply(format!("Two or more workers are idle with nothing to order and the owner has no clear report (item 95). Send him ONE card: a bold title, one bullet \
+            reply("idle-card", format!("Two or more workers are idle with nothing to order and the owner has no clear report (item 95). Send him ONE card: a bold title, one bullet \
 line per worker ({who}), each saying 'since <when>', 'why: <reason>' and 'unblocked by: <what>', then the one lettered question \
 (***A.*** ...) that unblocks the most. Missing: {card}.{NOREPEAT}"));
         }
@@ -353,7 +353,7 @@ line per worker ({who}), each saying 'since <when>', 'why: <reason>' and 'unbloc
     lines.extend(waiting.iter().map(|(n, d)| format!("{n} says it waits on the manager ({d})")));
     lines.extend(holds.iter().map(|(to, t)| format!("your board line holds {to} ({t}) but names no decision or item of his: a manager never holds a worker for a \
 measurement or convenience, and no order of yours outranks his word; release it or cite his words")));
-    reply(format!("Do not end this turn silently: {}. Message each one (give it the next order quoting his words, answer what it waits on, or ask why it is idle), \
+    reply("idle-silent", format!("Do not end this turn silently: {}. Message each one (give it the next order quoting his words, answer what it waits on, or ask why it is idle), \
 name it in your reply, or if nothing fits say \"The crew is idle\" with the choices as buttons.{NOREPEAT}", lines.join(" | ")));
     0
 }

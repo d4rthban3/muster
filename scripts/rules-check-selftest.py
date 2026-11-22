@@ -12,6 +12,15 @@ HOOK = os.path.join(HERE, "..", "hooks", "rules-check.py")
 BIN = os.environ.get("MUSTER_CHECKS_BIN")  # run the same cases against the ready-built Rust copy
 RUN_ENV = dict(os.environ, MUSTER_MESSAGE_FORM="text")  # these cases are the older text shapes
 T = tempfile.mkdtemp()
+# right-hand 4: every call of a check below is kept (command, input, environment, answer) so the refused ones can be replayed under another profile
+CALLS = []
+_real_run = subprocess.run
+def _kept_run(cmd, *a, **k):
+    r = _real_run(cmd, *a, **k)
+    if isinstance(cmd, list) and ((len(cmd) > 1 and cmd[0] == BIN and cmd[1] in ("rules", "board-stop")) or (len(cmd) > 1 and cmd[0] == sys.executable and os.path.basename(cmd[1]) in ("rules-check.py", "board-stop.py"))):
+        CALLS.append((cmd, k.get("input"), k.get("env"), (r.stdout or "").strip()))
+    return r
+subprocess.run = _kept_run
 
 
 import itertools
@@ -676,6 +685,121 @@ cases += [
     ("right-hand 2e: a VIEW may say 'I disagree' (that is a view)", run("Stop", last_assistant_message="**VIEW \u00b7 build**\n\nI disagree with splitting the folder: " + LONG, transcript_path=tr(MG, TYPED)), False),
     ("right-hand 2e: a VIEW that only says 'I cannot' with no choices is still refused", run("Stop", last_assistant_message="**VIEW \u00b7 build**\n\nI cannot do that.", transcript_path=tr(MG, TYPED)), True),
 ]
+# right-hand 4 (Part 4 of the right-hand page): safety stops and house rules, one list (docs/checks.md). Every refusal above is replayed under a
+# profile that switches every house rule off, and under one that switches off only its own rule. A house rule switched off is silent; a safety stop
+# still refuses with every switch off. Each refusal names its group and the rule.
+import re as _re
+_page = open(os.path.join(HERE, "..", "docs", "checks.md"), encoding="utf-8").read()
+LISTED = {m.group(1): m.group(2) for m in _re.finditer(r"^\| `([a-z-]+)` \| (safety stop|house rule) \|", _page, _re.M)}
+HOUSE = sorted(k for k, g in LISTED.items() if g == "house rule")
+LABEL = _re.compile(r'\[(safety stop|house rule) \\?"([a-z-]+)\\?"')
+def _profile(off, basep=None):
+    p = os.path.join(T, "prof_%d.json" % next(_tn))
+    base = json.load(open(basep)) if basep else {"name": "Other"}  # a call that already ran under a project profile keeps what that profile says
+    base["house_rules"] = {k: False for k in off}
+    json.dump(base, open(p, "w"))
+    return p
+def _replay(call, off):
+    cmd, inp, env, _ = call
+    r = _real_run(cmd, input=inp, capture_output=True, text=True, env=dict(env or os.environ, MUSTER_PROFILE=_profile(off, (env or {}).get("MUSTER_PROFILE"))))
+    return r.stdout.strip()
+def _is_refusal(o):
+    return '"permissionDecision": "deny"' in o or '"decision": "block"' in o
+# calls under a project's own profile: the guard (item 117, protected folders) and a project's manager-only files
+_gprot = os.path.join(T, "protd"); os.makedirs(_gprot)
+for _pdict, _tool, _inp in (({"name": "G", "guard": {"protected_folders": [_gprot]}}, "Write", {"file_path": os.path.join(_gprot, "a.txt"), "content": "key = " + "AKIA" + "ABCDEFGHIJKLMNOP"}),
+                            ({"name": "Prot", "protected": ["/Founder/LIST\\.md$"]}, "Bash", {"command": "echo x > /p/Founder/LIST.md"})):
+    _pp = os.path.join(T, "own_%d.json" % next(_tn)); json.dump(_pdict, open(_pp, "w"))
+    subprocess.run([BIN, "rules"] if BIN else [sys.executable, HOOK], input=json.dumps(dict(hook_event_name="PreToolUse", cwd=T, tool_name=_tool, tool_input=_inp, transcript_path=b)), capture_output=True, text=True, env=dict(RUN_ENV, MUSTER_PROFILE=_pp))
+_seen = {}
+for call in list(CALLS):
+    if _is_refusal(call[3]):
+        mm = LABEL.search(call[3])
+        if mm and mm.group(2) not in _seen:
+            _seen[mm.group(2)] = call
+_rcases = [("right-hand 4: every refusal names its group and rule, and the rule is on the page", "" if _seen and all(k in LISTED and LISTED[k] == LABEL.search(v[3]).group(1) for k, v in _seen.items()) else "BAD " + str([k for k in _seen if k not in LISTED]), False)]
+for rid, call in sorted(_seen.items()):
+    if LISTED.get(rid) == "safety stop":
+        _rcases.append(("right-hand 4: safety stop '%s' still refuses with every switch off" % rid, "" if ('"%s"' % rid) in _replay(call, HOUSE).replace('\\"', '"') else "BAD", False))
+    else:
+        o1 = _replay(call, [rid])
+        o2 = _replay(call, HOUSE)
+        _rcases.append(("right-hand 4: house rule '%s' is silent with its switch off" % rid, "" if ('"%s"' % rid) not in o1.replace('\\"', '"') else "BAD " + o1[:200], False))
+        _rcases.append(("right-hand 4: ...and with every house rule off only safety stops speak (%s)" % rid, "" if (not o2 or all(g == "safety stop" for g, _ in LABEL.findall(o2.replace('\\"', '"')))) else "BAD " + o2[:200], False))
+_rcases.append(("right-hand 4: the guard is a safety stop, not a house rule", "" if LISTED.get("guard") == "safety stop" else "BAD", False))
+_needed = set(LISTED) - {"note-letters", "note-heading", "note-badge-line", "note-card", "talk-note", "board-pick-claim", "queue-waiting", "queue-idle", "idle-sweep", "idle-silent"} - ({"note-shape", "order-action"} if BIN else set())
+_seen_ids = set(_seen)
+_rcases.append(("right-hand 4: every listed refusing check of the rules hook is reached by a case here (missing: %s)" % ", ".join(sorted(_needed - _seen_ids)), "" if not (_needed - _seen_ids) else "BAD", False))
+# the wording notes and the other checks: each house rule silent with its switch off, the same input speaking with it on
+def _off_env(rid):
+    pp = os.path.join(T, "off_%d.json" % next(_tn)); json.dump({"name": "Other", "house_rules": {k: False for k in ([rid] if isinstance(rid, str) else rid)}}, open(pp, "w"))
+    return dict(RUN_ENV, MUSTER_PROFILE=pp)
+def _note_after(env, first, extra, text):
+    t = tr(first, extra)
+    subprocess.run([BIN, "rules"] if BIN else [sys.executable, HOOK], input=json.dumps(dict(hook_event_name="Stop", cwd=T, last_assistant_message=text, transcript_path=t)), capture_output=True, text=True, env=env)
+    return open(t + ".muster-notes", encoding="utf-8").read() if os.path.exists(t + ".muster-notes") else ""
+BCARD = "You are Builder A_Muster_002, agents/builder.md"
+for _rid, _first, _extra, _text, _phrase in (("note-letters", MG, [said("hi")], WRONGLETTER, "bold and italic"),
+                                             ("note-card", BCARD, [said("go")], "Done.", "end-of-turn reply is a card"),
+                                             ("note-badge-line", MG, PEERT, "**READY \u00b7 login screen**\n- Apps finished it\nsee rules-check.py", "ONE plain line"),
+                                             ("note-heading", MG, [said("hi")], "Which first?\n\n***A.*** ship the fix *(my pick)* because it is small\n\n***B.*** wait", "bold heading line")):
+    _rcases.append(("right-hand 4: the note '%s' is kept by default" % _rid, "" if _phrase in _note_after(RUN_ENV, _first, _extra, _text) else "BAD", False))
+    _rcases.append(("right-hand 4: ...and never kept with its switch off (%s)" % _rid, "" if _note_after(_off_env(_rid), _first, _extra, _text) == "" else "BAD", False))
+    _rcases.append(("right-hand 4: ...a different switch off keeps it (%s)" % _rid, "" if _phrase in _note_after(_off_env("no-thanks"), _first, _extra, _text) else "BAD", False))
+# talk-note: the owner's reply with a bare path
+TALKCMD = [BIN, "talk"] if BIN else [sys.executable, os.path.join(HERE, "..", "hooks", "talk-check.py")]
+def _talk(env):
+    t = tr(BCARD, [said("go")])
+    subprocess.run(TALKCMD, input=json.dumps(dict(hook_event_name="Stop", cwd=T, last_assistant_message="**DONE \u00b7 x**\n- changed hooks/rules-check.py", transcript_path=t)), capture_output=True, text=True, env=env)
+    return open(t + ".muster-notes", encoding="utf-8").read() if os.path.exists(t + ".muster-notes") else ""
+_rcases.append(("right-hand 4: the note 'talk-note' is kept by default", "" if "bare file path" in _talk(RUN_ENV) else "BAD", False))
+_rcases.append(("right-hand 4: ...and never kept with its switch off", "" if _talk(_off_env("talk-note")) == "" else "BAD", False))
+_pf = os.path.join(T, "tc_false.json"); json.dump({"talk_check": False}, open(_pf, "w"))
+_rcases.append(("right-hand 4: ...the older switch name talk_check:false does the same", "" if _talk(dict(RUN_ENV, MUSTER_PROFILE=_pf)) == "" else "BAD", False))
+# board-stop: the claim of choosing for the owner
+def _bstop_off(rid, said_):
+    d = tempfile.mkdtemp(dir=T); os.makedirs(os.path.join(d, "muster"))
+    open(os.path.join(d, "muster", "BOARD.md"), "w", encoding="utf-8").write("# Board\n")
+    env = dict(_off_env(rid) if rid else RUN_ENV, MUSTER_ASSUME_MANAGER="1")
+    return subprocess.run([BIN, "board-stop"] if BIN else [sys.executable, BSH], input=json.dumps(dict(hook_event_name="Stop", cwd=d, last_assistant_message=said_, transcript_path=tr(MG))), capture_output=True, text=True, env=env).stdout.strip()
+_claim = "I went with option A and I am recording it for him."
+_rcases.append(("right-hand 4: 'board-pick-claim' refuses a claim of choosing for the owner, naming the rule", "" if 'house rule \\"board-pick-claim\\"' in _bstop_off(None, _claim) else "BAD", False))
+_rcases.append(("right-hand 4: ...and is silent with its switch off", "" if _bstop_off("board-pick-claim", _claim) == "" else "BAD", False))
+# the idle manager check and the worker-queue check (their Python copies): a house rule off says nothing
+import importlib.util as _ilu, io as _io, contextlib as _cl
+def _load(name, path):
+    sp = _ilu.spec_from_file_location(name, os.path.join(HERE, path)); m = _ilu.module_from_spec(sp); sp.loader.exec_module(m); return m
+for _mn, _path, _rids in (("idle_mod", "idle-check.py", ("idle-sweep", "idle-silent")), ("wq_mod", "worker-queue-check.py", ("queue-waiting", "queue-idle"))):
+    _m = _load(_mn, _path)
+    for _rid in _rids:
+        _m.PROFILE = {}
+        _b1 = _io.StringIO()
+        with _cl.redirect_stdout(_b1):
+            _m.say_block(_rid, "Do not go idle." + _m.NOREPEAT)
+        _m.PROFILE = {"house_rules": {_rid: False}}
+        _b2 = _io.StringIO()
+        with _cl.redirect_stdout(_b2):
+            _m.say_block(_rid, "Do not go idle." + _m.NOREPEAT)
+        _rcases.append(("right-hand 4: '%s' (%s) names its rule, and is silent with its switch off" % (_rid, _path), "" if ('house rule \\"%s\\"' % _rid) in _b1.getvalue() and _b2.getvalue() == "" else "BAD " + _b1.getvalue()[:120], False))
+# the list page and the code say the same: every name the checks use is on the page with its group, every refusing name on the page is in both copies
+def _ids(files, pat):
+    out = set()
+    for f in files:
+        out |= set(_re.findall(pat, open(os.path.join(HERE, "..", f), encoding="utf-8").read()))
+    return out
+_PY = _ids(["hooks/rules-check.py", "hooks/board-stop.py", "scripts/idle-check.py", "scripts/worker-queue-check.py"], r'(?:deny|block|say_block|note_add)\(\s*(?:data\.get\("transcript_path"\) or "",\s*)?"([a-z-]+)"') | {"talk-note"}
+_RS = _ids(["checks/src/rules.rs", "checks/src/boardstop.rs", "checks/src/idle.rs", "checks/src/wq.rs", "checks/src/talk.rs"], r'(?:deny|block|say_block|note_add|refuse|reply)\((?:tpath, |s\(&data, "transcript_path"\), )?"([a-z-]+)"') | {"note-secret", "record-form"}
+_PYONLY = {"note-shape", "order-action"}  # the program's record check carries these under record-form
+_rcases.append(("right-hand 4: the Python copy uses exactly the names on the page (extra: %s; missing: %s)" % (sorted(_PY - set(LISTED)), sorted(set(LISTED) - _PY)), "" if _PY == set(LISTED) else "BAD", False))
+_rcases.append(("right-hand 4: the program uses exactly the names on the page (extra: %s; missing: %s)" % (sorted(_RS - set(LISTED)), sorted(set(LISTED) - _PYONLY - _RS)), "" if _RS == set(LISTED) - _PYONLY else "BAD", False))
+_safe_py = _re.search(r"SAFETY = \{([^}]*)\}", open(os.path.join(HERE, "..", "hooks", "rules-check.py")).read()).group(1)
+_safe_rs = _re.search(r"pub const SAFETY: \[&str; \d+\] = \[([^\]]*)\]", open(os.path.join(HERE, "..", "checks", "src", "common.rs")).read()).group(1)
+_sp = set(_re.findall(r'"([a-z-]+)"', _safe_py)); _sr = set(_re.findall(r'"([a-z-]+)"', _safe_rs))
+_rcases.append(("right-hand 4: the safety stops in both copies are exactly the page's safety stops", "" if _sp == _sr == {k for k, g in LISTED.items() if g == "safety stop"} else "BAD %s %s" % (sorted(_sp), sorted(_sr)), False))
+_ntemp = {}
+cases += _rcases
+if os.environ.get("MUSTER_CALLS_OUT"):  # for scripts/rules-apart-diff.py: every call of the rules and board-stop checks, to be replayed under a profile
+    json.dump([[("bin" if (BIN and c[0][0] == BIN) else "py"), c[0][1], c[1], {k: v for k, v in (c[2] or os.environ).items() if k.startswith("MUSTER_") or k == "CLAUDE_CONFIG_DIR"}] for c in CALLS], open(os.environ["MUSTER_CALLS_OUT"], "w"))
 bad = 0
 for name, out, should_block in cases:
     ok = bool(out) == should_block

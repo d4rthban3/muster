@@ -1,0 +1,28 @@
+{
+  "version": "0.3.173",
+  "changed_files": [
+    "docs/checks.md",
+    "hooks/rules-check.py",
+    "hooks/board-stop.py",
+    "hooks/talk-check.py",
+    "scripts/idle-check.py",
+    "scripts/worker-queue-check.py",
+    "scripts/rules-check-selftest.py",
+    "scripts/rules-apart-diff.py",
+    "checks/src/",
+    "bin/",
+    "directory/",
+    "CHANGELOG.md"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Builder",
+    "Designer",
+    "Inspector"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "right-hand-rules-apart (part 4 of the right-hand page, item 128): every check is on one page, docs/checks.md, as a safety stop (money, keys and passwords, deleting, publishing, committing; on for every project, no switch) or a house rule (how a chat talks, asks, reports and orders; its own switch per project: \"house_rules\": {\"<name>\": false} in the project's profile). A house rule switched off never reaches that project, no refusal and no note. A house rule made later starts off for every project but Muster. A refusal names its group and rule. A project profile with no house_rules key behaves exactly as before (PINR unchanged; profiles/pinr.json is not touched)."
+}

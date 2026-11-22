@@ -34,6 +34,19 @@ INSTALLED = os.path.basename(HERE) == ".muster-checks"
 
 NOREPEAT = " Your reply already reached the owner: do not write it again. Do what this asks, then end with at most one new line, or nothing."
 
+def say_block(rid, reason):
+    """A house rule (docs/checks.md): refuse, naming the rule and whose it is, unless this project's profile has switched it off
+    ("house_rules": {"%s": false}); then say nothing."""
+    sw = PROFILE.get("house_rules")
+    if isinstance(sw, dict) and rid in sw and not sw[rid]:
+        return
+    if reason.endswith(NOREPEAT):
+        reason = reason[:-len(NOREPEAT)] + " [house rule \"%s\" of Muster; a project's profile can switch it off]" % rid + NOREPEAT
+    else:
+        reason += " [house rule \"%s\" of Muster; a project's profile can switch it off]" % rid
+    print(json.dumps({"decision": "block", "reason": reason}))
+
+
 
 def load_profile():
     for cand in (os.environ.get("MUSTER_PROFILE"), os.path.join(HERE, "profile.json")):
@@ -483,26 +496,26 @@ def main(argv):
     except Exception:
         return 0
     if sweep and not missing and not waiting and not holds and not card:
-        print(json.dumps({"decision": "block", "reason":
+        say_block("idle-sweep",
             "Crew sweep (item 96): " + " | ".join(sweep) + ". Give each quiet "
-            "member its next order or find out why it has none; name each in your reply." + NOREPEAT}))
+            "member its next order or find out why it has none; name each in your reply." + NOREPEAT)
         return 0
     if not missing and not waiting and not holds:
         if card:
-            print(json.dumps({"decision": "block", "reason":
+            say_block("idle-card",
                 "Two or more workers are idle with nothing to order and the owner has no clear report (item 95). Send him ONE card: a bold title, one bullet "
                 "line per worker (%s), each saying 'since <when>', 'why: <reason>' and 'unblocked by: <what>', then the one lettered question "
-                "(***A.*** ...) that unblocks the most. Missing: %s." % ("; ".join("%s idle %d min" % (n, max(1, sec // 60)) for n, sec in still), card) + NOREPEAT}))
+                "(***A.*** ...) that unblocks the most. Missing: %s." % ("; ".join("%s idle %d min" % (n, max(1, sec // 60)) for n, sec in still), card) + NOREPEAT)
         return 0
     lines = ["%s has been idle %d minutes and holds an open item: %s" %
              (n, max(1, secs // 60), "; ".join("%s (%s)" % x for x in f)) for n, secs, f in missing]
     lines += ["%s says it waits on the manager (%s)" % w for w in waiting]
     lines += ["your board line holds %s (%s) but names no decision or item of his: a manager never holds a worker for a "
               "measurement or convenience, and no order of yours outranks his word; release it or cite his words" % h for h in holds]
-    print(json.dumps({"decision": "block", "reason":
+    say_block("idle-silent",
         "Do not end this turn silently: " + " | ".join(lines) +
         ". Message each one (give it the next order quoting his words, answer what it waits on, or ask why it is idle), "
-        "name it in your reply, or if nothing fits say \"The crew is idle\" with the choices as buttons." + NOREPEAT}))
+        "name it in your reply, or if nothing fits say \"The crew is idle\" with the choices as buttons." + NOREPEAT)
     return 0
 
 

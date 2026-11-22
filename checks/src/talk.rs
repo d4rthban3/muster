@@ -6,7 +6,7 @@ pub fn run() -> i32 {
     let Some(data) = read_stdin() else { return 0 };
     if stood_down(&data, "talk-check.py") { return 0; }
     let profile = load_profile();
-    if truthy(data.get("stop_hook_active")) || profile.get("talk_check") == Some(&Value::Bool(false)) { return 0; }
+    if truthy(data.get("stop_hook_active")) || profile.get("talk_check") == Some(&Value::Bool(false)) || profile.get("house_rules").and_then(|h| h.get("talk-note")) == Some(&Value::Bool(false)) { return 0; } // house rule "talk-note"; talk_check is its older name
     if bounced_this_turn(s(&data, "transcript_path")) { return 0; }
     let text = s(&data, "last_assistant_message");
     if text.is_empty() { return 0; }
@@ -27,7 +27,7 @@ pub fn run() -> i32 {
         _ => String::new(),
     };
     // a note, not a refusal: told to the chat once at its next prompt or tool call (read by rules-check)
-    note_add(s(&data, "transcript_path"), &format!("your reply to the owner had {what}: next time write it in plain words, each file as a clickable link, no saved-version codes."));
+    note_add(s(&data, "transcript_path"), "talk-note", &format!("your reply to the owner had {what}: next time write it in plain words, each file as a clickable link, no saved-version codes."));
     0
 }
 

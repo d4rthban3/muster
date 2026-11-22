@@ -296,7 +296,8 @@ step "the hook wrapper runs the ready-made program for this system (hooks/rules-
 WT="$SCRATCH/wrapper"; mkdir -p "$WT"
 $PY -c 'import json,sys;print(json.dumps({"type":"user","message":{"content":"You are Builder A_Shop_001, agents/builder.md"}}))' > "$WT/t.jsonl"
 WRAP_OUT=$(cd "$FOLDER" && printf '{"hook_event_name":"Stop","cwd":"%s","last_assistant_message":"Done.","transcript_path":"%s"}' "$(native "$FOLDER")" "$(native "$WT")/t.jsonl" | sh "$ROOT/hooks/rules-check.sh")
-echo "$WRAP_OUT" | grep -q '"decision": "block"' || fail "the wrapper did not enforce the card rule: $WRAP_OUT"
+echo "$WRAP_OUT" | grep -q '"decision": "block"' && fail "the wrapper refused a worker's plain reply (now a note): $WRAP_OUT"
+[ -s "$WT/t.jsonl.muster-notes" ] || fail "the wrapper did not note the card rule (nothing kept beside the chat)"
 BIN_USED=$(sh "$ROOT/scripts/find-binary.sh" "$ROOT" 2>/dev/null || true)
 echo "program used: ${BIN_USED:-none for this system (the Python copy ran)}"
 if [ -n "$BIN_USED" ]; then

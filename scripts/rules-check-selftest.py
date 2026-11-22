@@ -792,8 +792,8 @@ _RS = _ids(["checks/src/rules.rs", "checks/src/boardstop.rs", "checks/src/idle.r
 _PYONLY = {"note-shape", "order-action"}  # the program's record check carries these under record-form
 _rcases.append(("right-hand 4: the Python copy uses exactly the names on the page (extra: %s; missing: %s)" % (sorted(_PY - set(LISTED)), sorted(set(LISTED) - _PY)), "" if _PY == set(LISTED) else "BAD", False))
 _rcases.append(("right-hand 4: the program uses exactly the names on the page (extra: %s; missing: %s)" % (sorted(_RS - set(LISTED)), sorted(set(LISTED) - _PYONLY - _RS)), "" if _RS == set(LISTED) - _PYONLY else "BAD", False))
-_safe_py = _re.search(r"SAFETY = \{([^}]*)\}", open(os.path.join(HERE, "..", "hooks", "rules-check.py")).read()).group(1)
-_safe_rs = _re.search(r"pub const SAFETY: \[&str; \d+\] = \[([^\]]*)\]", open(os.path.join(HERE, "..", "checks", "src", "common.rs")).read()).group(1)
+_safe_py = _re.search(r"SAFETY = \{([^}]*)\}", open(os.path.join(HERE, "..", "hooks", "rules-check.py"), encoding="utf-8").read()).group(1)
+_safe_rs = _re.search(r"pub const SAFETY: \[&str; \d+\] = \[([^\]]*)\]", open(os.path.join(HERE, "..", "checks", "src", "common.rs"), encoding="utf-8").read()).group(1)
 _sp = set(_re.findall(r'"([a-z-]+)"', _safe_py)); _sr = set(_re.findall(r'"([a-z-]+)"', _safe_rs))
 _rcases.append(("right-hand 4: the safety stops in both copies are exactly the page's safety stops", "" if _sp == _sr == {k for k, g in LISTED.items() if g == "safety stop"} else "BAD %s %s" % (sorted(_sp), sorted(_sr)), False))
 _ntemp = {}

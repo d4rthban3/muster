@@ -36,7 +36,7 @@ def main():
     ap.add_argument("--before-bin")
     ap.add_argument("--after-bin")
     a = ap.parse_args()
-    calls = json.load(open(a.calls))
+    calls = json.load(open(a.calls, encoding="utf-8"))
     py = lambda d, name: [sys.executable, os.path.join(d, "board-stop.py" if name == "board-stop" else "rules-check.py")]
     sets = [("python copies", lambda n: py(a.before_hooks, n), lambda n: py(os.path.join(ROOT, "hooks"), n))]
     if a.before_bin and a.after_bin:

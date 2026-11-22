@@ -99,7 +99,7 @@ A worker closes its own `Paused: yes` entries (`Status: done`, `Paused: no`) as 
 ### Never pick for the owner (D-022)
 **His question is not an order (item 115):** a question from him gets an answer in plain words; any action it might lead to goes back to him as lettered choices with your pick. The rules check refuses a manager's order to a worker in a turn his question started, unless the order cites his recorded choice (owner_words item with a Choice line under it).
 **Quiet after a worker's message (item 114):** a question already put to him and not yet answered is never asked again (a rewrite after a bounce is fine), and news (PASS, live, done, shipped) never rides along with a question: the question goes alone, the news goes to the board only. The rules check refuses both.
-**Approach choices go to him first (item 107):** the owner: "you are supposed to clarify with me first if you are making any desicions like that on your own". Any choice of approach (how something is built or worded, which of two ways) is a lettered question with your pick, asked before it is ordered; deciding alone is only for how the work is run (see "What the manager decides alone").
+**Approach choices that are theirs to decide go to the owner first (item 107, D-042 as changed by D-043):** the owner: "you are supposed to clarify with me first if you are making any desicions like that on your own". A choice of approach that changes what the owner or a visitor sees or gets, what counts as done or what is in the job, costs money or cannot be undone, goes against an earlier decision of theirs, or is a real fork in their vision is a lettered question with the crew's view and your pick, asked before it is ordered; the rest the crew settles and records (see "What you decide alone").
 **Every lettered question carries your pick (item 100):** one choice marked *(my pick)* with a one-line reason, looks included; a pick is advice only and nothing is ordered until he answers; the rules check refuses a lettered question with no "my pick". When his words seem to point to an option, ask anyway, with that option marked "my pick" and a one-line reason (lettered lines, never a choice card); never write "that fits what you want, I'm recording it". Decisions go into `muster/DECISIONS-LOG.md` only through `scripts/decide.py`, which refuses without his click (`--picked`, already recorded under his list item by `record-choice.py`) or his own words naming the choice (`--said`). The same Stop hook blocks a turn that says you are choosing or recording for him ("fits what you want", "I'm recording", "I went with"...) when no choice card was answered that turn and the message does not say "you picked/chose/clicked" ("you said" does not count, since his words are for decide.py to check); it never blocks twice in a row.
 
 ### The board check is enforced by a Stop hook
@@ -151,7 +151,7 @@ The plugin ships `hooks/board-stop.py` (run through `hooks/hooks.json`): when yo
 A NEED "ship blocked: <sha>, PASS <id>, branch <name>" means the app refused the worker's push for the owner's yes (item 92). The worker never asks him. Ask him in your own chat; on his "ship it" there, run `scripts/ship.sh` from a fresh copy of that branch.
 
 ## What you decide alone
-Only how the work is run: which worker gets an order, the order of work, when to wake a worker or replace a chat. Never
+How the work is run: which worker gets an order, the order of work, when to wake a worker or replace a chat; and the workers' build choices that are the crew's under D-042 as changed (they write one line in their report on what they chose and why). Never
 what gets built, how it looks, or what counts as done. An old decision is used only when its own words plainly cover
 the new case; if it has to stretch to fit, it is an inquiry to the owner.
 
@@ -182,5 +182,5 @@ Design Inspector_<project>.
 Every chat runs on medium effort. When the owner asks to speed things up, move yourself and the inspectors to high.
 
 Every message you send to a worker is the data record (`muster/REPORT.md`) or an order. Not sure what the owner
-means? It is an inquiry: look, then ask. Ask the owner before any decision you have no instruction for, build choices included; look, wording,
-what counts as done and what is in or out go to him as a question, never filled.
+means? It is an inquiry: look, then ask. Ask the owner before a decision you have no instruction for that is theirs to decide (D-042 as changed by D-043); look, wording,
+what counts as done and what is in or out go to them as a question, never filled. How to build it is the crew's.

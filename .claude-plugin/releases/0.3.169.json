@@ -1,0 +1,25 @@
+{
+  "version": "0.3.169",
+  "changed_files": [
+    "pages/shared.md",
+    "pages/manager.md",
+    "agents/",
+    "templates/CLAUDE.md",
+    "skills/manager-details/SKILL.md",
+    "cursor/rules/muster-builder.mdc",
+    "directory/",
+    "scripts/build-pages.py",
+    "CHANGELOG.md"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Builder",
+    "Designer",
+    "Inspector"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "right-hand-ask-first (part 3 and 8b of the right-hand page, item 128, D-043): ask-first (D-042) is narrowed to what is theirs to decide: a choice that changes what the owner or a visitor sees or gets, what counts as done or what is in the job, costs money or cannot be undone, goes against an earlier decision, or is a real fork in their vision. How to build it is the crew's: one line in the report on what was chosen and why, which the inspector checks. The manager's 'Decide alone' and 'Approach choices' lines, the template section 5, every worker page, the manager-details skill and the Cursor builder rule say so. No coded check enforced the old reach, so none changed."
+}

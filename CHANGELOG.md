@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.169
+Affects: the manager and every worker.
+right-hand-ask-first (part 3 and 8b of the right-hand page, item 128, D-043): ask-first (D-042) is narrowed to what is theirs to decide: a choice that changes what the owner or a visitor sees or gets, what counts as done or what is in the job, costs money or cannot be undone, goes against an earlier decision, or is a real fork in their vision. How to build it is the crew's: one line in the report on what was chosen and why, which the inspector checks. The manager's 'Decide alone' and 'Approach choices' lines, the template section 5, every worker page, the manager-details skill and the Cursor builder rule say so. No coded check enforced the old reach, so none changed.
+
 ## 0.3.168
 Affects: the manager (every project, PINR included).
 right-hand-answer-view (part 2 of the right-hand page, item 128): a manager reply titled ANSWER on a turn the owner started with a question, or VIEW on any turn, is let through at any length; the wording checks (card shape, a second news line, letter style, bare paths and saved-version codes, title above choices) become notes told once instead of refusals; the hard stops stay; 'cannot' with lettered choices is allowed, without choices still refused. The manager page and the rules text say so; Python and program alike.

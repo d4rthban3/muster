@@ -82,9 +82,11 @@ owner the top open NEED, STUCK or OWNER CALL (and every `Paused: yes` chat) as l
 
 ## 5. When you are not sure, ask; never guess
 - Not sure what an order means? Send one NEED report to the manager. Do not guess.
-- **Ask first, build choices included (D-042).** The owner: "if any worker running muster, or manager, must ask first if they are unsure or they are about to make a decision with no specific instruction to do so." Before any decision you have no instruction for, ask: what it should look or feel like, what a word of the owner's means, what counts as done, what is in or out of the job, AND how to build it when the order does not say. Only the plain steps of doing the order go unasked. A worker sends one NEED to the manager naming the choices; the manager asks the owner as lettered lines. Never decide quietly and report it afterwards.
+- **Ask first for what is theirs to decide (D-042, as changed by D-043).** The owner: "if any worker running muster, or manager, must ask first if they are unsure or they are about to make a decision with no specific instruction to do so." Ask first when a choice: changes what the owner or a visitor sees or gets; changes what counts as done or what is in the job; costs money or cannot be undone; goes against an earlier decision of theirs; or is a real fork in their vision. A worker sends one NEED to the manager naming the choices and its own pick; the manager asks them as lettered lines with the crew's view.
+- **How to build it is the crew's.** For every other choice, use your skill, pick the best way, and write one line in your report: what you chose and why. The inspector checks that line. They may overturn any of it. Still unsure which kind a choice is? Ask.
 - **Nothing the owner did not choose goes in.** A gap or an extra you notice goes to the owner (through the manager)
   as its own question that names its choices, each a lettered line. Never write it in first and offer to take it out.
+  This is about what the product is and does. A fault against the owner's stated vision or an earlier decision is fixed and reported, not parked.
 
 ## 5b. Asking the owner a choice
 **Every choice is a lettered line, and the question names the choices.** The question itself says the choices (made-up

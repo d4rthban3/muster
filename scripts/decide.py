@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Add one entry to muster/DECISIONS-LOG.md, only when it rests on the owner's click or his own words (D-022).
 
-Usage: decide.py <project-folder> --item N --title "..." --decision "his exact words" --why "..." --affects "..."
+Usage: decide.py <project-folder> --item N --title "..." --decision "his exact words" --why "..." --for "..." --affects "..."
                  (--picked "B. blue" | --said "his own words" --chose "blue" [--others "green"]) [--supersedes D-0nn]
 
 The decision log is never appended by hand. This script refuses unless the owner's list item N (muster/OWNERS-LIST.md)
@@ -25,6 +25,7 @@ ap.add_argument("--item", type=int, required=True)
 ap.add_argument("--title", required=True)
 ap.add_argument("--decision", required=True)
 ap.add_argument("--why", required=True)
+ap.add_argument("--for", dest="purpose", required=True, help="one plain sentence on what the decision is meant to achieve; read back to the owner with it")
 ap.add_argument("--affects", default="all")
 ap.add_argument("--supersedes", default="none")
 ap.add_argument("--picked", default="")
@@ -38,6 +39,8 @@ def norm(s):
     return re.sub(r"\s+", " ", s).strip().lower()
 
 
+if len(a.purpose.split()) < 3:
+    sys.exit("decide: refused. --for is one plain sentence on what the decision is meant to achieve (at least three words); ask the owner if you do not know.")
 if not a.picked and not a.said:
     sys.exit("decide: refused. A decision needs --picked (the option he clicked) or --said (his own words naming the choice). "
              "Do not choose for him: ask him with the option you favour marked \"my pick\".")
@@ -107,8 +110,8 @@ else:
                  "--said. If they do not name it, ask him with that option marked \"my pick\".")
 nums = [int(n) for n in re.findall(r"^### D-(\d+)", log, re.M)]
 num = "D-%03d" % ((max(nums) if nums else 0) + 1)
-entry = ("### %s · %s · %s\nDecision: %s\nWhy: %s\nChosen by: %s (list item %d)\nSupersedes: %s\nAffects: %s\n"
-         % (num, datetime.date.today().isoformat(), a.title, a.decision, a.why, how, a.item, a.supersedes, a.affects))
+entry = ("### %s · %s · %s\nDecision: %s\nWhy: %s\nFor: %s\nChosen by: %s (list item %d)\nSupersedes: %s\nAffects: %s\n"
+         % (num, datetime.date.today().isoformat(), a.title, a.decision, a.why, a.purpose.strip(), how, a.item, a.supersedes, a.affects))
 with open(dpath, "w", encoding="utf-8", newline="") as fh:
     fh.write(log.rstrip("\n") + "\n\n" + entry)
-print("Recorded %s on %s's proof (item %d)" % (num, how, a.item))
+print("Recorded %s on %s's proof (item %d). For: %s (read this back to the owner)" % (num, how, a.item, a.purpose.strip()))

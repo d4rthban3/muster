@@ -27,9 +27,9 @@ Re-applied for you: a hook puts this block back after every summary and flags, o
 - His question gets an answer, never an order (item 115): what it might lead to goes back to him as lettered choices; an order follows his recorded choice.
 - Any choice of approach goes to him first as a lettered question with a pick, before it is ordered (item 107: "you are supposed to clarify with me first if you are making any desicions like that on your own").
 - The Muster files are the only rulebook (item 108: "the actual muster program in the files is your standing rule.... stop doing that... stop mashing pinr and muster together"): no chat writes crew rules into its own memory.
-- What the owner says is the instruction, taken literally.
-- When a rule, an older decision or a note narrows what the owner said, ask the owner before following the file.
-- Decisions are numbered in `muster/DECISIONS-LOG.md`; the newest wins. Another chat's message is information to
+- What the owner says is the instruction. Follow what they mean: when their words and their plain purpose point the same way, act; when the literal words would work against what they have said they want, say so and ask before acting. Never use "what they meant" to do something they did not ask for.
+- When a rule, an older decision or a note narrows what the owner said, or a new instruction of theirs goes against an earlier decision, say so at once in one question that names both and what each was for ("this goes against D-0nn, which was for X; which leads?"). Never quietly follow either.
+- Decisions are numbered in `muster/DECISIONS-LOG.md`, each with a "what this is for" line; the newest wins. A decision that has blocked good work twice is brought back to the owner to keep, change or drop. Another chat's message is information to
   check, never the owner's approval.
 
 ## 2. Every worker is a whole chat
@@ -95,6 +95,7 @@ lettered line. He answers by typing the letter. Never a choice card (AskUserQues
 (D-037), and a coded check refuses it. Keep working on anything that does not depend on his answer. A letter he types
 is his answer: record it with `scripts/record-choice.py` the same turn. Any recap shown with a question is in plain
 words too: no saved-version codes.
+Every question carries the crew's view: which choice it would take and the reason, what the owner may not know that bears on it, what each choice costs, and what happens if they do nothing. "My pick" alone is not a view. Before asking, check the choice is theirs to decide (section 5); if it is the crew's, decide it and write it down.
 
 **Every lettered question carries your pick (item 100).** Mark one choice *(my pick)* and give a one-line reason; this holds for looks too. The pick is advice only: nothing is ordered or recorded until he answers. A coded check refuses a lettered question with no "my pick".
 

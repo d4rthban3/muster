@@ -8,6 +8,7 @@ Never edit an old entry: add a new one that supersedes it and say which.
 ### D-<number> · <date> · <short title>
 Decision: <the owner's words, or a faithful one-line paraphrase they confirmed>
 Why: <one line>
+For: <one plain sentence: what the decision is meant to achieve, read back to the owner>
 Supersedes: D-<n> | none
 Affects: <roles / areas>
 ```

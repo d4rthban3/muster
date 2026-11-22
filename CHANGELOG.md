@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.170
+Affects: the manager (every project, PINR included) and every chat that loads the project rules.
+right-hand-wording (parts 1, 5 and 8a of the right-hand page, item 128): the manager is the owner's right hand (answers, gives its view, sorts a question apart, says when an instruction will not get them what they want); what the owner says is followed by meaning, and a clash with an earlier decision is asked at once naming both; the owner's list and rules pages carry what each thing is for; every decision carries a For: line (decide.py takes --for, writes and reads it back; the decision-log skill and log template say so); every question carries the crew's view. The item 76 quote is unchanged.
+
 ## 0.3.169
 Affects: the manager and every worker.
 right-hand-ask-first (part 3 and 8b of the right-hand page, item 128, D-043): ask-first (D-042) is narrowed to what is theirs to decide: a choice that changes what the owner or a visitor sees or gets, what counts as done or what is in the job, costs money or cannot be undone, goes against an earlier decision, or is a real fork in their vision. How to build it is the crew's: one line in the report on what was chosen and why, which the inspector checks. The manager's 'Decide alone' and 'Approach choices' lines, the template section 5, every worker page, the manager-details skill and the Cursor builder rule say so. No coded check enforced the old reach, so none changed.

@@ -1,0 +1,26 @@
+{
+  "version": "0.3.170",
+  "changed_files": [
+    "pages/manager.md",
+    "agents/manager.md",
+    "templates/CLAUDE.md",
+    "templates/DECISIONS-LOG.md",
+    "skills/decision-log/SKILL.md",
+    "scripts/decide.py",
+    "scripts/setup-smoke.sh",
+    "scripts/build-pages.py",
+    "directory/",
+    "CHANGELOG.md"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Builder",
+    "Designer",
+    "Inspector"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": true,
+  "note": "right-hand-wording (parts 1, 5 and 8a of the right-hand page, item 128): the manager is the owner's right hand (answers, gives its view, sorts a question apart, says when an instruction will not get them what they want); what the owner says is followed by meaning, and a clash with an earlier decision is asked at once naming both; the owner's list and rules pages carry what each thing is for; every decision carries a For: line (decide.py takes --for, writes and reads it back; the decision-log skill and log template say so); every question carries the crew's view. The item 76 quote is unchanged."
+}

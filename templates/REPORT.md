@@ -18,6 +18,7 @@ misread one.
 | `touches` | list of the shared things the change touches (empty if none): each a top-level folder or file of the project at that sha (lowercase, dots and spaces as `-`, e.g. `hooks`, `changelog-md`) or one of database, file-store, outside-connection, board, owners-list, crew-files, site |
 | `usage` | `{"week_pct": n}` from `scripts/usage.py`, `null` inside it when it cannot be read; never an invented number |
 | `need` | none, pass_or_fail, order, owner_answer, fix or unblock |
+| `crew` | NEED only, several crews: the crew word (lowercase) of the manager the NEED is for; left out for the main crew |
 | `owner_words` | ORDER only: `{"item": n}` (his list) or `{"decision": "D-027"}`; his words are read there, not retyped |
 | `owns`, `out` | ORDER only: lists of the same kind of things as `touches` |
 | `note` | any kind, optional: one plain line of text, 400 characters at most, for what a record cannot say (an archive request, news for another project's manager). The program checks only its length, one line and no key, password or token; it never carries a decision and never replaces the board for detail |

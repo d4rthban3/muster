@@ -1,0 +1,18 @@
+{
+  "version": "0.3.190",
+  "changed_files": [
+    "pages/manager.md",
+    "agents/manager.md",
+    "templates/REPORT.md",
+    "directory/",
+    "CHANGELOG.md"
+  ],
+  "affected_roles": [
+    "Manager"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "several-crews follow-up: the manager page now says never to order another crew's chats and to use a NEED with a crew key; the report template lists the crew key. No change for a one-crew project."
+}

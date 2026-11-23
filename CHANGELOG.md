@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.184
+Affects: every chat that loads Muster (PINR: the refusals are the same, only their wording lists every fault at once; no rule loosened).
+redo-loop-less (item 132): a refused record, report or order now names every fault it found in one answer (wrong version, id, long note, unknown key, missing READY parts together), so a message is rewritten once, not once per fault. A READY's missing test count shows the line to write ("How: 12/12 passed"); a too-long note says to shorten it or put the detail in a notes file; the wrap-up refusal names the corrected call (recap only). Both check programs, tests added.
+
 ## 0.3.183
 Affects: every chat that loads Muster (PINR chats too: the plugin's pages and descriptions are shared; PINR's profile is untouched).
 start-weight-lower (item 132): what Muster itself adds to a chat's start is about a third lighter: the manager's page and a worker's page say each rule once in fewer words (the message keys live in muster/REPORT.md), the skills' and agents' descriptions are shorter, and the text printed after a compaction is a third shorter. scripts/start-weight.py checks the budget in CI.

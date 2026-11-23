@@ -22,7 +22,7 @@ Kinds: refuses = the tool call or the end of the turn is refused; note = the rep
 | `wrapup-box` | house rule | refuses | No question or buttons in the app's wrap-up call. |
 | `choice-card` | house rule | refuses | No choice card for the owner; lettered lines in the chat. |
 | `no-thanks` | house rule | refuses | No "noted" or "thanks" messages between chats. |
-| `record-form` | house rule | refuses | A message between chats is one data record with fixed keys. |
+| `record-form` | house rule | refuses | A message between chats is one data record with fixed keys. A refusal names every fault found in one answer (item 132), so the record is rewritten once. |
 | `note-shape` | house rule | refuses | A record's note is one plain line of 1 to 400 characters (the program's record check carries this under `record-form`). |
 | `order-action` | house rule | refuses | An ORDER names its action: ship, hold or start (the program's record check carries this under `record-form`). |
 | `order-goal` | house rule | refuses | An order is checked against the project's goal. |

@@ -83,7 +83,7 @@ fn sha(v: &Value) -> Result<(), String> {
 fn note(v: &Value) -> Result<(), String> {
     let s = v.as_str().ok_or("note must be text")?;
     if s.trim().is_empty() { return Err("note is empty (leave the key out)".into()); }
-    if s.chars().count() > NOTE_MAX { return Err(format!("note is {} characters; the cap is {NOTE_MAX} (detail goes on the board)", s.chars().count())); }
+    if s.chars().count() > NOTE_MAX { return Err(format!("note is {} characters; the cap is {NOTE_MAX} (shorten it, or write the detail to a notes file and put only its name here)", s.chars().count())); }
     if s.chars().any(|c| c.is_control()) { return Err("note must be one line of plain text".into()); }
     let secret = fancy_regex::Regex::new(r"(?i)((?<![A-Za-z0-9])sk-[A-Za-z0-9]{12,}|ghp_[A-Za-z0-9]{12,}|AKIA[A-Z0-9]{12,}|BEGIN [A-Z ]*PRIVATE KEY|password\s*[:=]|api[_-]?key\s*[:=]|token\s*[:=])").unwrap();
     if secret.is_match(s).unwrap_or(false) { return Err("a note never carries a key, password or token".into()); }
@@ -94,74 +94,105 @@ fn opt<'a>(m: &'a Map<String, Value>, k: &str) -> Option<&'a Value> {
     m.get(k).filter(|v| !v.is_null())
 }
 
-/// Ok(()) when the text is one valid record; Err(why) otherwise.
+/// Ok(()) when the text is one valid record; Err(why) otherwise. Every fault found is named in the one answer (joined with "; "), so a
+/// record is rewritten once, not once per fault (item 132).
 /// `things`: the project's top-level folder and file names as codes (see thing_code); touches, owns and out may name only these or FIXED_THINGS.
 pub fn validate(text: &str, things: &HashSet<String>) -> Result<(), String> {
     let v: Value = serde_json::from_str(text.trim()).map_err(|_| "not a record: it must be one JSON object (data, not a sentence)".to_string())?;
     let m = v.as_object().ok_or("not a record: it must be one JSON object")?;
-    for k in m.keys() {
-        if !KEYS.contains(&k.as_str()) { return Err(format!("unknown key '{k}'")); }
+    let mut errs: Vec<String> = Vec::new();
+    let unknown: Vec<String> = m.keys().filter(|k| !KEYS.contains(&k.as_str())).map(|k| format!("'{k}'")).collect();
+    if !unknown.is_empty() { errs.push(format!("unknown key {}", unknown.join(", "))); }
+    macro_rules! chk { ($e:expr) => { if let Err(x) = $e { errs.push(x); } }; }
+    if let Some(n) = m.get("note") { chk!(note(n)); }
+    if m.get("v").and_then(Value::as_u64) != Some(1) { errs.push("v must be 1".into()); }
+    let kind: Option<&str> = match m.get("kind").and_then(Value::as_str) {
+        None => { errs.push("kind is missing".into()); None }
+        Some(k) if !KINDS.contains(&k) => { errs.push(format!("kind '{k}' is not one of {}", KINDS.join(", "))); None }
+        Some(k) => Some(k),
+    };
+    let mut get = |key: &str, f: &dyn Fn(&Value) -> Result<String, String>, errs: &mut Vec<String>| -> Option<String> {
+        match m.get(key) { None => { errs.push(format!("{key} is missing")); None } Some(x) => match f(x) { Ok(c) => Some(c), Err(e) => { errs.push(e); None } } }
+    };
+    let from = get("from", &|x| role_code(x, "from"), &mut errs);
+    get("to", &|x| role_code(x, "to"), &mut errs);
+    let job = get("job", &|x| short_code(x, "job", 32, 4), &mut errs);
+    let id = get("id", &|x| code(x, "id", 1, 48), &mut errs);
+    if let (Some(from), Some(job), Some(id)) = (&from, &job, &id) {
+        let n = id.strip_prefix(&format!("{from}-{job}-")).unwrap_or("");
+        if n.is_empty() || n.len() > 4 || !n.chars().all(|c| c.is_ascii_digit()) { errs.push(format!("id must be {from}-{job}-<number>")); }
     }
-    if let Some(n) = m.get("note") { note(n)?; }
-    if m.get("v").and_then(Value::as_u64) != Some(1) { return Err("v must be 1".into()); }
-    let kind = m.get("kind").and_then(Value::as_str).ok_or("kind is missing")?;
-    if !KINDS.contains(&kind) { return Err(format!("kind '{kind}' is not one of {}", KINDS.join(", "))); }
-    let from = role_code(m.get("from").ok_or("from is missing")?, "from")?;
-    role_code(m.get("to").ok_or("to is missing")?, "to")?;
-    let job = short_code(m.get("job").ok_or("job is missing")?, "job", 32, 4)?;
-    let id = code(m.get("id").ok_or("id is missing")?, "id", 1, 48)?;
-    let n = id.strip_prefix(&format!("{from}-{job}-")).unwrap_or("");
-    if n.is_empty() || n.len() > 4 || !n.chars().all(|c| c.is_ascii_digit()) { return Err(format!("id must be {from}-{job}-<number>")); }
-    let need = m.get("need").ok_or("need is missing")?;
-    let need = code(need, "need", 1, 20)?;
-    if !NEEDS.contains(&need.as_str()) { return Err(format!("need '{need}' is not one of {}", NEEDS.join(", "))); }
-    if let Some(x) = opt(m, "sha") { sha(x)?; }
-    if let Some(x) = opt(m, "version") { version(x)?; }
+    if let Some(need) = get("need", &|x| code(x, "need", 1, 20), &mut errs) {
+        if !NEEDS.contains(&need.as_str()) { errs.push(format!("need '{need}' is not one of {}", NEEDS.join(", "))); }
+    }
+    if let Some(x) = opt(m, "sha") { chk!(sha(x)); }
+    if let Some(x) = opt(m, "version") { chk!(version(x)); }
     if let Some(t) = opt(m, "tests") {
-        let o = t.as_object().ok_or("tests must be {\"passed\":n,\"failed\":n}")?;
-        if o.len() != 2 { return Err("tests must hold exactly passed and failed".into()); }
-        num(o.get("passed").ok_or("tests.passed is missing")?, "tests.passed", 1_000_000)?;
-        num(o.get("failed").ok_or("tests.failed is missing")?, "tests.failed", 1_000_000)?;
+        match t.as_object() {
+            None => errs.push("tests must be {\"passed\":n,\"failed\":n}".into()),
+            Some(o) => {
+                if o.len() != 2 { errs.push("tests must hold exactly passed and failed".into()); }
+                match o.get("passed") { None => errs.push("tests.passed is missing".into()), Some(x) => chk!(num(x, "tests.passed", 1_000_000).map(|_| ())) }
+                match o.get("failed") { None => errs.push("tests.failed is missing".into()), Some(x) => chk!(num(x, "tests.failed", 1_000_000).map(|_| ())) }
+            }
+        }
     }
-    if let Some(x) = m.get("touches") { list_of_codes(x, "touches", things)?; }
+    if let Some(x) = m.get("touches") { chk!(list_of_codes(x, "touches", things)); }
     if let Some(u) = opt(m, "usage") {
-        let o = u.as_object().ok_or("usage must be {\"week_pct\":n}")?;
-        if o.len() != 1 { return Err("usage must hold exactly week_pct".into()); }
-        match o.get("week_pct") { Some(Value::Null) => {}, Some(x) => { num(x, "usage.week_pct", 100)?; }, None => return Err("usage.week_pct is missing".into()) }
+        match u.as_object() {
+            None => errs.push("usage must be {\"week_pct\":n}".into()),
+            Some(o) => {
+                if o.len() != 1 { errs.push("usage must hold exactly week_pct".into()); }
+                match o.get("week_pct") { Some(Value::Null) => {}, Some(x) => chk!(num(x, "usage.week_pct", 100).map(|_| ())), None => errs.push("usage.week_pct is missing".into()) }
+            }
+        }
     }
     match kind {
-        "READY" => {
-            if opt(m, "sha").is_none() { return Err("a READY needs sha".into()); }
-            let t = opt(m, "tests").ok_or("a READY needs tests")?;
-            if t["passed"].as_u64() == Some(0) && t["failed"].as_u64() == Some(0) { return Err("a READY needs a test count above zero".into()); }
-            if m.get("touches").is_none() { return Err("a READY needs touches (a list, empty if none)".into()); }
-            if !m.contains_key("usage") { return Err("a READY needs usage".into()); }
-        }
-        "DONE" => { if !m.contains_key("usage") { return Err("a DONE needs usage".into()); } }
-        "PASS" | "FAIL" => { if opt(m, "sha").is_none() { return Err(format!("a {kind} needs the sha it checked")); } }
-        "ORDER" => {
-            let ow = m.get("owner_words").ok_or("an ORDER needs owner_words (his list item or decision)")?;
-            let o = ow.as_object().ok_or("owner_words must be {\"item\":n} or {\"decision\":\"D-027\"}")?;
-            if o.len() != 1 { return Err("owner_words must hold exactly one of item or decision".into()); }
-            match (o.get("item"), o.get("decision")) {
-                (Some(i), None) => { num(i, "owner_words.item", 10_000)?; }
-                (None, Some(d)) => {
-                    let s = d.as_str().unwrap_or("");
-                    if !(s.len() == 5 && s.starts_with("D-") && s[2..].chars().all(|c| c.is_ascii_digit())) { return Err("owner_words.decision must look like D-027".into()); }
-                }
-                _ => return Err("owner_words must be item or decision".into()),
+        Some("READY") => {
+            if opt(m, "sha").is_none() { errs.push("a READY needs sha".into()); }
+            match opt(m, "tests") {
+                None => errs.push("a READY needs tests".into()),
+                Some(t) => if t["passed"].as_u64() == Some(0) && t["failed"].as_u64() == Some(0) { errs.push("a READY needs a test count above zero".into()); },
             }
-            list_of_codes(m.get("owns").ok_or("an ORDER needs owns")?, "owns", things)?;
-            list_of_codes(m.get("out").ok_or("an ORDER needs out")?, "out", things)?;
-            let act = code(m.get("action").ok_or("an ORDER needs action (ship, hold or start)")?, "action", 1, 8)?;
-            if !ACTIONS.contains(&act.as_str()) { return Err(format!("action '{act}' is not one of {}", ACTIONS.join(", "))); }
-            let dw = m.get("need").and_then(Value::as_str).unwrap_or("");
-            let _ = (dw, DONE_WHEN);
+            if m.get("touches").is_none() { errs.push("a READY needs touches (a list, empty if none)".into()); }
+            if !m.contains_key("usage") { errs.push("a READY needs usage".into()); }
+        }
+        Some("DONE") => { if !m.contains_key("usage") { errs.push("a DONE needs usage".into()); } }
+        Some(k @ ("PASS" | "FAIL")) => { if opt(m, "sha").is_none() { errs.push(format!("a {k} needs the sha it checked")); } }
+        Some("ORDER") => {
+            match m.get("owner_words") {
+                None => errs.push("an ORDER needs owner_words (his list item or decision)".into()),
+                Some(ow) => match ow.as_object() {
+                    None => errs.push("owner_words must be {\"item\":n} or {\"decision\":\"D-027\"}".into()),
+                    Some(o) => {
+                        if o.len() != 1 { errs.push("owner_words must hold exactly one of item or decision".into()); }
+                        match (o.get("item"), o.get("decision")) {
+                            (Some(i), None) => chk!(num(i, "owner_words.item", 10_000).map(|_| ())),
+                            (None, Some(d)) => {
+                                let s = d.as_str().unwrap_or("");
+                                if !(s.len() == 5 && s.starts_with("D-") && s[2..].chars().all(|c| c.is_ascii_digit())) { errs.push("owner_words.decision must look like D-027".into()); }
+                            }
+                            _ => { if o.len() == 1 { errs.push("owner_words must be item or decision".into()); } }
+                        }
+                    }
+                },
+            }
+            for key in ["owns", "out"] {
+                match m.get(key) { None => errs.push(format!("an ORDER needs {key}")), Some(x) => chk!(list_of_codes(x, key, things)) }
+            }
+            match m.get("action") {
+                None => errs.push("an ORDER needs action (ship, hold or start)".into()),
+                Some(x) => match code(x, "action", 1, 8) {
+                    Err(e) => errs.push(e),
+                    Ok(act) => if !ACTIONS.contains(&act.as_str()) { errs.push(format!("action '{act}' is not one of {}", ACTIONS.join(", "))); },
+                },
+            }
+            let _ = DONE_WHEN;
         }
         _ => {}
     }
-    if kind != "ORDER" && m.contains_key("action") { return Err("action belongs to an ORDER only".into()); }
-    Ok(())
+    if kind.is_some() && kind != Some("ORDER") && m.contains_key("action") { errs.push("action belongs to an ORDER only".into()); }
+    if errs.is_empty() { Ok(()) } else { Err(errs.join("; ")) }
 }
 
 #[cfg(test)]

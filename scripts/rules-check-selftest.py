@@ -846,6 +846,24 @@ _safe_rs = _re.search(r"pub const SAFETY: \[&str; \d+\] = \[([^\]]*)\]", open(os
 _sp = set(_re.findall(r'"([a-z-]+)"', _safe_py)); _sr = set(_re.findall(r'"([a-z-]+)"', _safe_rs))
 _rcases.append(("right-hand 4: the safety stops in both copies are exactly the page's safety stops", "" if _sp == _sr == {k for k, g in LISTED.items() if g == "safety stop"} else "BAD %s %s" % (sorted(_sp), sorted(_sr)), False))
 _ntemp = {}
+# redo-loop-less (item 132): a refusal names every fault it found, so a message is rewritten once
+def _refusal(msg, first=MG, text=False, to="inspector"):
+    env = dict(RUN_ENV); env.pop("MUSTER_MESSAGE_FORM", None)
+    if text: env["MUSTER_MESSAGE_FORM"] = "text"
+    r = subprocess.run([BIN, "rules"] if BIN else [sys.executable, HOOK], input=json.dumps(dict(hook_event_name="PreToolUse", cwd=T, tool_name="SendMessage", tool_input={"to": to, "message": msg}, transcript_path=tr(first))), capture_output=True, text=True, env=env)
+    return r.stdout
+_bad_rec = json.dumps({"v": 2, "kind": "READY", "id": "wrong", "job": "x", "from": "builder-a", "to": "inspector", "need": "pass_or_fail", "note": "n" * 450, "extra": 1})
+_o1 = _refusal(_bad_rec, BLD)
+_bad_ord = "To: B\nJob: j\nOwner's words: no quotes here\nOwns: a\nOut:\nAccept:\nDone: c"
+_o2 = _refusal(_bad_ord, MG, text=True, to="Builder A_Muster_002")
+cases += [] if not BIN else [  # the record check is the program's; the older Python copy only refuses plain sentences
+    ("redo-loop-less: one refusal names a wrong version, a wrong id, a long note and an unknown key together", all(w in _o1 for w in ("v must be 1", "id must be", "note is 450", "unknown key 'extra'")), True),
+    ("redo-loop-less: ...and the missing sha, tests, touches and usage of a READY in the same answer", all(w in _o1 for w in ("a READY needs sha", "a READY needs tests", "a READY needs touches", "a READY needs usage")), True),
+]
+cases += [
+    ("redo-loop-less: a written order lists every empty line and the missing quotes in one answer", all(w in _o2 for w in ("'Out:'", "'Accept:'", "quote his words")), True),
+]
+
 cases += _once
 cases += _rcases
 if os.environ.get("MUSTER_CALLS_OUT"):  # for scripts/rules-apart-diff.py: every call of the rules and board-stop checks, to be replayed under a profile

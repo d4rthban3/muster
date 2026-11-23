@@ -67,22 +67,24 @@ def report_problem(text):
         usage = lines.pop()
     if len(lines) != 6:
         return "expected 6 lines%s, found %d" % (" (and a Usage line on DONE and READY)" if REPORT_USAGE else "", len(lines))
+    faults = []
     if REPORT_ID:
         m = re.match(r"^%s: .+ \[ID [^\]]+-\d+\]$" % FIRST, lines[0])
     else:
         m = re.match(r"^%s: .+$" % FIRST, lines[0])
     if not m:
-        return "first line must be 'FIRST WORD: job name%s'" % (" [ID role-job-number]" if REPORT_ID else "")
-    for line, label in zip(lines[1:], ["What:", "Where:", "Why:", "How:", "Need:"]):
-        if not line.startswith(label):
-            return "expected a line starting %s" % label
+        faults.append("first line must be 'FIRST WORD: job name%s'" % (" [ID role-job-number]" if REPORT_ID else ""))
+    bad = [label for line, label in zip(lines[1:], ["What:", "Where:", "Why:", "How:", "Need:"]) if not line.startswith(label)]
+    if bad:
+        faults.append("expected lines starting %s" % ", ".join(bad))
     if "touches:" not in lines[2]:
-        return "Where line lacks 'touches:'"
-    if REPORT_USAGE and m.group(1) in ("DONE", "READY") and usage is None:
-        return "a DONE or READY needs a Usage line (scripts/usage.py prints it)"
-    if m.group(1) == "READY" and not re.search(r"\d+\s*(/|of)\s*\d+|\d+ passed", lines[4]):
-        return "READY's How line shows no test count"
-    return None
+        faults.append("Where line lacks 'touches:'")
+    word = m.group(1) if m else lines[0].split(":")[0].strip()
+    if REPORT_USAGE and word in ("DONE", "READY") and usage is None:
+        faults.append("a DONE or READY needs a Usage line (scripts/usage.py prints it)")
+    if word == "READY" and not re.search(r"\d+\s*(/|of)\s*\d+|\d+ passed", lines[4]):
+        faults.append("READY's How line shows no test count (write it like 'How: 12/12 passed')")
+    return "; ".join(faults) if faults else None
 
 
 def order_problem(text):
@@ -93,14 +95,15 @@ def order_problem(text):
         m = re.match(r"^\s*(To|Job|Owner'?s words|Owns|Out|Accept|Contract|Done)\s*:\s*(.*)$", l, re.I)
         if m:
             labels.setdefault(m.group(1).lower().replace("owners", "owner's"), m.group(2))
-    for need in ("to", "job", "owner's words", "owns", "out", "accept", "done"):
-        if need not in labels or not labels[need].strip():
-            return "an order needs a filled '%s:' line" % need.capitalize()
+    faults = []
+    missing = [n.capitalize() for n in ("to", "job", "owner's words", "owns", "out", "accept", "done") if n not in labels or not labels[n].strip()]
+    if missing:
+        faults.append("an order needs a filled %s line%s" % (", ".join("'%s:'" % n for n in missing), "s" if len(missing) > 1 else ""))
     if "contract" in labels and not labels["contract"].strip():
-        return "the Contract line is empty: name what is handed over and its shape, or leave the line out"
-    if not re.search(r"[\"“][^\"”]{3,}[\"”]", labels["owner's words"]):
-        return "the Owner's words line must quote his words in quotation marks"
-    return None
+        faults.append("the Contract line is empty: name what is handed over and its shape, or leave the line out")
+    if "Owner's words" not in missing and not re.search(r"[\"“][^\"”]{3,}[\"”]", labels["owner's words"]):
+        faults.append("the Owner's words line must quote his words in quotation marks")
+    return "; ".join(faults) if faults else None
 
 
 def _token_is_manager(tok):
@@ -979,7 +982,7 @@ def pretool(data, manager):
         return
     if tool.endswith("__wrap_up"):  # item 119: the app's next-step box is not used; questions go only through Muster's clickable choices
         if str(inp.get("ask", "")).strip() or inp.get("actions"):
-            if deny("wrapup-box", "no question or buttons in the app's wrap-up call (item 119): leave ask and actions out, so no grey next-step box is drawn; put any question to the owner in the chat as lettered choices (***A.*** ... with a blank line between, your pick marked \"my pick\")"): return
+            if deny("wrapup-box", "no question or buttons in the app's wrap-up call (item 119): call it again with recap only (leave ask and actions out), so no grey next-step box is drawn; put any question to the owner in the chat as lettered choices (***A.*** ... with a blank line between, your pick marked \"my pick\")"): return
         return
     if tool == "AskUserQuestion":
         if manager:  # item 80, D-037: a card locks the chat until he answers
@@ -1006,7 +1009,7 @@ def pretool(data, manager):
             if why:
                 if deny("question-order", why): return
             note = rec.get("note")
-            NOTE_WHY = "a note is one plain line of text, 1 to 400 characters, with no key, password or token (detail goes on the board)"
+            NOTE_WHY = "a note is one plain line of text, 1 to 400 characters, with no key, password or token; longer detail goes in a notes file the note names"
             if isinstance(note, str) and NOTE_SECRET.search(note):
                 if deny("note-secret", NOTE_WHY): return  # a safety stop: a key, password or token in a note
             if note is not None and (not isinstance(note, str) or not note.strip() or len(note) > 400 or any(ord(c) < 32 for c in note)):

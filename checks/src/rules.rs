@@ -71,18 +71,17 @@ fn report_problem(c: &Ctx, text: &str) -> Option<String> {
     if lines.len() != 6 {
         return Some(format!("expected 6 lines{}, found {}", if c.report_usage { " (and a Usage line on DONE and READY)" } else { "" }, lines.len()));
     }
+    let mut faults: Vec<String> = vec![];
     let first_re = if c.report_id { format!(r"^{FIRST}: .+ \[ID [^\]]+-\d+\]$") } else { format!(r"^{FIRST}: .+$") };
-    let Some(m) = caps(&re(&first_re), lines[0]) else {
-        return Some(format!("first line must be 'FIRST WORD: job name{}'", if c.report_id { " [ID role-job-number]" } else { "" }));
-    };
-    for (line, label) in lines[1..].iter().zip(["What:", "Where:", "Why:", "How:", "Need:"]) {
-        if !line.starts_with(label) { return Some(format!("expected a line starting {label}")); }
-    }
-    if !lines[2].contains("touches:") { return Some("Where line lacks 'touches:'".into()); }
-    let word = m[1].to_string();
-    if c.report_usage && (word == "DONE" || word == "READY") && usage.is_none() { return Some("a DONE or READY needs a Usage line (scripts/usage.py prints it)".into()); }
-    if word == "READY" && !is(&re(r"\d+\s*(/|of)\s*\d+|\d+ passed"), lines[4]) { return Some("READY's How line shows no test count".into()); }
-    None
+    let m = caps(&re(&first_re), lines[0]);
+    if m.is_none() { faults.push(format!("first line must be 'FIRST WORD: job name{}'", if c.report_id { " [ID role-job-number]" } else { "" })); }
+    let bad: Vec<&str> = lines[1..].iter().zip(["What:", "Where:", "Why:", "How:", "Need:"]).filter(|(l, lab)| !l.starts_with(lab)).map(|(_, lab)| lab).collect();
+    if !bad.is_empty() { faults.push(format!("expected lines starting {}", bad.join(", "))); }
+    if !lines[2].contains("touches:") { faults.push("Where line lacks 'touches:'".into()); }
+    let word = match &m { Some(m) => m[1].to_string(), None => lines[0].split(':').next().unwrap_or("").trim().to_string() };
+    if c.report_usage && (word == "DONE" || word == "READY") && usage.is_none() { faults.push("a DONE or READY needs a Usage line (scripts/usage.py prints it)".into()); }
+    if word == "READY" && !is(&re(r"\d+\s*(/|of)\s*\d+|\d+ passed"), lines[4]) { faults.push("READY's How line shows no test count (write it like 'How: 12/12 passed')".into()); }
+    if faults.is_empty() { None } else { Some(faults.join("; ")) }
 }
 
 fn order_problem(text: &str) -> Option<String> {
@@ -94,18 +93,19 @@ fn order_problem(text: &str) -> Option<String> {
             if !labels.iter().any(|(x, _)| *x == k) { labels.push((k, m[2].to_string())); }
         }
     }
-    for need in ["to", "job", "owner's words", "owns", "out", "accept", "done"] {
-        match labels.iter().find(|(k, _)| k == need) {
-            Some((_, v)) if !v.trim().is_empty() => {}
-            _ => { let mut cap = need.to_string(); cap[..1].make_ascii_uppercase(); return Some(format!("an order needs a filled '{cap}:' line")); }
-        }
-    }
+    let mut faults: Vec<String> = vec![];
+    let missing: Vec<String> = ["to", "job", "owner's words", "owns", "out", "accept", "done"].iter()
+        .filter(|need| !matches!(labels.iter().find(|(k, _)| k == *need), Some((_, v)) if !v.trim().is_empty()))
+        .map(|n| { let mut cap = n.to_string(); cap[..1].make_ascii_uppercase(); format!("'{cap}:'") }).collect();
+    if !missing.is_empty() { faults.push(format!("an order needs a filled {} line{}", missing.join(", "), if missing.len() > 1 { "s" } else { "" })); }
     if let Some((_, v)) = labels.iter().find(|(k, _)| k == "contract") {
-        if v.trim().is_empty() { return Some("the Contract line is empty: name what is handed over and its shape, or leave the line out".into()); }
+        if v.trim().is_empty() { faults.push("the Contract line is empty: name what is handed over and its shape, or leave the line out".into()); }
     }
-    let ow = &labels.iter().find(|(k, _)| k == "owner's words").unwrap().1;
-    if !is(&re("[\"\u{201c}][^\"\u{201d}]{3,}[\"\u{201d}]"), ow) { return Some("the Owner's words line must quote his words in quotation marks".into()); }
-    None
+    if !missing.iter().any(|m| m == "'Owner's words:'") {
+        let ow = &labels.iter().find(|(k, _)| k == "owner's words").unwrap().1;
+        if !is(&re("[\"\u{201c}][^\"\u{201d}]{3,}[\"\u{201d}]"), ow) { faults.push("the Owner's words line must quote his words in quotation marks".into()); }
+    }
+    if faults.is_empty() { None } else { Some(faults.join("; ")) }
 }
 
 // ---- helpers ----
@@ -595,7 +595,7 @@ fn pretool(c: &Ctx, data: &Value, manager: bool) {
     }
     if tool.ends_with("__wrap_up") { // item 119: the app's next-step box is not used; questions go only through Muster's clickable choices
         if !s(inp, "ask").trim().is_empty() || inp.get("actions").map(|a| !a.is_null() && a.as_array().map(|x| !x.is_empty()).unwrap_or(true)).unwrap_or(false) {
-            if deny("wrapup-box", "no question or buttons in the app's wrap-up call (item 119): leave ask and actions out, so no grey next-step box is drawn; put any question to the owner in the chat as lettered choices (***A.*** ... with a blank line between, your pick marked \"my pick\")") { return; }
+            if deny("wrapup-box", "no question or buttons in the app's wrap-up call (item 119): call it again with recap only (leave ask and actions out), so no grey next-step box is drawn; put any question to the owner in the chat as lettered choices (***A.*** ... with a blank line between, your pick marked \"my pick\")") { return; }
         }
         return;
     }

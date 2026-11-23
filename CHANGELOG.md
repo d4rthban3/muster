@@ -2,6 +2,11 @@
 
 Each version names which workers it affects.
 
+## 0.3.185
+Affects: a manager's main folder when the owner runs the new command (nothing changes by itself; PINR untouched unless run there).
+start-weight-lower part 2 (item 132, the owner chose B): `scripts/crew-plan.py trim-main` leaves the unused tool servers (browser, phone simulator, blockchain and similar) out of a manager's main folder, keeping the manager's session, sidebar, task-list and pull-request tools; `--undo` removes exactly what it added. The owner's own chats in that folder lose those tools too.
+Two rules the earlier trim had dropped are back in few words: a helper never replaces the Inspector chat (shared page), and a vision gap is never closed by a PASS alone (manager page).
+
 ## 0.3.184
 Affects: every chat that loads Muster (PINR: the refusals are the same, only their wording lists every fault at once; no rule loosened).
 redo-loop-less (item 132): a refused record, report or order now names every fault it found in one answer (wrong version, id, long note, unknown key, missing READY parts together), so a message is rewritten once, not once per fault. A READY's missing test count shows the line to write ("How: 12/12 passed"); a too-long note says to shorten it or put the detail in a notes file; the wrap-up refusal names the corrected call (recap only). Both check programs, tests added.

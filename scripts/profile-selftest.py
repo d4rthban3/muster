@@ -609,6 +609,22 @@ _trim("Builder A_Muster_002", _wt)
 _deny4 = json.load(open(os.path.join(_wt, ".claude", "settings.local.json")))["permissions"]["deny"]
 cases.append(("item 102: running it twice does not repeat a name", "" if len(_deny4) == len(set(_deny4)) else "x", False))
 
+# item 132 (the owner chose B): trim-main for a manager's main folder, with an exact undo
+_tm = os.path.join(T, "tm-main"); os.makedirs(os.path.join(_tm, ".git"), exist_ok=True); os.makedirs(os.path.join(_tm, ".claude"))
+open(os.path.join(_tm, ".claude", "settings.local.json"), "w").write('{"model": "x", "permissions": {"deny": ["Bash(rm -rf *)"]}}')
+def _tmain(*extra, role="Manager_Muster_001"):
+    return subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "crew-plan.py"), "trim-main", role, _tm, "--profile", os.path.join(ROOT, "profiles", "muster.json")] + list(extra), capture_output=True, text=True)
+_r = _tmain(); _tj = json.load(open(os.path.join(_tm, ".claude", "settings.local.json"))); _td = _tj["permissions"]["deny"]
+cases.append(("item 132: trim-main leaves the unused tool servers out of a manager's main folder and keeps its other settings", "" if _r.returncode == 0 and "mcp__Claude_Browser" in _td and "mcp__BlockchainQuery" in _td and "Bash(rm -rf *)" in _td and _tj.get("model") == "x" else "x", False))
+cases.append(("item 132: trim-main keeps the manager's session, session-management, sidebar and task-list tools", "" if not any(k in _td for k in ("mcp__ccd_session", "mcp__ccd_session_mgmt", "mcp__ccd_sidebar", "mcp__ccd_turn")) else "x", False))
+_tmain(); _td2 = json.load(open(os.path.join(_tm, ".claude", "settings.local.json")))["permissions"]["deny"]
+cases.append(("item 132: trim-main twice repeats no name", "" if len(_td2) == len(set(_td2)) else "x", False))
+_tmain("--undo"); _tj3 = json.load(open(os.path.join(_tm, ".claude", "settings.local.json")))
+cases.append(("item 132: trim-main --undo takes out exactly what it added and nothing else", "" if _tj3 == {"model": "x", "permissions": {"deny": ["Bash(rm -rf *)"]}} and not os.path.exists(os.path.join(_tm, ".claude", "muster-trim.json")) else "x", False))
+_nf = os.path.join(T, "tm-none"); os.makedirs(_nf)
+cases.append(("item 132: trim-main --undo in a folder with no settings says there is nothing to undo", "" if subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "crew-plan.py"), "trim-main", "Manager_Muster_001", _nf, "--undo"], capture_output=True, text=True).returncode == 0 else "x", False))
+cases.append(("item 132: trim-main refuses a worker's role", "" if _tmain(role="Builder A_Muster_002").returncode == 1 else "x", False))
+
 bad = 0
 for name, out, should_block in cases:
     ok = bool(out) == should_block

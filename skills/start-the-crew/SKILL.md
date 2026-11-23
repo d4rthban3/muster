@@ -14,7 +14,7 @@ try to turn off the app's message limits.
 - **The manager works in the main project folder**, never in a copy: the owner's list, the rules pages, the board and
   the crew list are one shared copy there.
 - **Every other worker works in its own copy** of the project folder, and reads the crew's shared files from the main
-  project folder (give it that folder's full path in its starting note). Right after the copy is made (first start), run `python3 scripts/crew-plan.py trim "<Role>_<project>" <copy folder> --profile profiles/<project>.json` (item 102): it leaves the tool lists a crew never uses out of the chat's first call (the designer keeps the page-viewing ones) and refuses the main folder.
+  project folder (give it that folder's full path in its starting note). Right after the copy is made (first start), run `python3 scripts/crew-plan.py trim "<Role>_<project>" <copy folder> --profile profiles/<project>.json` (item 102): it leaves the tool lists a crew never uses out of the chat's first call (the designer keeps the page-viewing ones) and refuses the main folder. The manager's own main folder gets the same trim, once, with `crew-plan.py trim-main "Manager_<project>" <main folder> --profile profiles/<project>.json` (the owner chose this, item 132; their own chats there lose those tools too; the manager's session, sidebar and task-list tools stay); `--undo` takes out exactly what it added.
 
 ## The starting note
 The first message of every new chat begins with the line "Your five-line starting note, from the manager (or from the

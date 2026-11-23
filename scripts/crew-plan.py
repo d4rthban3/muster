@@ -10,6 +10,9 @@
   crew-plan.py pin-compact "<Role>_<project>" <folder> [--profile FILE]
       Item 113: writes only autoCompactWindow into <folder>/.claude/settings.local.json (any folder, the manager's main folder too):
       the profile's compact_tokens_manager (default 160000) for a manager, compact_tokens (default 130000) for every other role. Nothing else changes.
+  crew-plan.py trim-main "<Manager>_<project>" <main folder> [--profile FILE] [--undo]
+      Item 132: the same tool-list trim for a manager's MAIN folder (the owner's own chats there lose those tools too). Keeps the session,
+      session-management, sidebar, task-list and pull-request tools. Writes the names it added to .claude/muster-trim.json; --undo removes exactly those.
   crew-plan.py size <base> <head> [--repo DIR]
       SMALL or BIG for a piece of work: small = at most 3 files and 60 changed lines, nothing in engine, data, database or
       deploy folders, nothing a visitor sees (site pages, styles, scripts, pictures), no rules or protocol file. Anything else, or
@@ -87,6 +90,7 @@ def size(base, head, repo):
 # Tool servers a crew chat never uses (item 102). Whole-server names: the chat's first call then leaves their tool lists out.
 CREW_DENY = ["Artifact", "mcp__Claude_Browser", "mcp__claude-in-chrome", "mcp__computer-use", "mcp__Claude_Code_iOS_Simulator",
              "mcp__BlockchainQuery", "mcp__visualize", "mcp__mcp-registry", "mcp__scheduled-tasks"]
+MANAGER_KEEPS = ["mcp__ccd_session", "mcp__ccd_session_mgmt", "mcp__ccd_sidebar", "mcp__ccd_turn", "mcp__ccd_pr"]  # a manager starts, messages, lists and files chats, uses the sidebar and the task list
 DESIGNER_KEEPS = ["mcp__Claude_Browser", "mcp__claude-in-chrome", "mcp__computer-use", "mcp__Claude_Code_iOS_Simulator", "mcp__visualize", "Artifact"]
 
 
@@ -154,6 +158,56 @@ def trim(role, folder, profile_path=None):
     print("OK: %s now leaves %d tool servers out of the first call and compacts in place at %d tokens" % (path, len(deny), cur["autoCompactWindow"]))
 
 
+def trim_main(role, folder, profile_path=None, undo=False):
+    """Item 132 (the owner chose B): the same unused-tool list for a manager's MAIN folder, which the owner's own chats in that folder lose too.
+    Keeps what a manager needs (MANAGER_KEEPS). Only permissions.deny changes, and the names it adds are written to .claude/muster-trim.json
+    so --undo takes out exactly those and nothing else."""
+    folder = os.path.abspath(folder)
+    path = os.path.join(folder, ".claude", "settings.local.json")
+    mark = os.path.join(folder, ".claude", "muster-trim.json")
+    cur = {}
+    if os.path.isfile(path):
+        try:
+            cur = json.load(open(path, encoding="utf-8"))
+        except Exception:
+            print("REFUSED: %s is not readable JSON; left as it is" % path)
+            sys.exit(1)
+    perms = cur.setdefault("permissions", {})
+    have = list(perms.get("deny", []))
+    if undo and not os.path.isfile(path):
+        print("OK: %s does not exist; nothing to undo" % path)
+        return
+    if undo:
+        added = json.load(open(mark, encoding="utf-8")).get("added", []) if os.path.isfile(mark) else []
+        perms["deny"] = [d for d in have if d not in added]
+        if not perms["deny"]:
+            del perms["deny"]
+        if not perms:
+            del cur["permissions"]
+        json.dump(cur, open(path, "w", encoding="utf-8"), indent=2)
+        if os.path.isfile(mark):
+            os.remove(mark)
+        print("OK: %s: %d tool names taken back out of the deny list (everything else as it was)" % (path, len(added)))
+        return
+    if slug(role) != "manager":
+        print("REFUSED: trim-main is for a manager's main folder only")
+        sys.exit(1)
+    deny = list(CREW_DENY)
+    if profile_path and os.path.isfile(profile_path):
+        try:
+            deny = list(json.load(open(profile_path, encoding="utf-8")).get("crew_deny", deny))
+        except Exception:
+            pass
+    deny = [d for d in deny if d not in MANAGER_KEEPS]
+    prev = json.load(open(mark, encoding="utf-8")).get("added", []) if os.path.isfile(mark) else []
+    added = prev + [d for d in deny if d not in have and d not in prev]
+    perms["deny"] = have + [d for d in deny if d not in have]
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    json.dump(cur, open(path, "w", encoding="utf-8"), indent=2)
+    json.dump({"added": added}, open(mark, "w", encoding="utf-8"), indent=2)
+    print("OK: %s now leaves %d tool servers out of every chat's first call in this folder (the manager's own kept: %s); undo with: crew-plan.py trim-main \"%s\" %s --undo" % (path, len(deny), ", ".join(MANAGER_KEEPS), "<Manager chat>", folder))
+
+
 def main():
     a = sys.argv[1:]
     if len(a) >= 2 and a[0] == "inspectors":
@@ -174,6 +228,9 @@ def main():
     elif len(a) >= 3 and a[0] == "trim":
         role, _p, _n = parse_chat(a[1])
         trim(role, a[2], a[a.index("--profile") + 1] if "--profile" in a else None)
+    elif len(a) >= 3 and a[0] == "trim-main":
+        role, _p, _n = parse_chat(a[1])
+        trim_main(role, a[2], a[a.index("--profile") + 1] if "--profile" in a else None, "--undo" in a)
     elif len(a) >= 3 and a[0] == "pin-compact":
         role, _p, _n = parse_chat(a[1])
         pin_compact(role, a[2], a[a.index("--profile") + 1] if "--profile" in a else None)

@@ -1,0 +1,20 @@
+{
+  "version": "0.3.185",
+  "changed_files": [
+    "pages/",
+    "agents/",
+    "directory/",
+    "CHANGELOG.md"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Builder",
+    "Designer",
+    "Inspector"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "Two rules put back in few words after start-weight-lower: a helper never replaces the Inspector chat; a vision gap is never closed by a PASS alone."
+}

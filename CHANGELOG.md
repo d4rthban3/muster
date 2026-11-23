@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.185
+Affects: every chat that loads Muster (pages only).
+Two rules the start-weight-lower trim had dropped are back in few words: a helper never replaces the Inspector chat (shared page), and a vision gap is never closed by a PASS alone (manager page). Still inside the size budget.
+
 ## 0.3.184
 Affects: every chat that loads Muster (PINR: the refusals are the same, only their wording lists every fault at once; no rule loosened).
 redo-loop-less (item 132): a refused record, report or order now names every fault it found in one answer (wrong version, id, long note, unknown key, missing READY parts together), so a message is rewritten once, not once per fault. A READY's missing test count shows the line to write ("How: 12/12 passed"); a too-long note says to shorten it or put the detail in a notes file; the wrap-up refusal names the corrected call (recap only). Both check programs, tests added.

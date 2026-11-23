@@ -36,6 +36,10 @@
             "type": "command",
             "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/rules-check.sh\""
           }
+          ,{
+            "type": "command",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/other-computer-changes.sh\""
+          }
         ]
       }
     ],

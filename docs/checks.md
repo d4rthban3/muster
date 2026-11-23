@@ -60,5 +60,6 @@ Kinds: refuses = the tool call or the end of the turn is refused; note = the rep
 | `note-badge-line` | house rule | note | A worker's news is the bold badge and one plain line. |
 | `note-card` | house rule | note | A worker's end-of-turn reply is a card: bold title, two or three bullets. |
 | `talk-note` | house rule | note | The owner's replies carry no bare file path or saved-version code (older switch name: `"talk_check": false`). |
+| `other-computer-news` | turn-start hook | prints | Only where `muster/computers.txt` names two computers (item 133): at the start of a chat turn, the other computer's new `CHANGES.md` lines, once per chat, at most 12 lines (it says how many were left out). Reads only; never refuses or fails a turn. A Python script (`scripts/other-computer-changes.py`), no program copy. |
 
 Not on this page, because no check carries them: rules that live on the rules pages only, for example that a worker never passes its own work. They are not switches.

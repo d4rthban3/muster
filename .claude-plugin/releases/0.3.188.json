@@ -1,0 +1,24 @@
+{
+  "version": "0.3.188",
+  "changed_files": [
+    "hooks/other-computer-changes.sh",
+    "hooks/hooks.json",
+    "scripts/other-computer-changes.py",
+    "scripts/other-computer-changes-selftest.py",
+    "templates/CLAUDE.md",
+    "docs/checks.md",
+    "directory/",
+    "CHANGELOG.md"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Builder",
+    "Designer",
+    "Inspector"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "changes-every-turn (item 133): turn-start hook prints the other computer's new CHANGES.md lines once per chat; off unless muster/computers.txt names two computers; never fails a turn."
+}

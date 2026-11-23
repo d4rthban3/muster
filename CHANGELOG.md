@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.188
+Affects: every chat on a project with a second computer, once its `muster/computers.txt` exists (nothing changes anywhere else; Muster and PINR are off until that file is added).
+changes-every-turn (item 133): at the start of a chat turn the other computer's new `CHANGES.md` lines are shown, once per chat, at most 12 lines (it says how many were left out). Off unless `muster/computers.txt` names two computers, one line each (`name = path to its CHANGES.md`, counted from the project folder); this computer is the line matching its git or login name. Reads only; a missing or unreadable log prints nothing and never stops a turn. The two-computer section of the CLAUDE.md template says so.
+
 ## 0.3.187
 Affects: a manager's main folder when the owner runs the new command (nothing changes by itself; PINR untouched unless run there).
 start-weight-lower part 2 (item 132, the owner chose B): `scripts/crew-plan.py trim-main` leaves the unused tool servers (browser, phone simulator, blockchain and similar) out of a manager's main folder, keeping the manager's session, sidebar, task-list and pull-request tools; `--undo` removes exactly what it added (and says so when there is nothing to undo). The owner's own chats in that folder lose those tools too.

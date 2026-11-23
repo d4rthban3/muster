@@ -97,7 +97,7 @@ pub fn precompact() -> i32 {
     let branch = or(git(&cwd, &["rev-parse", "--abbrev-ref", "HEAD"]), "unknown");
     let sha = or(git(&cwd, &["rev-parse", "--short", "HEAD"]), "unknown");
     let (job, note) = last_facts(path);
-    let mgr = who.starts_with("Manager_") || pstrings(&profile, "manager_names").iter().any(|x| find(&re(x), &who).is_some());
+    let mgr = is(&re(r"^Manager(?: [A-Z][A-Za-z0-9]+)?_"), &who) || pstrings(&profile, "manager_names").iter().any(|x| find(&re(x), &who).is_some());
     let key = if mgr { "compact_tokens_manager" } else { "compact_tokens" };
     let line = match profile.get(key).and_then(|v| v.as_i64()).filter(|&n| n != 0) { Some(n) => n, None => if mgr { 160000 } else { 130000 } };
     let now = Local::now();

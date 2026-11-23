@@ -656,6 +656,35 @@ _once = [
     ("one-message-once: PINR is not touched (a builder's PASS still goes)", _route("You are Builder A_PINR_002, agents/builder.md", "PASS", "Manager_PINR_002", runp), False),
     ("one-message-once: PINR still needs a READY card's message to the manager", runp("Stop", last_assistant_message="**READY · x**\n- a\n- b", transcript_path=tr("You are Builder A_PINR_002, agents/builder.md")), True),
 ]
+# several crews in one project (item 134): a crew's records, its own manager and inspector; nothing changes for a one-crew name
+EVB, EVI = "You are Builder A Evidence_Muster_001, agents/builder.md", "You are Inspector Evidence_Muster_001, agents/inspector.md"
+EVM = "You are Manager Evidence_Muster_001"
+_CR = os.path.join(T, "proj", "muster")
+def _wr(first, rel, tool="Write"):
+    return run("PreToolUse", tool_name=tool, tool_input={"file_path": os.path.join(_CR, rel), "content": "x"}, transcript_path=tr(first))
+def _sh(first, cmd):
+    return run("PreToolUse", tool_name="Bash", tool_input={"command": cmd}, transcript_path=tr(first), cwd=os.path.join(T, "proj"))
+def _ev(first, kind, to):
+    return run("PreToolUse", tool_name="SendMessage", tool_input={"to": to, "message": _rec(kind, to)}, transcript_path=tr(first))
+_once += [
+    ("several-crews: a crew chat writes its own crew's board", _wr(EVB, "crews/evidence/BOARD.md"), False),
+    ("several-crews: a crew chat writing another crew's board is refused", "crew-records" in _wr(EVB, "crews/other/BOARD.md"), True),
+    ("several-crews: a crew chat writing the main board is refused", "crew-records" in _wr(EVB, "BOARD.md"), True),
+    ("several-crews: a crew chat writing the shared decisions is refused", "crew-records" in _wr(EVB, "DECISIONS-LOG.md", "Edit"), True),
+    ("several-crews: the main crew writing a crew's board is refused", "crew-records" in _wr(BLD, "crews/evidence/BOARD.md"), True),
+    ("several-crews: the main manager writing a crew's board is refused", "crew-records" in _wr(MG, "crews/evidence/BOARD.md"), True),
+    ("several-crews: the main crew writes the main board as before", _wr(BLD, "BOARD.md"), False),
+    ("several-crews: a crew manager writes its own crew's owner list", _wr(EVM, "crews/evidence/OWNERS-LIST.md"), False),
+    ("several-crews: a crew chat writing another crew's file by shell is refused", "crew-records" in _sh(EVB, "echo x >> muster/crews/other/BOARD.md"), True),
+    ("several-crews: a crew chat writing its own file by shell goes through", _sh(EVB, "echo x >> muster/crews/evidence/BOARD.md"), False),
+    ("several-crews: a crew builder's READY to its own crew's manager is refused (it goes to the inspector)", "goes to the inspector only" in _ev(EVB, "READY", "Manager Evidence_Muster_001"), True),
+    ("several-crews: a crew builder's READY to its inspector goes through", "goes to the inspector only" in _ev(EVB, "READY", "Inspector Evidence_Muster_001"), False),
+    ("several-crews: a crew inspector's PASS to its manager goes through", "only an inspector sends" in _ev(EVI, "PASS", "Manager Evidence_Muster_001"), False),
+    ("several-crews: a crew builder's PASS is refused", "only an inspector sends" in _ev(EVB, "PASS", "Manager Evidence_Muster_001"), True),
+    ("several-crews: a crew card with no message to its manager is refused", run("Stop", last_assistant_message="**DONE \u00b7 x**\n- a\n- b", transcript_path=tr(EVB)), True),
+    ("several-crews: a crew card after a message to its own manager passes", run("Stop", last_assistant_message="**DONE \u00b7 x**\n- a\n- b", transcript_path=tr(EVB, [said("go"), use("SendMessage", "s9", to="Manager Evidence_Muster_001", message="x"), res("s9")])), False),
+    ("several-crews: a crew card after a message only to the main manager is refused", run("Stop", last_assistant_message="**DONE \u00b7 x**\n- a\n- b", transcript_path=tr(EVB, [said("go"), use("SendMessage", "s8", to="Manager_Muster_002", message="x"), res("s8")])), True),
+]
 # right-hand part 2 (item 128): an ANSWER and a VIEW are let through; the wording checks become notes (told once, never a refusal); the hard stops stay
 LONG = " ".join("The build is slow because the first step waits for the whole folder, and that step reads every file." for _ in range(12))
 ANS = "**ANSWER \u00b7 slow-build**\n\n" + LONG

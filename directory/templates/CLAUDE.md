@@ -44,6 +44,12 @@ Re-applied for you: a hook puts this block back after every summary and flags, o
   in `muster/`.
 - Short-lived helpers are only for small side jobs inside a worker's own chat (for example, a quick search).
 
+## 2b. Several crews (only when the project has more than one)
+A project can have more than one crew, each whole: its own manager, owner's list, board, crew list, inspector and named files, kept in `muster/crews/<crew>/`. A chat's crew is the word after its role (made-up example: `Builder A Maps_MyProject` is in crew `maps`; a name with no such word is the main crew).
+- **No manager orders another crew.** What one crew needs from another is a written NEED (a record with a `crew` key) to that crew's manager, or a question to the owner.
+- **A chat writes only its own crew's records.** The shared ones (decisions, rules pages, this file, the main board and crew list) have one named writer, the main manager. One release lane: every crew's work ships through the same one.
+- With one crew nothing here applies, and the check for it (`crew-records`) never speaks.
+
 ## 3. Who messages whom
 - The owner talks to the manager's chat; every question, order and need goes through the manager, and the manager is
   the only one who asks the owner things or passes on what a worker needs from him. Workers post their own updates

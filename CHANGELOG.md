@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.189
+Affects: a project that runs more than one crew (nothing changes for a one-crew project, Muster's own included until a crew is split off; PINR untouched).
+several-crews (item 134, the owner chose A): a project can have several whole crews, each with its own manager, owner's list, board, crew list and inspector under `muster/crews/<crew>/`. A chat's crew is the word after its role (`Builder A Maps_MyProject`). No manager orders another crew: a cross-crew need is a NEED record with a `crew` key sent to that crew's manager (one chat wakes), or a question to the owner. New house rule `crew-records` (on in Muster by default): a chat writes only its own crew's records, and the shared ones keep one writer, the main manager. A crew's reports and READYs go to its own crew's manager and inspector. Limit: the board-stop, idle and precompact checks stay main-crew only. Both programs agree (the Rust build and the Python copy).
+
 ## 0.3.188
 Affects: every chat on a project with a second computer, once its `muster/computers.txt` exists (nothing changes anywhere else; Muster and PINR are off until that file is added).
 changes-every-turn (item 133): at the start of a chat turn the other computer's new `CHANGES.md` lines are shown, once per chat, at most 12 lines (it says how many were left out). Off unless `muster/computers.txt` names two computers, one line each (`name = path to its CHANGES.md`, counted from the project folder); this computer is the line matching its git or login name. Reads only; a missing or unreadable log prints nothing and never stops a turn. The two-computer section of the CLAUDE.md template says so.

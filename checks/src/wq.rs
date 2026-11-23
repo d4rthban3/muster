@@ -241,7 +241,7 @@ fn main_lines(args: &[String], cwd: &Path, profile: &Value) -> i32 {
         let n = pick_name(&first_message(tp), &names);
         if n.is_empty() { pick_name(&format!("You are {}", chat_title(tp)), &names) } else { n }
     };
-    if name.is_empty() || is(&re(r"\bManager_"), &name) { return 0; }
+    if name.is_empty() || is(&re(r"\bManager(?: [A-Z][A-Za-z0-9]+)?_"), &name) { return 0; }
     let work = line_open_work(&board, &name);
     if list {
         say(&format!("{name}: {}", if work.is_empty() { "nothing open".to_string() } else { work.iter().map(|w| w.0.as_str()).collect::<Vec<_>>().join("; ") }));

@@ -24,9 +24,9 @@ import re
 import subprocess
 import sys
 
-ROLE = (r"(?:Manager|Builder [A-Za-z]|Designer|Design Inspector|Inspector|Sketchpad|AI Socket|Agent Teacher)")
+ROLE = (r"(?:Manager|Builder [A-Za-z]|Designer|Design Inspector|Inspector|Sketchpad|AI Socket|Agent Teacher)(?: [A-Z][A-Za-z0-9]+)?")
 CREW_RE = re.compile(r"agents[/\\](?:manager|builder|designer|inspector|design-inspector|sketchpad|ai-socket|agent-teacher)\.md|\b%s_[^\s_][^_\n]*?(?:_\d{3})?\b" % ROLE)
-MANAGER_RE = re.compile(r"agents[/\\]manager\.md|\bManager_[^_\n]*?(?:_\d{3})?\b")
+MANAGER_RE = re.compile(r"agents[/\\]manager\.md|\bManager(?: [A-Z][A-Za-z0-9]+)?_[^_\n]*?(?:_\d{3})?\b")
 
 
 def load_profile():
@@ -110,7 +110,7 @@ def _token_is_manager(tok):
     """tok is a crew name or an agents/<role>.md path, as CREW_RE matched it."""
     if re.match(r"agents[/\\]", tok):
         return re.search(r"agents[/\\]manager\.md$", tok) is not None
-    return re.fullmatch(r"Manager_[^_\n]*?(?:_\d{3})?", tok) is not None or any(
+    return re.fullmatch(r"Manager(?: [A-Z][A-Za-z0-9]+)?_[^_\n]*?(?:_\d{3})?", tok) is not None or any(
         re.fullmatch(x, tok) for x in PROFILE.get("manager_names", []))
 
 
@@ -512,7 +512,7 @@ NOREPEAT = " Your reply already reached the owner: do not write it again. Do wha
 # talks, asks, reports and orders) has its own switch per project, "house_rules": {"<name>": false} in the project's profile. A house rule
 # switched off never reaches that project. A house rule made after this list starts off for every project but Muster (NEW_HOUSE).
 SAFETY = {"guard", "helper-ships", "note-secret", "usage-limit", "muster-not-saved"}
-NEW_HOUSE = {"ready-to-inspector", "verdict-from-inspector"}
+NEW_HOUSE = {"ready-to-inspector", "verdict-from-inspector", "crew-records"}
 
 
 def rule_on(rid):
@@ -552,7 +552,7 @@ def block(rid, reason):
 # ---- PreToolUse -----------------------------------------------------------------------------------------------
 _SOC = r"(?:noted|received|thanks|thank you|got it|ok(?:ay)?|ack(?:nowledged)?|will do|and)"
 SOCIAL = re.compile(r"^\s*%s\b(?:[\s.,!;&-]+%s\b)*[\s.,!;&-]*$" % (_SOC, _SOC), re.I)  # only social words, however many ("noted, thanks")
-PROTECTED = re.compile(r"/muster/(OWNERS-LIST\.md|DECISIONS-LOG\.md|CREW\.md|CLAUDE\.md|rules/|RULES-PAGE\.md|REPORT\.md)")
+PROTECTED = re.compile(r"/muster/(?:crews/[^/]+/)?(OWNERS-LIST\.md|DECISIONS-LOG\.md|CREW\.md|CLAUDE\.md|rules/|RULES-PAGE\.md|REPORT\.md)")
 PROFILE_PROTECTED = None
 if PROFILE.get("protected"):  # a project's own manager-only paths (regexes on the path with forward slashes)
     PROFILE_PROTECTED = re.compile("|".join("(?:%s)" % x for x in PROFILE["protected"]))
@@ -595,8 +595,37 @@ NAME_NUM = re.compile(r"^(.+?_[^_\s|]+?)(?:_(\d{3}))?$")  # D-040: a name is <Ro
 ID_RE = re.compile(r"local_[^\s|]+")
 
 
-def _crew_lists(root):
-    """[(path, is Muster's own crew.md)]: the crew lists, read live every time (item 94)."""
+def crew_of_name(name):
+    """Several crews in one project (item 134): the crew word in a chat name ("Builder A Evidence_Muster" is crew evidence), else None."""
+    m = re.match(r"^(?:Manager|Builder [A-Za-z]|Designer|Design Inspector|Inspector|Sketchpad|AI Socket|Agent Teacher) ([A-Z][A-Za-z0-9]+)_", (name or "").strip())
+    return m.group(1).lower() if m else None
+
+
+def own_crew(first):
+    return crew_of_name(_own_token(first) or "")
+
+
+def crew_records_problem(first, path):
+    """A crew's records live in muster/crews/<crew>/; the main crew's stay in muster/. A chat writes only its own crew's records; the shared
+    ones (decisions, rules pages, muster/CLAUDE.md, the main board) only the main crew. Off with no crew word and no muster/crews/ path."""
+    p = str(path).replace("\\", "/")
+    mine = own_crew(first)
+    m = re.search(r"/muster/crews/([^/]+)/", p)
+    base = p.rsplit("/", 1)[-1]
+    if m:
+        theirs = m.group(1).lower()
+        if mine != theirs:
+            return "%s is crew %s's record: only that crew's own chats write it; send its manager a NEED (a record with a crew key) or put the question to the owner" % (base, theirs)
+        return None
+    if mine and re.search(r"/muster/(?:BOARD\.md|BOARD-ARCHIVE\.md|OWNERS-LIST\.md|DECISIONS-LOG\.md|CREW\.md|GOAL\.md|RULES-PAGE\.md|REPORT\.md|CLAUDE\.md|rules/|handovers/)", p):
+        return "%s belongs to the main crew or is shared by all crews (one named writer, the main manager): write your own crew's records under muster/crews/%s/ and send the main manager a NEED for a shared change" % (base, mine)
+    return None
+
+
+def _crew_lists(root, crew=None):
+    """[(path, is Muster's own crew.md)]: the crew lists, read live every time (item 94). A crew worker reads only its own crew's list."""
+    if crew:
+        return [(os.path.join(root, "muster", "crews", crew, "CREW.md"), True)]
     lists = [(os.path.join(root, "muster", "CREW.md"), True)]
     if PROFILE.get("crew_list"):
         lists.append((os.path.join(root, PROFILE["crew_list"]), False))
@@ -604,13 +633,13 @@ def _crew_lists(root):
 
 
 def _is_manager_name(name):
-    return re.fullmatch(r"Manager_[^_\s|]+(?:_\d{3})?", name) is not None or any(re.search("^(?:%s)$" % x, name) for x in PROFILE.get("manager_names", []))
+    return re.fullmatch(r"Manager(?: [A-Z][A-Za-z0-9]+)?_[^_\s|]+(?:_\d{3})?", name) is not None or any(re.search("^(?:%s)$" % x, name) for x in PROFILE.get("manager_names", []))
 
 
-def crew_rows(root):
+def crew_rows(root, crew=None):
     """[(name, chat id, is a manager)] of the crew list rows that are running: Muster's 'Running now' table; a profile's list in full."""
     out = []
-    for path, own in _crew_lists(root):
+    for path, own in _crew_lists(root, crew):
         try:
             text = open(path, encoding="utf-8").read()
         except OSError:
@@ -628,23 +657,25 @@ def crew_rows(root):
     return out
 
 
-def managers_in_force(root):
+def managers_in_force(root, crew=None):
     """[(name, id)] the newest manager of each project in the crew lists: the manager a worker's report goes to, never the one in its memory."""
     best = {}
-    for name, cid, mgr in crew_rows(root):
+    for name, cid, mgr in crew_rows(root, crew):
         m = NAME_NUM.match(name)
         if mgr and m and (m.group(1) not in best or int(m.group(2) or 0) >= int(NAME_NUM.match(best[m.group(1)][0]).group(2) or 0)):
             best[m.group(1)] = (name, cid)
     return list(best.values())
 
 
-def recipient_is_manager(to, root):
+def recipient_is_manager(to, root, crew=None):
     """True when `to` is the manager in force (item 101). With a crew list that names managers, only the newest one counts: an
     older manager's name or id, from a worker's memory, no longer does. With no readable list: any Manager name, as before."""
     to = str(to).strip()
-    force = managers_in_force(root)
+    force = managers_in_force(root, crew)
     if force:
         return any(to and to in (n, i) for n, i in force)
+    if crew:
+        return re.search(r"(?i)\bManager %s_" % re.escape(crew), to) is not None
     if re.search(r"\bManager", to):
         return True
     for path, _ in _crew_lists(root):
@@ -952,7 +983,7 @@ def news_route_problem(manager, first, to, msg, root):
     except (ValueError, AttributeError):
         m = re.match(r"^\s*\**(READY|PASS|FAIL)\b", msg)
         kind = m.group(1) if m else ""
-    if kind == "READY" and recipient_is_manager(to, root):
+    if kind == "READY" and recipient_is_manager(to, root, own_crew(first)):
         return ("ready-to-inspector", "a READY goes to the inspector only, never to the manager's chat: the inspector sends the manager its copy with its verdict, so the manager's chat wakes once, not three times; send this READY to the inspector")
     if kind in ("PASS", "FAIL"):
         tok = _own_token(first)
@@ -1053,6 +1084,9 @@ def pretool(data, manager):
         body = " ".join(str(inp.get(k, "")) for k in ("content", "new_string", "new_source"))
         if MEMORY_DIR.search(mp) and CREW_RULE_WORDS.search(body):
             if deny("memory-rules", MEMORY_WHY): return
+    if tool in ("Write", "Edit", "MultiEdit", "NotebookEdit"):
+        why = crew_records_problem(first_message(data.get("transcript_path") or ""), inp.get("file_path", ""))
+        if why and deny("crew-records", why): return
     if tool in ("Write", "Edit", "NotebookEdit") and not manager:
         p = str(inp.get("file_path", "")).replace("\\", "/")
         if PROTECTED.search(p):
@@ -1069,6 +1103,11 @@ def pretool(data, manager):
                 if deny("muster-not-saved", "nothing under muster/ is ever saved or committed"): return
         if CREW_RULE_WORDS.search(re.sub(r"\S*/\.claude/projects/\S*", " ", cmd)) and any(MEMORY_DIR.search(os.path.normpath(os.path.join(data.get("cwd") or os.getcwd(), os.path.expanduser(t))).replace("\\", "/")) for t in shell_write_targets(cmd)):
             if deny("memory-rules", MEMORY_WHY): return
+        _first = first_message(data.get("transcript_path") or "")
+        _base = data.get("cwd") or os.getcwd()
+        for tgt in shell_write_targets(cmd):
+            why = crew_records_problem(_first, os.path.normpath(os.path.join(_base, os.path.expanduser(tgt))).replace("\\", "/"))
+            if why and deny("crew-records", why): return
         if not manager and PROFILE_PROTECTED is not None:
             base = data.get("cwd") or os.getcwd()
             for tgt in shell_write_targets(cmd):
@@ -1776,9 +1815,10 @@ def stop(data, manager):
         note_add(data.get("transcript_path") or "", "note-card", "your end-of-turn reply is a card: a bold title line 'WORD · job', then two or three '- ' bullets (what, the result with real numbers, what is left or what you need)")
     if re.match(r"^\s*\*\*(DONE|READY|PASS|FAIL|STUCK|NEED)\b", body) and not (re.match(r"^\s*\*\*READY\b", body) and rule_on("ready-to-inspector")):  # item 65; a READY goes to the inspector, who copies the manager: every report reaches the manager as a message
         root = main_folder(data.get("cwd"))
+        crew_now = own_crew(first_message(data.get("transcript_path") or ""))
         # SendMessage (to) or the app's older send_message tool (session_id); either reaches the manager
-        if not any((u.get("name") == "SendMessage" and recipient_is_manager((u.get("input") or {}).get("to", ""), root))
-                   or ((u.get("name") or "").endswith("send_message") and recipient_is_manager((u.get("input") or {}).get("session_id", ""), root)) for u in uses):
+        if not any((u.get("name") == "SendMessage" and recipient_is_manager((u.get("input") or {}).get("to", ""), root, crew_now))
+                   or ((u.get("name") or "").endswith("send_message") and recipient_is_manager((u.get("input") or {}).get("session_id", ""), root, crew_now)) for u in uses):
             if block("report-to-manager", "a report reaches the manager as a message as well as the board (item 65): send the manager your %s report with SendMessage (a different ID from any copy to someone else), then end the turn with the card%s" % (body.split()[0].strip("*"), manager_now(root))): return
 
 

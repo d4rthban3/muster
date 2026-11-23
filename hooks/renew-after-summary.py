@@ -16,7 +16,7 @@ for _s in (sys.stdout, sys.stderr):  # print on any computer, whatever its conso
     except Exception:
         pass
 
-CREW = r"(?:Manager|Builder [A-Za-z]|Designer|Design Inspector|Inspector|Sketchpad|AI Socket|Agent Teacher)"
+CREW = r"(?:Manager|Builder [A-Za-z]|Designer|Design Inspector|Inspector|Sketchpad|AI Socket|Agent Teacher)(?: [A-Z][A-Za-z0-9]+)?"
 ROLE_FILE = re.compile(r"agents[/\\](manager|builder|designer|inspector|design-inspector|sketchpad|ai-socket|agent-teacher)\.md")
 CHAT_NAME = re.compile(r"\b%s_[^\s_][^_\n]*?(?:_\d{3})?\b" % CREW)
 

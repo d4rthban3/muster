@@ -11,8 +11,8 @@ const DONE_WHEN: [&str; 4] = ["ready", "pass", "live", "report"];
 const ACTIONS: [&str; 3] = ["ship", "hold", "start"];
 /// One free-text `note` (item 52): the only key that may hold sentences. Code checks its length, that it is one line of plain text, and that it carries no key or password.
 const NOTE_MAX: usize = 400;
-const KEYS: [&str; 17] = [
-    "v", "kind", "id", "job", "from", "to", "sha", "version", "tests", "touches", "need", "usage", "owner_words", "owns", "out", "action", "note",
+const KEYS: [&str; 18] = [
+    "v", "kind", "id", "job", "from", "to", "sha", "version", "tests", "touches", "need", "usage", "owner_words", "owns", "out", "action", "note", "crew",
 ];
 
 fn code(v: &Value, what: &str, lo: usize, hi: usize) -> Result<String, String> {
@@ -105,6 +105,7 @@ pub fn validate(text: &str, things: &HashSet<String>) -> Result<(), String> {
     if !unknown.is_empty() { errs.push(format!("unknown key {}", unknown.join(", "))); }
     macro_rules! chk { ($e:expr) => { if let Err(x) = $e { errs.push(x); } }; }
     if let Some(n) = m.get("note") { chk!(note(n)); }
+    if let Some(x) = m.get("crew") { chk!(short_code(x, "crew", 24, 2).map(|_| ())); } // item 134: the crew whose manager a NEED is for (several crews in one project)
     if m.get("v").and_then(Value::as_u64) != Some(1) { errs.push("v must be 1".into()); }
     let kind: Option<&str> = match m.get("kind").and_then(Value::as_str) {
         None => { errs.push("kind is missing".into()); None }
@@ -191,6 +192,7 @@ pub fn validate(text: &str, things: &HashSet<String>) -> Result<(), String> {
         }
         _ => {}
     }
+    if m.contains_key("crew") && kind != Some("NEED") { errs.push("crew belongs to a NEED only (a NEED for another crew's manager)".into()); }
     if kind.is_some() && kind != Some("ORDER") && m.contains_key("action") { errs.push("action belongs to an ORDER only".into()); }
     if errs.is_empty() { Ok(()) } else { Err(errs.join("; ")) }
 }
@@ -253,6 +255,15 @@ mod tests {
         assert!(validate(&READY.replace("builder-a-lean-rebuild-1", "builder-a-lean-rebuild-one")).is_err());
         assert!(validate(&READY.replace("builder-a-lean-rebuild-1", "x-1")).is_err());
         assert!(validate(&READY.replace("builder-a-lean-rebuild-1", "builder-a-other-job-1")).is_err());
+    }
+
+    #[test]
+    fn a_need_for_another_crew_names_its_crew() {
+        let n = r#"{"v":1,"kind":"NEED","id":"manager-evidence-links-1","job":"evidence-links","from":"manager","to":"manager","crew":"web","need":"order","note":"which page"}"#;
+        assert_eq!(validate(n), Ok(()));
+        let bad = n.replace("\"kind\":\"NEED\"", "\"kind\":\"DONE\"");
+        assert!(validate(&bad).is_err());
+        assert!(validate(&n.replace("\"web\"", "\"Not a crew word\"")).is_err());
     }
 
     #[test]

@@ -97,6 +97,13 @@ it only an order of the second kind. **Stop** it when its last piece has passed 
 the test: archive it automatically, without asking the owner
 (D-005; never delete), and update `muster/CREW.md`. Builder B counts as a building worker for the "three workers" rule below.
 
+## Several crews (item 134; only when the owner splits a role into its own crew)
+A role becomes its own crew only when the owner says so (made-up example: the evidence web, `maps`). The manager then:
+1. Makes `muster/crews/<crew>/` with its own `OWNERS-LIST.md`, `BOARD.md`, `CREW.md` (templates of the same names) and a line naming the files the crew owns.
+2. Starts the crew's chats named `Manager <Crew>_<project>`, `Builder A <Crew>_<project>`, `Inspector <Crew>_<project>` (the crew word is one capitalised word after the role, a space before it), each in its own folder copy, top level, in the project's sidebar group, same as any chat.
+3. Tells the new manager: no manager orders another crew; a need from another crew is a NEED record with a `crew` key sent to that crew's manager (one message, waking only that chat) or a question to the owner; the shared records (decisions, rules pages, `muster/CLAUDE.md`) keep one writer, the main manager; every crew ships through the one release lane.
+The `crew-records` check refuses a chat writing another crew's records or the shared ones; a crew's workers report to their own crew manager and send a READY to their own crew's inspector. Limit: the board-stop, idle and precompact checks stay main-crew only. A one-crew project has no `muster/crews/` and sees no change.
+
 ## Inspectors scale with the builders (D-025)
 One inspector for every three builders, at least one: `python3 scripts/crew-plan.py inspectors <number of builders> --project <project>` prints how many and which builder's READYs go to which. Builders A to C go to `Inspector_<project>`, D to F to `Inspector B_<project>`, and so on (each READY names its inspector). When a builder is added that makes the count pass a multiple of three, start the next inspector the same way as any chat (own copy not needed: an inspector may work in the main folder or in its own copy, either works, and writes no project files; same model and effort, top level, in the project's sidebar group) before the new builder's first order, and tell the builders their inspector in their next order. When the builders shrink, archive the extra inspector automatically once its READYs are answered (D-005; never deleted). Inspectors do not check each other's work; the Design Inspector below is a separate rule.
 

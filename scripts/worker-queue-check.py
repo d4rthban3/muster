@@ -311,7 +311,7 @@ def main_lines(argv, cwd):
         name = pick_name(first, line_names(board))
         if not name:  # a compaction summary opens the file: the chat's own title is the board name
             name = pick_name("You are " + chat_title(data.get("transcript_path") or ""), line_names(board))
-    if not name or re.search(r"\bManager_", name):
+    if not name or re.search(r"\bManager(?: [A-Z][A-Za-z0-9]+)?_", name):
         return 0
     work = line_open_work(board, name)
     if "--list" in argv:

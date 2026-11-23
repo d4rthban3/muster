@@ -31,7 +31,13 @@ pub fn run() -> i32 {
     0
 }
 
-pub const ROLE: &str = r"(?:Manager|Builder [A-Za-z]|Designer|Design Inspector|Inspector|Sketchpad|AI Socket|Agent Teacher)";
+pub const ROLE: &str = r"(?:Manager|Builder [A-Za-z]|Designer|Design Inspector|Inspector|Sketchpad|AI Socket|Agent Teacher)(?: [A-Z][A-Za-z0-9]+)?"; // the optional last word is a crew's name in a project with several crews (Manager Web_PINR)
+
+/// The crew word in a chat name ("Manager Web_PINR" -> "web", "Builder A Web_PINR" -> "web"), lowercase; None for a one-crew name.
+pub fn crew_of_name(name: &str) -> Option<String> {
+    let m = caps(&re(r"^(?:Manager|Builder [A-Za-z]|Designer|Design Inspector|Inspector|Sketchpad|AI Socket|Agent Teacher) ([A-Z][A-Za-z0-9]+)_"), name.trim())?;
+    Some(m[1].to_lowercase())
+}
 
 /// A chat is a crew chat if its first message names agents/<role>.md or a <Role>_<project>_<digits> name (plus a profile's names).
 pub fn crew_re(profile: &Value) -> fancy_regex::Regex {

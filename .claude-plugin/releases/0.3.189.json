@@ -1,0 +1,30 @@
+{
+  "version": "0.3.189",
+  "changed_files": [
+    "checks/src/",
+    "bin/",
+    "hooks/rules-check.py",
+    "hooks/board-stop.py",
+    "hooks/renew-after-summary.py",
+    "hooks/talk-check.py",
+    "hooks/precompact-board.py",
+    "scripts/worker-queue-check.py",
+    "scripts/rules-check-selftest.py",
+    "templates/CLAUDE.md",
+    "skills/start-the-crew/SKILL.md",
+    "docs/checks.md",
+    "directory/",
+    "CHANGELOG.md"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Builder",
+    "Designer",
+    "Inspector"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": true,
+  "note": "several-crews (item 134): a project can run more than one whole crew (muster/crews/<crew>/); chat names carry a crew word; new house rule crew-records; a NEED record may carry a crew key. Off and invisible for a one-crew project."
+}

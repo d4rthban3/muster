@@ -87,7 +87,7 @@ def main():
     branch = git(cwd, "rev-parse", "--abbrev-ref", "HEAD") or "unknown"
     sha = git(cwd, "rev-parse", "--short", "HEAD") or "unknown"
     job, note = last_facts(path)
-    mgr = re.match(r"Manager_", who) or any(re.search(x, who) for x in h.PROFILE_MANAGER)
+    mgr = re.match(r"Manager(?: [A-Z][A-Za-z0-9]+)?_", who) or any(re.search(x, who) for x in h.PROFILE_MANAGER)
     line = int((h.PROFILE.get("compact_tokens_manager") if mgr else h.PROFILE.get("compact_tokens")) or (160000 if mgr else 130000))
     now = datetime.datetime.now()
     slug = re.sub(r"[^a-z0-9]+", "-", who.lower()).strip("-")

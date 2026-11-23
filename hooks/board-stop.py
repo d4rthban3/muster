@@ -122,7 +122,7 @@ def chat_title(path):
     return title.strip()
 
 
-CREW_TITLE = re.compile(r"(?:Manager|Builder [A-Za-z]|Designer|Design Inspector|Inspector|Sketchpad|AI Socket|Agent Teacher)_|" + "|".join("(?:%s)" % x for x in (PROFILE.get("crew_names") or []) + (PROFILE.get("manager_names") or [])) if (PROFILE.get("crew_names") or PROFILE.get("manager_names")) else r"(?:Manager|Builder [A-Za-z]|Designer|Design Inspector|Inspector|Sketchpad|AI Socket|Agent Teacher)_")
+CREW_TITLE = re.compile(r"(?:Manager|Builder [A-Za-z]|Designer|Design Inspector|Inspector|Sketchpad|AI Socket|Agent Teacher)(?: [A-Z][A-Za-z0-9]+)?_|" + "|".join("(?:%s)" % x for x in (PROFILE.get("crew_names") or []) + (PROFILE.get("manager_names") or [])) if (PROFILE.get("crew_names") or PROFILE.get("manager_names")) else r"(?:Manager|Builder [A-Za-z]|Designer|Design Inspector|Inspector|Sketchpad|AI Socket|Agent Teacher)(?: [A-Z][A-Za-z0-9]+)?_")
 
 
 def is_manager_chat(transcript_path):

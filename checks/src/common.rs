@@ -69,7 +69,7 @@ pub const NOREPEAT: &str = " Your reply already reached the owner: do not write 
 /// chat talks, asks, reports and orders) has its own switch per project, "house_rules": {"<name>": false} in the project's profile; a house
 /// rule switched off never reaches that project. A house rule made after the list starts off for every project but Muster (NEW_HOUSE).
 pub const SAFETY: [&str; 5] = ["guard", "helper-ships", "note-secret", "usage-limit", "muster-not-saved"];
-pub const NEW_HOUSE: [&str; 2] = ["ready-to-inspector", "verdict-from-inspector"];
+pub const NEW_HOUSE: [&str; 3] = ["ready-to-inspector", "verdict-from-inspector", "crew-records"];
 pub fn rule_on(rid: &str) -> bool {
     if SAFETY.contains(&rid) { return true; }
     let p = load_profile();

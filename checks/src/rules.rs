@@ -2,7 +2,7 @@
 //! project's profile says "message_form": "text", the older six-line report), no social replies, no ID sent twice, only the manager
 //! writes the owner's files, nothing under muster/ is saved. Stop: the manager's reply and every worker's card.
 use crate::common::*;
-use crate::talk::{crew_re, ROLE};
+use crate::talk::{crew_of_name, crew_re, ROLE};
 use serde_json::Value;
 use std::collections::HashSet;
 use std::path::{Component, Path, PathBuf};
@@ -16,7 +16,7 @@ fn ctx() -> Ctx {
     let profile = load_profile();
     let form = std::env::var("MUSTER_MESSAGE_FORM").ok().filter(|x| !x.is_empty()).or_else(|| profile.get("message_form").and_then(Value::as_str).map(String::from)).unwrap_or_else(|| "records".into());
     let rb = |k: &str| profile.get("report").and_then(|r| r.get(k)).and_then(Value::as_bool).unwrap_or(true);
-    let mut prot = String::from(r"/muster/(OWNERS-LIST\.md|DECISIONS-LOG\.md|CREW\.md|CLAUDE\.md|rules/|RULES-PAGE\.md|REPORT\.md)");
+    let mut prot = String::from(r"/muster/(?:crews/[^/]+/)?(OWNERS-LIST\.md|DECISIONS-LOG\.md|CREW\.md|CLAUDE\.md|rules/|RULES-PAGE\.md|REPORT\.md)");
     let pp = pstrings(&profile, "protected");
     let profile_protected = if pp.is_empty() { None } else { Some(re(&pp.iter().map(|x| format!("(?:{x})")).collect::<Vec<_>>().join("|"))) };
     for x in &pp { prot.push_str(&format!("|(?:{x})")); }
@@ -32,7 +32,28 @@ fn manager_names(c: &Ctx) -> Vec<fancy_regex::Regex> { pstrings(&c.profile, "man
 
 fn token_is_manager(c: &Ctx, tok: &str) -> bool {
     if is(&re(r"^agents[/\\]"), tok) { return is(&re(r"agents[/\\]manager\.md$"), tok); }
-    is(&re(r"^Manager_[^_\n]*?(?:_\d{3})?$"), tok) || manager_names(c).iter().any(|r| is(r, tok))
+    is(&re(r"^Manager(?: [A-Z][A-Za-z0-9]+)?_[^_\n]*?(?:_\d{3})?$"), tok) || manager_names(c).iter().any(|r| is(r, tok))
+}
+
+/// Several crews in one project (item 134): this chat's crew word, from its own name (None for a one-crew name, so nothing changes there).
+fn own_crew(c: &Ctx, first: &str) -> Option<String> { own_token(c, first).and_then(|t| crew_of_name(&t)) }
+
+/// A crew's records live in muster/crews/<crew>/; the main crew's stay in muster/. A chat writes only its own crew's records, and the shared
+/// ones (decisions, rules pages, muster/CLAUDE.md) only the main crew writes. Off with no crew word and no muster/crews/ path.
+fn crew_records_problem(c: &Ctx, first: &str, path: &str) -> Option<String> {
+    let p = path.replace('\\', "/");
+    let mine = own_crew(c, first);
+    if let Some(m) = caps(&re(r"/muster/crews/([^/]+)/"), &p) {
+        let theirs = m[1].to_lowercase();
+        if mine.as_deref() != Some(theirs.as_str()) {
+            return Some(format!("{} is crew {}'s record: only that crew's own chats write it; send its manager a NEED (a record with a crew key) or put the question to the owner", p.rsplit('/').next().unwrap_or(""), theirs));
+        }
+        return None;
+    }
+    if mine.is_some() && is(&re(r"/muster/(?:BOARD\.md|BOARD-ARCHIVE\.md|OWNERS-LIST\.md|DECISIONS-LOG\.md|CREW\.md|GOAL\.md|RULES-PAGE\.md|REPORT\.md|CLAUDE\.md|rules/|handovers/)"), &p) {
+        return Some(format!("{} belongs to the main crew or is shared by all crews (one named writer, the main manager): write your own crew's records under muster/crews/{}/ and send the main manager a NEED for a shared change", p.rsplit('/').next().unwrap_or(""), mine.unwrap_or_default()));
+    }
+    None
 }
 
 /// The chat's own crew name (or agents/<role>.md) in its starting note, if any.
@@ -135,12 +156,13 @@ fn name_num(n: &str) -> Option<(String, u32)> {
     Some((m[1].to_string(), m.get(2).and_then(|x| x.as_str().parse().ok()).unwrap_or(0)))
 }
 fn is_manager_name(profile: &Value, n: &str) -> bool {
-    is(&re(r"^Manager_[^_\s|]+(?:_\d{3})?$"), n) || pstrings(profile, "manager_names").iter().any(|x| is(&re(&format!("^(?:{x})$")), n))
+    is(&re(r"^Manager(?: [A-Z][A-Za-z0-9]+)?_[^_\s|]+(?:_\d{3})?$"), n) || pstrings(profile, "manager_names").iter().any(|x| is(&re(&format!("^(?:{x})$")), n))
 }
 /// [(name, chat id, is a manager)] of the running crew rows: Muster's own "Running now" table; a profile's crew list in full.
-fn crew_rows(root: &str, profile: &Value) -> Vec<(String, String, bool)> {
+fn crew_rows(root: &str, profile: &Value, crew: Option<&str>) -> Vec<(String, String, bool)> {
     let mut lists = vec![(Path::new(root).join("muster").join("CREW.md"), true)];
-    if let Some(p) = profile.get("crew_list").and_then(Value::as_str) { lists.push((Path::new(root).join(p), false)); }
+    if let Some(cr) = crew { lists = vec![(Path::new(root).join("muster").join("crews").join(cr).join("CREW.md"), true)]; } // a crew worker reads only its own crew's list
+    else if let Some(p) = profile.get("crew_list").and_then(Value::as_str) { lists.push((Path::new(root).join(p), false)); }
     let idre = re(r"local_[^\s|]+");
     let mut out = vec![];
     for (path, own) in lists {
@@ -161,9 +183,9 @@ fn crew_rows(root: &str, profile: &Value) -> Vec<(String, String, bool)> {
     out
 }
 /// The newest manager of each project in the crew lists: where a worker's report goes, never the one in its memory.
-fn managers_in_force(root: &str, profile: &Value) -> Vec<(String, String)> {
+fn managers_in_force(root: &str, profile: &Value, crew: Option<&str>) -> Vec<(String, String)> {
     let mut best: Vec<(String, u32, String, String)> = vec![];
-    for (name, id, mgr) in crew_rows(root, profile) {
+    for (name, id, mgr) in crew_rows(root, profile, crew) {
         let Some((pre, n)) = name_num(&name) else { continue };
         if !mgr { continue; }
         match best.iter_mut().find(|b| b.0 == pre) {
@@ -173,11 +195,12 @@ fn managers_in_force(root: &str, profile: &Value) -> Vec<(String, String)> {
     }
     best.into_iter().map(|b| (b.2, b.3)).collect()
 }
-fn recipient_is_manager(to: &str, root: &str) -> bool {
+fn recipient_is_manager(to: &str, root: &str, crew: Option<&str>) -> bool {
     let to = to.trim();
     let profile = load_profile();
-    let force = managers_in_force(root, &profile);
+    let force = managers_in_force(root, &profile, crew);
     if !force.is_empty() { return !to.is_empty() && force.iter().any(|(n, i)| to == n || to == i); }
+    if let Some(cr) = crew { return is(&re(&format!(r"(?i)\bManager {}_", fancy_regex::escape(cr))), to); } // a crew's own list names no manager: only that crew's manager name counts
     if is(&re(r"\bManager"), to) { return true; }
     let names: Vec<fancy_regex::Regex> = pstrings(&profile, "manager_names").iter().map(|x| re(&format!("^(?:{x})"))).collect();
     let mut lists = vec![Path::new(root).join("muster").join("CREW.md")];
@@ -193,7 +216,7 @@ fn recipient_is_manager(to: &str, root: &str) -> bool {
     false
 }
 fn manager_now(root: &str) -> String {
-    let f = managers_in_force(root, &load_profile());
+    let f = managers_in_force(root, &load_profile(), None);
     if f.is_empty() { return String::new(); }
     format!("; the manager in force is {} (from the crew list)", f.iter().map(|(n, i)| if i.is_empty() { n.clone() } else { format!("{n} ({i})") }).collect::<Vec<_>>().join(" / "))
 }
@@ -612,6 +635,10 @@ fn pretool(c: &Ctx, data: &Value, manager: bool) {
         let body = ["content", "new_string", "new_source"].iter().map(|k| s(inp, k)).collect::<Vec<_>>().join(" ");
         if is(&mem_dir, &mp) && is(&rule_words, &body) { if deny("memory-rules", MEMORY_WHY) { return; } }
     }
+    if matches!(tool, "Write" | "Edit" | "MultiEdit" | "NotebookEdit") {
+        let first = first_message(s(data, "transcript_path"));
+        if let Some(why) = crew_records_problem(c, &first, s(inp, "file_path")) { if deny("crew-records", &why) { return; } }
+    }
     if matches!(tool, "Write" | "Edit" | "NotebookEdit") && !manager {
         let p = s(inp, "file_path").replace('\\', "/");
         if is(&c.protected, &p) {
@@ -635,6 +662,14 @@ fn pretool(c: &Ctx, data: &Value, manager: bool) {
             for tgt in shell_write_targets(cmd) {
                 let full = normalise(&base.join(expand_home(&tgt))).to_string_lossy().replace('\\', "/");
                 if is(&mem_dir, &full) { if deny("memory-rules", MEMORY_WHY) { return; } }
+            }
+        }
+        {
+            let first = first_message(s(data, "transcript_path"));
+            let base = { let cw = s(data, "cwd"); if cw.is_empty() { std::env::current_dir().unwrap_or_default() } else { cw.into() } };
+            for tgt in shell_write_targets(cmd) {
+                let full = normalise(&base.join(expand_home(&tgt))).to_string_lossy().replace('\\', "/");
+                if let Some(why) = crew_records_problem(c, &first, &full) { if deny("crew-records", &why) { return; } }
             }
         }
         if !manager {
@@ -722,7 +757,7 @@ fn news_route_problem(c: &Ctx, manager: bool, first: &str, to: &str, msg: &str, 
         Ok(v) => v.get("kind").and_then(Value::as_str).unwrap_or("").to_string(),
         Err(_) => caps(&re(r"^\s*\**(READY|PASS|FAIL)\b"), msg).map(|m| m[1].to_string()).unwrap_or_default(),
     };
-    if kind == "READY" && recipient_is_manager(to, root) {
+    if kind == "READY" && recipient_is_manager(to, root, own_crew(c, first).as_deref()) {
         return Some(("ready-to-inspector", "a READY goes to the inspector only, never to the manager's chat: the inspector sends the manager its copy with its verdict, so the manager's chat wakes once, not three times; send this READY to the inspector".to_string()));
     }
     if kind == "PASS" || kind == "FAIL" {
@@ -991,8 +1026,9 @@ fn stop(c: &Ctx, data: &Value, manager: bool) {
     }
     if is(&re(r"^\s*\*\*(DONE|READY|PASS|FAIL|STUCK|NEED)\b"), body) && !(is(&re(r"^\s*\*\*READY\b"), body) && rule_on("ready-to-inspector")) { // item 65: every report reaches the manager as a message; a READY goes to the inspector, who copies the manager
         let root = main_folder(s(data, "cwd"));
+        let crew_now = own_crew(c, &first_message(tpath));
         // SendMessage (to) or the app's older send_message tool (session_id); either reaches the manager
-        if !uses.iter().any(|u| u.get("input").map(|i| (s(u, "name") == "SendMessage" && recipient_is_manager(s(i, "to"), &root)) || (s(u, "name").ends_with("send_message") && recipient_is_manager(s(i, "session_id"), &root))).unwrap_or(false)) {
+        if !uses.iter().any(|u| u.get("input").map(|i| (s(u, "name") == "SendMessage" && recipient_is_manager(s(i, "to"), &root, crew_now.as_deref())) || (s(u, "name").ends_with("send_message") && recipient_is_manager(s(i, "session_id"), &root, crew_now.as_deref()))).unwrap_or(false)) {
             let w = body.split_whitespace().next().unwrap_or("").trim_matches('*');
             block("report-to-manager", &format!("a report reaches the manager as a message as well as the board (item 65): send the manager your {w} report with SendMessage (a different ID from any copy to someone else), then end the turn with the card{}", manager_now(&root)));
         }

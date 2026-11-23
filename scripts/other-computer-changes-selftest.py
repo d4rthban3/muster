@@ -106,7 +106,7 @@ with tempfile.TemporaryDirectory() as t:
     rc, out, err = run(proj, sid="chat-5", seen=seen)
     check("missing log: silent exit 0", rc == 0 and out == "" and err == "", out + err)
     os.rename(b_log + ".gone", b_log)
-    if os.geteuid() != 0:
+    if os.name != "nt" and os.geteuid() != 0:  # no root-or-not and no unreadable-by-mode on Windows: skip there
         os.chmod(b_log, 0)
         rc, out, err = run(proj, sid="chat-6", seen=seen)
         check("unreadable log: silent exit 0", rc == 0 and out == "" and err == "", out + err)

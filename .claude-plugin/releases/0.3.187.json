@@ -1,0 +1,18 @@
+{
+  "version": "0.3.187",
+  "changed_files": [
+    "scripts/crew-plan.py",
+    "scripts/profile-selftest.py",
+    "skills/start-the-crew/",
+    "directory/",
+    "CHANGELOG.md"
+  ],
+  "affected_roles": [
+    "Manager"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "start-weight-lower part 2 (item 132): crew-plan.py trim-main leaves unused tool servers out of a manager's main folder (owner's choice B), keeps the manager's own tools; --undo."
+}

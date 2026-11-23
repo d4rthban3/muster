@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.187
+Affects: a manager's main folder when the owner runs the new command (nothing changes by itself; PINR untouched unless run there).
+start-weight-lower part 2 (item 132, the owner chose B): `scripts/crew-plan.py trim-main` leaves the unused tool servers (browser, phone simulator, blockchain and similar) out of a manager's main folder, keeping the manager's session, sidebar, task-list and pull-request tools; `--undo` removes exactly what it added (and says so when there is nothing to undo). The owner's own chats in that folder lose those tools too.
+
 ## 0.3.186
 Affects: designers, builders that show things, both inspectors (pages and two skills; no coded check: a picture is not in the READY record, so a check could not tell a repeat from a new look cheaply and surely).
 pictures-light (item 132): a screenshot of every visible change before READY still stands, but costs little: a helper takes and looks at it and returns one line plus the saved file's link; saved small (region or reduced scale); the inspector opens the builder's saved file once instead of re-taking it; no picture twice on one saved version; page text is read when the question is words or structure. Worked example in ready-checks.

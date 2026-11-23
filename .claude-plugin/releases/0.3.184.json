@@ -20,5 +20,5 @@
     "claude-code"
   ],
   "records_change": false,
-  "note": "start-weight-lower (item 132): Muster's own text at a chat's start is about a third lighter (a manager 12640 to 8397 characters, a builder 9436 to 5937) and the compaction text 755 to 493. Every rule is still said once: the message keys now live in muster/REPORT.md, the pages and the skill and agent descriptions are shorter. scripts/start-weight.py fails if it grows back."
+  "note": "redo-loop-less (item 132): a refused record, report or order names every fault it found in one answer, so a message is rewritten once. Clearer hints for a READY's test count, a long note and the wrap-up call. No rule loosened."
 }

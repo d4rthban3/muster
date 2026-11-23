@@ -26,6 +26,8 @@ If you add a test file, name it on the board entry: the manager adds it to `must
 (run in the free test) fails when a test file on disk is missing from that list.
 Send it to the inspector. The designer also names its screenshots on the board entry: for a small visible change one dark and one light picture at one size. The inspector re-runs only the changed tests plus one full run on the merged work, so say which tests changed.
 
+Made-up example of a picture's cost kept low: the designer changes the "Save" button colour on the Shop page (saved version 4e1b2c9). A helper takes the changed button region in light and dark at reduced size, saves `shots/save-button-light.png` and `shots/save-button-dark.png`, and returns "button reads Save, new green, both looks fine: shots/save-button-light.png, shots/save-button-dark.png". The READY note names both files. The inspector opens those two files once, takes no new picture, and reads the page text to confirm the word "Save". A second look at 4e1b2c9 would be a repeat and is not done; a new saved version needs new pictures.
+
 ## Inspector side
 FAIL a READY that lacks the line of work, the saved version, the "touches" part, or the two checks. A FAIL is a
 normal outcome: say exactly what is missing and do not fix it yourself.

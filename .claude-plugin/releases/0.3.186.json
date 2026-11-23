@@ -1,0 +1,22 @@
+{
+  "version": "0.3.186",
+  "changed_files": [
+    "pages/",
+    "agents/",
+    "skills/usage-habits/",
+    "skills/ready-checks/",
+    "directory/",
+    "CHANGELOG.md"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Builder",
+    "Designer",
+    "Inspector"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "pictures-light (item 132): pictures cost little and the proof stays: a helper takes and looks and returns one line plus the file's link, saved small, the inspector opens the saved file once, none twice on one saved version, page text for words. Rule in the designer, design inspector, inspector and builder pages, usage-habits and ready-checks (worked example)."
+}

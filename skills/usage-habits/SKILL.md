@@ -22,8 +22,12 @@ for again each turn. These habits cut that cost; they never change what must be 
    board use the digest. Read your rules page, not the whole decisions log.
 2. **Cut command output before it returns, but never cut evidence.** Filter or limit it. When output is evidence (a
    test printout), save it whole to a file first and cut only what comes back to the chat.
-3. **Prefer text to pictures.** Read a page as text unless how it looks is the question; reduced size when full size
-   isn't needed.
+3. **Prefer text to pictures.** Read a page as text unless how it looks is the question. When it is, the proof the owner
+   asked for stays (a screenshot of every visible change before READY) but costs little:
+   - a helper (subagent) takes and looks at the picture and returns one line plus the saved file's link, so the picture itself stays out of your chat;
+   - save it small: the changed region, or a reduced scale;
+   - the inspector opens the builder's saved file once instead of taking it again, and takes its own only if that file is missing or of another saved version;
+   - never take or look at a picture twice on the same saved version.
 4. **Batch independent calls** in one turn. Never batch a save, push or message with the check that decides whether
    it should happen.
 5. **Message only when someone must act**, one bundled note per worker, as a data record; no "received"/"thanks"; never cut a finding.

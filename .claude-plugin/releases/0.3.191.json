@@ -1,0 +1,22 @@
+{
+  "version": "0.3.191",
+  "changed_files": [
+    "hooks/rules-check.py",
+    "checks/src/rules.rs",
+    "scripts/rules-check-selftest.py",
+    "skills/start-the-crew/SKILL.md",
+    "docs/checks.md",
+    "directory/",
+    "CHANGELOG.md"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Builder",
+    "Inspector"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "crew-by-list (item 134): a crew's chats are known from the crew's own muster/crews/<crew>/CREW.md (by name), so a chat the owner started by hand under any name is that crew's; the name shape stays as a second way; a chat in no list is main crew. No change for a one-crew project."
+}

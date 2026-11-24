@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.191
+Affects: a project that runs more than one crew (nothing changes for a one-crew project; PINR untouched).
+crew-by-list (item 134): a crew's chats are now known from the crew's own list (`muster/crews/<crew>/CREW.md`, "Running now", by chat name), so a chat the owner starts by hand under any name (made-up example: `Shapes_MyProject`) writes its own crew's records, is refused the main board and other crews' boards, and reports to its crew's manager. The name shape (`Builder A Maps_MyProject`) still works as a second way; a chat in no crew list is main crew. The lists are read live each turn (one folder listing when there are no crews). The start-the-crew skill says the manager lists hand-started chats in the crew's list. Both programs agree (the Rust build and the Python copy).
+
 ## 0.3.190
 Affects: the manager (one added line; nothing changes for a one-crew project).
 several-crews follow-up (item 134): the manager page now says: never order another crew's chats; another crew's need is a NEED with a `crew` key to that crew's manager, or a question to the owner. The report template lists the `crew` key. A few manager-page words were shortened to keep the start weight in budget; no rule changed.

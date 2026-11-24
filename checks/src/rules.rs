@@ -35,25 +35,75 @@ fn token_is_manager(c: &Ctx, tok: &str) -> bool {
     is(&re(r"^Manager(?: [A-Z][A-Za-z0-9]+)?_[^_\n]*?(?:_\d{3})?$"), tok) || manager_names(c).iter().any(|r| is(r, tok))
 }
 
-/// Several crews in one project (item 134): this chat's crew word, from its own name (None for a one-crew name, so nothing changes there).
-fn own_crew(c: &Ctx, first: &str) -> Option<String> { own_token(c, first).and_then(|t| crew_of_name(&t)) }
+/// [(crew, chat name)] of every chat the crews' own lists (muster/crews/<crew>/CREW.md, "Running now") name, read live (item 134).
+fn crew_names(root: &str) -> Vec<(String, String)> {
+    let base = Path::new(root).join("muster").join("crews");
+    let mut out = vec![];
+    let Ok(rd) = std::fs::read_dir(&base) else { return out };
+    let mut crews: Vec<String> = rd.flatten().map(|e| e.file_name().to_string_lossy().to_string()).collect();
+    crews.sort();
+    for crew in crews {
+        let Ok(text) = std::fs::read_to_string(base.join(&crew).join("CREW.md")) else { continue };
+        let running = caps(&re(r"(?s)## Running now(.*?)(?:\n## |\z)"), &text).map(|m| m[1].to_string()).unwrap_or_default();
+        for l in running.lines() {
+            if !l.trim_start().starts_with('|') { continue; }
+            let cell = l.trim().trim_matches('|').split('|').next().unwrap_or("").trim().trim_matches(|c| c == '*' || c == '`').to_string();
+            if !cell.is_empty() && cell != "Name" && !cell.chars().all(|c| matches!(c, '-' | ':' | ' ')) { out.push((crew.to_lowercase(), cell)); }
+        }
+    }
+    out
+}
+fn name_key(n: &str) -> String { name_num(n).map(|x| x.0).unwrap_or_else(|| n.to_string()) }
+
+/// Several crews in one project (item 134): this chat's crew: the crew list that names it (whatever the owner called it), else the crew word
+/// in its name (None is the main crew). A name the built-in shapes do not know (Shapes_MyProject) is found by the listed names after "Job:" / "You are".
+// item 134: a chat the built-in shapes do not know is still a crew chat when a crew's own list names it (cheap: needs a Name_Project-looking word first)
+fn listed_chat(c: &Ctx, first: &str, data: &Value) -> bool {
+    let b = first.as_bytes();
+    if !(1..b.len().saturating_sub(1)).any(|i| b[i] == b'_' && b[i - 1].is_ascii_alphanumeric() && b[i + 1].is_ascii_alphanumeric()) { return false; }
+    own_crew(c, first, Some(&main_folder(&cwd_of(data)))).is_some()
+}
+fn own_crew(c: &Ctx, first: &str, root: Option<&str>) -> Option<String> {
+    let listed = root.map(crew_names).unwrap_or_default();
+    let tok = own_token(c, first);
+    if let Some(tok) = &tok {
+        if let Some((crew, _)) = listed.iter().find(|(_, n)| name_key(n) == name_key(tok)) { return Some(crew.clone()); }
+        return crew_of_name(tok);
+    }
+    let mut best: Option<(usize, String)> = None;
+    for lead in [r"\bJob:\s*[*`]{0,2}", r"\b(?:you are|i am|i'm)\s+(?:the\s+)?[*`]{0,2}"] {
+        let l = rei(lead);
+        let mut at = 0;
+        while let Some(m) = l.find_from_pos(first, at).ok().flatten() {
+            let tail = &first[m.end()..];
+            for (crew, name) in &listed {
+                if is(&re(&format!(r"^{}(?![A-Za-z0-9])", fancy_regex::escape(&name_key(name)))), tail) && best.as_ref().map(|b| m.start() < b.0).unwrap_or(true) { best = Some((m.start(), crew.clone())); }
+            }
+            at = m.end().max(m.start() + 1);
+            if at >= first.len() { break; }
+        }
+    }
+    best.map(|b| b.1)
+}
 
 /// A crew's records live in muster/crews/<crew>/; the main crew's stay in muster/. A chat writes only its own crew's records, and the shared
-/// ones (decisions, rules pages, muster/CLAUDE.md) only the main crew writes. Off with no crew word and no muster/crews/ path.
-fn crew_records_problem(c: &Ctx, first: &str, path: &str) -> Option<String> {
+/// ones (decisions, rules pages, muster/CLAUDE.md) only the main crew writes. Off with no crew word, no crew list and no muster/crews/ path.
+fn crew_records_problem(c: &Ctx, first: &str, path: &str, cwd: &str) -> Option<String> {
     let p = path.replace('\\', "/");
-    let mine = own_crew(c, first);
-    if let Some(m) = caps(&re(r"/muster/crews/([^/]+)/"), &p) {
+    let in_crew = caps(&re(r"/muster/crews/([^/]+)/"), &p);
+    let shared = is(&re(r"/muster/(?:BOARD\.md|BOARD-ARCHIVE\.md|OWNERS-LIST\.md|DECISIONS-LOG\.md|CREW\.md|GOAL\.md|RULES-PAGE\.md|REPORT\.md|CLAUDE\.md|rules/|handovers/)"), &p);
+    if in_crew.is_none() && !shared { return None; }
+    let root = main_folder(cwd);
+    let mine = own_crew(c, first, Some(&root));
+    let base = p.rsplit('/').next().unwrap_or("");
+    if let Some(m) = in_crew {
         let theirs = m[1].to_lowercase();
         if mine.as_deref() != Some(theirs.as_str()) {
-            return Some(format!("{} is crew {}'s record: only that crew's own chats write it; send its manager a NEED (a record with a crew key) or put the question to the owner", p.rsplit('/').next().unwrap_or(""), theirs));
+            return Some(format!("{} is crew {}'s record: only that crew's own chats write it; send its manager a NEED (a record with a crew key) or put the question to the owner", base, theirs));
         }
         return None;
     }
-    if mine.is_some() && is(&re(r"/muster/(?:BOARD\.md|BOARD-ARCHIVE\.md|OWNERS-LIST\.md|DECISIONS-LOG\.md|CREW\.md|GOAL\.md|RULES-PAGE\.md|REPORT\.md|CLAUDE\.md|rules/|handovers/)"), &p) {
-        return Some(format!("{} belongs to the main crew or is shared by all crews (one named writer, the main manager): write your own crew's records under muster/crews/{}/ and send the main manager a NEED for a shared change", p.rsplit('/').next().unwrap_or(""), mine.unwrap_or_default()));
-    }
-    None
+    mine.map(|m| format!("{} belongs to the main crew or is shared by all crews (one named writer, the main manager): write your own crew's records under muster/crews/{}/ and send the main manager a NEED for a shared change", base, m))
 }
 
 /// The chat's own crew name (or agents/<role>.md) in its starting note, if any.
@@ -130,6 +180,7 @@ fn order_problem(text: &str) -> Option<String> {
 }
 
 // ---- helpers ----
+fn cwd_of(data: &Value) -> String { let cw = s(data, "cwd"); if cw.is_empty() { std::env::current_dir().unwrap_or_default().to_string_lossy().to_string() } else { cw.to_string() } }
 fn main_folder(cwd: &str) -> String {
     let mut cmd = Command::new("git");
     cmd.args(["rev-parse", "--git-common-dir"]);
@@ -637,7 +688,7 @@ fn pretool(c: &Ctx, data: &Value, manager: bool) {
     }
     if matches!(tool, "Write" | "Edit" | "MultiEdit" | "NotebookEdit") {
         let first = first_message(s(data, "transcript_path"));
-        if let Some(why) = crew_records_problem(c, &first, s(inp, "file_path")) { if deny("crew-records", &why) { return; } }
+        if let Some(why) = crew_records_problem(c, &first, s(inp, "file_path"), &cwd_of(data)) { if deny("crew-records", &why) { return; } }
     }
     if matches!(tool, "Write" | "Edit" | "NotebookEdit") && !manager {
         let p = s(inp, "file_path").replace('\\', "/");
@@ -669,7 +720,7 @@ fn pretool(c: &Ctx, data: &Value, manager: bool) {
             let base = { let cw = s(data, "cwd"); if cw.is_empty() { std::env::current_dir().unwrap_or_default() } else { cw.into() } };
             for tgt in shell_write_targets(cmd) {
                 let full = normalise(&base.join(expand_home(&tgt))).to_string_lossy().replace('\\', "/");
-                if let Some(why) = crew_records_problem(c, &first, &full) { if deny("crew-records", &why) { return; } }
+                if let Some(why) = crew_records_problem(c, &first, &full, &cwd_of(data)) { if deny("crew-records", &why) { return; } }
             }
         }
         if !manager {
@@ -757,7 +808,7 @@ fn news_route_problem(c: &Ctx, manager: bool, first: &str, to: &str, msg: &str, 
         Ok(v) => v.get("kind").and_then(Value::as_str).unwrap_or("").to_string(),
         Err(_) => caps(&re(r"^\s*\**(READY|PASS|FAIL)\b"), msg).map(|m| m[1].to_string()).unwrap_or_default(),
     };
-    if kind == "READY" && recipient_is_manager(to, root, own_crew(c, first).as_deref()) {
+    if kind == "READY" && recipient_is_manager(to, root, own_crew(c, first, Some(root)).as_deref()) {
         return Some(("ready-to-inspector", "a READY goes to the inspector only, never to the manager's chat: the inspector sends the manager its copy with its verdict, so the manager's chat wakes once, not three times; send this READY to the inspector".to_string()));
     }
     if kind == "PASS" || kind == "FAIL" {
@@ -1026,7 +1077,7 @@ fn stop(c: &Ctx, data: &Value, manager: bool) {
     }
     if is(&re(r"^\s*\*\*(DONE|READY|PASS|FAIL|STUCK|NEED)\b"), body) && !(is(&re(r"^\s*\*\*READY\b"), body) && rule_on("ready-to-inspector")) { // item 65: every report reaches the manager as a message; a READY goes to the inspector, who copies the manager
         let root = main_folder(s(data, "cwd"));
-        let crew_now = own_crew(c, &first_message(tpath));
+        let crew_now = own_crew(c, &first_message(tpath), Some(&root));
         // SendMessage (to) or the app's older send_message tool (session_id); either reaches the manager
         if !uses.iter().any(|u| u.get("input").map(|i| (s(u, "name") == "SendMessage" && recipient_is_manager(s(i, "to"), &root, crew_now.as_deref())) || (s(u, "name").ends_with("send_message") && recipient_is_manager(s(i, "session_id"), &root, crew_now.as_deref()))).unwrap_or(false)) {
             let w = body.split_whitespace().next().unwrap_or("").trim_matches('*');
@@ -1097,7 +1148,7 @@ pub fn run() -> i32 {
     if own_token(&c, &first).is_none() {
         if let Some(t) = title_if_crew(s(&data, "transcript_path"), &c.crew) { first = format!("You are {t}"); from_title = true; }
     }
-    if !is(&c.crew, &first) && std::env::var("MUSTER_ASSUME_CREW").ok().as_deref() != Some("1") { return 0; }
+    if !is(&c.crew, &first) && std::env::var("MUSTER_ASSUME_CREW").ok().as_deref() != Some("1") && !listed_chat(&c, &first, &data) { return 0; }
     if !from_title { remember_first(s(&data, "transcript_path"), &first); }
     let manager = is_manager(&c, &first) || std::env::var("MUSTER_ASSUME_MANAGER").ok().as_deref() == Some("1");
     match s(&data, "hook_event_name") { "PreToolUse" => { pretool(&c, &data, manager); if !SAID.load(std::sync::atomic::Ordering::SeqCst) { notes_out(s(&data, "transcript_path"), "PreToolUse"); } }

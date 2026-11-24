@@ -601,23 +601,78 @@ def crew_of_name(name):
     return m.group(1).lower() if m else None
 
 
-def own_crew(first):
-    return crew_of_name(_own_token(first) or "")
+def _crew_names(root):
+    """[(crew, chat name)] of every chat the crews' own lists (muster/crews/<crew>/CREW.md, 'Running now') name, read live."""
+    base = os.path.join(root or "", "muster", "crews")
+    out = []
+    try:
+        crews = sorted(os.listdir(base))
+    except OSError:
+        return out
+    for crew in crews:
+        try:
+            text = open(os.path.join(base, crew, "CREW.md"), encoding="utf-8").read()
+        except OSError:
+            continue
+        mm = re.search(r"## Running now(.*?)(?:\n## |\Z)", text, re.S)
+        for l in (mm.group(1) if mm else "").splitlines():
+            if l.lstrip().startswith("|"):
+                cell = l.strip().strip("|").split("|")[0].strip().strip("*`")
+                if cell and cell != "Name" and not set(cell) <= set("-: "):
+                    out.append((crew.lower(), cell))
+    return out
 
 
-def crew_records_problem(first, path):
+def _name_key(name):
+    m = NAME_NUM.match(name or "")
+    return m.group(1) if m else (name or "")
+
+
+def own_crew(first, root=None):
+    """This chat's crew (item 134): the crew list that names it (whatever the owner called it), else the crew word in its name; None is
+    the main crew. A name the built-in shapes do not know (Shapes_MyProject) is found by the listed names after 'Job:' / 'You are'."""
+    listed = _crew_names(root) if root else []
+    tok = _own_token(first) or ""
+    if listed and tok:
+        for crew, name in listed:
+            if _name_key(name) == _name_key(tok):
+                return crew
+    if tok:
+        return crew_of_name(tok)
+    best = None
+    for lead in (r"\bJob:\s*[*`]{0,2}", r"\b(?:you are|i am|i'm)\s+(?:the\s+)?[*`]{0,2}"):
+        for m in re.finditer(lead, first or "", re.I):
+            tail = first[m.end():]
+            for crew, name in listed:
+                if re.match(re.escape(_name_key(name)) + r"(?![A-Za-z0-9])", tail) and (best is None or m.start() < best[0]):
+                    best = (m.start(), crew)
+    return best[1] if best else None
+
+
+def listed_chat(first, data):
+    """item 134: a chat whose name the built-in shapes do not know is still a crew chat when a crew's own list names it. Cheap: only a first note
+    holding a Name_Project-looking word is looked up, and only the crews' lists are read."""
+    if not re.search(r"[A-Za-z0-9]_[A-Za-z0-9]", first or ""):
+        return False
+    return own_crew(first, main_folder(data.get("cwd") or os.getcwd())) is not None
+
+
+def crew_records_problem(first, path, cwd=None):
     """A crew's records live in muster/crews/<crew>/; the main crew's stay in muster/. A chat writes only its own crew's records; the shared
-    ones (decisions, rules pages, muster/CLAUDE.md, the main board) only the main crew. Off with no crew word and no muster/crews/ path."""
+    ones (decisions, rules pages, muster/CLAUDE.md, the main board) only the main crew. Off with no crew word, no crew list and no muster/crews/ path."""
     p = str(path).replace("\\", "/")
-    mine = own_crew(first)
     m = re.search(r"/muster/crews/([^/]+)/", p)
+    shared = re.search(r"/muster/(?:BOARD\.md|BOARD-ARCHIVE\.md|OWNERS-LIST\.md|DECISIONS-LOG\.md|CREW\.md|GOAL\.md|RULES-PAGE\.md|REPORT\.md|CLAUDE\.md|rules/|handovers/)", p)
+    if not m and not shared:
+        return None
+    mine = own_crew(first, main_folder(cwd) if cwd is not None else None)
     base = p.rsplit("/", 1)[-1]
     if m:
         theirs = m.group(1).lower()
         if mine != theirs:
             return "%s is crew %s's record: only that crew's own chats write it; send its manager a NEED (a record with a crew key) or put the question to the owner" % (base, theirs)
         return None
-    if mine and re.search(r"/muster/(?:BOARD\.md|BOARD-ARCHIVE\.md|OWNERS-LIST\.md|DECISIONS-LOG\.md|CREW\.md|GOAL\.md|RULES-PAGE\.md|REPORT\.md|CLAUDE\.md|rules/|handovers/)", p):
+    if mine:
         return "%s belongs to the main crew or is shared by all crews (one named writer, the main manager): write your own crew's records under muster/crews/%s/ and send the main manager a NEED for a shared change" % (base, mine)
     return None
 
@@ -983,7 +1038,7 @@ def news_route_problem(manager, first, to, msg, root):
     except (ValueError, AttributeError):
         m = re.match(r"^\s*\**(READY|PASS|FAIL)\b", msg)
         kind = m.group(1) if m else ""
-    if kind == "READY" and recipient_is_manager(to, root, own_crew(first)):
+    if kind == "READY" and recipient_is_manager(to, root, own_crew(first, root)):
         return ("ready-to-inspector", "a READY goes to the inspector only, never to the manager's chat: the inspector sends the manager its copy with its verdict, so the manager's chat wakes once, not three times; send this READY to the inspector")
     if kind in ("PASS", "FAIL"):
         tok = _own_token(first)
@@ -1085,7 +1140,7 @@ def pretool(data, manager):
         if MEMORY_DIR.search(mp) and CREW_RULE_WORDS.search(body):
             if deny("memory-rules", MEMORY_WHY): return
     if tool in ("Write", "Edit", "MultiEdit", "NotebookEdit"):
-        why = crew_records_problem(first_message(data.get("transcript_path") or ""), inp.get("file_path", ""))
+        why = crew_records_problem(first_message(data.get("transcript_path") or ""), inp.get("file_path", ""), data.get("cwd") or os.getcwd())
         if why and deny("crew-records", why): return
     if tool in ("Write", "Edit", "NotebookEdit") and not manager:
         p = str(inp.get("file_path", "")).replace("\\", "/")
@@ -1106,7 +1161,7 @@ def pretool(data, manager):
         _first = first_message(data.get("transcript_path") or "")
         _base = data.get("cwd") or os.getcwd()
         for tgt in shell_write_targets(cmd):
-            why = crew_records_problem(_first, os.path.normpath(os.path.join(_base, os.path.expanduser(tgt))).replace("\\", "/"))
+            why = crew_records_problem(_first, os.path.normpath(os.path.join(_base, os.path.expanduser(tgt))).replace("\\", "/"), _base)
             if why and deny("crew-records", why): return
         if not manager and PROFILE_PROTECTED is not None:
             base = data.get("cwd") or os.getcwd()
@@ -1815,7 +1870,7 @@ def stop(data, manager):
         note_add(data.get("transcript_path") or "", "note-card", "your end-of-turn reply is a card: a bold title line 'WORD · job', then two or three '- ' bullets (what, the result with real numbers, what is left or what you need)")
     if re.match(r"^\s*\*\*(DONE|READY|PASS|FAIL|STUCK|NEED)\b", body) and not (re.match(r"^\s*\*\*READY\b", body) and rule_on("ready-to-inspector")):  # item 65; a READY goes to the inspector, who copies the manager: every report reaches the manager as a message
         root = main_folder(data.get("cwd"))
-        crew_now = own_crew(first_message(data.get("transcript_path") or ""))
+        crew_now = own_crew(first_message(data.get("transcript_path") or ""), root)
         # SendMessage (to) or the app's older send_message tool (session_id); either reaches the manager
         if not any((u.get("name") == "SendMessage" and recipient_is_manager((u.get("input") or {}).get("to", ""), root, crew_now))
                    or ((u.get("name") or "").endswith("send_message") and recipient_is_manager((u.get("input") or {}).get("session_id", ""), root, crew_now)) for u in uses):
@@ -1911,7 +1966,7 @@ def main():
         return 0
     path = data.get("transcript_path") or ""
     first = first_or_summary(path)
-    if not CREW_RE.search(first) and os.environ.get("MUSTER_ASSUME_CREW") != "1":
+    if not CREW_RE.search(first) and os.environ.get("MUSTER_ASSUME_CREW") != "1" and not listed_chat(first, data):
         return 0
     if path not in TITLE_USED:
         remember_first(path, first)

@@ -685,6 +685,31 @@ _once += [
     ("several-crews: a crew card after a message to its own manager passes", run("Stop", last_assistant_message="**DONE \u00b7 x**\n- a\n- b", transcript_path=tr(EVB, [said("go"), use("SendMessage", "s9", to="Manager Evidence_Muster_001", message="x"), res("s9")])), False),
     ("several-crews: a crew card after a message only to the main manager is refused", run("Stop", last_assistant_message="**DONE \u00b7 x**\n- a\n- b", transcript_path=tr(EVB, [said("go"), use("SendMessage", "s8", to="Manager_Muster_002", message="x"), res("s8")])), True),
 ]
+# crew-by-list (item 134): a crew's chats are known from the crew's own CREW.md, whatever they are called; the name shape still works
+PM = os.path.join(T, "pj_maps")
+os.makedirs(os.path.join(PM, "muster", "crews", "maps"))
+open(os.path.join(PM, "muster", "crews", "maps", "CREW.md"), "w").write("# The crew\n\n## Running now\n| Name | Model | Effort | Folder copy | Chat id (terminal only) | Started |\n|---|---|---|---|---|---|\n| Manager_Maps | opus | high | main | local_m1 | today |\n| Shapes_MyProject | sonnet | high | copy | local_s1 | today |\n| Inspector Maps_MyProject | opus | high | copy | local_i1 | today |\n\n## Archived\n| Name | Model | Archived on |\n|---|---|---|\n")
+open(os.path.join(PM, "muster", "CREW.md"), "w").write("# The crew\n\n## Running now\n| Name | Model | Effort | Folder copy | Chat id (terminal only) | Started |\n|---|---|---|---|---|---|\n| Manager_MyProject | opus | high | main | local_main | today |\n")
+MAPM, SHP = "You are Manager_Maps", "You are Shapes_MyProject, a worker for the maps crew"
+def _wl(first, rel):
+    return run("PreToolUse", tool_name="Write", tool_input={"file_path": os.path.join(PM, "muster", rel), "content": "x"}, transcript_path=tr(first), cwd=PM)
+_once += [
+    ("crew-by-list: a listed manager writes its own crew's board", _wl(MAPM, "crews/maps/BOARD.md"), False),
+    ("crew-by-list: a listed manager writing the main board is refused", "crew-records" in _wl(MAPM, "BOARD.md"), True),
+    ("crew-by-list: a listed manager writing another crew's board is refused", "crew-records" in _wl(MAPM, "crews/other/BOARD.md"), True),
+    ("crew-by-list: a listed worker with a made-up role writes its own crew's board", _wl(SHP, "crews/maps/BOARD.md"), False),
+    ("crew-by-list: a listed worker writing the main board is refused", "crew-records" in _wl(SHP, "BOARD.md"), True),
+    ("crew-by-list: a listed worker writing another crew's board is refused", "crew-records" in _wl(SHP, "crews/other/BOARD.md"), True),
+    ("crew-by-list: the same worker by shell writing the main board is refused", "crew-records" in run("PreToolUse", tool_name="Bash", tool_input={"command": "echo x >> muster/BOARD.md"}, transcript_path=tr(SHP), cwd=PM), True),
+    ("crew-by-list: a worker in no crew list still writes the main board", _wl("You are Builder A_MyProject, agents/builder.md", "BOARD.md"), False),
+    ("crew-by-list: the main manager writing a crew's board is still refused", "crew-records" in _wl("You are Manager_MyProject", "crews/maps/BOARD.md"), True),
+    ("crew-by-list: a listed worker's READY to its crew manager is refused", "goes to the inspector only" in run("PreToolUse", tool_name="SendMessage", tool_input={"to": "Manager_Maps", "message": _rec("READY", "Manager_Maps")}, transcript_path=tr(SHP), cwd=PM), True),
+    ("crew-by-list: a listed worker's READY to its crew inspector goes through", "goes to the inspector only" in run("PreToolUse", tool_name="SendMessage", tool_input={"to": "Inspector Maps_MyProject", "message": _rec("READY", "Inspector Maps_MyProject")}, transcript_path=tr(SHP), cwd=PM), False),
+    ("crew-by-list: a listed worker's DONE card with no message to its crew manager is refused", run("Stop", last_assistant_message="**DONE \u00b7 x**\n- a\n- b", transcript_path=tr(SHP), cwd=PM), True),
+    ("crew-by-list: the card after a message to the crew's manager passes", run("Stop", last_assistant_message="**DONE \u00b7 x**\n- a\n- b", transcript_path=tr(SHP, [said("go"), use("SendMessage", "s7", to="Manager_Maps", message="x"), res("s7")]), cwd=PM), False),
+    ("crew-by-list: the card after a message only to the main manager is refused", run("Stop", last_assistant_message="**DONE \u00b7 x**\n- a\n- b", transcript_path=tr(SHP, [said("go"), use("SendMessage", "s6", to="Manager_MyProject", message="x"), res("s6")]), cwd=PM), True),
+    ("crew-by-list: the old name shape still works beside a list", "crew-records" in run("PreToolUse", tool_name="Write", tool_input={"file_path": os.path.join(PM, "muster", "BOARD.md"), "content": "x"}, transcript_path=tr("You are Builder A Maps_MyProject, agents/builder.md"), cwd=PM), True),
+]
 # right-hand part 2 (item 128): an ANSWER and a VIEW are let through; the wording checks become notes (told once, never a refusal); the hard stops stay
 LONG = " ".join("The build is slow because the first step waits for the whole folder, and that step reads every file." for _ in range(12))
 ANS = "**ANSWER \u00b7 slow-build**\n\n" + LONG

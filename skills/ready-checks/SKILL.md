@@ -8,6 +8,8 @@ description: The two checks before READY, and the READY report; use when finishi
 Build and inspect are different hands. The builder runs these two checks so the inspector never has to find what the
 builder could have found.
 
+**Prove from history, never wait on the clock:** check against saved data or a replay, not a timed wait.
+
 ## The two checks
 1. **Run all the tests on the combined work**, not just the new test: bring your line of work up to date with the
    main line first, then run every test listed in `muster/CHECKS.md` (skill `run-checks`). A pass on your own line

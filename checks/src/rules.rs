@@ -279,6 +279,21 @@ fn sessions_dir() -> Option<PathBuf> {
         .into_iter().find(|p| p.is_dir())
 }
 /// The weekly goal (muster/GOAL.md): an ORDER whose job is not on its set list waits. No goal, or no set list, enforces nothing.
+const TIMED_NOTE: &str = "an order that asks for a timed wait (item 132): prove it from saved history, stored data, logs or a replay instead of waiting on the clock; a deploy's one-time 'verify live' and the deploy lock's 'wait and rerun' stay allowed";
+// item 132, flag only: an ORDER whose Accept or Do line (or a JSON order's note) asks for a number of minutes or hours to wait, a soak, or two reads N apart
+fn timed_wait_in_order(text: &str) -> bool {
+    let (lock, soak) = (rei(r"\block\b"), rei(r"\bsoak\w*\b"));
+    let num = rei(r"\b\d+(?:\.\d+)?\s*(?:-\s*)?(?:minutes?|mins?|hours?|hrs?)\b");
+    let word = rei(r"\b(?:wait(?:s|ing)?|sampl\w*|soak\w*|watch\w*|poll\w*|observ\w*|live run|overnight|apart)\b");
+    let twice = rei(r"\b(?:read|reads|pull|pulls)\b[^.\n]{0,30}\btwice\b[^.\n]{0,40}\bapart\b");
+    text.lines().any(|l| !is(&lock, l) && (is(&soak, l) || (is(&num, l) && is(&word, l)) || is(&twice, l)))
+}
+// the Accept: and Do: lines of an ORDER entry written to a board (empty when the text holds no ORDER header)
+fn board_order_lines(text: &str) -> String {
+    if !is(&re(r"\|\s*ORDER\s*\||\bORDER\b\s*\|"), text) { return String::new(); }
+    let head = re(r"^\s*(?:Accept|Do)\b[^:\n]*:");
+    text.lines().filter(|l| is(&head, l)).collect::<Vec<_>>().join("\n")
+}
 fn goal_problem(root: &str, job: &str) -> Option<String> {
     let text = std::fs::read_to_string(Path::new(root).join("muster").join("GOAL.md")).ok()?;
     let mut jobs: Vec<String> = vec![];
@@ -687,6 +702,10 @@ fn pretool(c: &Ctx, data: &Value, manager: bool) {
         if is(&mem_dir, &mp) && is(&rule_words, &body) { if deny("memory-rules", MEMORY_WHY) { return; } }
     }
     if matches!(tool, "Write" | "Edit" | "MultiEdit" | "NotebookEdit") {
+        let ol = board_order_lines(&["content", "new_string"].iter().map(|k| s(inp, k)).collect::<Vec<_>>().join(" "));
+        if !ol.is_empty() && timed_wait_in_order(&ol) { { let tpath = s(data, "transcript_path"); note_add(tpath, "note-timed-wait", TIMED_NOTE) }; }
+    }
+    if matches!(tool, "Write" | "Edit" | "MultiEdit" | "NotebookEdit") {
         let first = first_message(s(data, "transcript_path"));
         if let Some(why) = crew_records_problem(c, &first, s(inp, "file_path"), &cwd_of(data)) { if deny("crew-records", &why) { return; } }
     }
@@ -839,6 +858,7 @@ fn send_message(c: &Ctx, data: &Value, inp: &Value, root: &str, manager: bool) {
         let (id, kind) = (s(&rec, "id"), s(&rec, "kind"));
         if sent().iter().any(|t| serde_json::from_str::<Value>(t.trim()).map(|r| s(&r, "id") == id).unwrap_or(false)) { if deny("dup-id", &format!("this record's id {id} was already sent; a repeat is dropped")) { return; } }
         if kind == "ORDER" { if let Some(why) = goal_problem(root, s(&rec, "job")) { if deny("order-goal", &why) { return; } } }
+        if kind == "ORDER" && timed_wait_in_order(s(&rec, "note")) { { let tpath = s(data, "transcript_path"); note_add(tpath, "note-timed-wait", TIMED_NOTE) }; }
         if kind == "ORDER" && usage_at_limit(root) { if deny("usage-limit", "the week is at 90% or more (scripts/usage.py exits 3): start no new order; finish and park what is running") { return; } }
         if dup_report(s(inp, "to"), msg, s(data, "transcript_path")) { if deny("dup-report", DUP_WHY) { return; } }
         return;
@@ -858,6 +878,7 @@ fn send_message(c: &Ctx, data: &Value, inp: &Value, root: &str, manager: bool) {
         if sent().iter().any(|t| t.contains(&idtag)) { if deny("dup-id", &format!("this report's ID [{}] was already sent; a repeat is dropped", &m[2])) { return; } }
         if dup_report(s(inp, "to"), msg, s(data, "transcript_path")) { if deny("dup-report", DUP_WHY) { return; } }
     }
+    if bad_order.is_none() { let head = re(r"^\s*(?i:Accept|Do)\b[^:\n]*:"); let al = msg.lines().filter(|l| is(&head, l)).collect::<Vec<_>>().join("\n"); if timed_wait_in_order(&al) { { let tpath = s(data, "transcript_path"); note_add(tpath, "note-timed-wait", TIMED_NOTE) }; } }
     if bad_order.is_none() && usage_at_limit(root) { if deny("usage-limit", "the week is at 90% or more (scripts/usage.py exits 3): start no new order; finish and park what is running") { return; } }
 }
 

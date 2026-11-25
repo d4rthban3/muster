@@ -809,7 +809,7 @@ for rid, call in sorted(_seen.items()):
         _rcases.append(("right-hand 4: house rule '%s' is silent with its switch off" % rid, "" if ('"%s"' % rid) not in o1.replace('\\"', '"') else "BAD " + o1[:200], False))
         _rcases.append(("right-hand 4: ...and with every house rule off only safety stops speak (%s)" % rid, "" if (not o2 or all(g == "safety stop" for g, _ in LABEL.findall(o2.replace('\\"', '"')))) else "BAD " + o2[:200], False))
 _rcases.append(("right-hand 4: the guard is a safety stop, not a house rule", "" if LISTED.get("guard") == "safety stop" else "BAD", False))
-_needed = set(LISTED) - {"note-letters", "note-heading", "note-badge-line", "note-card", "talk-note", "board-pick-claim", "queue-waiting", "queue-idle", "idle-sweep", "idle-silent"} - ({"note-shape", "order-action"} if BIN else set())
+_needed = set(LISTED) - {"note-letters", "note-heading", "note-badge-line", "note-card", "note-timed-wait", "talk-note", "board-pick-claim", "queue-waiting", "queue-idle", "idle-sweep", "idle-silent"} - ({"note-shape", "order-action"} if BIN else set())
 _seen_ids = set(_seen)
 _rcases.append(("right-hand 4: every listed refusing check of the rules hook is reached by a case here (missing: %s)" % ", ".join(sorted(_needed - _seen_ids)), "" if not (_needed - _seen_ids) else "BAD", False))
 # the wording notes and the other checks: each house rule silent with its switch off, the same input speaking with it on
@@ -828,6 +828,29 @@ for _rid, _first, _extra, _text, _phrase in (("note-letters", MG, [said("hi")], 
     _rcases.append(("right-hand 4: the note '%s' is kept by default" % _rid, "" if _phrase in _note_after(RUN_ENV, _first, _extra, _text) else "BAD", False))
     _rcases.append(("right-hand 4: ...and never kept with its switch off (%s)" % _rid, "" if _note_after(_off_env(_rid), _first, _extra, _text) == "" else "BAD", False))
     _rcases.append(("right-hand 4: ...a different switch off keeps it (%s)" % _rid, "" if _phrase in _note_after(_off_env("no-thanks"), _first, _extra, _text) else "BAD", False))
+# item 132: an order asking for a timed wait is flagged once to its writer (a note, never a refusal)
+def _order_out(env, tool, inp):
+    t = tr(MG, [said("go")])
+    r = subprocess.run([BIN, "rules"] if BIN else [sys.executable, HOOK], input=json.dumps(dict(hook_event_name="PreToolUse", cwd=T, tool_name=tool, tool_input=inp, transcript_path=t)), capture_output=True, text=True, env=env)
+    return r.stdout
+def _board_order(acc): return {"file_path": os.path.join(T, "tw", "muster", "BOARD.md"), "content": "### ORDER\n| ORDER | To: Builder A_X | Job: j | Status: open |\nDo: build it.\nAccept: " + acc + "\n"}
+def _text_order(acc): return {"to": "local_x", "message": "To: Builder A_X\nJob: j\nOwner's words: item 1 \"go ahead\"\nOwns: hooks\nOut: look\nAccept: " + acc + "\nDone: tests green"}
+def _json_order(note): return {"to": "local_x", "message": json.dumps({"v": 1, "kind": "ORDER", "id": "manager-j-1", "job": "j", "from": "manager", "to": "builder-a", "need": "order", "owner_words": {"item": 132}, "owns": ["board"], "out": ["site"], "action": "start", "note": note})}
+_TW = "a timed wait"
+for _what, _tool, _inp, _hit in (("board order, 30-minute sample", "Write", _board_order("take a 30-minute sample of the live feed, then compare"), True),
+                                 ("board order, soak", "Write", _board_order("soak it overnight"), True),
+                                 ("board order, read twice an hour apart", "Write", _board_order("read the pull twice, 1 hour apart"), True),
+                                 ("board order, replay on saved data", "Write", _board_order("replay the saved log and the numbers match"), False),
+                                 ("board order, verify live once", "Write", _board_order("verify live once after the deploy"), False),
+                                 ("board order, deploy lock wait and rerun", "Write", _board_order("if the lock is held, wait 5 minutes and rerun"), False),
+                                 ("board entry that is not an order", "Write", {"file_path": os.path.join(T, "tw", "muster", "BOARD.md"), "content": "### NOTE\nAccept: a 30-minute sample\n"}, False),
+                                 ("text order, 2-hour live run", "SendMessage", _text_order("a live run of 2 hours, watch it"), True),
+                                 ("text order, replay", "SendMessage", _text_order("replay on saved data, no waiting"), False),
+                                 ("JSON order note, 2-hour live run", "SendMessage", _json_order("Accept: a live run of 2 hours, watch it"), True),
+                                 ("JSON order note, replay", "SendMessage", _json_order("Accept: replay on saved data, no waiting"), False)):
+    _o = _order_out(dict(RUN_ENV, MUSTER_MESSAGE_FORM="records") if _what.startswith("JSON") else RUN_ENV, _tool, _inp)
+    _rcases.append(("item 132: %s %s" % (_what, "is flagged" if _hit else "is not flagged"), "" if ((_TW in _o) == _hit and '"deny"' not in _o) else "BAD " + _o[:200], False))
+_rcases.append(("item 132: the flag is silent with its switch off", "" if _TW not in _order_out(_off_env("note-timed-wait"), "Write", _board_order("a 30-minute sample")) else "BAD", False))
 # told-when-asked: the owner's standing "tell me when X" lets one ANSWER about X through on a later turn, whoever started it
 SAF = "**ANSWER \u00b7 safari-fix**\n\nThe safari fix is LIVE and shipped. " + LONG
 def _said_asst(t): return {"type": "assistant", "message": {"content": [{"type": "text", "text": t}]}}

@@ -1,0 +1,28 @@
+{
+  "version": "0.3.192",
+  "changed_files": [
+    "hooks/rules-check.py",
+    "checks/src/rules.rs",
+    "scripts/rules-check-selftest.py",
+    "docs/checks.md",
+    "pages/manager.md",
+    "pages/inspector.md",
+    "pages/design-inspector.md",
+    "skills/one-order-per-piece/SKILL.md",
+    "skills/ready-checks/SKILL.md",
+    "templates/CLAUDE.md",
+    "agents/",
+    "directory/",
+    "CHANGELOG.md"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Inspector",
+    "Builder"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "prove-from-history (item 132): one plain line 'Prove from history, never wait on the clock' on the manager, inspector and design inspector pages, the order and ready skills and the Usage first block; a new note rule (note-timed-wait) tells an order's writer once when an Accept or Do line asks for a timed wait (a deploy's one verify-live and the deploy lock wait are allowed)."
+}

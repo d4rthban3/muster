@@ -793,6 +793,31 @@ def sends_all(path):
     return out
 
 
+TIMED_NUM = re.compile(r"\b\d+(?:\.\d+)?\s*(?:-\s*)?(?:minutes?|mins?|hours?|hrs?)\b", re.I)
+TIMED_WORD = re.compile(r"\b(?:wait(?:s|ing)?|sampl\w*|soak\w*|watch\w*|poll\w*|observ\w*|live run|overnight|apart)\b", re.I)
+TIMED_NOTE = ("an order that asks for a timed wait (item 132): prove it from saved history, stored data, logs or a replay instead of waiting on the clock; "
+              "a deploy's one-time 'verify live' and the deploy lock's 'wait and rerun' stay allowed")
+
+
+def timed_wait_in_order(text):
+    """Item 132, flag only: an ORDER whose Accept or Do line (or a JSON order's note) asks for a number of minutes or hours to wait, a soak, or two reads
+    N apart. Chosen: a plain pattern (a time number AND a wait word on one line, or 'soak', or 'read twice ... apart'); a line about the deploy lock is skipped."""
+    for line in str(text or "").splitlines():
+        if re.search(r"\block\b", line, re.I):
+            continue
+        if re.search(r"\bsoak\w*\b", line, re.I) or (TIMED_NUM.search(line) and TIMED_WORD.search(line)) or re.search(r"\b(?:read|reads|pull|pulls)\b[^.\n]{0,30}\btwice\b[^.\n]{0,40}\bapart\b", line, re.I):
+            return True
+    return False
+
+
+def board_order_lines(text):
+    """The Accept: and Do: lines of an ORDER entry written to a board (empty when the text holds no ORDER header)."""
+    t = str(text or "")
+    if not re.search(r"\|\s*ORDER\s*\||\bORDER\b\s*\|", t):
+        return ""
+    return "\n".join(l for l in t.splitlines() if re.match(r"\s*(?:Accept|Do)\b[^:\n]*:", l))
+
+
 def goal_problem(root, job):
     """The weekly goal (muster/GOAL.md, set by the manager from the owner's words): an ORDER whose job is not on its set list waits.
     No goal, or a goal with no set list, enforces nothing; the owner can change it any time (scripts/goal.py set)."""
@@ -1100,6 +1125,8 @@ def pretool(data, manager):
                 if deny("note-secret", NOTE_WHY): return  # a safety stop: a key, password or token in a note
             if note is not None and (not isinstance(note, str) or not note.strip() or len(note) > 400 or any(ord(c) < 32 for c in note)):
                 if deny("note-shape", NOTE_WHY): return
+            if rec.get("kind") == "ORDER" and isinstance(note, str) and timed_wait_in_order(note):
+                note_add(data.get("transcript_path") or "", "note-timed-wait", TIMED_NOTE)
             if rec.get("kind") == "ORDER" and rec.get("action") not in ("ship", "hold", "start"):
                 if deny("order-action", "an ORDER needs action: ship, hold or start (what happens after the work)"): return
             if rec.get("kind") == "ORDER":
@@ -1130,6 +1157,8 @@ def pretool(data, manager):
                 if deny("dup-id", "this report's ID [%s] was already sent; a repeat is dropped" % m.group(2)): return
         if m and dup_report(str(inp.get("to", "")), msg, data.get("transcript_path") or ""):
             if deny("dup-report", DUP_WHY): return
+        if not bad_order and timed_wait_in_order("\n".join(l for l in msg.splitlines() if re.match(r"\s*(?:Accept|Do)\b[^:\n]*:", l, re.I))):
+            note_add(data.get("transcript_path") or "", "note-timed-wait", TIMED_NOTE)
         if not bad_order and usage_at_limit(root):
             if deny("usage-limit", "the week is at 90% or more (scripts/usage.py exits 3): start no new order; finish and park what is running"): return
         return
@@ -1139,6 +1168,10 @@ def pretool(data, manager):
         body = " ".join(str(inp.get(k, "")) for k in ("content", "new_string", "new_source"))
         if MEMORY_DIR.search(mp) and CREW_RULE_WORDS.search(body):
             if deny("memory-rules", MEMORY_WHY): return
+    if tool in ("Write", "Edit", "MultiEdit", "NotebookEdit"):
+        _ol = board_order_lines(" ".join(str(inp.get(k, "")) for k in ("content", "new_string")))
+        if _ol and timed_wait_in_order(_ol):
+            note_add(data.get("transcript_path") or "", "note-timed-wait", TIMED_NOTE)
     if tool in ("Write", "Edit", "MultiEdit", "NotebookEdit"):
         why = crew_records_problem(first_message(data.get("transcript_path") or ""), inp.get("file_path", ""), data.get("cwd") or os.getcwd())
         if why and deny("crew-records", why): return

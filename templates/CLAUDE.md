@@ -6,6 +6,7 @@ owner disagree, the owner wins.
 ## Usage first
 Saving the owner's usage comes before everything but his words. The owner: "whatever you just did to be hyper vigilant with conserving my usage... that needs to be at the core of muster." (D-016)
 - Check with small exact commands (a count, a status code, one line), not by reading whole files or taking screenshots.
+- Prove from history, never wait on the clock: replay saved data instead of sampling for minutes.
 - Reuse proof already made: an inspector uses the free test run instead of repeating it; nobody re-runs a check already run on the same version.
 - No new chat or helper when a running one can do it.
 - Free first; money only with the owner's yes.

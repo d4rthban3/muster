@@ -60,6 +60,7 @@ Kinds: refuses = the tool call or the end of the turn is refused; note = the rep
 | `note-heading` | house rule | note | A question to the owner opens with a bold heading line. |
 | `note-badge-line` | house rule | note | A worker's news is the bold badge and one plain line. |
 | `note-card` | house rule | note | A worker's end-of-turn reply is a card: bold title, two or three bullets. |
+| `note-timed-wait` | house rule | note | An order whose Accept or Do line asks for a timed wait (minutes or hours to wait, a soak, two reads N apart) is flagged once to its writer: prove it from saved history, stored data, logs or a replay instead (item 132). A deploy's one-time verify-live and the deploy lock's wait-and-rerun stay allowed. |
 | `talk-note` | house rule | note | The owner's replies carry no bare file path or saved-version code (older switch name: `"talk_check": false`). |
 | `other-computer-news` | turn-start hook | prints | Only where `muster/computers.txt` names two computers (item 133): at the start of a chat turn, the other computer's new `CHANGES.md` lines, once per chat, at most 12 lines (it says how many were left out). Reads only; never refuses or fails a turn. A Python script (`scripts/other-computer-changes.py`), no program copy. |
 

@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.192
+Affects: the manager, the inspectors and the builders (one added line on each page; one new note, no refusal).
+prove-from-history (item 132): the pages now say "Prove from history, never wait on the clock": a check is made on saved data or a replay, not by sitting out a timer. A new note (`note-timed-wait`) tells whoever writes an order, once, when its Accept or Do line asks for a timed wait such as a 30-minute sample, with the plain fix. A deploy's one "verify live" and the deploy lock's "wait and rerun" are not flagged.
+
 ## 0.3.191
 Affects: a project that runs more than one crew (nothing changes for a one-crew project; PINR untouched).
 crew-by-list (item 134): a crew's chats are now known from the crew's own list (`muster/crews/<crew>/CREW.md`, "Running now", by chat name), so a chat the owner starts by hand under any name (made-up example: `Shapes_MyProject`) writes its own crew's records, is refused the main board and other crews' boards, and reports to its crew's manager. The name shape (`Builder A Maps_MyProject`) still works as a second way; a chat in no crew list is main crew. The lists are read live each turn (one folder listing when there are no crews). The start-the-crew skill says the manager lists hand-started chats in the crew's list. Both programs agree (the Rust build and the Python copy).

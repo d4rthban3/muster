@@ -793,7 +793,7 @@ def sends_all(path):
     return out
 
 
-TIMED_NUM = re.compile(r"\b\d+(?:\.\d+)?\s*(?:-\s*)?(?:minutes?|mins?|hours?|hrs?)\b", re.I)
+TIMED_NUM = re.compile(r"\b(?:\d+(?:\.\d+)?|one|two|three|four|five|six|seven|eight|nine|ten|twelve|fifteen|twenty|thirty|forty|forty-five|sixty|ninety|a|an|half(?: an?)?|a couple of|couple of|a few|few|several)[\s-]*(?:minutes?|mins?|hours?|hrs?)\b", re.I)
 TIMED_WORD = re.compile(r"\b(?:wait(?:s|ing)?|sampl\w*|soak\w*|watch\w*|poll\w*|observ\w*|live run|overnight|apart)\b", re.I)
 TIMED_NOTE = ("an order that asks for a timed wait (item 132): prove it from saved history, stored data, logs or a replay instead of waiting on the clock; "
               "a deploy's one-time 'verify live' and the deploy lock's 'wait and rerun' stay allowed")

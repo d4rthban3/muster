@@ -838,6 +838,10 @@ def _text_order(acc): return {"to": "local_x", "message": "To: Builder A_X\nJob:
 def _json_order(note): return {"to": "local_x", "message": json.dumps({"v": 1, "kind": "ORDER", "id": "manager-j-1", "job": "j", "from": "manager", "to": "builder-a", "need": "order", "owner_words": {"item": 132}, "owns": ["board"], "out": ["site"], "action": "start", "note": note})}
 _TW = "a timed wait"
 for _what, _tool, _inp, _hit in (("board order, 30-minute sample", "Write", _board_order("take a 30-minute sample of the live feed, then compare"), True),
+                                 ("board order, six-hour live run", "Write", _board_order("a six-hour live run"), True),
+                                 ("board order, wait half an hour", "Write", _board_order("wait half an hour, then read it"), True),
+                                 ("board order, two samples an hour apart", "Write", _board_order("take two samples an hour apart"), True),
+                                 ("board order, a few minutes of watching", "Write", _board_order("watch it for a few minutes"), True),
                                  ("board order, soak", "Write", _board_order("soak it overnight"), True),
                                  ("board order, read twice an hour apart", "Write", _board_order("read the pull twice, 1 hour apart"), True),
                                  ("board order, replay on saved data", "Write", _board_order("replay the saved log and the numbers match"), False),

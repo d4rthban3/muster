@@ -1,0 +1,28 @@
+{
+  "version": "0.3.193",
+  "changed_files": [
+    "hooks/rules-check.py",
+    "checks/src/rules.rs",
+    "scripts/rules-check-selftest.py",
+    "docs/checks.md",
+    "pages/manager.md",
+    "pages/inspector.md",
+    "pages/design-inspector.md",
+    "skills/one-order-per-piece/SKILL.md",
+    "skills/ready-checks/SKILL.md",
+    "templates/CLAUDE.md",
+    "agents/",
+    "directory/",
+    "CHANGELOG.md"
+  ],
+  "affected_roles": [
+    "Manager",
+    "Inspector",
+    "Builder"
+  ],
+  "affected_platforms": [
+    "claude-code"
+  ],
+  "records_change": false,
+  "note": "prove-from-history fix (item 132): the timed-wait note now also catches spelled-out durations (six-hour, half an hour, an hour apart, a few minutes); the manager page keeps its words again (or convenience, Risks only)."
+}

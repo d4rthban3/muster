@@ -2,6 +2,10 @@
 
 Each version names which workers it affects.
 
+## 0.3.193
+Affects: the manager and every worker that writes orders (a fix to 0.3.192).
+prove-from-history fix (item 132): the timed-wait note now also catches durations written in words ("a six-hour live run", "wait half an hour", "two samples an hour apart", "watch it for a few minutes"), not only ones with digits. Two manager-page words dropped by mistake in 0.3.192 ("or convenience", "only") are back.
+
 ## 0.3.192
 Affects: the manager, the inspectors and the builders (one added line on each page; one new note, no refusal).
 prove-from-history (item 132): the pages now say "Prove from history, never wait on the clock": a check is made on saved data or a replay, not by sitting out a timer. A new note (`note-timed-wait`) tells whoever writes an order, once, when its Accept or Do line asks for a timed wait such as a 30-minute sample, with the plain fix. A deploy's one "verify live" and the deploy lock's "wait and rerun" are not flagged.

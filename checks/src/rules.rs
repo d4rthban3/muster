@@ -283,7 +283,7 @@ const TIMED_NOTE: &str = "an order that asks for a timed wait (item 132): prove 
 // item 132, flag only: an ORDER whose Accept or Do line (or a JSON order's note) asks for a number of minutes or hours to wait, a soak, or two reads N apart
 fn timed_wait_in_order(text: &str) -> bool {
     let (lock, soak) = (rei(r"\block\b"), rei(r"\bsoak\w*\b"));
-    let num = rei(r"\b\d+(?:\.\d+)?\s*(?:-\s*)?(?:minutes?|mins?|hours?|hrs?)\b");
+    let num = rei(r"\b(?:\d+(?:\.\d+)?|one|two|three|four|five|six|seven|eight|nine|ten|twelve|fifteen|twenty|thirty|forty|forty-five|sixty|ninety|a|an|half(?: an?)?|a couple of|couple of|a few|few|several)[\s-]*(?:minutes?|mins?|hours?|hrs?)\b");
     let word = rei(r"\b(?:wait(?:s|ing)?|sampl\w*|soak\w*|watch\w*|poll\w*|observ\w*|live run|overnight|apart)\b");
     let twice = rei(r"\b(?:read|reads|pull|pulls)\b[^.\n]{0,30}\btwice\b[^.\n]{0,40}\bapart\b");
     text.lines().any(|l| !is(&lock, l) && (is(&soak, l) || (is(&num, l) && is(&word, l)) || is(&twice, l)))
